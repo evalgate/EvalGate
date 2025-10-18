@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     // List tasks with filtering
-    let query = db.select().from(annotationTasks);
+    // Build conditions array first
     const conditions = [];
 
     if (status) {
@@ -49,14 +49,19 @@ export async function GET(request: NextRequest) {
       conditions.push(like(annotationTasks.name, `%${search}%`));
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    const results = await query
-      .orderBy(desc(annotationTasks.createdAt))
-      .limit(limit)
-      .offset(offset);
+    // Execute query with or without conditions
+    const results = conditions.length > 0
+      ? await db.select()
+          .from(annotationTasks)
+          .where(and(...conditions))
+          .orderBy(desc(annotationTasks.createdAt))
+          .limit(limit)
+          .offset(offset)
+      : await db.select()
+          .from(annotationTasks)
+          .orderBy(desc(annotationTasks.createdAt))
+          .limit(limit)
+          .offset(offset);
 
     return NextResponse.json(results);
   } catch (error) {
@@ -65,13 +70,14 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     // Step 1: Check authentication and global "annotations" feature quota
-    const { user, error: authError } = await requireFeature(request as NextRequest, "annotations");
-    if (authError || !user) {
-      return authError || NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    const authResult = await requireFeature(request as unknown as NextRequest, "annotations");
+    if (!authResult.allowed) {
+      return authResult.response || NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
+    const userId = authResult.userId;
 
     const body = await request.json()
     const { 
@@ -98,7 +104,7 @@ export async function POST(request: Request) {
     }
 
     // Step 2: Check per-organization annotation limit
-    const orgLimitCheck = await requireFeature(request as NextRequest, 'annotations_per_project', 1, organizationId);
+    const orgLimitCheck = await requireFeature(request as unknown as NextRequest, 'annotations_per_project', 1);
     
     if (!orgLimitCheck.allowed) {
       return NextResponse.json({
@@ -146,31 +152,36 @@ export async function POST(request: Request) {
 
     const now = new Date().toISOString()
 
-    const newTask = await db.insert(annotationTasks).values({
+    const result = await db.insert(annotationTasks).values({
       name,
-      description,
-      instructions,
+      description: description || null,
       type,
-      organizationId,
-      status: "draft",
-      createdBy: user.id,
+      organizationId: parseInt(organizationId),
+      createdBy: userId,
+      status: 'draft',
+      annotationSettings: annotationSettings || {},
       createdAt: now,
       updatedAt: now,
-      annotation_settings: annotationSettings ? JSON.stringify(annotationSettings) : null,
-    }).returning()
+      totalItems: 0,
+      completedItems: 0
+    })
 
-    // Step 3: Track usage for BOTH global and per-organization features
-    await trackFeature(request as NextRequest, "annotations", user.id);
+    // Track feature usage
+    if (result.lastInsertRowid) {
+      await trackFeature({
+        userId,
+        featureId: 'annotations',
+        value: 1
+      });
 
-    await trackFeature({
-      userId: user.id,
-      featureId: 'annotations_per_project',
-      value: 1,
-      entityId: organizationId,
-      idempotencyKey: `annotation-org-${organizationId}-${newTask[0].id}-${Date.now()}`,
-    });
+      await trackFeature({
+        userId,
+        featureId: 'annotations_per_project',
+        value: 1
+      });
+    }
 
-    return NextResponse.json(newTask[0], { status: 201 })
+    return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error("Error creating annotation task:", error)
     return NextResponse.json(

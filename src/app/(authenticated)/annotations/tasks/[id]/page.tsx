@@ -1,9 +1,7 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -12,37 +10,71 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import Link from "next/link"
 import { ArrowLeft, Star } from "lucide-react"
 
-export default function AnnotationTaskPage({ params }: { params: { id: string } }) {
+interface TestCase {
+  name?: string
+  input?: string
+  expected_output?: string
+}
+
+interface TaskType {
+  evaluation_run_id: string
+  test_case_id: string
+  test_cases?: TestCase
+}
+
+// Updated type for Next.js 15
+type PageProps = {
+  params: Promise<{ id: string }>  // Changed: params is now a Promise
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>  // Also a Promise
+}
+
+export default function Page({ params }: PageProps) {
   const router = useRouter()
-  const [task, setTask] = useState<any>(null)
+  const [task, setTask] = useState<TaskType | null>(null)
   const [rating, setRating] = useState<number>(3)
   const [feedback, setFeedback] = useState("")
   const [labels, setLabels] = useState<Record<string, any>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [taskId, setTaskId] = useState<string | null>(null)  // New state for the unwrapped id
+
+  // Unwrap params Promise
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setTaskId(resolvedParams.id)
+    })
+  }, [params])
 
   useEffect(() => {
-    fetchTask()
-  }, [params.id])
+    if (!taskId) return  // Don't fetch until we have the id
 
-  const fetchTask = async () => {
-    try {
-      const response = await fetch(`/api/annotations/tasks/${params.id}`)
-      if (!response.ok) throw new Error("Failed to fetch task")
-      const data = await response.json()
-      setTask(data.task)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
-    } finally {
-      setIsLoading(false)
+    const fetchTask = async () => {
+      try {
+        const response = await fetch(`/api/annotations/tasks/${taskId}`)
+        if (!response.ok) throw new Error("Failed to fetch task")
+        const data = await response.json()
+        setTask(data.task)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred")
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }
+
+    fetchTask()
+  }, [taskId])  // Changed dependency to taskId
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError(null)
+
+    if (!task) {
+      setError("Task data is not available")
+      setIsSubmitting(false)
+      return
+    }
 
     try {
       const response = await fetch("/api/annotations", {
@@ -70,7 +102,7 @@ export default function AnnotationTaskPage({ params }: { params: { id: string } 
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
+        <div className="text-muted-foreground">Loading task...</div>
       </div>
     )
   }
@@ -82,6 +114,8 @@ export default function AnnotationTaskPage({ params }: { params: { id: string } 
       </div>
     )
   }
+
+  const { test_cases: testCase = {} } = task
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -97,7 +131,7 @@ export default function AnnotationTaskPage({ params }: { params: { id: string } 
 
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Annotation Task</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">{task.test_cases?.name || "Unnamed Test Case"}</p>
+        <p className="text-sm sm:text-base text-muted-foreground">{testCase?.name || "Unnamed Test Case"}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">

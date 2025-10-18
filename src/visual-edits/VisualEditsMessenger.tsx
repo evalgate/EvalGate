@@ -2034,7 +2034,15 @@ export default function HoverReceiver() {
                     style={{
                       zIndex: 100001,
                       left: box.left,
-                      top: box.top - 20,
+                      // Position below the element if it's too close to the top of the viewport
+                      top: box.top < 30 ? box.top + box.height + 4 : box.top - 20,
+                      // Add a small shadow for better visibility
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                      // Ensure text doesn't get cut off
+                      maxWidth: '200px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
                     }}
                   >
                     {hoverTag}

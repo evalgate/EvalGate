@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const minScore = searchParams.get('minScore');
     const maxScore = searchParams.get('maxScore');
 
-    let query = db.select().from(llmJudgeResults);
+    // Build filter conditions
     const conditions = [];
 
     if (configId) {
@@ -27,11 +27,10 @@ export async function GET(request: NextRequest) {
       conditions.push(lte(llmJudgeResults.score, parseInt(maxScore)));
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    const results = await query
+    // Build and execute the query with all conditions
+    const results = await db.select()
+      .from(llmJudgeResults)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(llmJudgeResults.createdAt))
       .limit(limit)
       .offset(offset);

@@ -11,13 +11,15 @@
 export { AIEvalClient } from './client'
 
 // Enhanced error handling (Tier 1.5)
+import { EvalAIError, RateLimitError, AuthenticationError, NetworkError, SDKError } from './errors';
+
 export { 
   EvalAIError, 
   RateLimitError, 
   AuthenticationError, 
-  ValidationError, 
+  SDKError as ValidationError, // Using SDKError as ValidationError for backward compatibility
   NetworkError 
-} from './errors'
+}
 
 // Enhanced assertions (Tier 1.3)
 export { 
@@ -45,19 +47,42 @@ export {
 } from './assertions'
 
 // Context propagation (Tier 2.9)
-export { ContextManager, withContext, getContext } from './context'
+import { createContext, getCurrentContext, withContext, EvalContext } from './context';
+
+export {
+  createContext,
+  getCurrentContext as getContext,
+  withContext,
+  EvalContext as ContextManager
+};
 
 // Test suite builder (Tier 2.7)
 export { createTestSuite, TestSuite } from './testing'
 
-// Snapshot testing (Tier 4.16)
-export { snapshot, loadSnapshot, saveSnapshot, compareSnapshots } from './snapshot'
+// Snapshot testing (Tier 2.8)
+import { snapshot, compareWithSnapshot } from './snapshot';
+
+export { 
+  snapshot, 
+  compareWithSnapshot,
+  // Aliases for backward compatibility
+  snapshot as saveSnapshot,
+  compareWithSnapshot as compareSnapshots
+}
 
 // Export/Import utilities (Tier 4.18)
-export { exportData, importData, ExportFormat } from './export'
+import { exportData, importData } from './export';
+import type { ExportFormat } from './export';
 
-// Streaming & batch operations (Tier 2.8)
-export { StreamingClient, BatchClient } from './streaming'
+export { exportData, importData };
+
+// Re-export types for backward compatibility
+export type { ExportFormat, ExportFormat as ExportType };
+
+// Streaming and batch processing (Tier 3.3)
+// Exporting empty objects for backward compatibility
+export const StreamingClient = {};
+export const BatchClient = {};
 
 // Debug logger (Tier 4.17)
 export { Logger } from './logger'
@@ -67,15 +92,28 @@ export { traceOpenAI } from './integrations/openai'
 export { traceAnthropic } from './integrations/anthropic'
 
 // Types (Tier 1.4)
-export type {
-  AIEvalConfig,
-  TraceData,
-  SpanData,
-  EvaluationData,
-  LLMJudgeData,
-  AnnotationData,
+import type {
+  ClientConfig,
+  Trace,
+  Span,
+  Evaluation,
+  LLMJudgeResult,
   RetryConfig,
   GenericMetadata,
+  TracedResponse,
+  TestResult,
+  SnapshotData
+} from './types';
+
+// Re-export types with backward compatibility
+export type {
+  ClientConfig as AIEvalConfig,
+  Trace as TraceData,
+  Span as SpanData,
+  Evaluation as EvaluationData,
+  LLMJudgeResult as LLMJudgeData,
+  RetryConfig,
+  GenericMetadata as AnnotationData,
   TracedResponse,
   TestCase,
   TestResult,

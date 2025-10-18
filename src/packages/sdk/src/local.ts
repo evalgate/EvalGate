@@ -5,7 +5,11 @@
 
 import fs from 'fs/promises'
 import path from 'path'
-import type { TraceData, EvaluationData, SpanData } from './types'
+import type { 
+  Trace, 
+  Evaluation, 
+  Span
+} from './types'
 
 export interface LocalStorageOptions {
   directory?: string
@@ -15,9 +19,9 @@ export interface LocalStorageOptions {
 export class LocalStorage {
   private directory: string
   private autoSave: boolean
-  private traces: Map<string, TraceData> = new Map()
-  private evaluations: Map<string, EvaluationData> = new Map()
-  private spans: Map<string, SpanData[]> = new Map()
+  private traces: Map<string, Trace> = new Map()
+  private evaluations: Map<string, Evaluation> = new Map()
+  private spans: Map<string, Span[]> = new Map()
 
   constructor(options: LocalStorageOptions = {}) {
     this.directory = options.directory || './.evalai-data'
@@ -47,8 +51,8 @@ export class LocalStorage {
       for (const file of traceFiles) {
         if (file.endsWith('.json')) {
           const content = await fs.readFile(path.join(tracesDir, file), 'utf-8')
-          const trace = JSON.parse(content) as TraceData
-          this.traces.set(trace.id, trace)
+          const trace = JSON.parse(content) as Trace
+          this.traces.set(trace.id.toString(), trace)
         }
       }
 
@@ -58,8 +62,8 @@ export class LocalStorage {
       for (const file of evalFiles) {
         if (file.endsWith('.json')) {
           const content = await fs.readFile(path.join(evalsDir, file), 'utf-8')
-          const evaluation = JSON.parse(content) as EvaluationData
-          this.evaluations.set(evaluation.id, evaluation)
+          const evaluation = JSON.parse(content) as Evaluation
+          this.evaluations.set(evaluation.id.toString(), evaluation)
         }
       }
     } catch (error) {
@@ -67,53 +71,60 @@ export class LocalStorage {
     }
   }
 
-  async saveTrace(trace: TraceData): Promise<void> {
-    this.traces.set(trace.id, trace)
-    
+  private async saveTraceToDisk(trace: Trace): Promise<void> {
+    const filePath = path.join(this.directory, 'traces', `${trace.id}.json`)
+    await fs.writeFile(filePath, JSON.stringify(trace, null, 2))
+  }
+
+  async saveTrace(trace: Trace): Promise<void> {
+    this.traces.set(trace.id.toString(), trace)
     if (this.autoSave) {
-      const filePath = path.join(this.directory, 'traces', `${trace.id}.json`)
-      await fs.writeFile(filePath, JSON.stringify(trace, null, 2))
+      await this.saveTraceToDisk(trace)
     }
   }
 
-  async getTrace(id: string): Promise<TraceData | null> {
-    return this.traces.get(id) || null
+  async getTrace(id: string): Promise<Trace | undefined> {
+    return this.traces.get(id)
   }
 
-  async listTraces(limit = 100): Promise<TraceData[]> {
-    return Array.from(this.traces.values()).slice(0, limit)
+  async listTraces(): Promise<Trace[]> {
+    return Array.from(this.traces.values())
   }
 
-  async saveEvaluation(evaluation: EvaluationData): Promise<void> {
-    this.evaluations.set(evaluation.id, evaluation)
-    
+  private async saveEvaluationToDisk(evaluation: Evaluation): Promise<void> {
+    const filePath = path.join(this.directory, 'evaluations', `${evaluation.id}.json`)
+    await fs.writeFile(filePath, JSON.stringify(evaluation, null, 2))
+  }
+
+  async saveEvaluation(evaluation: Evaluation): Promise<void> {
+    this.evaluations.set(evaluation.id.toString(), evaluation)
     if (this.autoSave) {
-      const filePath = path.join(this.directory, 'evaluations', `${evaluation.id}.json`)
-      await fs.writeFile(filePath, JSON.stringify(evaluation, null, 2))
+      await this.saveEvaluationToDisk(evaluation)
     }
   }
 
-  async getEvaluation(id: string): Promise<EvaluationData | null> {
-    return this.evaluations.get(id) || null
+  async getEvaluation(id: string): Promise<Evaluation | undefined> {
+    return this.evaluations.get(id)
   }
 
-  async listEvaluations(limit = 100): Promise<EvaluationData[]> {
-    return Array.from(this.evaluations.values()).slice(0, limit)
+  async listEvaluations(): Promise<Evaluation[]> {
+    return Array.from(this.evaluations.values())
   }
 
-  async saveSpan(traceId: string, span: SpanData): Promise<void> {
-    const existing = this.spans.get(traceId) || []
-    existing.push(span)
-    this.spans.set(traceId, existing)
-    
+  private async saveSpansToDisk(traceId: string, spans: Span[]): Promise<void> {
+    const filePath = path.join(this.directory, 'spans', `${traceId}.json`)
+    await fs.writeFile(filePath, JSON.stringify(spans, null, 2))
+  }
+
+  async saveSpans(traceId: string, spans: Span[]): Promise<void> {
+    this.spans.set(traceId, spans)
     if (this.autoSave) {
-      const filePath = path.join(this.directory, 'spans', `${traceId}.json`)
-      await fs.writeFile(filePath, JSON.stringify(existing, null, 2))
+      await this.saveSpansToDisk(traceId, spans)
     }
   }
 
-  async getSpans(traceId: string): Promise<SpanData[]> {
-    return this.spans.get(traceId) || []
+  async getSpans(traceId: string): Promise<Span[] | undefined> {
+    return this.spans.get(traceId)
   }
 
   async clear(): Promise<void> {

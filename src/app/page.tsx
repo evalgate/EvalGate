@@ -41,7 +41,7 @@ export default function HomePage() {
 
   const initials = session?.user?.name
     ?.split(" ")
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .join("")
     .toUpperCase() || session?.user?.email?.[0]?.toUpperCase() || "U"
 

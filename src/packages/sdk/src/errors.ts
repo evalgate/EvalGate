@@ -295,5 +295,35 @@ export function createErrorFromResponse(
   return new EvalAIError(message, code, status, data);
 }
 
+// Specific error types
+export class RateLimitError extends EvalAIError {
+  constructor(message: string, retryAfter?: number) {
+    super(message, 'RATE_LIMIT_EXCEEDED', 429, { retryAfter });
+    this.name = 'RateLimitError';
+  }
+}
+
+export class AuthenticationError extends EvalAIError {
+  constructor(message = 'Authentication failed') {
+    super(message, 'AUTHENTICATION_ERROR', 401);
+    this.name = 'AuthenticationError';
+  }
+}
+
+export class ValidationError extends EvalAIError {
+  constructor(message = 'Validation failed', details?: any) {
+    super(message, 'VALIDATION_ERROR', 400, details);
+    this.name = 'ValidationError';
+  }
+}
+
+export class NetworkError extends EvalAIError {
+  constructor(message = 'Network request failed') {
+    super(message, 'NETWORK_ERROR', 0);
+    this.name = 'NetworkError';
+    this.retryable = true;
+  }
+}
+
 // Legacy export for backward compatibility
 export { EvalAIError as SDKError };

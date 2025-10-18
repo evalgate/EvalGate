@@ -12,10 +12,10 @@ export async function withRateLimit(
 ) {
   try {
     // Get identifier (IP address or custom identifier)
-    const identifier = options?.customIdentifier || 
-      request.ip || 
-      request.headers.get("x-forwarded-for") || 
-      "anonymous";
+    const ip = request.headers.get('x-forwarded-for') || 
+               request.headers.get('x-real-ip') ||
+               '127.0.0.1';
+    const identifier = options?.customIdentifier || ip || "anonymous";
 
     // Determine rate limit tier
     const tier = options?.customTier || "anonymous";

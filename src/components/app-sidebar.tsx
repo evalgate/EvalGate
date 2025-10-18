@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link";
 import {
   Beaker,
   BookOpen,
@@ -33,42 +34,42 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/dashboard">
+                <Link href="/dashboard" className="flex items-center gap-2">
                   <BarChart3 />
                   <span>Dashboard</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/evaluations">
+                <Link href="/evaluations" className="flex items-center gap-2">
                   <Beaker />
                   <span>Evaluations</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/traces">
+                <Link href="/traces" className="flex items-center gap-2">
                   <FileText />
                   <span>Traces</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/llm-judge">
+                <Link href="/llm-judge" className="flex items-center gap-2">
                   <Users />
                   <span>LLM Judge</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/annotations">
+                <Link href="/annotations" className="flex items-center gap-2">
                   <Users />
                   <span>Annotations</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -78,18 +79,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/developer">
+                <Link href="/developer" className="flex items-center gap-2">
                   <Terminal />
                   <span>Developer Dashboard</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/sdk">
+                <Link href="/sdk" className="flex items-center gap-2">
                   <Package />
                   <span>SDK</span>
-                </a>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/prompts" className="flex items-center gap-2">
+                  <Terminal />
+                  <span>Prompts</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -99,34 +108,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/documentation">
+                <Link href="/documentation" className="flex items-center gap-2">
                   <BookOpen />
                   <span>Documentation</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/guides">
+                <Link href="/guides" className="flex items-center gap-2">
                   <FileText />
                   <span>Guides</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/api-reference">
+                <Link href="/api-reference" className="flex items-center gap-2">
                   <Code />
                   <span>API Reference</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/blog">
+                <Link href="/blog" className="flex items-center gap-2">
                   <Newspaper />
                   <span>Blog</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -135,10 +144,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/settings">
+                <Link href="/settings" className="flex items-center gap-2">
                   <Settings />
                   <span>Settings</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

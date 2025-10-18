@@ -79,7 +79,8 @@ export class AIEvalClient {
     this.organizationId = config.organizationId || (orgIdFromEnv ? parseInt(orgIdFromEnv, 10) : undefined);
 
     // Default to relative URLs for browser, or allow custom baseUrl
-    this.baseUrl = config.baseUrl || (typeof window !== 'undefined' ? '' : 'http://localhost:3000');
+    const isBrowser = typeof (globalThis as any).window !== 'undefined';
+    this.baseUrl = config.baseUrl || (isBrowser ? '' : 'http://localhost:3000');
     this.timeout = config.timeout || 30000;
 
     // Tier 4.17: Debug mode with request logging

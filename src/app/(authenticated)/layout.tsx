@@ -1,11 +1,33 @@
 "use client"
 
 import { redirect, useRouter } from "next/navigation"
+import dynamic from 'next/dynamic';
 import { useSession } from "@/lib/auth-client"
-import { AppSidebar } from "@/components/app-sidebar"
-import { AppHeader } from "@/components/app-header"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { useEffect, useState } from "react"
+import { SidebarInset } from "@/components/ui/sidebar"
+import { useEffect, useState, Suspense } from "react"
+import type { Organization } from "@/types"
+
+// Lazy load heavy components with proper typing
+const AppSidebar = dynamic<React.ComponentProps<typeof import('@/components/app-sidebar').AppSidebar>>(
+  () => import('@/components/app-sidebar').then(mod => mod.AppSidebar),
+  { 
+    ssr: false,
+    loading: () => <div className="w-64 bg-background border-r h-screen" />
+  }
+);
+
+const AppHeader = dynamic<React.ComponentProps<typeof import('@/components/app-header').AppHeader>>(
+  () => import('@/components/app-header').then(mod => mod.AppHeader),
+  { 
+    ssr: false,
+    loading: () => <div className="h-16 border-b w-full" />
+  }
+);
+
+const SidebarProvider = dynamic(
+  () => import('@/components/ui/sidebar').then(mod => mod.SidebarProvider),
+  { ssr: false }
+);
 
 export default function AuthenticatedLayout({
   children,
@@ -14,7 +36,7 @@ export default function AuthenticatedLayout({
 }) {
   const { data: session, isPending } = useSession()
   const router = useRouter()
-  const [organization, setOrganization] = useState<any>(null)
+  const [organization, setOrganization] = useState<Organization | null>(null)
   const [isLoadingOrg, setIsLoadingOrg] = useState(false)
 
   useEffect(() => {
@@ -68,14 +90,25 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <AppHeader user={userData} organization={organization} />
-        <main className="flex-1 overflow-y-auto bg-background p-4">
-          {children}
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <Suspense fallback={<div className="h-screen w-full bg-background" />}>
+      <SidebarProvider>
+        <div className="flex h-screen flex-col">
+          <Suspense fallback={<div className="h-16 border-b w-full" />}>
+            <AppHeader user={{
+              email: session?.user?.email,
+              name: session?.user?.name
+            }} />
+          </Suspense>
+          <div className="flex flex-1 overflow-hidden">
+            <Suspense fallback={<div className="w-64 bg-background border-r h-full" />}>
+              <AppSidebar />
+            </Suspense>
+            <SidebarInset className="flex-1 overflow-auto">
+              {children}
+            </SidebarInset>
+          </div>
+        </div>
+      </SidebarProvider>
+    </Suspense>
   )
 }

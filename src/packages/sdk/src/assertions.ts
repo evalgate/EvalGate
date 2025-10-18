@@ -459,5 +459,160 @@ export function runAssertions(assertions: (() => AssertionResult)[]): AssertionR
   });
 }
 
-// Re-export for convenience
-export type { AssertionResult };
+// Standalone assertion functions
+export function containsKeywords(text: string, keywords: string[]): boolean {
+  return keywords.every(keyword => text.toLowerCase().includes(keyword.toLowerCase()));
+}
+
+export function matchesPattern(text: string, pattern: RegExp): boolean {
+  return pattern.test(text);
+}
+
+export function hasLength(text: string, range: { min?: number; max?: number }): boolean {
+  const length = text.length;
+  if (range.min !== undefined && length < range.min) return false;
+  if (range.max !== undefined && length > range.max) return false;
+  return true;
+}
+
+export function containsJSON(text: string): boolean {
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function notContainsPII(text: string): boolean {
+  // Simple PII detection patterns
+  const piiPatterns = [
+    /\b\d{3}-\d{2}-\d{4}\b/, // SSN
+    /\b\d{3}\.\d{3}\.\d{4}\b/, // SSN with dots
+    /\b\d{10}\b/, // Phone number
+    /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/, // Email
+    /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, // IP address
+  ];
+  return !piiPatterns.some(pattern => pattern.test(text));
+}
+
+export function hasSentiment(text: string, expected: 'positive' | 'negative' | 'neutral'): boolean {
+  // This is a simplified implementation
+  const positiveWords = ['good', 'great', 'excellent', 'awesome'];
+  const negativeWords = ['bad', 'terrible', 'awful', 'poor'];
+  
+  const words = text.toLowerCase().split(/\s+/);
+  const positiveCount = words.filter(word => positiveWords.includes(word)).length;
+  const negativeCount = words.filter(word => negativeWords.includes(word)).length;
+  
+  if (expected === 'positive') return positiveCount > negativeCount;
+  if (expected === 'negative') return negativeCount > positiveCount;
+  return positiveCount === negativeCount; // neutral
+}
+
+export function similarTo(text1: string, text2: string, threshold = 0.8): boolean {
+  // Simple similarity check - in a real app, you'd use a proper string similarity algorithm
+  const words1 = new Set(text1.toLowerCase().split(/\s+/));
+  const words2 = new Set(text2.toLowerCase().split(/\s+/));
+  
+  const intersection = new Set([...words1].filter(word => words2.has(word)));
+  const union = new Set([...words1, ...words2]);
+  
+  return intersection.size / union.size >= threshold;
+}
+
+export function withinRange(value: number, min: number, max: number): boolean {
+  return value >= min && value <= max;
+}
+
+export function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+export function isValidURL(url: string): boolean {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function hasNoHallucinations(text: string, groundTruth: string[]): boolean {
+  // This is a simplified implementation
+  return groundTruth.every(truth => text.includes(truth));
+}
+
+export function matchesSchema(value: any, schema: Record<string, any>): boolean {
+  // This is a simplified implementation
+  if (typeof value !== 'object' || value === null) return false;
+  return Object.keys(schema).every(key => key in value);
+}
+
+export function hasReadabilityScore(text: string, minScore: number): boolean {
+  // This is a simplified implementation
+  const words = text.split(/\s+/).length;
+  const sentences = text.split(/[.!?]+/).length;
+  const score = 206.835 - 1.015 * (words / sentences) - 84.6 * (syllables(text) / words);
+  return score >= minScore;
+}
+
+function syllables(word: string): number {
+  // Simple syllable counter
+  word = word.toLowerCase();
+  if (word.length <= 3) return 1;
+  return word.replace(/[^aeiouy]+/g, ' ').trim().split(/\s+/).length;
+}
+
+export function containsLanguage(text: string, language: string): boolean {
+  // This is a simplified implementation
+  // In a real app, you'd use a language detection library
+  const languageKeywords: Record<string, string[]> = {
+    'en': ['the', 'and', 'you', 'that', 'was', 'for', 'are', 'with'],
+    'es': ['el', 'la', 'los', 'las', 'de', 'que', 'y', 'en'],
+    'fr': ['le', 'la', 'les', 'de', 'et', 'à', 'un', 'une'],
+  };
+  
+  const keywords = languageKeywords[language.toLowerCase()] || [];
+  return keywords.some(keyword => text.toLowerCase().includes(keyword));
+}
+
+export function hasFactualAccuracy(text: string, facts: string[]): boolean {
+  // This is a simplified implementation
+  return facts.every(fact => text.includes(fact));
+}
+
+export function respondedWithinTime(startTime: number, maxMs: number): boolean {
+  return Date.now() - startTime <= maxMs;
+}
+
+export function hasNoToxicity(text: string): boolean {
+  // This is a simplified implementation
+  const toxicWords = ['hate', 'stupid', 'idiot', 'dumb'];
+  return !toxicWords.some(word => text.toLowerCase().includes(word));
+}
+
+export function followsInstructions(text: string, instructions: string[]): boolean {
+  return instructions.every(instruction => {
+    if (instruction.startsWith('!')) {
+      return !text.includes(instruction.slice(1));
+    }
+    return text.includes(instruction);
+  });
+}
+
+export function containsAllRequiredFields(obj: any, requiredFields: string[]): boolean {
+  return requiredFields.every(field => field in obj);
+}
+
+export function hasValidCodeSyntax(code: string, language: string): boolean {
+  // This is a simplified implementation
+  // In a real app, you'd use a proper parser for each language
+  try {
+    if (language === 'json') JSON.parse(code);
+    // Add more language validations as needed
+    return true;
+  } catch {
+    return false;
+  }
+}

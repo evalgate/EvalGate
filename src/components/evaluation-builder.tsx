@@ -795,13 +795,14 @@ export function EvaluationBuilder({ onDeploy }: EvaluationBuilderProps) {
                               size="sm"
                               variant="outline"
                               onClick={() => {
-                                const currentCriteria = activeTemplateData.config.customCriteria || activeTemplateData.template.humanEvalCriteria
+                                const currentCriteria: Array<{ name: string; description: string; scale: string }> = 
+                                  activeTemplateData.config.customCriteria || activeTemplateData.template.humanEvalCriteria || [];
                                 handleUpdateTemplateConfig(activeTemplateData.id, {
                                   customCriteria: [
                                     ...currentCriteria,
                                     { name: "", description: "", scale: "1-5" }
                                   ]
-                                })
+                                });
                               }}
                               className="h-7 gap-1"
                             >
@@ -810,7 +811,7 @@ export function EvaluationBuilder({ onDeploy }: EvaluationBuilderProps) {
                             </Button>
                           </div>
                           <div className="space-y-3">
-                            {(activeTemplateData.config.customCriteria || activeTemplateData.template.humanEvalCriteria).map((criteria, i) => (
+                            {(activeTemplateData.config.customCriteria || activeTemplateData.template.humanEvalCriteria || []).map((criteria: { name: string; description: string; scale: string }, i: number) => (
                               <Card key={i} className="border-l-2 border-l-blue-500/50">
                                 <CardContent className="p-3 space-y-2">
                                   <div className="flex items-center justify-between gap-2">
@@ -821,10 +822,11 @@ export function EvaluationBuilder({ onDeploy }: EvaluationBuilderProps) {
                                       size="sm"
                                       variant="ghost"
                                       onClick={() => {
-                                        const currentCriteria = activeTemplateData.config.customCriteria || activeTemplateData.template.humanEvalCriteria
+                                        const currentCriteria: Array<{ name: string; description: string; scale: string }> = 
+                                            activeTemplateData.config.customCriteria || activeTemplateData.template.humanEvalCriteria || [];
                                         handleUpdateTemplateConfig(activeTemplateData.id, {
                                           customCriteria: currentCriteria.filter((_, idx) => idx !== i)
-                                        })
+                                        });
                                       }}
                                       className="h-6 w-6 p-0 text-destructive hover:text-destructive"
                                     >
@@ -838,7 +840,8 @@ export function EvaluationBuilder({ onDeploy }: EvaluationBuilderProps) {
                                         placeholder="e.g., Tone & Voice"
                                         value={criteria.name}
                                         onChange={(e) => {
-                                          const currentCriteria = activeTemplateData.config.customCriteria || [...activeTemplateData.template.humanEvalCriteria]
+                                          const currentCriteria = activeTemplateData.config.customCriteria || 
+                                            (activeTemplateData.template.humanEvalCriteria ? [...activeTemplateData.template.humanEvalCriteria] : [])
                                           currentCriteria[i] = { ...currentCriteria[i], name: e.target.value }
                                           handleUpdateTemplateConfig(activeTemplateData.id, { customCriteria: currentCriteria })
                                         }}
@@ -851,7 +854,8 @@ export function EvaluationBuilder({ onDeploy }: EvaluationBuilderProps) {
                                         placeholder="What aspect should evaluators assess?"
                                         value={criteria.description}
                                         onChange={(e) => {
-                                          const currentCriteria = activeTemplateData.config.customCriteria || [...activeTemplateData.template.humanEvalCriteria]
+                                          const currentCriteria = activeTemplateData.config.customCriteria || 
+                                            (activeTemplateData.template.humanEvalCriteria ? [...activeTemplateData.template.humanEvalCriteria] : [])
                                           currentCriteria[i] = { ...currentCriteria[i], description: e.target.value }
                                           handleUpdateTemplateConfig(activeTemplateData.id, { customCriteria: currentCriteria })
                                         }}
@@ -865,7 +869,8 @@ export function EvaluationBuilder({ onDeploy }: EvaluationBuilderProps) {
                                         placeholder="e.g., 1-5, Pass/Fail, Poor/Good/Excellent"
                                         value={criteria.scale}
                                         onChange={(e) => {
-                                          const currentCriteria = activeTemplateData.config.customCriteria || [...activeTemplateData.template.humanEvalCriteria]
+                                          const currentCriteria = activeTemplateData.config.customCriteria || 
+                                            (activeTemplateData.template.humanEvalCriteria ? [...activeTemplateData.template.humanEvalCriteria] : [])
                                           currentCriteria[i] = { ...currentCriteria[i], scale: e.target.value }
                                           handleUpdateTemplateConfig(activeTemplateData.id, { customCriteria: currentCriteria })
                                         }}

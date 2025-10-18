@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
@@ -8,7 +9,12 @@ import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
-export default function TraceDetailPage({ params }: { params: { id: string } }) {
+type PageProps = {
+  params: Promise<{ id: string }>
+}
+
+export default function TraceDetailPage({ params }: PageProps) {
+  const { id } = use(params)
   const { data: session, isPending } = useSession()
   const router = useRouter()
   const [trace, setTrace] = useState<any>(null)
@@ -25,8 +31,7 @@ export default function TraceDetailPage({ params }: { params: { id: string } }) 
     if (session?.user) {
       const token = localStorage.getItem("bearer_token")
       
-      // Fetch trace
-      fetch(`/api/traces/${params.id}`, {
+      fetch(`/api/traces/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
@@ -38,8 +43,7 @@ export default function TraceDetailPage({ params }: { params: { id: string } }) 
           }
         })
 
-      // Fetch spans
-      fetch(`/api/traces/${params.id}/spans`, {
+      fetch(`/api/traces/${id}/spans`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
@@ -47,7 +51,6 @@ export default function TraceDetailPage({ params }: { params: { id: string } }) 
           const fetchedSpans = data.spans || []
           setSpans(fetchedSpans)
           
-          // Build span tree
           const spanMap = new Map()
           const roots: any[] = []
 
@@ -73,7 +76,7 @@ export default function TraceDetailPage({ params }: { params: { id: string } }) 
           setIsLoading(false)
         })
     }
-  }, [session, isPending, router, params.id])
+  }, [session, isPending, router, id])
 
   if (isPending || !session?.user || isLoading || !trace) {
     return null
@@ -93,9 +96,8 @@ export default function TraceDetailPage({ params }: { params: { id: string } }) 
         </Button>
       </div>
 
-      {/* Trace Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">{ trace.name}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">{trace.name}</h1>
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -121,7 +123,6 @@ export default function TraceDetailPage({ params }: { params: { id: string } }) 
         )}
       </div>
 
-      {/* Stats */}
       <div className="grid gap-3 sm:gap-4 grid-cols-3">
         <Card>
           <CardHeader className="pb-2 sm:pb-3">
@@ -151,7 +152,6 @@ export default function TraceDetailPage({ params }: { params: { id: string } }) 
         </Card>
       </div>
 
-      {/* Spans Timeline */}
       <Card>
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="text-base sm:text-lg">Span Timeline</CardTitle>
@@ -219,7 +219,6 @@ function SpanNode({ span, level }: { span: any; level: number }) {
           </div>
         </div>
 
-        {/* Input/Output Preview */}
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <div>
             <div className="text-xs font-medium text-muted-foreground mb-1">Input</div>
@@ -238,7 +237,6 @@ function SpanNode({ span, level }: { span: any; level: number }) {
         </div>
       </div>
 
-      {/* Render children */}
       {span.children && span.children.length > 0 && (
         <div className="space-y-2">
           {span.children.map((child: any) => (

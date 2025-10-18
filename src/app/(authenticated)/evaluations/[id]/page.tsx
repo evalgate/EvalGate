@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from 'react'  // Add this import
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,7 +10,13 @@ import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
-export default function EvaluationDetailPage({ params }: { params: { id: string } }) {
+// Update type
+type PageProps = {
+  params: Promise<{ id: string }>
+}
+
+export default function EvaluationDetailPage({ params }: PageProps) {
+  const { id } = use(params)  // Unwrap Promise with use()
   const { data: session, isPending } = useSession()
   const router = useRouter()
   const [evaluation, setEvaluation] = useState<any>(null)
@@ -27,7 +34,7 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
       const token = localStorage.getItem("bearer_token")
       
       // Fetch evaluation
-      fetch(`/api/evaluations/${params.id}`, {
+      fetch(`/api/evaluations/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
@@ -40,14 +47,14 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
         })
 
       // Fetch test cases
-      fetch(`/api/evaluations/${params.id}/test-cases`, {
+      fetch(`/api/evaluations/${id}/test-cases`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
         .then(data => setTestCases(data.testCases || []))
 
       // Fetch runs
-      fetch(`/api/evaluations/${params.id}/runs`, {
+      fetch(`/api/evaluations/${id}/runs`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
@@ -56,7 +63,7 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
           setIsLoading(false)
         })
     }
-  }, [session, isPending, router, params.id])
+  }, [session, isPending, router, id])  // Changed from params.id to id
 
   if (isPending || !session?.user || isLoading || !evaluation) {
     return null

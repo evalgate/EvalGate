@@ -53,7 +53,7 @@ export function PlanUsageIndicator() {
                   "Unlimited"
                 ) : (
                   <>
-                    {tracesFeature.usage.toLocaleString()} / {tracesFeature.included_usage.toLocaleString()}
+                    {(tracesFeature.usage || 0).toLocaleString()} / {(tracesFeature.included_usage || 0).toLocaleString()}
                   </>
                 )}
               </span>
@@ -61,11 +61,11 @@ export function PlanUsageIndicator() {
             {!tracesFeature.unlimited && (
               <>
                 <Progress 
-                  value={(tracesFeature.usage / tracesFeature.included_usage) * 100} 
+                  value={((tracesFeature.usage || 0) / (tracesFeature.included_usage || 1)) * 100} 
                   className="h-2"
                 />
                 <p className="text-xs text-muted-foreground">
-                  {tracesFeature.balance.toLocaleString()} traces remaining this month
+                  {(tracesFeature.balance || 0).toLocaleString()} traces remaining this month
                 </p>
               </>
             )}
@@ -82,7 +82,7 @@ export function PlanUsageIndicator() {
                   "Unlimited"
                 ) : (
                   <>
-                    {projectsFeature.usage} / {projectsFeature.included_usage}
+                    {(projectsFeature.usage || 0).toLocaleString()} / {(projectsFeature.included_usage || 0).toLocaleString()}
                   </>
                 )}
               </span>
@@ -90,7 +90,7 @@ export function PlanUsageIndicator() {
             {!projectsFeature.unlimited && (
               <>
                 <Progress 
-                  value={(projectsFeature.usage / projectsFeature.included_usage) * 100} 
+                  value={((projectsFeature.usage || 0) / (projectsFeature.included_usage || 1)) * 100} 
                   className="h-2"
                 />
                 <p className="text-xs text-muted-foreground">

@@ -174,15 +174,19 @@ program
     
     const client = AIEvalClient.init(config)
     
-    console.log(`📥 Exporting ${options.type} as ${options.format}...`)
+    console.log(`📥 Exporting data as ${options.format}...`)
     
-    await exportData(
-      { traces: [], evaluations: [] },
-      options.format,
-      options.output
-    )
+    const data = await exportData(client, {
+      format: options.format as 'json' | 'csv' | 'jsonl',
+      includeTraces: true,
+      includeEvaluations: true
+    });
     
-    console.log(`✅ Data exported to ${options.output}`)
+    // Save to file
+    const outputPath = path.resolve(process.cwd(), options.output);
+    await fs.writeFile(outputPath, JSON.stringify(data, null, 2));
+    
+    console.log(`✅ Data exported to ${outputPath}`)
   })
 
 // Dev server

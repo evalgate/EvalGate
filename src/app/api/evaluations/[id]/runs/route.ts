@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { evaluationRuns } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -20,13 +20,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const offset = parseInt(searchParams.get('offset') || '0');
     const status = searchParams.get('status');
 
+    // Build the where conditions
+    const conditions = [eq(evaluationRuns.evaluationId, evaluationId)];
+    if (status) {
+      conditions.push(eq(evaluationRuns.status, status));
+    }
+    
+    // Apply all conditions at once
     let query = db.select()
       .from(evaluationRuns)
-      .where(eq(evaluationRuns.evaluationId, evaluationId));
-
-    if (status) {
-      query = query.where(eq(evaluationRuns.status, status));
-    }
+      .where(conditions.length > 1 ? and(...conditions) : conditions[0]);
 
     const runs = await query
       .orderBy(desc(evaluationRuns.createdAt))

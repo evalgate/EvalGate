@@ -24,6 +24,11 @@
 import type { AIEvalClient } from './client';
 import type { Trace, Evaluation, TestCase, EvaluationRun } from './types';
 
+export type ExportFormat = 'json' | 'csv' | 'jsonl';
+
+// Re-export for backward compatibility
+export type { ExportFormat as ExportType };
+
 export interface ExportOptions {
   /** Export format */
   format: 'json' | 'csv' | 'jsonl';

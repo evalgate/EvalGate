@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useEffect } from "react"
+import { use, useState, useEffect } from "react"
+import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -35,7 +35,7 @@ export default function NewEvaluationPage() {
   useEffect(() => {
     if (!isLoadingCustomer && customer) {
       const projectsFeature = customer.features?.projects
-      if (projectsFeature && !projectsFeature.unlimited) {
+      if (projectsFeature && !projectsFeature.unlimited && typeof projectsFeature.balance === 'number') {
         const canCreate = projectsFeature.balance > 0
         setCanCreateProject(canCreate)
       }
@@ -88,8 +88,8 @@ export default function NewEvaluationPage() {
       // Step 2: Check feature allowance
       updateStepStatus("limits", "in-progress")
       if (!isLoadingCustomer && customer) {
-        const { allowed } = await check({ featureId: "projects", requiredBalance: 1 })
-        if (!allowed) {
+        const result = await check({ featureId: "projects", requiredBalance: 1 })
+        if (result && 'success' in result && !result.success) {
           updateStepStatus("limits", "error", "Project limit reached. Please upgrade your plan.")
           toast.error("Project limit reached. Please upgrade your plan to create more projects.")
           return

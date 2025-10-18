@@ -45,8 +45,6 @@ export async function GET(request: NextRequest) {
     const model = searchParams.get('model');
     const search = searchParams.get('search');
 
-    let query = db.select().from(llmJudgeConfigs);
-
     // Build filter conditions
     const conditions = [];
 
@@ -62,12 +60,11 @@ export async function GET(request: NextRequest) {
       conditions.push(like(llmJudgeConfigs.name, `%${search}%`));
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    const results = await query
-      .orderBy(desc(llmJudgeConfigs.createdAt))
+    // Build and execute the query with all conditions
+    const results = await db.select()
+      .from(llmJudgeConfigs)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(llmJudgeConfigs.updatedAt))
       .limit(limit)
       .offset(offset);
 

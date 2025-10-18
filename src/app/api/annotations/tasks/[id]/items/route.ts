@@ -46,29 +46,21 @@ export async function GET(
       );
     }
 
-    let query = db
-      .select()
-      .from(annotationItems)
-      .where(eq(annotationItems.taskId, taskId));
+    // Build conditions array
+    const conditions = [eq(annotationItems.taskId, taskId)];
 
     // Apply annotated filter if provided
     if (annotatedParam === 'true') {
-      query = query.where(
-        and(
-          eq(annotationItems.taskId, taskId),
-          isNotNull(annotationItems.annotatedBy)
-        )
-      );
+      conditions.push(isNotNull(annotationItems.annotatedBy));
     } else if (annotatedParam === 'false') {
-      query = query.where(
-        and(
-          eq(annotationItems.taskId, taskId),
-          isNull(annotationItems.annotatedBy)
-        )
-      );
+      conditions.push(isNull(annotationItems.annotatedBy));
     }
 
-    const items = await query
+    // Execute query with combined conditions
+    const items = await db
+      .select()
+      .from(annotationItems)
+      .where(and(...conditions))
       .orderBy(asc(annotationItems.createdAt))
       .limit(limit)
       .offset(offset);

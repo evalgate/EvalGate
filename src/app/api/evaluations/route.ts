@@ -40,7 +40,6 @@ export async function GET(request: NextRequest) {
     }
 
     // List evaluations with filtering
-    let query = db.select().from(evaluations);
     const conditions = [];
 
     if (organizationId) {
@@ -59,8 +58,13 @@ export async function GET(request: NextRequest) {
       conditions.push(like(evaluations.name, `%${search}%`));
     }
 
+    // Build the query with all conditions
+    const query = db.select()
+      .from(evaluations)
+      .$dynamic();
+
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query.where(and(...conditions));
     }
 
     const results = await query
@@ -112,7 +116,7 @@ export async function POST(request: Request) {
     }
 
     // Step 2: Check per-organization evaluation limit
-    const orgLimitCheck = await requireFeature(request, 'evals_per_project', 1, organizationId);
+    const orgLimitCheck = await requireFeature(request, 'evals_per_project', 1);
     
     if (!orgLimitCheck.allowed) {
       return NextResponse.json({
@@ -173,33 +177,44 @@ export async function POST(request: Request) {
       name,
       description,
       type,
-      organizationId,
+      organizationId: organizationId || null,
       status: "draft",
       createdBy: userId,
       createdAt: now,
       updatedAt: now,
-      execution_settings: executionSettings ? JSON.stringify(executionSettings) : null,
-      model_settings: modelSettings ? JSON.stringify(modelSettings) : null,
-      custom_metrics: customMetrics ? JSON.stringify(customMetrics) : null,
-    }).returning()
+      executionSettings: executionSettings ? JSON.stringify(executionSettings) : null,
+      modelSettings: modelSettings ? JSON.stringify(modelSettings) : null,
+      customMetrics: customMetrics ? JSON.stringify(customMetrics) : null,
+    }).returning().get()
 
-    // Step 3: Track usage for BOTH global and per-organization features
-    await trackFeature({
-      userId,
-      featureId: 'projects',
-      value: 1,
-      idempotencyKey: `evaluation-${newEvaluation[0].id}-${Date.now()}`,
-    });
+    if (newEvaluation) {
+      // Track the evaluation creation event
+      await trackFeature({
+        userId,
+        featureId: 'evaluation_created',
+        value: 1,
+        idempotencyKey: `evaluation-${newEvaluation.id}-${Date.now()}`
+      });
 
-    await trackFeature({
-      userId,
-      featureId: 'evals_per_project',
-      value: 1,
-      entityId: organizationId,
-      idempotencyKey: `eval-org-${organizationId}-${newEvaluation[0].id}-${Date.now()}`,
-    });
+      // Track project usage if organization ID is present
+      if (organizationId) {
+        await trackFeature({
+          userId,
+          featureId: 'projects',
+          value: 1,
+          idempotencyKey: `project-${organizationId}-${Date.now()}`
+        });
 
-    return NextResponse.json(newEvaluation[0], { status: 201 })
+        await trackFeature({
+          userId,
+          featureId: 'evals_per_project',
+          value: 1,
+          idempotencyKey: `eval-org-${organizationId}-${newEvaluation.id}-${Date.now()}`
+        });
+      }
+    }
+
+    return NextResponse.json(newEvaluation, { status: 201 })
   } catch (error) {
     console.error("Error creating evaluation:", error)
     return NextResponse.json(

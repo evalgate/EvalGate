@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server"
 import { db } from '@/db'
 import { humanAnnotations, user, testCases, annotationTasks } from '@/db/schema'
-import { eq, desc } from 'drizzle-orm'
+import { eq, desc, and } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
@@ -16,7 +16,16 @@ export async function GET(request: NextRequest) {
     const evaluationRunId = searchParams.get("evaluationRunId")
     const testCaseId = searchParams.get("testCaseId")
 
-    // Build base query
+    // Build conditions array
+    const conditions = []
+    if (evaluationRunId) {
+      conditions.push(eq(humanAnnotations.evaluationRunId, parseInt(evaluationRunId)))
+    }
+    if (testCaseId) {
+      conditions.push(eq(humanAnnotations.testCaseId, parseInt(testCaseId)))
+    }
+
+    // Build query with conditions
     let query = db
       .select({
         id: humanAnnotations.id,
@@ -41,21 +50,15 @@ export async function GET(request: NextRequest) {
       .leftJoin(user, eq(humanAnnotations.annotatorId, user.id))
       .leftJoin(testCases, eq(humanAnnotations.testCaseId, testCases.id))
 
-    // Apply filters
-    const conditions = []
-    if (evaluationRunId) {
-      conditions.push(eq(humanAnnotations.evaluationRunId, parseInt(evaluationRunId)))
-    }
-    if (testCaseId) {
-      conditions.push(eq(humanAnnotations.testCaseId, parseInt(testCaseId)))
-    }
-
+    // Apply conditions if any exist
     let annotations
     if (conditions.length > 0) {
-      const { and } = await import('drizzle-orm')
-      annotations = await query.where(and(...conditions)).orderBy(desc(humanAnnotations.createdAt))
+      annotations = await query
+        .where(and(...conditions))
+        .orderBy(desc(humanAnnotations.createdAt))
     } else {
-      annotations = await query.orderBy(desc(humanAnnotations.createdAt))
+      annotations = await query
+        .orderBy(desc(humanAnnotations.createdAt))
     }
 
     // Format response to match Supabase structure

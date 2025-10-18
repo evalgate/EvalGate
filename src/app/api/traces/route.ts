@@ -8,7 +8,7 @@ import { getRateLimitTier } from '@/lib/rate-limit';
 import * as Sentry from '@sentry/nextjs';
 
 export async function GET(request: NextRequest) {
-  return withRateLimit(request, async (req) => {
+  return withRateLimit(request, async (req: NextRequest) => {
     try {
       const { searchParams } = new URL(req.url);
       const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
       const status = searchParams.get('status');
       const search = searchParams.get('search');
 
-      let query = db.select().from(traces);
       const conditions = [];
 
       if (organizationId) {
@@ -32,11 +31,10 @@ export async function GET(request: NextRequest) {
         conditions.push(like(traces.name, `%${search}%`));
       }
 
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-      }
-
-      const results = await query
+      // Build and execute the query with all conditions
+      const results = await db.select()
+        .from(traces)
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
         .orderBy(desc(traces.createdAt))
         .limit(limit)
         .offset(offset);
@@ -47,16 +45,22 @@ export async function GET(request: NextRequest) {
       console.error('GET error:', error);
       return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
     }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }, { customTier: 'free' });
 }
 
 export async function POST(request: NextRequest) {
-  return withRateLimit(request, async (req) => {
+  return withRateLimit(request, async (req: NextRequest) => {
     // Step 1: Check authentication and global feature allowance
     const featureCheck = await requireFeature(req, 'traces', 1);
     
     if (!featureCheck.allowed) {
-      return featureCheck.response;
+      // Convert Response to NextResponse
+      const responseData = await featureCheck.response.json();
+      return NextResponse.json(responseData, { 
+        status: featureCheck.response.status,
+        headers: Object.fromEntries(featureCheck.response.headers.entries())
+      });
     }
 
     const userId = featureCheck.userId;
@@ -73,7 +77,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Step 2: Check per-organization trace limit
-      const orgLimitCheck = await requireFeature(req, 'traces_per_project', 1, organizationId);
+      const orgLimitCheck = await requireFeature(req, 'traces_per_project', 1);
       
       if (!orgLimitCheck.allowed) {
         return NextResponse.json({
@@ -103,11 +107,11 @@ export async function POST(request: NextRequest) {
         idempotencyKey: `trace-${newTrace[0].id}-${Date.now()}`,
       });
 
+// Track per-organization trace usage
       await trackFeature({
         userId,
         featureId: 'traces_per_project',
         value: 1,
-        entityId: organizationId,
         idempotencyKey: `trace-org-${organizationId}-${newTrace[0].id}-${Date.now()}`,
       });
 
@@ -121,7 +125,19 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  return withRateLimit(request, async (req) => {
+  return withRateLimit(request, async (req: NextRequest) => {
+    // Check authentication and feature allowance first
+    const featureCheck = await requireFeature(req, 'trace_deletion', 1);
+    
+    if (!featureCheck.allowed) {
+      // Convert Response to NextResponse
+      const responseData = await featureCheck.response.json();
+      return NextResponse.json(responseData, { 
+        status: featureCheck.response.status,
+        headers: Object.fromEntries(featureCheck.response.headers.entries())
+      });
+    }
+
     try {
       const { searchParams } = new URL(req.url);
       const id = searchParams.get('id');

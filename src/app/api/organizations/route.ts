@@ -43,13 +43,10 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
     const search = searchParams.get('search');
 
-    let query = db.select().from(organizations);
-
-    if (search) {
-      query = query.where(like(organizations.name, `%${search}%`));
-    }
-
-    const results = await query
+    // Build and execute the query with search condition
+    const results = await db.select()
+      .from(organizations)
+      .where(search ? like(organizations.name, `%${search}%`) : undefined)
       .orderBy(desc(organizations.createdAt))
       .limit(limit)
       .offset(offset);

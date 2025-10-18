@@ -306,3 +306,81 @@ export class SDKError extends Error {
     this.details = details;
   }
 }
+
+// Additional type definitions
+export type AIEvalConfig = ClientConfig;
+export type TraceData<TMetadata = any> = Trace<TMetadata>;
+export type SpanData<TMetadata = any> = Span<TMetadata>;
+export type EvaluationData<TMetadata = any> = Evaluation<TMetadata>;
+export type LLMJudgeData = LLMJudgeResult;
+export type AnnotationData = any;
+
+export interface RetryConfig {
+  maxAttempts?: number;
+  backoff?: 'exponential' | 'linear' | 'fixed';
+  retryableErrors?: string[];
+}
+
+export interface GenericMetadata {
+  [key: string]: any;
+}
+
+export interface TracedResponse<T> {
+  data: T;
+  traceId?: string;
+  metadata?: GenericMetadata;
+}
+
+export interface TestResult {
+  passed: boolean;
+  message?: string;
+  expected?: any;
+  actual?: any;
+  metadata?: GenericMetadata;
+}
+
+export interface SnapshotData {
+  id: string;
+  name: string;
+  data: any;
+  metadata?: GenericMetadata;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExportOptions {
+  format: 'json' | 'csv' | 'jsonl';
+  includeTraces?: boolean;
+  includeEvaluations?: boolean;
+  includeTestCases?: boolean;
+  includeRuns?: boolean;
+  dateRange?: {
+    from: string;
+    to: string;
+  };
+  organizationId?: number;
+  limit?: number;
+}
+
+export interface ImportOptions {
+  organizationId?: number;
+  createdBy?: number;
+  skipDuplicates?: boolean;
+  dryRun?: boolean;
+}
+
+export interface StreamOptions {
+  onData: (data: any) => void;
+  onError?: (error: Error) => void;
+  onComplete?: () => void;
+  signal?: AbortSignal;
+}
+
+export interface BatchOptions {
+  batchSize?: number;
+  concurrency?: number;
+  onProgress?: (progress: { processed: number; total: number }) => void;
+  signal?: AbortSignal;
+}
+
+export type ExportFormat = 'json' | 'csv' | 'jsonl';
