@@ -16,6 +16,41 @@ import {
   Span,
   CreateSpanParams,
   OrganizationLimits,
+  // Annotations
+  Annotation,
+  CreateAnnotationParams,
+  ListAnnotationsParams,
+  AnnotationTask,
+  CreateAnnotationTaskParams,
+  ListAnnotationTasksParams,
+  AnnotationItem,
+  CreateAnnotationItemParams,
+  ListAnnotationItemsParams,
+  // Developer
+  APIKey,
+  APIKeyWithSecret,
+  CreateAPIKeyParams,
+  UpdateAPIKeyParams,
+  ListAPIKeysParams,
+  APIKeyUsage,
+  Webhook,
+  CreateWebhookParams,
+  UpdateWebhookParams,
+  ListWebhooksParams,
+  WebhookDelivery,
+  ListWebhookDeliveriesParams,
+  UsageStats,
+  GetUsageParams,
+  UsageSummary,
+  // LLM Judge Extended
+  LLMJudgeConfig,
+  CreateLLMJudgeConfigParams,
+  ListLLMJudgeConfigsParams,
+  ListLLMJudgeResultsParams,
+  LLMJudgeAlignment,
+  GetLLMJudgeAlignmentParams,
+  // Organizations
+  Organization,
 } from './types';
 import { EvalAIError, createErrorFromResponse } from './errors';
 import { Logger, createLogger, RequestLogger } from './logger';
@@ -61,6 +96,9 @@ export class AIEvalClient {
   public traces: TraceAPI;
   public evaluations: EvaluationAPI;
   public llmJudge: LLMJudgeAPI;
+  public annotations: AnnotationsAPI;
+  public developer: DeveloperAPI;
+  public organizations: OrganizationsAPI;
 
   constructor(config: ClientConfig = {}) {
     // Tier 1.1: Zero-config with env variable detection
@@ -108,6 +146,9 @@ export class AIEvalClient {
     this.traces = new TraceAPI(this);
     this.evaluations = new EvaluationAPI(this);
     this.llmJudge = new LLMJudgeAPI(this);
+    this.annotations = new AnnotationsAPI(this);
+    this.developer = new DeveloperAPI(this);
+    this.organizations = new OrganizationsAPI(this);
 
     this.logger.info('SDK initialized', {
       hasOrganizationId: !!this.organizationId,
@@ -514,5 +555,348 @@ class LLMJudgeAPI {
         body: JSON.stringify(params),
       }
     );
+  }
+
+  /**
+   * Create an LLM judge configuration
+   */
+  async createConfig(params: CreateLLMJudgeConfigParams): Promise<LLMJudgeConfig> {
+    return this.client.request<LLMJudgeConfig>('/api/llm-judge/configs', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * List LLM judge configurations
+   */
+  async listConfigs(params: ListLLMJudgeConfigsParams = {}): Promise<LLMJudgeConfig[]> {
+    const searchParams = new URLSearchParams();
+    if (params.organizationId) searchParams.set('organizationId', params.organizationId.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.offset) searchParams.set('offset', params.offset.toString());
+
+    const query = searchParams.toString();
+    const endpoint = query ? `/api/llm-judge/configs?${query}` : '/api/llm-judge/configs';
+
+    return this.client.request<LLMJudgeConfig[]>(endpoint);
+  }
+
+  /**
+   * List LLM judge results
+   */
+  async listResults(params: ListLLMJudgeResultsParams = {}): Promise<LLMJudgeResult[]> {
+    const searchParams = new URLSearchParams();
+    if (params.configId) searchParams.set('configId', params.configId.toString());
+    if (params.evaluationId) searchParams.set('evaluationId', params.evaluationId.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.offset) searchParams.set('offset', params.offset.toString());
+
+    const query = searchParams.toString();
+    const endpoint = query ? `/api/llm-judge/results?${query}` : '/api/llm-judge/results';
+
+    return this.client.request<LLMJudgeResult[]>(endpoint);
+  }
+
+  /**
+   * Get alignment analysis
+   */
+  async getAlignment(params: GetLLMJudgeAlignmentParams): Promise<LLMJudgeAlignment> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('configId', params.configId.toString());
+    if (params.startDate) searchParams.set('startDate', params.startDate);
+    if (params.endDate) searchParams.set('endDate', params.endDate);
+
+    const query = searchParams.toString();
+    return this.client.request<LLMJudgeAlignment>(`/api/llm-judge/alignment?${query}`);
+  }
+}
+
+/**
+ * Annotations API methods
+ */
+class AnnotationsAPI {
+  public readonly tasks: AnnotationTasksAPI;
+
+  constructor(private client: AIEvalClient) {
+    this.tasks = new AnnotationTasksAPI(client);
+  }
+
+  /**
+   * Create an annotation
+   */
+  async create(params: CreateAnnotationParams): Promise<Annotation> {
+    return this.client.request<{ annotation: Annotation }>('/api/annotations', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    }).then(res => res.annotation);
+  }
+
+  /**
+   * List annotations
+   */
+  async list(params: ListAnnotationsParams = {}): Promise<Annotation[]> {
+    const searchParams = new URLSearchParams();
+    if (params.evaluationRunId) searchParams.set('evaluationRunId', params.evaluationRunId.toString());
+    if (params.testCaseId) searchParams.set('testCaseId', params.testCaseId.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.offset) searchParams.set('offset', params.offset.toString());
+
+    const query = searchParams.toString();
+    const endpoint = query ? `/api/annotations?${query}` : '/api/annotations';
+
+    return this.client.request<{ annotations: Annotation[] }>(endpoint).then(res => res.annotations);
+  }
+}
+
+/**
+ * Annotation Tasks API methods
+ */
+class AnnotationTasksAPI {
+  public readonly items: AnnotationTaskItemsAPI;
+
+  constructor(private client: AIEvalClient) {
+    this.items = new AnnotationTaskItemsAPI(client);
+  }
+
+  /**
+   * Create an annotation task
+   */
+  async create(params: CreateAnnotationTaskParams): Promise<AnnotationTask> {
+    return this.client.request<AnnotationTask>('/api/annotations/tasks', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * List annotation tasks
+   */
+  async list(params: ListAnnotationTasksParams = {}): Promise<AnnotationTask[]> {
+    const searchParams = new URLSearchParams();
+    if (params.organizationId) searchParams.set('organizationId', params.organizationId.toString());
+    if (params.status) searchParams.set('status', params.status);
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.offset) searchParams.set('offset', params.offset.toString());
+
+    const query = searchParams.toString();
+    const endpoint = query ? `/api/annotations/tasks?${query}` : '/api/annotations/tasks';
+
+    return this.client.request<AnnotationTask[]>(endpoint);
+  }
+
+  /**
+   * Get an annotation task
+   */
+  async get(taskId: number): Promise<AnnotationTask> {
+    return this.client.request<AnnotationTask>(`/api/annotations/tasks/${taskId}`);
+  }
+}
+
+/**
+ * Annotation Task Items API methods
+ */
+class AnnotationTaskItemsAPI {
+  constructor(private client: AIEvalClient) {}
+
+  /**
+   * Create an annotation item
+   */
+  async create(taskId: number, params: CreateAnnotationItemParams): Promise<AnnotationItem> {
+    return this.client.request<AnnotationItem>(`/api/annotations/tasks/${taskId}/items`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * List annotation items
+   */
+  async list(taskId: number, params: ListAnnotationItemsParams = {}): Promise<AnnotationItem[]> {
+    const searchParams = new URLSearchParams();
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.offset) searchParams.set('offset', params.offset.toString());
+
+    const query = searchParams.toString();
+    const endpoint = query ? `/api/annotations/tasks/${taskId}/items?${query}` : `/api/annotations/tasks/${taskId}/items`;
+
+    return this.client.request<AnnotationItem[]>(endpoint);
+  }
+}
+
+/**
+ * Developer API methods
+ */
+class DeveloperAPI {
+  public readonly apiKeys: APIKeysAPI;
+  public readonly webhooks: WebhooksAPI;
+
+  constructor(private client: AIEvalClient) {
+    this.apiKeys = new APIKeysAPI(client);
+    this.webhooks = new WebhooksAPI(client);
+  }
+
+  /**
+   * Get usage statistics
+   */
+  async getUsage(params: GetUsageParams): Promise<UsageStats> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('organizationId', params.organizationId.toString());
+    if (params.startDate) searchParams.set('startDate', params.startDate);
+    if (params.endDate) searchParams.set('endDate', params.endDate);
+
+    const query = searchParams.toString();
+    return this.client.request<UsageStats>(`/api/developer/usage?${query}`);
+  }
+
+  /**
+   * Get usage summary
+   */
+  async getUsageSummary(organizationId: number): Promise<UsageSummary> {
+    return this.client.request<UsageSummary>(`/api/developer/usage/summary?organizationId=${organizationId}`);
+  }
+}
+
+/**
+ * API Keys API methods
+ */
+class APIKeysAPI {
+  constructor(private client: AIEvalClient) {}
+
+  /**
+   * Create an API key
+   */
+  async create(params: CreateAPIKeyParams): Promise<APIKeyWithSecret> {
+    return this.client.request<APIKeyWithSecret>('/api/developer/api-keys', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * List API keys
+   */
+  async list(params: ListAPIKeysParams = {}): Promise<APIKey[]> {
+    const searchParams = new URLSearchParams();
+    if (params.organizationId) searchParams.set('organizationId', params.organizationId.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.offset) searchParams.set('offset', params.offset.toString());
+
+    const query = searchParams.toString();
+    const endpoint = query ? `/api/developer/api-keys?${query}` : '/api/developer/api-keys';
+
+    return this.client.request<APIKey[]>(endpoint);
+  }
+
+  /**
+   * Update an API key
+   */
+  async update(keyId: number, params: UpdateAPIKeyParams): Promise<APIKey> {
+    return this.client.request<APIKey>(`/api/developer/api-keys/${keyId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * Revoke an API key
+   */
+  async revoke(keyId: number): Promise<{ message: string }> {
+    return this.client.request<{ message: string }>(`/api/developer/api-keys/${keyId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  /**
+   * Get API key usage
+   */
+  async getUsage(keyId: number): Promise<APIKeyUsage> {
+    return this.client.request<APIKeyUsage>(`/api/developer/api-keys/${keyId}/usage`);
+  }
+}
+
+/**
+ * Webhooks API methods
+ */
+class WebhooksAPI {
+  constructor(private client: AIEvalClient) {}
+
+  /**
+   * Create a webhook
+   */
+  async create(params: CreateWebhookParams): Promise<Webhook> {
+    return this.client.request<Webhook>('/api/developer/webhooks', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * List webhooks
+   */
+  async list(params: ListWebhooksParams): Promise<Webhook[]> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('organizationId', params.organizationId.toString());
+    if (params.status) searchParams.set('status', params.status);
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.offset) searchParams.set('offset', params.offset.toString());
+
+    const query = searchParams.toString();
+    return this.client.request<Webhook[]>(`/api/developer/webhooks?${query}`);
+  }
+
+  /**
+   * Get a webhook
+   */
+  async get(webhookId: number): Promise<Webhook> {
+    return this.client.request<Webhook>(`/api/developer/webhooks/${webhookId}`);
+  }
+
+  /**
+   * Update a webhook
+   */
+  async update(webhookId: number, params: UpdateWebhookParams): Promise<Webhook> {
+    return this.client.request<Webhook>(`/api/developer/webhooks/${webhookId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * Delete a webhook
+   */
+  async delete(webhookId: number): Promise<{ message: string }> {
+    return this.client.request<{ message: string }>(`/api/developer/webhooks/${webhookId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  /**
+   * Get webhook deliveries
+   */
+  async getDeliveries(webhookId: number, params: ListWebhookDeliveriesParams = {}): Promise<WebhookDelivery[]> {
+    const searchParams = new URLSearchParams();
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.offset) searchParams.set('offset', params.offset.toString());
+    if (params.success !== undefined) searchParams.set('success', params.success.toString());
+
+    const query = searchParams.toString();
+    const endpoint = query ? `/api/developer/webhooks/${webhookId}/deliveries?${query}` : `/api/developer/webhooks/${webhookId}/deliveries`;
+
+    return this.client.request<WebhookDelivery[]>(endpoint);
+  }
+}
+
+/**
+ * Organizations API methods
+ */
+class OrganizationsAPI {
+  constructor(private client: AIEvalClient) {}
+
+  /**
+   * Get current organization
+   */
+  async getCurrent(): Promise<Organization> {
+    return this.client.request<Organization>('/api/organizations/current');
   }
 }

@@ -1,7 +1,7 @@
 src/
+*.ts
+!*.d.ts
 tsconfig.json
-*.test.ts
-*.spec.ts
-.git
-.gitignore
+vitest.config.ts
+.DS_Store
 node_modules/

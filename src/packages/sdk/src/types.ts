@@ -384,3 +384,410 @@ export interface BatchOptions {
 }
 
 export type ExportFormat = 'json' | 'csv' | 'jsonl';
+
+// ============================================================================
+// ANNOTATIONS API TYPES (v1.2.0)
+// ============================================================================
+
+/**
+ * Annotation object representing human feedback
+ */
+export interface Annotation {
+  id: number;
+  evaluationRunId: number;
+  testCaseId: number;
+  annotatorId: string;
+  rating: number | null;
+  feedback: string | null;
+  labels: Record<string, any>;
+  metadata: Record<string, any>;
+  createdAt: string;
+  annotator?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  testCase?: {
+    name: string;
+  };
+}
+
+/**
+ * Parameters for creating an annotation
+ */
+export interface CreateAnnotationParams {
+  evaluationRunId: number;
+  testCaseId: number;
+  rating?: number;
+  feedback?: string;
+  labels?: Record<string, any>;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Parameters for listing annotations
+ */
+export interface ListAnnotationsParams {
+  evaluationRunId?: number;
+  testCaseId?: number;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Annotation task object
+ */
+export interface AnnotationTask {
+  id: number;
+  name: string;
+  description: string | null;
+  instructions: string | null;
+  type: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'archived';
+  organizationId: number;
+  annotationSettings: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Parameters for creating an annotation task
+ */
+export interface CreateAnnotationTaskParams {
+  name: string;
+  description?: string;
+  instructions?: string;
+  type: string;
+  organizationId: number;
+  annotationSettings?: Record<string, any>;
+}
+
+/**
+ * Parameters for listing annotation tasks
+ */
+export interface ListAnnotationTasksParams {
+  organizationId?: number;
+  status?: 'pending' | 'in_progress' | 'completed' | 'archived';
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Annotation item object
+ */
+export interface AnnotationItem {
+  id: number;
+  taskId: number;
+  content: string;
+  annotation: any | null;
+  annotatedBy: string | null;
+  annotatedAt: string | null;
+  createdAt: string;
+}
+
+/**
+ * Parameters for creating an annotation item
+ */
+export interface CreateAnnotationItemParams {
+  content: string;
+  annotation?: any;
+  annotatedBy?: string;
+  annotatedAt?: string;
+}
+
+/**
+ * Parameters for listing annotation items
+ */
+export interface ListAnnotationItemsParams {
+  limit?: number;
+  offset?: number;
+}
+
+// ============================================================================
+// DEVELOPER API TYPES (v1.2.0)
+// ============================================================================
+
+/**
+ * API Key object
+ */
+export interface APIKey {
+  id: number;
+  userId: string;
+  organizationId: number;
+  keyPrefix: string;
+  name: string;
+  scopes: string[];
+  lastUsedAt: string | null;
+  expiresAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
+}
+
+/**
+ * API Key with full key (only returned on creation)
+ */
+export interface APIKeyWithSecret extends APIKey {
+  apiKey: string;
+}
+
+/**
+ * Parameters for creating an API key
+ */
+export interface CreateAPIKeyParams {
+  name: string;
+  organizationId: number;
+  scopes: string[];
+  expiresAt?: string;
+}
+
+/**
+ * Parameters for updating an API key
+ */
+export interface UpdateAPIKeyParams {
+  name?: string;
+  scopes?: string[];
+  expiresAt?: string;
+}
+
+/**
+ * Parameters for listing API keys
+ */
+export interface ListAPIKeysParams {
+  organizationId?: number;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * API Key usage statistics
+ */
+export interface APIKeyUsage {
+  keyId: number;
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+  lastUsedAt: string | null;
+  usageByEndpoint: Record<string, number>;
+  usageByDay: Array<{
+    date: string;
+    requests: number;
+  }>;
+}
+
+/**
+ * Webhook object
+ */
+export interface Webhook {
+  id: number;
+  organizationId: number;
+  url: string;
+  events: string[];
+  secret: string;
+  status: 'active' | 'inactive';
+  lastTriggeredAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Parameters for creating a webhook
+ */
+export interface CreateWebhookParams {
+  organizationId: number;
+  url: string;
+  events: string[];
+}
+
+/**
+ * Parameters for updating a webhook
+ */
+export interface UpdateWebhookParams {
+  url?: string;
+  events?: string[];
+  status?: 'active' | 'inactive';
+}
+
+/**
+ * Parameters for listing webhooks
+ */
+export interface ListWebhooksParams {
+  organizationId: number;
+  status?: 'active' | 'inactive';
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Webhook delivery object
+ */
+export interface WebhookDelivery {
+  id: number;
+  webhookId: number;
+  event: string;
+  payload: Record<string, any>;
+  response: string | null;
+  statusCode: number | null;
+  success: boolean;
+  attempt: number;
+  createdAt: string;
+}
+
+/**
+ * Parameters for listing webhook deliveries
+ */
+export interface ListWebhookDeliveriesParams {
+  limit?: number;
+  offset?: number;
+  success?: boolean;
+}
+
+/**
+ * Usage statistics
+ */
+export interface UsageStats {
+  organizationId: number;
+  period: {
+    start: string;
+    end: string;
+  };
+  traces: {
+    total: number;
+    byStatus: Record<string, number>;
+  };
+  evaluations: {
+    total: number;
+    byType: Record<string, number>;
+  };
+  apiCalls: {
+    total: number;
+    byEndpoint: Record<string, number>;
+  };
+}
+
+/**
+ * Parameters for getting usage stats
+ */
+export interface GetUsageParams {
+  organizationId: number;
+  startDate?: string;
+  endDate?: string;
+}
+
+/**
+ * Usage summary
+ */
+export interface UsageSummary {
+  organizationId: number;
+  currentPeriod: {
+    traces: number;
+    evaluations: number;
+    annotations: number;
+    apiCalls: number;
+  };
+  limits: OrganizationLimits;
+  billingPeriod: {
+    start: string;
+    end: string;
+  };
+}
+
+// ============================================================================
+// LLM JUDGE EXTENDED TYPES (v1.2.0)
+// ============================================================================
+
+/**
+ * LLM Judge configuration object
+ */
+export interface LLMJudgeConfig {
+  id: number;
+  name: string;
+  description: string | null;
+  model: string;
+  rubric: string;
+  temperature: number;
+  maxTokens: number;
+  organizationId: number;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Parameters for creating an LLM judge config
+ */
+export interface CreateLLMJudgeConfigParams {
+  name: string;
+  description?: string;
+  model: string;
+  rubric: string;
+  temperature?: number;
+  maxTokens?: number;
+  organizationId: number;
+  createdBy: number;
+}
+
+/**
+ * Parameters for listing LLM judge configs
+ */
+export interface ListLLMJudgeConfigsParams {
+  organizationId?: number;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Parameters for listing LLM judge results
+ */
+export interface ListLLMJudgeResultsParams {
+  configId?: number;
+  evaluationId?: number;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * LLM Judge alignment analysis
+ */
+export interface LLMJudgeAlignment {
+  configId: number;
+  totalEvaluations: number;
+  averageScore: number;
+  alignmentMetrics: {
+    accuracy: number;
+    precision: number;
+    recall: number;
+    f1Score: number;
+  };
+  scoreDistribution: Record<string, number>;
+  comparisonWithHuman?: {
+    agreement: number;
+    correlation: number;
+  };
+}
+
+/**
+ * Parameters for getting alignment analysis
+ */
+export interface GetLLMJudgeAlignmentParams {
+  configId: number;
+  startDate?: string;
+  endDate?: string;
+}
+
+// ============================================================================
+// ORGANIZATIONS API TYPES (v1.2.0)
+// ============================================================================
+
+/**
+ * Organization object
+ */
+export interface Organization {
+  id: number;
+  name: string;
+  slug: string;
+  plan: string;
+  status: 'active' | 'suspended' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+  metadata?: Record<string, any>;
+}

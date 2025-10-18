@@ -132,6 +132,47 @@ export {
   type OrganizationLimits
 } from './types'
 
+// New exports for v1.2.0
+export type {
+  // Annotations
+  Annotation,
+  CreateAnnotationParams,
+  ListAnnotationsParams,
+  AnnotationTask,
+  CreateAnnotationTaskParams,
+  ListAnnotationTasksParams,
+  AnnotationItem,
+  CreateAnnotationItemParams,
+  ListAnnotationItemsParams,
+  // Developer - API Keys
+  APIKey,
+  APIKeyWithSecret,
+  CreateAPIKeyParams,
+  UpdateAPIKeyParams,
+  ListAPIKeysParams,
+  APIKeyUsage,
+  // Developer - Webhooks
+  Webhook,
+  CreateWebhookParams,
+  UpdateWebhookParams,
+  ListWebhooksParams,
+  WebhookDelivery,
+  ListWebhookDeliveriesParams,
+  // Developer - Usage
+  UsageStats,
+  GetUsageParams,
+  UsageSummary,
+  // LLM Judge Extended
+  LLMJudgeConfig,
+  CreateLLMJudgeConfigParams,
+  ListLLMJudgeConfigsParams,
+  ListLLMJudgeResultsParams,
+  LLMJudgeAlignment,
+  GetLLMJudgeAlignmentParams,
+  // Organizations
+  Organization,
+} from './types'
+
 // Default export for convenience
 import { AIEvalClient } from './client';
 export default AIEvalClient;
