@@ -80,8 +80,6 @@ const nextConfig: NextConfig = {
   // Performance optimizations
   productionBrowserSourceMaps: false,
   
-  outputFileTracingRoot: path.resolve(__dirname, '../../'),
-  
   turbopack: {
     rules: {
       "*.{jsx,tsx}": {
