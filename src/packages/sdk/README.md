@@ -12,6 +12,38 @@ yarn add @evalai/sdk
 pnpm add @evalai/sdk
 ```
 
+## Environment Support
+
+This SDK works in both **Node.js** and **browsers**, with some features having specific requirements:
+
+### ✅ Works Everywhere (Node.js + Browser)
+
+- Traces API
+- Evaluations API
+- LLM Judge API
+- Annotations API
+- Developer API (API Keys, Webhooks, Usage)
+- Organizations API
+- Assertions Library
+- Test Suites
+- Error Handling
+
+### 🟡 Node.js Only Features
+
+The following features require Node.js and **will not work in browsers**:
+
+- **Snapshot Testing** - Uses filesystem for storage
+- **Local Storage Mode** - Uses filesystem for offline development
+- **CLI Tool** - Command-line interface
+- **Export to File** - Direct file system writes
+
+### 🔄 Context Propagation
+
+- **Node.js**: Full async context propagation using `AsyncLocalStorage`
+- **Browser**: Basic context support (not safe across all async boundaries)
+
+Use appropriate features based on your environment. The SDK will throw helpful errors if you try to use Node.js-only features in a browser.
+
 ## Quick Start
 
 ```typescript
@@ -468,7 +500,26 @@ console.log("Status:", org.status);
 
 ## Changelog
 
-### v1.2.0 (Latest)
+### v1.2.1 (Latest - Bug Fixes)
+
+- 🐛 **Critical Fixes**
+  - Fixed CLI import paths for proper npm package distribution
+  - Fixed duplicate trace creation in OpenAI/Anthropic integrations
+  - Fixed Commander.js command structure
+  - Added browser/Node.js environment detection and helpful errors
+  - Fixed context system to work in both Node.js and browsers
+  - Added security checks to snapshot path sanitization
+  - Removed misleading empty exports (StreamingClient, BatchClient)
+- 📦 **Dependencies**
+  - Updated Commander to v14
+  - Added peer dependencies for OpenAI and Anthropic SDKs (optional)
+  - Added Node.js engine requirement (>=16.0.0)
+- 📚 **Documentation**
+  - Clarified Node.js-only vs universal features
+  - Added environment support section
+  - Updated examples with security best practices
+
+### v1.2.0
 
 - 🎉 **100% API Coverage** - All backend endpoints now supported!
 - 📋 **Annotations API** - Complete human-in-the-loop evaluation

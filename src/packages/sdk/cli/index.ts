@@ -8,8 +8,8 @@
 import { Command } from 'commander'
 import fs from 'fs/promises'
 import path from 'path'
-import { AIEvalClient } from '../src/client'
-import { exportData } from '../src/export'
+import { AIEvalClient } from '../client.js'
+import { exportData } from '../export.js'
 
 const program = new Command()
 
@@ -90,14 +90,13 @@ suite.run().then(results => {
     console.log('\nNext steps:')
     console.log('1. Set your API key: export EVALAI_API_KEY=your-key')
     console.log('2. Set your project ID: export EVALAI_PROJECT_ID=your-project')
-    console.log('3. Run evaluations: npx evalai eval run')
+    console.log('3. Run evaluations: npx evalai eval:run')
   })
 
 // Run evaluations
 program
-  .command('eval')
-  .description('Run evaluation commands')
-  .command('run')
+  .command('eval:run')
+  .description('Run evaluation tests')
   .option('-c, --config <path>', 'Config file path', './evalai.config.json')
   .option('-f, --file <path>', 'Evaluation file to run')
   .action(async (options) => {

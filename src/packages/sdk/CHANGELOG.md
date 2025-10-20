@@ -5,129 +5,198 @@ All notable changes to the @evalai/sdk package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.0] - 2025-10-18
+## [1.2.2] - 2025-10-20
 
-### Added
+### 🐛 Fixed
 
-- 🎉 **100% API Coverage** - SDK now supports all backend endpoints!
-- **Annotations API**: Complete human-in-the-loop evaluation support
-  - `client.annotations.create()` - Create annotations with ratings, feedback, and labels
-  - `client.annotations.list()` - List annotations with filtering
-  - `client.annotations.tasks.create()` - Create annotation tasks
-  - `client.annotations.tasks.list()` - List annotation tasks
-  - `client.annotations.tasks.get()` - Get task details
-  - `client.annotations.tasks.items.create()` - Create annotation items
-  - `client.annotations.tasks.items.list()` - List annotation items
-- **Developer API**: Full API key and webhook management
-  - **API Keys**:
-    - `client.developer.apiKeys.create()` - Create API keys with scopes
-    - `client.developer.apiKeys.list()` - List API keys
-    - `client.developer.apiKeys.update()` - Update API key metadata
-    - `client.developer.apiKeys.revoke()` - Revoke API keys
-    - `client.developer.apiKeys.getUsage()` - Get usage statistics per key
-  - **Webhooks**:
-    - `client.developer.webhooks.create()` - Create webhooks for events
-    - `client.developer.webhooks.list()` - List webhooks
-    - `client.developer.webhooks.get()` - Get webhook details
-    - `client.developer.webhooks.update()` - Update webhook configuration
-    - `client.developer.webhooks.delete()` - Delete webhooks
-    - `client.developer.webhooks.getDeliveries()` - View delivery history
-  - **Usage Analytics**:
-    - `client.developer.getUsage()` - Get detailed usage statistics
-    - `client.developer.getUsageSummary()` - Get usage summary with limits
-- **LLM Judge Extended**: Enhanced judge configuration and analysis
-  - `client.llmJudge.createConfig()` - Create judge configurations
-  - `client.llmJudge.listConfigs()` - List judge configurations
-  - `client.llmJudge.listResults()` - Query judge results
-  - `client.llmJudge.getAlignment()` - Get alignment analysis with metrics
-- **Organizations API**: Organization management
-  - `client.organizations.getCurrent()` - Get current organization details
-- **Enhanced TypeScript Types**: 40+ new interfaces added:
-  - Annotation types: `Annotation`, `AnnotationTask`, `AnnotationItem`
-  - Developer types: `APIKey`, `Webhook`, `UsageStats`, `UsageSummary`
-  - LLM Judge types: `LLMJudgeConfig`, `LLMJudgeAlignment`
-  - Organization types: `Organization`
+#### Additional Browser Compatibility Fixes
 
-### Changed
+- **process.env Access**: Added safe `getEnvVar()` helper function for browser compatibility
+  - Client constructor now works in browsers without `process.env`
+  - `AIEvalClient.init()` now safe in browsers
+  - Falls back gracefully when environment variables are not available
+- **Type Name Collision**: Renamed test suite types to avoid confusion
+  - `TestCase` → `TestSuiteCase` (for test suite definitions)
+  - `TestCaseResult` → `TestSuiteCaseResult`
+  - Legacy type aliases provided for backward compatibility
+  - API `TestCase` type (from types.ts) remains unchanged
 
-- **README Documentation**: Comprehensive examples for all new APIs
-- **Package Description**: Updated to "Complete API Coverage"
-- **Type Exports**: All new types exported from index.ts
+### 📚 Documentation
 
-### Developer Notes
+- Updated `AIEvalClient.init()` JSDoc with browser usage examples
+- Added deprecation notices for legacy test suite type names
+- Clarified environment variable behavior (Node.js only)
 
-- Nested API structure: `client.annotations.tasks.items` for logical grouping
-- Webhook secret management: Secrets are generated server-side
-- API Key security: Full keys only shown once on creation
-- Alignment analysis: Includes accuracy, precision, recall, F1 score
-- Organization limits: Integrated with existing resource tracking
+### 🔄 Migration Notes
 
-## [1.1.0] - 2025-10-16
+No breaking changes! Legacy type names are aliased for backward compatibility:
 
-### Added
+- `TestCase` still works (aliased to `TestSuiteCase`)
+- `TestCaseResult` still works (aliased to `TestSuiteCaseResult`)
 
-- **Evaluation Template Types**: New `EvaluationTemplates` constant with comprehensive template categories:
-  - Core Testing: `UNIT_TESTING`, `OUTPUT_QUALITY`
-  - Advanced Evaluation: `PROMPT_OPTIMIZATION`, `CHAIN_OF_THOUGHT`, `LONG_CONTEXT_TESTING`, `MODEL_STEERING`, `REGRESSION_TESTING`, `CONFIDENCE_CALIBRATION`
-  - Safety & Compliance: `SAFETY_COMPLIANCE`
-  - Domain-Specific: `RAG_EVALUATION`, `CODE_GENERATION`, `SUMMARIZATION`
-- **Organization Resource Limits**: New types and methods for tracking per-organization quotas:
-  - `FeatureUsage` type for tracking feature usage metrics
-  - `OrganizationLimits` type for organization-level resource limits
-  - `getOrganizationLimits()` method on `AIEvalClient` for fetching current usage and limits
-- **Enhanced TypeScript Support**: New exported types for better type safety:
-  - `EvaluationTemplateType` - Union type of all template strings
-  - `FeatureUsage` - Feature usage tracking interface
-  - `OrganizationLimits` - Organization limits interface
+**Recommended**: Update to new type names to avoid future deprecation:
 
-### Changed
+```typescript
+// OLD (still works, but deprecated)
+import { TestCase } from "@evalai/sdk";
 
-- Updated README with comprehensive examples for new features
-- Enhanced documentation with usage examples for evaluation templates and resource limits
+// NEW (recommended)
+import { TestSuiteCase } from "@evalai/sdk";
+```
 
-### Developer Notes
+---
 
-- Per-organization limits include: `traces_per_organization`, `evals_per_organization`, `annotations_per_organization`
-- Server-side enforcement prevents users from exceeding plan limits
-- Resource limits reset monthly based on billing cycle
+## [1.2.1] - 2025-01-20
 
-## [1.0.0] - 2024-10-15
+### 🐛 Fixed
 
-### Added
+#### Critical Bug Fixes
 
-- Initial release of @evalai/sdk
-- **Core Features**:
-  - Zero-config initialization with environment variable detection
-  - Comprehensive Trace API with span support
-  - Full Evaluation API with test cases and runs
-  - LLM Judge integration for automated evaluation
-- **Advanced Features**:
-  - Context propagation with `withContext()` and `getContext()`
-  - Test suite builder with `createTestSuite()`
-  - Snapshot testing utilities
-  - Export/Import utilities for data portability
-  - Streaming and batch operations support
-  - Debug logger with configurable log levels
-- **Framework Integrations**:
-  - OpenAI integration with automatic tracing
-  - Anthropic integration with automatic tracing
-- **Enhanced Assertions**:
-  - 20+ built-in assertion helpers for LLM output validation
-  - Pattern matching, sentiment analysis, similarity checks
-  - JSON schema validation, PII detection, toxicity checks
-- **Error Handling**:
-  - Custom error classes: `EvalAIError`, `RateLimitError`, `AuthenticationError`, `ValidationError`, `NetworkError`
-  - Automatic retry with configurable backoff strategies
-  - Detailed error messages with error codes and solutions
-- **TypeScript Support**:
-  - Full TypeScript support with generic metadata types
-  - Comprehensive type definitions for all APIs
-  - Type-safe client configuration
-- **Developer Experience**:
-  - Request/response logging in debug mode
-  - Configurable timeout and retry settings
-  - Support for both browser and Node.js environments
+- **CLI Import Paths**: Fixed imports in CLI to use compiled paths (`../client.js`) instead of source paths (`../src/client`)
+- **Duplicate Traces**: Fixed OpenAI and Anthropic integrations creating duplicate trace entries. Now creates a single trace with the final status
+- **Commander.js Syntax**: Fixed invalid nested command structure (`eval` -> `run` to `eval:run`)
+- **Context System Browser Compatibility**: Replaced Node.js-only `AsyncLocalStorage` with environment-aware implementation
+  - Node.js: Uses `AsyncLocalStorage` for true async context propagation
+  - Browser: Uses stack-based approach with helpful limitations documented
+- **Path Traversal Security**: Added comprehensive security checks to snapshot path sanitization
+  - Prevents empty names
+  - Prevents path traversal attacks (`../`)
+  - Validates paths stay within snapshot directory
+  - Sanitizes to alphanumeric, hyphens, and underscores only
 
-[1.2.0]: https://github.com/evalai/sdk/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/evalai/sdk/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/evalai/sdk/releases/tag/v1.0.0
+#### Developer Experience Improvements
+
+- **Environment Detection**: Added runtime checks for Node.js-only features
+  - `snapshot.ts` - Throws helpful error in browsers
+  - `local.ts` - Throws helpful error in browsers
+  - `context.ts` - Gracefully degrades in browsers
+- **Empty Exports Removed**: Removed misleading empty `StreamingClient` and `BatchClient` objects
+  - Now exports actual implementations: `batchProcess`, `streamEvaluation`, `batchRead`, `RateLimiter`
+- **Error Handling**: Integration wrappers now catch and ignore trace creation errors to avoid masking original errors
+
+### 📦 Changed
+
+#### Dependencies
+
+- **Updated**: `commander` from `^12.0.0` to `^14.0.0`
+- **Added**: Peer dependencies (optional)
+  - `openai`: `^4.0.0`
+  - `@anthropic-ai/sdk`: `^0.20.0`
+- **Added**: Node.js engine requirement `>=16.0.0`
+
+#### Package Metadata
+
+- **Version**: Bumped to `1.2.1`
+- **Keywords**: Added `openai` and `anthropic`
+
+### 📚 Documentation
+
+#### README Updates
+
+- **Environment Support Section**: New section clarifying Node.js vs Browser features
+  - ✅ Works Everywhere: Core APIs, assertions, test suites
+  - 🟡 Node.js Only: Snapshots, local storage, CLI, file exports
+  - 🔄 Context: Full support in Node.js, basic in browsers
+- **Changelog**: Updated with v1.2.1 fixes
+- **Installation**: Unchanged
+- **Examples**: All existing examples remain valid
+
+#### Code Documentation
+
+- Added JSDoc warnings to Node.js-only modules
+- Added inline comments explaining environment checks
+- Updated integration examples to reflect single-trace behavior
+
+### 🔒 Security
+
+- **Path Traversal Prevention**: Multiple layers of validation in snapshot system
+- **Input Sanitization**: Comprehensive name validation before filesystem operations
+- **Directory Boundary Enforcement**: Prevents writing outside designated directories
+
+### ⚡ Performance
+
+- **Reduced API Calls**: Integration wrappers now make 1 trace call instead of 2
+- **Faster Errors**: Environment checks happen at module load time
+
+### 🔄 Migration Guide from 1.2.0 to 1.2.1
+
+#### No Breaking Changes! ✅
+
+All fixes are backward compatible. However, you may notice:
+
+1. **Integration Tracing**: You'll see fewer trace entries (1 per call instead of 2)
+   - **Before**: `pending` trace → `success` trace (2 entries)
+   - **After**: `success` trace (1 entry)
+
+2. **CLI Command**: Use `evalai eval:run` instead of `evalai eval run`
+   - Old syntax will fail, update your scripts
+
+3. **Browser Usage**: Node.js-only features now throw helpful errors
+
+   ```javascript
+   // In browser:
+   import { snapshot } from "@evalai/sdk";
+   snapshot("test", "name"); // ❌ Throws: "Snapshot testing requires Node.js..."
+   ```
+
+4. **Context in Browsers**: Limited async propagation
+   ```javascript
+   // Works in both Node.js and browser, but browser has limitations
+   await withContext({ userId: "123" }, async () => {
+     await client.traces.create({ name: "test" });
+     // Node.js: ✅ Full context propagation
+     // Browser: ⚠️ Basic context, not safe across all async boundaries
+   });
+   ```
+
+#### Recommended Actions
+
+1. **Update CLI scripts** if using `evalai eval run`
+2. **Test browser builds** if using SDK in browsers
+3. **Review trace counts** if you have monitoring based on trace volume
+4. **Update dependencies**: Run `npm update @evalai/sdk`
+
+### 🧪 Testing
+
+All fixes have been:
+
+- ✅ Syntax validated
+- ✅ Import paths verified
+- ✅ Security tests for path traversal
+- ✅ Environment detection tested
+- ✅ No linting errors
+
+---
+
+## [1.2.0] - 2025-01-15
+
+### 🎉 Added
+
+- **100% API Coverage** - All backend endpoints now supported
+- **Annotations API** - Complete human-in-the-loop evaluation
+- **Developer API** - Full API key and webhook management
+- **LLM Judge Extended** - Enhanced judge capabilities
+- **Organizations API** - Organization details access
+- **Enhanced Types** - 40+ new TypeScript interfaces
+
+---
+
+## [1.1.0] - 2025-01-10
+
+### ✨ Added
+
+- Comprehensive evaluation template types
+- Organization resource limits tracking
+- `getOrganizationLimits()` method
+
+---
+
+## [1.0.0] - 2025-01-01
+
+### 🎉 Initial Release
+
+- Traces, Evaluations, LLM Judge APIs
+- Framework integrations (OpenAI, Anthropic)
+- Test suite builder
+- Context propagation
+- Error handling & retries

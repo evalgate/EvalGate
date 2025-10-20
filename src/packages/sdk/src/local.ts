@@ -1,7 +1,18 @@
 /**
  * Local Development Mode (Tier 2.10)
  * Offline mode with local storage for development
+ * 
+ * ⚠️ NOTE: This module requires Node.js and will not work in browsers.
  */
+
+// Environment check
+const isNode = typeof process !== 'undefined' && process.versions?.node;
+if (!isNode) {
+  throw new Error(
+    'Local storage mode requires Node.js and cannot run in browsers. ' +
+    'This feature uses the filesystem for storing data.'
+  );
+}
 
 import fs from 'fs/promises'
 import path from 'path'

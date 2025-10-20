@@ -57,7 +57,17 @@ export {
 };
 
 // Test suite builder (Tier 2.7)
-export { createTestSuite, TestSuite } from './testing'
+export { 
+  createTestSuite, 
+  TestSuite,
+  TestSuiteCase,
+  TestSuiteCaseResult,
+  TestSuiteResult,
+  TestSuiteConfig,
+  // Legacy exports for backward compatibility
+  type TestCase,
+  type TestCaseResult
+} from './testing'
 
 // Snapshot testing (Tier 2.8)
 import { snapshot, compareWithSnapshot } from './snapshot';
@@ -80,9 +90,8 @@ export { exportData, importData };
 export type { ExportFormat, ExportFormat as ExportType };
 
 // Streaming and batch processing (Tier 3.3)
-// Exporting empty objects for backward compatibility
-export const StreamingClient = {};
-export const BatchClient = {};
+// Use functions from ./streaming module instead of these deprecated exports
+export { batchProcess, streamEvaluation, batchRead, RateLimiter } from './streaming';
 
 // Debug logger (Tier 4.17)
 export { Logger } from './logger'
