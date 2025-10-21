@@ -1,12 +1,13 @@
 # AI Evaluation Platform - Complete Codebase Index
 
-**Generated:** Saturday, October 18, 2025  
+**Generated:** Monday, October 21, 2025  
 **Project:** AI Evaluation Platform  
-**Framework:** Next.js 15.3.5 with React 19, TypeScript, Drizzle ORM  
+**Framework:** Next.js 15.5.6 with React 19, TypeScript, Drizzle ORM  
 **Database:** Turso (LibSQL/SQLite)  
-**Authentication:** better-auth  
-**Billing:** Autumn.js  
-**SDK Version:** v1.2.0 (100% API Coverage)
+**Authentication:** better-auth 1.3.27  
+**Billing:** Autumn.js 0.1.40  
+**SDK Version:** v1.2.0 (100% API Coverage)  
+**Testing:** Vitest 3.2.4 with React Testing Library
 
 ---
 
@@ -107,6 +108,12 @@ ai-evaluation-platform/
 │   └── placeholder.jpg/svg
 │
 ├── src/
+│   ├── __tests__/              # Test files
+│   │   ├── api/                # API route tests
+│   │   ├── components/         # Component tests
+│   │   ├── hooks/              # Hook tests
+│   │   └── lib/                # Library tests
+│   │
 │   ├── app/                    # Next.js App Router
 │   │   ├── (authenticated)/    # Protected routes
 │   │   │   ├── annotations/
@@ -123,11 +130,15 @@ ai-evaluation-platform/
 │   │   │   ├── auth/
 │   │   │   ├── autumn/
 │   │   │   ├── billing-portal/
+│   │   │   ├── demo/
 │   │   │   ├── developer/
+│   │   │   ├── docs/
 │   │   │   ├── evaluations/
+│   │   │   ├── health/
 │   │   │   ├── llm-judge/
 │   │   │   ├── onboarding/
 │   │   │   ├── organizations/
+│   │   │   ├── subscribers/
 │   │   │   └── traces/
 │   │   │
 │   │   ├── auth/               # Authentication pages
@@ -144,9 +155,12 @@ ai-evaluation-platform/
 │   │   ├── contact/
 │   │   ├── documentation/
 │   │   ├── onboarding/
+│   │   ├── playground/         # Interactive playground
 │   │   ├── pricing/
 │   │   ├── privacy/
 │   │   ├── sdk/
+│   │   ├── templates/          # Template library
+│   │   ├── traces/             # Public trace viewer
 │   │   ├── layout.tsx
 │   │   ├── page.tsx            # Home page
 │   │   └── globals.css
@@ -154,13 +168,20 @@ ai-evaluation-platform/
 │   ├── components/             # React components
 │   │   ├── ui/                 # shadcn/ui components (57 files)
 │   │   ├── autumn/             # Billing components
+│   │   ├── ai-quality-score-card.tsx
 │   │   ├── app-header.tsx
 │   │   ├── app-sidebar.tsx
+│   │   ├── email-capture-widget.tsx
+│   │   ├── error-boundary.tsx
 │   │   ├── ErrorReporter.tsx
 │   │   ├── evaluation-builder.tsx
 │   │   ├── footer.tsx
 │   │   ├── getting-started-wizard.tsx
+│   │   ├── home-features.tsx
+│   │   ├── home-hero.tsx
+│   │   ├── interactive-playground.tsx
 │   │   ├── plan-usage-indicator.tsx
+│   │   ├── template-card.tsx
 │   │   ├── theme-provider.tsx
 │   │   └── theme-toggle.tsx
 │   │
@@ -175,14 +196,28 @@ ai-evaluation-platform/
 │   ├── lib/                    # Utilities and services
 │   │   ├── autumn/
 │   │   ├── hooks/
+│   │   ├── services/           # Business logic services
+│   │   │   ├── evaluation.service.ts
+│   │   │   ├── llm-judge.service.ts
+│   │   │   └── webhook.service.ts
+│   │   ├── ai-quality-score.ts
+│   │   ├── api-docs.ts
+│   │   ├── api-rate-limit.ts   # Rate limit middleware
 │   │   ├── auth-client.ts
 │   │   ├── auth.ts
 │   │   ├── autumn-provider.tsx
 │   │   ├── autumn-server.ts
-│   │   ├── rate-limit.ts       # Upstash Redis rate limiting
-│   │   ├── api-rate-limit.ts   # Rate limit middleware
+│   │   ├── db-logger.ts
+│   │   ├── db-optimization.ts
+│   │   ├── dynamic-import.ts
 │   │   ├── evaluation-templates.ts
-│   │   └── utils.ts
+│   │   ├── evaluation-templates-library.ts
+│   │   ├── logger.ts
+│   │   ├── rate-limit.ts       # Upstash Redis rate limiting
+│   │   ├── rate-limit-wrapper.ts
+│   │   ├── redis-cache.ts
+│   │   ├── utils.ts
+│   │   └── validation.ts
 │   │
 │   ├── packages/               # Monorepo packages
 │   │   ├── sdk/                # TypeScript SDK
@@ -209,6 +244,8 @@ ai-evaluation-platform/
 │   │
 │   ├── styles/
 │   │   └── globals.css
+│   │
+│   ├── types/                  # TypeScript type definitions
 │   │
 │   └── visual-edits/           # v0.app integration
 │       ├── component-tagger-loader.js
@@ -955,16 +992,19 @@ export type {
 } from "./types";
 ```
 
-#### SDK Files (14 total)
+#### SDK Files (15 total)
 
 - `client.ts` - Main SDK client with complete API coverage
 - `assertions.ts` - 20+ assertion helpers
+- `batch.ts` - Request batching utilities
+- `cache.ts` - Request caching layer
 - `context.ts` - Context propagation
 - `errors.ts` - Error classes
 - `export.ts` - Data export/import
 - `index.ts` - Main exports
 - `logger.ts` - Debug logger
 - `local.ts` - Local development
+- `pagination.ts` - Pagination utilities
 - `snapshot.ts` - Snapshot testing
 - `streaming.ts` - Streaming & batch
 - `testing.ts` - Test suite builder
@@ -1393,7 +1433,8 @@ npx playwright install
 - **API Routes:** 35+ endpoints
 - **Pages:** 40+ pages
 - **Seed Files:** 14 seed scripts
-- **SDK Files:** 14 core files
+- **SDK Files:** 15 core files
+- **Test Files:** 7 test files (API, components, hooks, lib)
 
 ### Lines of Code (Estimated)
 
@@ -1487,8 +1528,8 @@ See `MIGRATION_SUMMARY.md` and `SDK_V1.2.0_IMPLEMENTATION_SUMMARY.md` for detail
 
 ---
 
-**Index Generated:** Saturday, October 18, 2025  
-**Index Version:** 1.1  
+**Index Generated:** Monday, October 21, 2025  
+**Index Version:** 1.2  
 **Codebase Version:** Based on latest deployment  
 **SDK Version:** v1.2.0 (100% API Coverage)  
-**Last Updated:** After SDK v1.2.0 release with complete API endpoint coverage
+**Last Updated:** Full codebase index with testing infrastructure and complete file inventory
