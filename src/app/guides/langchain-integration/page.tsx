@@ -47,54 +47,71 @@ export default function LangChainIntegrationGuide() {
 
           <h2>Installation</h2>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4">
-            pip install langchain ai-eval-sdk
+            npm install @evalai/sdk langchain
+          </div>
+
+          <h2>Environment Setup</h2>
+          <p>Add to your <code>.env</code> file:</p>
+          <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
+{`EVALAI_API_KEY=sk_test_your_api_key_here
+EVALAI_ORGANIZATION_ID=your_org_id_here
+OPENAI_API_KEY=your_openai_key`}
           </div>
 
           <h2>Basic Integration</h2>
 
           <h3>1. Initialize the SDK</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`from ai_eval import AIEvalSDK
-from langchain.chains import LLMChain
-from langchain.llms import OpenAI
+{`import { AIEvalClient } from '@evalai/sdk'
+import { ChatOpenAI } from 'langchain/chat_models/openai'
+import { LLMChain } from 'langchain/chains'
 
-# Initialize evaluation SDK
-ai_eval = AIEvalSDK(
-    api_key="your-api-key",
-    project_id="your-project"
-)`}
+// Initialize EvalAI client
+const client = AIEvalClient.init()`}
           </div>
 
-          <h3>2. Wrap LangChain Chains</h3>
+          <h3>2. Track LangChain Operations</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`# Your existing LangChain chain
-llm = OpenAI(temperature=0.7)
-chain = LLMChain(llm=llm, prompt=prompt_template)
+{`// Create a trace for the chain execution
+const trace = await client.traces.create({
+  name: 'Summarization Chain',
+  traceId: 'trace-' + Date.now(),
+  metadata: { chainType: 'llm' }
+})
 
-# Wrap with evaluation tracing
-@ai_eval.trace(name="summarization-chain")
-def run_chain(input_text):
-    return chain.run(input=input_text)
+// Run your LangChain chain
+const llm = new ChatOpenAI({ temperature: 0.7 })
+const chain = new LLMChain({ llm, prompt: promptTemplate })
+const result = await chain.call({ input: 'Long article text...' })
 
-# Use as normal - tracing happens automatically
-result = run_chain("Long article text...")`}
+// Add span for the chain execution
+await client.traces.createSpan(trace.id, {
+  name: 'LLMChain Execution',
+  spanId: 'span-' + Date.now(),
+  type: 'chain',
+  startTime: new Date().toISOString(),
+  input: 'Long article text...',
+  output: result.text,
+  metadata: { model: 'gpt-4' }
+})`}
           </div>
 
           <h2>Tracing LangChain Components</h2>
 
           <h3>Simple Chains</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`from langchain.chains import LLMChain
+{`import { LLMChain } from 'langchain/chains'
 
-chain = LLMChain(llm=llm, prompt=prompt)
+const chain = new LLMChain({ llm, prompt })
 
-# Trace the entire chain
-result = ai_eval.trace(
-    name="product-description-chain",
-    metadata={"product_id": "prod_123"}
-)(chain.run)({"product": "laptop"})
+// Create trace for chain execution
+const trace = await client.traces.create({
+  name: 'Product Description Chain',
+  traceId: 'chain-' + Date.now(),
+  metadata: { productId: 'prod_123' }
+})
 
-# Each LLM call within the chain is automatically traced`}
+const result = await chain.call({ product: 'laptop' })`}
           </div>
 
           <h3>Sequential Chains</h3>

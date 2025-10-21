@@ -51,38 +51,56 @@ export default function TracingSetupPage() {
             <h2>Installation</h2>
             <p>Install the AI Evaluation Platform SDK in your project:</p>
             <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4">
-              npm install @ai-eval/sdk
+              npm install @evalai/sdk
             </div>
             <p>Or with other package managers:</p>
             <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4">
-              yarn add @ai-eval/sdk<br />
-              pnpm add @ai-eval/sdk
+              yarn add @evalai/sdk<br />
+              pnpm add @evalai/sdk
             </div>
+
+            <h2>Environment Setup</h2>
+            <p>Create a <code>.env</code> file in your project root:</p>
+            <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
+              {`EVALAI_API_KEY=sk_test_your_api_key_here
+EVALAI_ORGANIZATION_ID=your_org_id_here`}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Get your API key from the <Link href="/developer" className="text-primary underline">Developer Dashboard</Link>.
+            </p>
 
             <h2>Basic Setup</h2>
-            <p>Initialize the SDK with your API key:</p>
+            <p>Initialize the SDK client:</p>
             <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-              {`import { AIEvalSDK } from '@ai-eval/sdk';
+              {`import { AIEvalClient } from '@evalai/sdk'
 
-const aiEval = new AIEvalSDK({
-  apiKey: process.env.AI_EVAL_API_KEY,
-  projectId: 'your-project-id'
-});`}
+// Auto-loads from environment variables
+const client = AIEvalClient.init()`}
             </div>
 
-            <h2>Tracing LLM Calls</h2>
-            <p>Wrap your LLM calls with tracing to capture execution details:</p>
+            <h2>Creating Traces</h2>
+            <p>Create traces to track LLM calls and operations:</p>
             <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-              {`// Example with OpenAI
-const response = await aiEval.trace({
-  name: 'customer-support-query',
-  metadata: { userId: 'user_123', sessionId: 'session_456' }
-}, async () => {
-  return await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: [{ role: 'user', content: userQuery }]
-  });
-});`}
+              {`// Create a trace
+const trace = await client.traces.create({
+  name: 'Customer Support Query',
+  traceId: 'trace-' + Date.now(),
+  metadata: { 
+    userId: 'user_123', 
+    sessionId: 'session_456' 
+  }
+})
+
+// Add spans to track specific operations
+const span = await client.traces.createSpan(trace.id, {
+  name: 'LLM Call',
+  spanId: 'span-' + Date.now(),
+  type: 'llm',
+  startTime: new Date().toISOString(),
+  input: userQuery,
+  output: response,
+  metadata: { model: 'gpt-4', tokens: 150 }
+})`}
             </div>
 
             <h2>What Gets Tracked</h2>

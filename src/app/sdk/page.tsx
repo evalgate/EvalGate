@@ -7,8 +7,10 @@ import { Copy, Check, Terminal, Sparkles, Zap, Shield } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { useSession } from "@/lib/auth-client"
 
 export default function SDKPage() {
+  const { data: session } = useSession()
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
 
   const copyCode = (code: string, id: string) => {
@@ -17,48 +19,56 @@ export default function SDKPage() {
     setTimeout(() => setCopiedCode(null), 2000)
   }
 
-  const installCode = "npm install @your-org/ai-eval-sdk"
+  const installCode = "npm install @evalai/sdk"
   
-  const quickStartCode = `import { AIEvalClient } from '@your-org/ai-eval-sdk';
+  const quickStartCode = `import { AIEvalClient } from '@evalai/sdk'
 
+// Auto-loads from environment variables
+const client = AIEvalClient.init()
+
+// Or with explicit configuration
 const client = new AIEvalClient({
   apiKey: process.env.EVALAI_API_KEY,
-  projectId: process.env.EVALAI_PROJECT_ID
-});
+  organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!)
+})
 
 // Create a trace
 const trace = await client.traces.create({
   name: 'User Query',
-  input: { query: 'What is AI evaluation?' },
-  output: { response: 'AI evaluation is...' }
-});`
+  traceId: 'trace-' + Date.now(),
+  metadata: { userId: 'user-123' }
+})`
 
-  const frameworkCode = `import { withOpenAI } from '@your-org/ai-eval-sdk/integrations/openai';
+  const frameworkCode = `import { traceOpenAI } from '@evalai/sdk/integrations/openai'
+import OpenAI from 'openai'
 
-const openai = withOpenAI(new OpenAI(), {
-  projectId: 'your-project-id'
-});
+// Wrap OpenAI client for automatic tracing
+const openai = traceOpenAI(new OpenAI(), client)
 
 // All OpenAI calls are now automatically traced
 const completion = await openai.chat.completions.create({
   model: 'gpt-4',
   messages: [{ role: 'user', content: 'Hello!' }]
-});`
+})`
 
-  const testSuiteCode = `import { createTestSuite } from '@your-org/ai-eval-sdk/testing';
+  const envCode = `# .env file in your project root
+EVALAI_API_KEY=sk_test_your_api_key_here
+EVALAI_ORGANIZATION_ID=your_org_id_here`
+
+  const testSuiteCode = `import { createTestSuite } from '@evalai/sdk'
 
 const suite = createTestSuite({
   name: 'Chatbot Evaluation',
-  cases: [
+  tests: [
     {
+      name: 'Return Policy Question',
       input: 'What is your return policy?',
-      expectedOutput: /30-day|return|refund/i,
-      assertions: ['containsKeywords', 'notContainsPII']
+      expectedOutput: '30-day money-back guarantee'
     }
   ]
-});
+})
 
-await suite.run();`
+await suite.run(client)`
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -71,12 +81,20 @@ await suite.run();`
             </Link>
             <div className="flex items-center gap-4">
               <ThemeToggle />
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/auth/login">Sign in</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/auth/sign-up">Get started</Link>
-              </Button>
+              {session?.user ? (
+                <Button asChild size="sm">
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+              ) : (
+                <>
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/auth/login">Sign in</Link>
+                  </Button>
+                  <Button asChild size="sm">
+                    <Link href="/auth/sign-up">Get started</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -98,12 +116,25 @@ await suite.run();`
               Built for developers who ship fast.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
-                <Link href="/auth/sign-up">Get started free</Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/api-reference">View API docs</Link>
-              </Button>
+              {session?.user ? (
+                <>
+                  <Button size="lg" asChild>
+                    <Link href="/developer">Get API Key</Link>
+                  </Button>
+                  <Button size="lg" variant="outline" asChild>
+                    <Link href="/api-reference">View API docs</Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button size="lg" asChild>
+                    <Link href="/auth/sign-up">Get started free</Link>
+                  </Button>
+                  <Button size="lg" variant="outline" asChild>
+                    <Link href="/api-reference">View API docs</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
 
@@ -136,7 +167,7 @@ await suite.run();`
 
           {/* Installation */}
           <Card className="p-8 mb-8">
-            <h2 className="text-2xl font-bold mb-4">Installation</h2>
+            <h2 className="text-2xl font-bold mb-4">1. Installation</h2>
             <div className="bg-muted/50 rounded-lg p-4 relative group">
               <pre className="font-mono text-sm overflow-x-auto">
                 <code>{installCode}</code>
@@ -156,9 +187,39 @@ await suite.run();`
             </div>
           </Card>
 
+          {/* Environment Setup */}
+          <Card className="p-8 mb-8">
+            <h2 className="text-2xl font-bold mb-4">2. Configure Environment</h2>
+            <p className="text-muted-foreground mb-4">
+              Create a <code className="bg-muted px-2 py-1 rounded">.env</code> file in your project root:
+            </p>
+            <div className="bg-muted/50 rounded-lg p-4 relative group">
+              <pre className="font-mono text-sm overflow-x-auto">
+                <code>{envCode}</code>
+              </pre>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => copyCode(envCode, "env")}
+              >
+                {copiedCode === "env" ? (
+                  <Check className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <p className="text-sm text-blue-600 dark:text-blue-400">
+                <strong>Get your API key:</strong> Go to <Link href="/developer" className="underline">Developer Dashboard</Link> → Scroll to API Keys → Create API Key
+              </p>
+            </div>
+          </Card>
+
           {/* Quick Start */}
           <Card className="p-8 mb-8">
-            <h2 className="text-2xl font-bold mb-4">Quick Start</h2>
+            <h2 className="text-2xl font-bold mb-4">3. Initialize Client</h2>
             <div className="bg-muted/50 rounded-lg p-4 relative group">
               <pre className="font-mono text-sm overflow-x-auto">
                 <code>{quickStartCode}</code>

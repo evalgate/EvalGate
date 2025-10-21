@@ -18,6 +18,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { HomeHero } from "@/components/home-hero"
 import { HomeFeatures } from "@/components/home-features"
+import { InteractivePlayground } from "@/components/interactive-playground"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
@@ -91,6 +92,17 @@ export default function HomePage() {
       <main className="flex-1">
         <HomeHero />
         <HomeFeatures />
+        
+        {/* Interactive Playground Section */}
+        <section id="playground" className="py-16 sm:py-20 bg-background scroll-mt-16">
+          <div className="container mx-auto px-4">
+            <InteractivePlayground
+              onSignupPrompt={() => {
+                router.push('/auth/sign-up?source=homepage-playground')
+              }}
+            />
+          </div>
+        </section>
       </main>
 
       <Footer />

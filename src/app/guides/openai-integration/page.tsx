@@ -41,137 +41,107 @@ export default function OpenAIIntegrationGuide() {
         <div className="prose prose-sm sm:prose-base max-w-none">
           <h2>Installation</h2>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4">
-            npm install openai @ai-eval/sdk
+            npm install openai @evalai/sdk
           </div>
 
           <h2>Basic Setup</h2>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`import OpenAI from 'openai';
-import { AIEvalSDK } from '@ai-eval/sdk';
+{`import OpenAI from 'openai'
+import { AIEvalClient, traceOpenAI } from '@evalai/sdk'
 
-// Initialize clients
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Initialize EvalAI client (auto-loads from env vars)
+const client = AIEvalClient.init()
 
-const aiEval = new AIEvalSDK({
-  apiKey: process.env.AI_EVAL_API_KEY,
-  projectId: 'your-project-id'
-});`}
+// Wrap OpenAI client for automatic tracing
+const openai = traceOpenAI(new OpenAI(), client)`}
           </div>
+
+          <p className="text-sm text-muted-foreground my-4">
+            <strong>Environment variables:</strong> Make sure you have <code className="bg-muted px-1 rounded">EVALAI_API_KEY</code> and <code className="bg-muted px-1 rounded">EVALAI_ORGANIZATION_ID</code> in your .env file.
+          </p>
 
           <h2>Tracing OpenAI Calls</h2>
 
           <h3>Chat Completions</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`// Wrap OpenAI call with tracing
-const response = await aiEval.trace({
-  name: 'chat-completion',
-  metadata: {
-    model: 'gpt-4',
-    userId: 'user_123'
-  }
-}, async () => {
-  return await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: [
-      { role: 'system', content: 'You are a helpful assistant.' },
-      { role: 'user', content: 'What is the capital of France?' }
-    ],
-    temperature: 0.7
-  });
-});
+{`// All OpenAI calls are automatically traced!
+const response = await openai.chat.completions.create({
+  model: 'gpt-4',
+  messages: [
+    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'user', content: 'What is the capital of France?' }
+  ],
+  temperature: 0.7
+})
 
-console.log(response.choices[0].message.content);
+console.log(response.choices[0].message.content)
 
-// Automatically tracked:
-// - Full prompt and response
-// - Token usage (input/output)
-// - Latency
-// - Model and parameters
-// - Cost`}
+// Automatically tracked in EvalAI dashboard:
+// ✓ Full prompt and response
+// ✓ Token usage (input/output)
+// ✓ Latency
+// ✓ Model and parameters
+// ✓ Cost estimation`}
           </div>
 
           <h3>Streaming Responses</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`const stream = await aiEval.trace({
-  name: 'streaming-chat',
-  metadata: { streaming: true }
-}, async () => {
-  return await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: messages,
-    stream: true
-  });
-});
+{`// Streaming is automatically traced too!
+const stream = await openai.chat.completions.create({
+  model: 'gpt-4',
+  messages: messages,
+  stream: true
+})
 
 // Stream tokens to user
-let fullResponse = '';
+let fullResponse = ''
 for await (const chunk of stream) {
-  const content = chunk.choices[0]?.delta?.content || '';
-  fullResponse += content;
-  process.stdout.write(content);
+  const content = chunk.choices[0]?.delta?.content || ''
+  fullResponse += content
+  process.stdout.write(content)
 }
 
-// Trace automatically captures full response`}
+// Full response is automatically captured in trace`}
           </div>
 
           <h3>Function Calling</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`const functions = [
+{`const tools = [
   {
-    name: 'get_weather',
-    description: 'Get current weather for a location',
-    parameters: {
-      type: 'object',
-      properties: {
-        location: { type: 'string' }
+    type: 'function',
+    function: {
+      name: 'get_weather',
+      description: 'Get current weather for a location',
+      parameters: {
+        type: 'object',
+        properties: {
+          location: { type: 'string' }
+        },
+        required: ['location']
       }
     }
   }
-];
+]
 
-const response = await aiEval.trace({
-  name: 'function-calling',
-  metadata: { functions: functions.map(f => f.name) }
-}, async () => {
-  return await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: messages,
-    functions: functions,
-    function_call: 'auto'
-  });
-});
+const response = await openai.chat.completions.create({
+  model: 'gpt-4',
+  messages: messages,
+  tools: tools,
+  tool_choice: 'auto'
+})
 
-// Check if function was called
-const message = response.choices[0].message;
-if (message.function_call) {
-  const functionName = message.function_call.name;
-  const args = JSON.parse(message.function_call.arguments);
-  
-  // Trace function execution
-  await aiEval.span({ name: \`execute-\${functionName}\` }, async () => {
-    return await executeFunction(functionName, args);
-  });
-}`}
+// Function calls are automatically tracked`}
           </div>
 
           <h3>Embeddings</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`const embedding = await aiEval.trace({
-  name: 'generate-embedding',
-  metadata: {
-    model: 'text-embedding-3-small',
-    inputLength: text.length
-  }
-}, async () => {
-  return await openai.embeddings.create({
-    model: 'text-embedding-3-small',
-    input: text
-  });
-});
+{`// Embeddings are also automatically traced
+const embedding = await openai.embeddings.create({
+  model: 'text-embedding-3-small',
+  input: 'Your text here'
+})
 
-const vector = embedding.data[0].embedding;`}
+const vector = embedding.data[0].embedding`}
           </div>
 
           <h2>Advanced Patterns</h2>

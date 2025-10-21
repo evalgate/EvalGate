@@ -46,11 +46,19 @@ export function HomeHero() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/playground">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                  Try Playground
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="w-full sm:w-auto"
+                onClick={() => {
+                  document.getElementById('playground')?.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                  })
+                }}
+              >
+                Try It Now
+              </Button>
               <Link href="/documentation">
                 <Button size="lg" variant="ghost" className="w-full sm:w-auto">
                   View Documentation
