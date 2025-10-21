@@ -297,3 +297,19 @@ export const spans = sqliteTable('spans', {
   metadata: text('metadata', { mode: 'json' }),
   createdAt: text('created_at').notNull(),
 });
+
+// Email Subscribers (for lead capture)
+export const emailSubscribers = sqliteTable('email_subscribers', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email').notNull().unique(),
+  source: text('source').notNull(), // 'playground', 'homepage', 'blog', etc.
+  context: text('context', { mode: 'json' }), // Additional context like scenario, score, etc.
+  status: text('status').notNull().default('active'), // 'active', 'unsubscribed', 'bounced'
+  tags: text('tags', { mode: 'json' }), // ['playground-lead', 'high-intent', etc.]
+  subscribedAt: text('subscribed_at').notNull(),
+  unsubscribedAt: text('unsubscribed_at'),
+  lastEmailSentAt: text('last_email_sent_at'),
+  emailCount: integer('email_count').notNull().default(0),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});

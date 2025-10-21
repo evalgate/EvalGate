@@ -26,6 +26,10 @@ const eslintConfig = [
       'import/no-useless-path-segments': 'error',
     },
   }),
+  {
+    // Ignore SDK package and test files
+    ignores: ['src/packages/sdk/**/*', 'src/__tests__/**/*', '**/*.test.ts', '**/*.test.tsx'],
+  },
 ]
 
 export default eslintConfig

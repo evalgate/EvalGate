@@ -39,7 +39,8 @@ if (isNode) {
   try {
     // Dynamic import for Node.js only
     const { AsyncLocalStorage } = require('async_hooks');
-    contextStorage = new AsyncLocalStorage<ContextMetadata>();
+    // Create without type argument due to require() being untyped
+    contextStorage = new AsyncLocalStorage();
   } catch (error) {
     // Fallback if async_hooks is not available
     contextStorage = null;

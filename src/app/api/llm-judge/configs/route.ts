@@ -3,9 +3,12 @@ import { db } from '@/db';
 import { llmJudgeConfigs } from '@/db/schema';
 import { eq, like, and, desc } from 'drizzle-orm';
 import { getCurrentUser } from '@/lib/auth';
+import { withRateLimit } from '@/lib/api-rate-limit';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
-  try {
+  return withRateLimit(request, async (req) => {
+    try {
     const user = await getCurrentUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -70,11 +73,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(results, { status: 200 });
   } catch (error) {
-    console.error('GET error:', error);
+    logger.error({ error, route: '/api/llm-judge/configs', method: 'GET' }, 'Error fetching LLM judge configs');
     return NextResponse.json({ 
       error: 'Internal server error: ' + error 
     }, { status: 500 });
   }
+  }, { customTier: 'free' });
 }
 
 export async function POST(request: NextRequest) {
@@ -145,7 +149,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newConfig[0], { status: 201 });
   } catch (error) {
-    console.error('POST error:', error);
+    logger.error({ error, route: '/api/llm-judge/configs', method: 'POST' }, 'Error creating LLM judge config');
     return NextResponse.json({ 
       error: 'Internal server error: ' + error 
     }, { status: 500 });
@@ -247,7 +251,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(updated[0], { status: 200 });
   } catch (error) {
-    console.error('PUT error:', error);
+    logger.error({ error, route: '/api/llm-judge/configs', method: 'PUT' }, 'Error updating LLM judge config');
     return NextResponse.json({ 
       error: 'Internal server error: ' + error 
     }, { status: 500 });
@@ -300,7 +304,7 @@ export async function DELETE(request: NextRequest) {
       deleted: deleted[0] 
     }, { status: 200 });
   } catch (error) {
-    console.error('DELETE error:', error);
+    logger.error({ error, route: '/api/llm-judge/configs', method: 'DELETE' }, 'Error deleting LLM judge config');
     return NextResponse.json({ 
       error: 'Internal server error: ' + error 
     }, { status: 500 });

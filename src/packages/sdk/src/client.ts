@@ -55,6 +55,9 @@ import {
 import { EvalAIError, createErrorFromResponse } from './errors';
 import { Logger, createLogger, RequestLogger } from './logger';
 import { mergeWithContext } from './context';
+import { RequestCache, shouldCache, getTTL } from './cache';
+import { RequestBatcher, canBatch } from './batch';
+import { createPaginatedIterator, PaginatedIterator, parsePaginationParams, type PaginationParams } from './pagination';
 
 /**
  * Safe environment variable access (works in both Node.js and browsers)
@@ -97,6 +100,8 @@ export class AIEvalClient {
   private timeout: number;
   private logger: Logger;
   private requestLogger: RequestLogger;
+  private cache: RequestCache;
+  private batcher: RequestBatcher | null;
   private retryConfig: {
     maxAttempts: number;
     backoff: 'exponential' | 'linear' | 'fixed';
@@ -152,6 +157,29 @@ export class AIEvalClient {
       ]
     };
 
+    // Initialize cache for GET requests
+    this.cache = new RequestCache(config.cacheSize || 1000);
+
+    // Initialize request batcher if enabled (default: enabled)
+    if (config.enableBatching !== false) {
+      this.batcher = new RequestBatcher(
+        async (requests) => {
+          // Batch execution placeholder - will be implemented per API
+          return requests.map(req => ({
+            id: req.id,
+            status: 200,
+            data: null,
+          }));
+        },
+        {
+          maxBatchSize: config.batchSize || 10,
+          batchDelay: config.batchDelay || 50,
+        }
+      );
+    } else {
+      this.batcher = null;
+    }
+
     // Initialize API modules
     this.traces = new TraceAPI(this);
     this.evaluations = new EvaluationAPI(this);
@@ -206,7 +234,18 @@ export class AIEvalClient {
     options: RequestInit = {},
     attempt: number = 1
   ): Promise<T> {
+    const method = (options.method || 'GET').toUpperCase();
     const url = `${this.baseUrl}${endpoint}`;
+
+    // Check cache for GET requests
+    if (method === 'GET' && shouldCache(method, endpoint)) {
+      const cached = this.cache.get<T>(method, endpoint, options.body);
+      if (cached !== null) {
+        this.logger.debug('Cache hit', { endpoint });
+        return cached;
+      }
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
     const startTime = Date.now();
@@ -268,6 +307,22 @@ export class AIEvalClient {
         }
 
         throw error;
+      }
+
+      // Cache successful GET responses
+      if (method === 'GET' && shouldCache(method, endpoint)) {
+        const ttl = getTTL(endpoint);
+        this.cache.set(method, endpoint, data, ttl, options.body);
+        this.logger.debug('Cached response', { endpoint, ttl });
+      }
+
+      // Invalidate cache for mutation operations
+      if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+        // Invalidate related cached entries
+        const resourceMatch = endpoint.match(/\/api\/(\w+)/);
+        if (resourceMatch) {
+          this.cache.invalidatePattern(resourceMatch[1]);
+        }
       }
 
       return data as T;

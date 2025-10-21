@@ -31,6 +31,8 @@ export declare class AIEvalClient {
     private timeout;
     private logger;
     private requestLogger;
+    private cache;
+    private batcher;
     private retryConfig;
     traces: TraceAPI;
     evaluations: EvaluationAPI;
@@ -42,18 +44,26 @@ export declare class AIEvalClient {
     /**
      * Zero-config initialization using environment variables
      *
-     * Environment variables:
+     * Works in both Node.js and browsers. In Node.js, reads from environment variables.
+     * In browsers, you must provide config explicitly.
+     *
+     * Environment variables (Node.js only):
      * - EVALAI_API_KEY or AI_EVAL_API_KEY: Your API key
      * - EVALAI_ORGANIZATION_ID or AI_EVAL_ORGANIZATION_ID: Your organization ID
      * - EVALAI_BASE_URL: Custom API base URL (optional)
      *
      * @example
      * ```typescript
-     * // Set env vars:
+     * // Node.js - reads from env vars:
      * // EVALAI_API_KEY=your-key
      * // EVALAI_ORGANIZATION_ID=123
-     *
      * const client = AIEvalClient.init();
+     *
+     * // Browser - must provide config:
+     * const client = AIEvalClient.init({
+     *   apiKey: 'your-key',
+     *   organizationId: 123
+     * });
      * ```
      */
     static init(config?: Partial<ClientConfig>): AIEvalClient;

@@ -12,6 +12,9 @@ import CustomAutumnProvider from "@/lib/autumn-provider"
 import "./globals.css"
 import VisualEditsMessenger from "../visual-edits/VisualEditsMessenger";
 import ErrorReporter from "@/components/ErrorReporter";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { SkipToContent } from "@/components/ui/skip-to-content";
+import { KeyboardShortcutsHelp } from "@/components/ui/keyboard-shortcuts-help";
 import Script from "next/script";
 
 export const metadata: Metadata = {
@@ -28,6 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="antialiased font-sans">
+        <SkipToContent />
         <ErrorReporter />
         <Script
           src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts//route-messenger.js"
@@ -42,9 +46,12 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             <CustomAutumnProvider>
-              {children}
+              <main id="main-content" tabIndex={-1}>
+                {children}
+              </main>
             </CustomAutumnProvider>
             <Toaster />
+            <KeyboardShortcutsHelp />
           </ThemeProvider>
         </Suspense>
         <Analytics />

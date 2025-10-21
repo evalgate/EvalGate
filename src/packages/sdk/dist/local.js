@@ -2,12 +2,20 @@
 /**
  * Local Development Mode (Tier 2.10)
  * Offline mode with local storage for development
+ *
+ * ⚠️ NOTE: This module requires Node.js and will not work in browsers.
  */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LocalStorage = void 0;
+// Environment check
+const isNode = typeof process !== 'undefined' && process.versions?.node;
+if (!isNode) {
+    throw new Error('Local storage mode requires Node.js and cannot run in browsers. ' +
+        'This feature uses the filesystem for storing data.');
+}
 const promises_1 = __importDefault(require("fs/promises"));
 const path_1 = __importDefault(require("path"));
 class LocalStorage {

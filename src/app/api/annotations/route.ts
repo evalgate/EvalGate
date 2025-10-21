@@ -3,9 +3,12 @@ import { db } from '@/db'
 import { humanAnnotations, user, testCases, annotationTasks } from '@/db/schema'
 import { eq, desc, and } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
+import { withRateLimit } from '@/lib/api-rate-limit'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
-  try {
+  return withRateLimit(request, async (req) => {
+    try {
     const currentUser = await getCurrentUser(request)
 
     if (!currentUser) {
@@ -71,10 +74,11 @@ export async function GET(request: NextRequest) {
     }))
 
     return NextResponse.json({ annotations: formattedAnnotations })
-  } catch (error) {
-    console.error('GET annotations error:', error)
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 })
-  }
+    } catch (error) {
+      logger.error({ error, route: '/api/annotations', method: 'GET' }, 'Error fetching annotations')
+      return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 })
+    }
+  }, { customTier: 'free' });
 }
 
 export async function POST(request: NextRequest) {
@@ -128,7 +132,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ annotation: newAnnotation[0] }, { status: 201 })
   } catch (error) {
-    console.error('POST annotations error:', error)
+    logger.error({ error, route: '/api/annotations', method: 'POST' }, 'Error creating annotation')
     return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 })
   }
 }

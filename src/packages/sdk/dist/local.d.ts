@@ -1,6 +1,8 @@
 /**
  * Local Development Mode (Tier 2.10)
  * Offline mode with local storage for development
+ *
+ * ⚠️ NOTE: This module requires Node.js and will not work in browsers.
  */
 import type { Trace, Evaluation, Span } from './types';
 export interface LocalStorageOptions {

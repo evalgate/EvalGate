@@ -3,6 +3,8 @@
  * Snapshot Testing System
  * Tier 4.16: Visual regression detection for LLM outputs
  *
+ * ⚠️ NOTE: This module requires Node.js and will not work in browsers.
+ *
  * @example
  * ```typescript
  * import { snapshot, loadSnapshot } from '@ai-eval-platform/sdk';
@@ -55,6 +57,12 @@ exports.loadSnapshot = loadSnapshot;
 exports.compareWithSnapshot = compareWithSnapshot;
 exports.deleteSnapshot = deleteSnapshot;
 exports.listSnapshots = listSnapshots;
+// Environment check
+const isNode = typeof process !== 'undefined' && process.versions?.node;
+if (!isNode) {
+    throw new Error('Snapshot testing requires Node.js and cannot run in browsers. ' +
+        'This feature uses the filesystem for storing snapshots.');
+}
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const crypto = __importStar(require("crypto"));
@@ -75,11 +83,31 @@ class SnapshotManager {
         }
     }
     /**
-     * Get snapshot file path
+     * Get snapshot file path with security checks
      */
     getSnapshotPath(name) {
+        // Security: prevent empty names
+        if (!name || name.trim().length === 0) {
+            throw new Error('Snapshot name cannot be empty');
+        }
+        // Security: prevent path traversal
+        if (name.includes('..') || name.includes('/') || name.includes('\\')) {
+            throw new Error('Snapshot name cannot contain path separators or ".."');
+        }
+        // Sanitize to alphanumeric, hyphens, and underscores
         const sanitized = name.replace(/[^a-zA-Z0-9-_]/g, '-');
-        return path.join(this.snapshotDir, `${sanitized}.json`);
+        // Security: ensure sanitized name is not empty
+        if (sanitized.length === 0) {
+            throw new Error('Snapshot name must contain at least one alphanumeric character');
+        }
+        // Security: prevent absolute paths
+        const filePath = path.join(this.snapshotDir, `${sanitized}.json`);
+        const resolvedPath = path.resolve(filePath);
+        const resolvedDir = path.resolve(this.snapshotDir);
+        if (!resolvedPath.startsWith(resolvedDir)) {
+            throw new Error('Invalid snapshot path: path traversal detected');
+        }
+        return filePath;
     }
     /**
      * Generate content hash

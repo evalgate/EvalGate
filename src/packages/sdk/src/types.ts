@@ -24,6 +24,18 @@ export interface ClientConfig {
     /** Retryable error codes */
     retryableErrors?: string[];
   };
+  /** Enable request caching for GET requests (default: true) */
+  enableCaching?: boolean;
+  /** Maximum cache size in entries (default: 1000) */
+  cacheSize?: number;
+  /** Enable request batching (default: true) */
+  enableBatching?: boolean;
+  /** Maximum batch size (default: 10) */
+  batchSize?: number;
+  /** Batch delay in milliseconds (default: 50) */
+  batchDelay?: number;
+  /** Enable HTTP keep-alive for connection pooling (default: true) */
+  keepAlive?: boolean;
 }
 
 /**

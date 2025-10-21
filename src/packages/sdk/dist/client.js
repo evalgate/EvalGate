@@ -4,6 +4,17 @@ exports.AIEvalClient = void 0;
 const errors_1 = require("./errors");
 const logger_1 = require("./logger");
 const context_1 = require("./context");
+const cache_1 = require("./cache");
+const batch_1 = require("./batch");
+/**
+ * Safe environment variable access (works in both Node.js and browsers)
+ */
+function getEnvVar(name) {
+    if (typeof process !== 'undefined' && process.env) {
+        return process.env[name];
+    }
+    return undefined;
+}
 /**
  * AI Evaluation Platform SDK Client
  *
@@ -30,13 +41,13 @@ const context_1 = require("./context");
  */
 class AIEvalClient {
     constructor(config = {}) {
-        // Tier 1.1: Zero-config with env variable detection
-        this.apiKey = config.apiKey || process.env.EVALAI_API_KEY || process.env.AI_EVAL_API_KEY || '';
+        // Tier 1.1: Zero-config with env variable detection (works in Node.js and browsers)
+        this.apiKey = config.apiKey || getEnvVar('EVALAI_API_KEY') || getEnvVar('AI_EVAL_API_KEY') || '';
         if (!this.apiKey) {
-            throw new errors_1.EvalAIError('API key is required', 'MISSING_API_KEY', 0);
+            throw new errors_1.EvalAIError('API key is required. Provide via config.apiKey or EVALAI_API_KEY environment variable.', 'MISSING_API_KEY', 0);
         }
         // Auto-detect organization ID from env
-        const orgIdFromEnv = process.env.EVALAI_ORGANIZATION_ID || process.env.AI_EVAL_ORGANIZATION_ID;
+        const orgIdFromEnv = getEnvVar('EVALAI_ORGANIZATION_ID') || getEnvVar('AI_EVAL_ORGANIZATION_ID');
         this.organizationId = config.organizationId || (orgIdFromEnv ? parseInt(orgIdFromEnv, 10) : undefined);
         // Default to relative URLs for browser, or allow custom baseUrl
         const isBrowser = typeof globalThis.window !== 'undefined';
@@ -61,6 +72,25 @@ class AIEvalClient {
                 'INTERNAL_SERVER_ERROR'
             ]
         };
+        // Initialize cache for GET requests
+        this.cache = new cache_1.RequestCache(config.cacheSize || 1000);
+        // Initialize request batcher if enabled (default: enabled)
+        if (config.enableBatching !== false) {
+            this.batcher = new batch_1.RequestBatcher(async (requests) => {
+                // Batch execution placeholder - will be implemented per API
+                return requests.map(req => ({
+                    id: req.id,
+                    status: 200,
+                    data: null,
+                }));
+            }, {
+                maxBatchSize: config.batchSize || 10,
+                batchDelay: config.batchDelay || 50,
+            });
+        }
+        else {
+            this.batcher = null;
+        }
         // Initialize API modules
         this.traces = new TraceAPI(this);
         this.evaluations = new EvaluationAPI(this);
@@ -76,23 +106,31 @@ class AIEvalClient {
     /**
      * Zero-config initialization using environment variables
      *
-     * Environment variables:
+     * Works in both Node.js and browsers. In Node.js, reads from environment variables.
+     * In browsers, you must provide config explicitly.
+     *
+     * Environment variables (Node.js only):
      * - EVALAI_API_KEY or AI_EVAL_API_KEY: Your API key
      * - EVALAI_ORGANIZATION_ID or AI_EVAL_ORGANIZATION_ID: Your organization ID
      * - EVALAI_BASE_URL: Custom API base URL (optional)
      *
      * @example
      * ```typescript
-     * // Set env vars:
+     * // Node.js - reads from env vars:
      * // EVALAI_API_KEY=your-key
      * // EVALAI_ORGANIZATION_ID=123
-     *
      * const client = AIEvalClient.init();
+     *
+     * // Browser - must provide config:
+     * const client = AIEvalClient.init({
+     *   apiKey: 'your-key',
+     *   organizationId: 123
+     * });
      * ```
      */
     static init(config = {}) {
         return new AIEvalClient({
-            baseUrl: process.env.EVALAI_BASE_URL,
+            baseUrl: getEnvVar('EVALAI_BASE_URL'),
             ...config
         });
     }
@@ -100,7 +138,16 @@ class AIEvalClient {
      * Internal method to make HTTP requests with retry logic and error handling
      */
     async request(endpoint, options = {}, attempt = 1) {
+        const method = (options.method || 'GET').toUpperCase();
         const url = `${this.baseUrl}${endpoint}`;
+        // Check cache for GET requests
+        if (method === 'GET' && (0, cache_1.shouldCache)(method, endpoint)) {
+            const cached = this.cache.get(method, endpoint, options.body);
+            if (cached !== null) {
+                this.logger.debug('Cache hit', { endpoint });
+                return cached;
+            }
+        }
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.timeout);
         const startTime = Date.now();
@@ -152,6 +199,20 @@ class AIEvalClient {
                     return this.request(endpoint, options, attempt + 1);
                 }
                 throw error;
+            }
+            // Cache successful GET responses
+            if (method === 'GET' && (0, cache_1.shouldCache)(method, endpoint)) {
+                const ttl = (0, cache_1.getTTL)(endpoint);
+                this.cache.set(method, endpoint, data, ttl, options.body);
+                this.logger.debug('Cached response', { endpoint, ttl });
+            }
+            // Invalidate cache for mutation operations
+            if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+                // Invalidate related cached entries
+                const resourceMatch = endpoint.match(/\/api\/(\w+)/);
+                if (resourceMatch) {
+                    this.cache.invalidatePattern(resourceMatch[1]);
+                }
             }
             return data;
         }

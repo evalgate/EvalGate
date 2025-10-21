@@ -2,6 +2,9 @@
  * Context Propagation System
  * Tier 2.9: Automatic metadata injection
  *
+ * NOTE: In Node.js, uses AsyncLocalStorage for true async context propagation.
+ * In browsers, uses a simpler stack-based approach (not safe across async boundaries).
+ *
  * @example
  * ```typescript
  * import { createContext } from '@ai-eval-platform/sdk';

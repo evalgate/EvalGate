@@ -4,6 +4,8 @@ import { Card } from "@/components/ui/card"
 import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { useOrganizationId } from "@/hooks/use-organization"
+import { getBearerToken } from "@/hooks/use-safe-storage"
 import { Activity, Clock, AlertCircle, TrendingUp, BarChart3, Zap } from "lucide-react"
 import dynamic from "next/dynamic"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -39,6 +41,7 @@ interface UsageSummary {
 export default function DeveloperDashboardPage() {
   const { data: session, isPending } = useSession()
   const router = useRouter()
+  const organizationId = useOrganizationId()
   const [loading, setLoading] = useState(true)
   const [summary, setSummary] = useState<UsageSummary | null>(null)
   const [period, setPeriod] = useState("7d")
@@ -56,10 +59,14 @@ export default function DeveloperDashboardPage() {
   }, [session, period])
 
   const fetchUsageSummary = async () => {
+    if (!organizationId) return;
+    
     try {
-      const token = localStorage.getItem("bearer_token")
+      const token = getBearerToken()
+      if (!token) return;
+      
       const response = await fetch(
-        `/api/developer/usage/summary?organizationId=1&period=${period}`,
+        `/api/developer/usage/summary?organizationId=${organizationId}&period=${period}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -72,7 +79,7 @@ export default function DeveloperDashboardPage() {
         setSummary(data.summary)
       }
     } catch (error) {
-      console.error("Failed to fetch usage summary:", error)
+      // Error already handled
     } finally {
       setLoading(false)
     }

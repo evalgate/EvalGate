@@ -48,27 +48,15 @@ function traceOpenAI(openai, evalClient, options = {}) {
         const startTime = Date.now();
         const traceId = `${tracePrefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         try {
-            // Create trace
+            // Call original method
+            const response = await originalCreate(params, requestOptions);
+            const durationMs = Date.now() - startTime;
+            // Create trace with success status and complete metadata
             const traceMetadata = (0, context_1.mergeWithContext)({
                 model: params.model,
                 temperature: params.temperature,
                 max_tokens: params.max_tokens,
                 ...(captureInput ? { input: params.messages } : {}),
-                ...(captureMetadata ? { params } : {})
-            });
-            await evalClient.traces.create({
-                name: `OpenAI: ${params.model}`,
-                traceId,
-                organizationId: organizationId || evalClient.getOrganizationId(),
-                status: 'pending',
-                metadata: traceMetadata
-            });
-            // Call original method
-            const response = await originalCreate(params, requestOptions);
-            const durationMs = Date.now() - startTime;
-            // Update trace with success
-            const outputMetadata = (0, context_1.mergeWithContext)({
-                model: params.model,
                 ...(captureOutput ? { output: response.choices[0]?.message } : {}),
                 ...(captureMetadata ? {
                     usage: response.usage,
@@ -81,23 +69,30 @@ function traceOpenAI(openai, evalClient, options = {}) {
                 organizationId: organizationId || evalClient.getOrganizationId(),
                 status: 'success',
                 durationMs,
-                metadata: outputMetadata
+                metadata: traceMetadata
             });
             return response;
         }
         catch (error) {
             const durationMs = Date.now() - startTime;
-            // Update trace with error
+            // Create trace with error status
+            const errorMetadata = (0, context_1.mergeWithContext)({
+                model: params.model,
+                temperature: params.temperature,
+                max_tokens: params.max_tokens,
+                ...(captureInput ? { input: params.messages } : {}),
+                ...(captureMetadata ? { params } : {}),
+                error: error instanceof Error ? error.message : String(error)
+            });
             await evalClient.traces.create({
                 name: `OpenAI: ${params.model}`,
                 traceId,
                 organizationId: organizationId || evalClient.getOrganizationId(),
                 status: 'error',
                 durationMs,
-                metadata: (0, context_1.mergeWithContext)({
-                    model: params.model,
-                    error: error instanceof Error ? error.message : String(error)
-                })
+                metadata: errorMetadata
+            }).catch(() => {
+                // Ignore errors in trace creation to avoid masking the original error
             });
             throw error;
         }

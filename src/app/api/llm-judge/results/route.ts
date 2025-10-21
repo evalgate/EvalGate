@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { llmJudgeResults } from '@/db/schema';
 import { eq, gte, lte, and, desc } from 'drizzle-orm';
+import { withRateLimit } from '@/lib/api-rate-limit';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
-  try {
+  return withRateLimit(request, async (req) => {
+    try {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
     const offset = parseInt(searchParams.get('offset') || '0');
@@ -37,7 +40,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(results);
   } catch (error) {
-    console.error('GET error:', error);
+    logger.error({ error, route: '/api/llm-judge/results', method: 'GET' }, 'Error fetching LLM judge results');
     return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
   }
+  }, { customTier: 'free' });
 }

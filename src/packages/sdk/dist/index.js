@@ -8,7 +8,8 @@
  * @packageDocumentation
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EvaluationTemplates = exports.traceAnthropic = exports.traceOpenAI = exports.Logger = exports.BatchClient = exports.StreamingClient = exports.importData = exports.exportData = exports.compareSnapshots = exports.saveSnapshot = exports.compareWithSnapshot = exports.snapshot = exports.TestSuite = exports.createTestSuite = exports.ContextManager = exports.withContext = exports.getContext = exports.createContext = exports.hasValidCodeSyntax = exports.containsAllRequiredFields = exports.followsInstructions = exports.hasNoToxicity = exports.respondedWithinTime = exports.hasFactualAccuracy = exports.containsLanguage = exports.hasReadabilityScore = exports.matchesSchema = exports.hasNoHallucinations = exports.isValidURL = exports.isValidEmail = exports.withinRange = exports.similarTo = exports.hasSentiment = exports.notContainsPII = exports.containsJSON = exports.hasLength = exports.matchesPattern = exports.containsKeywords = exports.expect = exports.NetworkError = exports.ValidationError = exports.AuthenticationError = exports.RateLimitError = exports.EvalAIError = exports.AIEvalClient = void 0;
+exports.decodeCursor = exports.encodeCursor = exports.autoPaginate = exports.createPaginatedIterator = exports.PaginatedIterator = exports.CacheTTL = exports.RequestCache = exports.RateLimiter = exports.batchRead = exports.streamEvaluation = exports.batchProcess = exports.importData = exports.exportData = exports.compareSnapshots = exports.saveSnapshot = exports.compareWithSnapshot = exports.snapshot = exports.TestSuite = exports.createTestSuite = exports.ContextManager = exports.withContext = exports.getContext = exports.createContext = exports.hasValidCodeSyntax = exports.containsAllRequiredFields = exports.followsInstructions = exports.hasNoToxicity = exports.respondedWithinTime = exports.hasFactualAccuracy = exports.containsLanguage = exports.hasReadabilityScore = exports.matchesSchema = exports.hasNoHallucinations = exports.isValidURL = exports.isValidEmail = exports.withinRange = exports.similarTo = exports.hasSentiment = exports.notContainsPII = exports.containsJSON = exports.hasLength = exports.matchesPattern = exports.containsKeywords = exports.expect = exports.NetworkError = exports.ValidationError = exports.AuthenticationError = exports.RateLimitError = exports.EvalAIError = exports.AIEvalClient = void 0;
+exports.EvaluationTemplates = exports.traceAnthropic = exports.traceOpenAI = exports.Logger = exports.RequestBatcher = void 0;
 // Main SDK exports
 var client_1 = require("./client");
 Object.defineProperty(exports, "AIEvalClient", { enumerable: true, get: function () { return client_1.AIEvalClient; } });
@@ -63,9 +64,28 @@ const export_1 = require("./export");
 Object.defineProperty(exports, "exportData", { enumerable: true, get: function () { return export_1.exportData; } });
 Object.defineProperty(exports, "importData", { enumerable: true, get: function () { return export_1.importData; } });
 // Streaming and batch processing (Tier 3.3)
-// Exporting empty objects for backward compatibility
-exports.StreamingClient = {};
-exports.BatchClient = {};
+// Use functions from ./streaming module instead of these deprecated exports
+var streaming_1 = require("./streaming");
+Object.defineProperty(exports, "batchProcess", { enumerable: true, get: function () { return streaming_1.batchProcess; } });
+Object.defineProperty(exports, "streamEvaluation", { enumerable: true, get: function () { return streaming_1.streamEvaluation; } });
+Object.defineProperty(exports, "batchRead", { enumerable: true, get: function () { return streaming_1.batchRead; } });
+Object.defineProperty(exports, "RateLimiter", { enumerable: true, get: function () { return streaming_1.RateLimiter; } });
+// Performance optimization utilities (v1.3.0)
+// Note: RequestCache and CacheTTL are for advanced users only
+// Most users don't need these - caching is automatic
+var cache_1 = require("./cache");
+Object.defineProperty(exports, "RequestCache", { enumerable: true, get: function () { return cache_1.RequestCache; } });
+Object.defineProperty(exports, "CacheTTL", { enumerable: true, get: function () { return cache_1.CacheTTL; } });
+var pagination_1 = require("./pagination");
+Object.defineProperty(exports, "PaginatedIterator", { enumerable: true, get: function () { return pagination_1.PaginatedIterator; } });
+Object.defineProperty(exports, "createPaginatedIterator", { enumerable: true, get: function () { return pagination_1.createPaginatedIterator; } });
+Object.defineProperty(exports, "autoPaginate", { enumerable: true, get: function () { return pagination_1.autoPaginate; } });
+Object.defineProperty(exports, "encodeCursor", { enumerable: true, get: function () { return pagination_1.encodeCursor; } });
+Object.defineProperty(exports, "decodeCursor", { enumerable: true, get: function () { return pagination_1.decodeCursor; } });
+// Note: RequestBatcher is for advanced users only
+// Most users don't need this - batching is automatic
+var batch_1 = require("./batch");
+Object.defineProperty(exports, "RequestBatcher", { enumerable: true, get: function () { return batch_1.RequestBatcher; } });
 // Debug logger (Tier 4.17)
 var logger_1 = require("./logger");
 Object.defineProperty(exports, "Logger", { enumerable: true, get: function () { return logger_1.Logger; } });

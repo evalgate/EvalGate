@@ -3,10 +3,13 @@ import { db } from '@/db';
 import { apiKeys } from '@/db/schema';
 import { eq, and, desc, isNull } from 'drizzle-orm';
 import { getCurrentUser } from '@/lib/auth';
+import { withRateLimit } from '@/lib/api-rate-limit';
+import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
-  try {
+  return withRateLimit(request, async (req) => {
+    try {
     const user = await getCurrentUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -108,15 +111,17 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
 
   } catch (error) {
-    console.error('POST error:', error);
+    logger.error({ error, route: '/api/developer/api-keys', method: 'POST' }, 'Error creating API key');
     return NextResponse.json({ 
       error: 'Internal server error: ' + error 
     }, { status: 500 });
   }
+  });
 }
 
 export async function GET(request: NextRequest) {
-  try {
+  return withRateLimit(request, async (req) => {
+    try {
     const user = await getCurrentUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -181,9 +186,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(results, { status: 200 });
 
   } catch (error) {
-    console.error('GET error:', error);
+    logger.error({ error, route: '/api/developer/api-keys', method: 'GET' }, 'Error fetching API keys');
     return NextResponse.json({ 
       error: 'Internal server error: ' + error 
     }, { status: 500 });
   }
+  }, { customTier: 'free' });
 }

@@ -2,6 +2,8 @@
  * Snapshot Testing System
  * Tier 4.16: Visual regression detection for LLM outputs
  *
+ * ⚠️ NOTE: This module requires Node.js and will not work in browsers.
+ *
  * @example
  * ```typescript
  * import { snapshot, loadSnapshot } from '@ai-eval-platform/sdk';
@@ -55,7 +57,7 @@ export declare class SnapshotManager {
      */
     private ensureSnapshotDir;
     /**
-     * Get snapshot file path
+     * Get snapshot file path with security checks
      */
     private getSnapshotPath;
     /**

@@ -3,6 +3,9 @@
  * Context Propagation System
  * Tier 2.9: Automatic metadata injection
  *
+ * NOTE: In Node.js, uses AsyncLocalStorage for true async context propagation.
+ * In browsers, uses a simpler stack-based approach (not safe across async boundaries).
+ *
  * @example
  * ```typescript
  * import { createContext } from '@ai-eval-platform/sdk';
@@ -24,11 +27,46 @@ exports.mergeWithContext = mergeWithContext;
 exports.withContext = withContext;
 exports.withContextSync = withContextSync;
 exports.WithContext = WithContext;
-const async_hooks_1 = require("async_hooks");
+// Detect environment
+const isNode = typeof process !== 'undefined' && process.versions?.node;
 /**
- * Global context storage using AsyncLocalStorage
+ * Context storage implementation
+ * Uses AsyncLocalStorage in Node.js, simple stack in browsers
  */
-const contextStorage = new async_hooks_1.AsyncLocalStorage();
+let contextStorage;
+if (isNode) {
+    try {
+        // Dynamic import for Node.js only
+        const { AsyncLocalStorage } = require('async_hooks');
+        // Create without type argument due to require() being untyped
+        contextStorage = new AsyncLocalStorage();
+    }
+    catch (error) {
+        // Fallback if async_hooks is not available
+        contextStorage = null;
+    }
+}
+// Browser fallback: simple context stack
+class BrowserContextStorage {
+    constructor() {
+        this.stack = [];
+    }
+    run(context, fn) {
+        this.stack.push(context);
+        try {
+            return fn();
+        }
+        finally {
+            this.stack.pop();
+        }
+    }
+    getStore() {
+        return this.stack[this.stack.length - 1];
+    }
+}
+if (!contextStorage) {
+    contextStorage = new BrowserContextStorage();
+}
 /**
  * Context manager for automatic metadata propagation
  */

@@ -22,7 +22,11 @@
  * ```
  */
 import { AssertionResult } from './assertions';
-export interface TestCase {
+/**
+ * Test suite case definition (different from API TestCase type)
+ * Use this for defining test cases in test suites with assertions
+ */
+export interface TestSuiteCase {
     /** Unique identifier for the test case */
     id?: string;
     /** Input to the LLM */
@@ -34,9 +38,11 @@ export interface TestCase {
     /** Assertion functions to run */
     assertions?: ((output: string) => AssertionResult)[];
 }
+/** @deprecated Use TestSuiteCase instead to avoid confusion with API TestCase type */
+export type TestCase = TestSuiteCase;
 export interface TestSuiteConfig {
     /** Test cases to run */
-    cases: TestCase[];
+    cases: TestSuiteCase[];
     /** Function that generates output from input */
     executor?: (input: string) => Promise<string>;
     /** Run tests in parallel (default: true) */
@@ -46,7 +52,7 @@ export interface TestSuiteConfig {
     /** Timeout per test case in ms (default: 30000) */
     timeout?: number;
 }
-export interface TestCaseResult {
+export interface TestSuiteCaseResult {
     /** Test case ID */
     id: string;
     /** Input that was tested */
@@ -64,6 +70,8 @@ export interface TestCaseResult {
     /** Error if test failed to execute */
     error?: string;
 }
+/** @deprecated Use TestSuiteCaseResult instead */
+export type TestCaseResult = TestSuiteCaseResult;
 export interface TestSuiteResult {
     /** Suite name */
     name: string;
@@ -76,7 +84,7 @@ export interface TestSuiteResult {
     /** Total duration in milliseconds */
     durationMs: number;
     /** Individual test results */
-    results: TestCaseResult[];
+    results: TestSuiteCaseResult[];
 }
 /**
  * Test Suite for declarative evaluation testing
@@ -98,7 +106,7 @@ export declare class TestSuite {
     /**
      * Add a test case to the suite
      */
-    addCase(testCase: TestCase): void;
+    addCase(testCase: TestSuiteCase): void;
     /**
      * Get suite configuration
      */

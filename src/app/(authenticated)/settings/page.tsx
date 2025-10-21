@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card"
 import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { useOrganizationId } from "@/hooks/use-organization"
+import { getBearerToken } from "@/hooks/use-safe-storage"
 import { Badge } from "@/components/ui/badge"
 import { Copy, Plus, Trash2, Eye, EyeOff, CheckCircle2, Webhook } from "lucide-react"
 import { toast } from "sonner"
@@ -70,6 +72,7 @@ const AVAILABLE_EVENTS = [
 export default function SettingsPage() {
   const { data: session, isPending } = useSession()
   const router = useRouter()
+  const organizationId = useOrganizationId()
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [webhooks, setWebhooks] = useState<Webhook[]>([])
   const [loading, setLoading] = useState(true)
@@ -80,7 +83,6 @@ export default function SettingsPage() {
   const [selectedScopes, setSelectedScopes] = useState<string[]>([])
   const [createdKey, setCreatedKey] = useState<string | null>(null)
   const [showCreatedKey, setShowCreatedKey] = useState(false)
-  const [organizationId, setOrganizationId] = useState<number>(1)
   const [webhookUrl, setWebhookUrl] = useState("")
   const [selectedEvents, setSelectedEvents] = useState<string[]>([])
   const [createdWebhookSecret, setCreatedWebhookSecret] = useState<string | null>(null)
@@ -99,8 +101,15 @@ export default function SettingsPage() {
   }, [session])
 
   const fetchApiKeys = async () => {
+    if (!organizationId) return;
+    
     try {
-      const token = localStorage.getItem("bearer_token")
+      const token = getBearerToken();
+      if (!token) {
+        toast.error("Authentication required");
+        return;
+      }
+      
       const response = await fetch(`/api/developer/api-keys?organizationId=${organizationId}&limit=50`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -110,17 +119,26 @@ export default function SettingsPage() {
       if (response.ok) {
         const data = await response.json()
         setApiKeys(data)
+      } else {
+        toast.error("Failed to fetch API keys");
       }
     } catch (error) {
-      console.error("Failed to fetch API keys:", error)
+      toast.error("Failed to fetch API keys");
     } finally {
       setLoading(false)
     }
   }
 
   const fetchWebhooks = async () => {
+    if (!organizationId) return;
+    
     try {
-      const token = localStorage.getItem("bearer_token")
+      const token = getBearerToken();
+      if (!token) {
+        toast.error("Authentication required");
+        return;
+      }
+      
       const response = await fetch(`/api/developer/webhooks?organizationId=${organizationId}&limit=50`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -130,9 +148,11 @@ export default function SettingsPage() {
       if (response.ok) {
         const data = await response.json()
         setWebhooks(data)
+      } else {
+        toast.error("Failed to fetch webhooks");
       }
     } catch (error) {
-      console.error("Failed to fetch webhooks:", error)
+      toast.error("Failed to fetch webhooks");
     } finally {
       setWebhooksLoading(false)
     }
@@ -143,9 +163,19 @@ export default function SettingsPage() {
       toast.error("Please provide a name and select at least one scope")
       return
     }
+    
+    if (!organizationId) {
+      toast.error("Organization not found");
+      return;
+    }
 
     try {
-      const token = localStorage.getItem("bearer_token")
+      const token = getBearerToken();
+      if (!token) {
+        toast.error("Authentication required");
+        return;
+      }
+      
       const response = await fetch("/api/developer/api-keys", {
         method: "POST",
         headers: {

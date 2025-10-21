@@ -64,8 +64,9 @@ export {
   TestSuiteCaseResult,
   TestSuiteResult,
   TestSuiteConfig,
-  // Legacy exports for backward compatibility
-  type TestCase,
+  // Note: TestCase and TestCaseResult are not exported here to avoid collision
+  // with the API TestCase type from './types'. Use TestSuiteCase instead.
+  // Legacy alias: type TestCase = TestSuiteCase (available in './testing' module directly)
   type TestCaseResult
 } from './testing'
 
@@ -92,6 +93,23 @@ export type { ExportFormat, ExportFormat as ExportType };
 // Streaming and batch processing (Tier 3.3)
 // Use functions from ./streaming module instead of these deprecated exports
 export { batchProcess, streamEvaluation, batchRead, RateLimiter } from './streaming';
+
+// Performance optimization utilities (v1.3.0)
+// Note: RequestCache and CacheTTL are for advanced users only
+// Most users don't need these - caching is automatic
+export { RequestCache, CacheTTL } from './cache';
+export { 
+  PaginatedIterator, 
+  createPaginatedIterator, 
+  autoPaginate,
+  encodeCursor,
+  decodeCursor,
+  type PaginatedResponse,
+  type PaginationParams
+} from './pagination';
+// Note: RequestBatcher is for advanced users only
+// Most users don't need this - batching is automatic
+export { RequestBatcher } from './batch';
 
 // Debug logger (Tier 4.17)
 export { Logger } from './logger'

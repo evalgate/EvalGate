@@ -1,90 +1,74 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireFeature, trackFeature } from '@/lib/autumn-server';
+import { withRateLimit } from '@/lib/api-rate-limit';
+import { logger } from '@/lib/logger';
+import { evaluationService } from '@/lib/services/evaluation.service';
+import { validateRequest } from '@/lib/validation';
+import { z } from 'zod';
 import { db } from '@/db';
 import { evaluations } from '@/db/schema';
-import { eq, like, and, desc } from 'drizzle-orm';
-import { requireFeature, trackFeature } from '@/lib/autumn-server';
 
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100);
-    const offset = parseInt(searchParams.get('offset') || '0');
-    const search = searchParams.get('search');
-    const organizationId = searchParams.get('organizationId');
-    const type = searchParams.get('type');
-    const status = searchParams.get('status');
+  return withRateLimit(request, async (req) => {
+    try {
+      const { searchParams } = new URL(request.url);
+      const id = searchParams.get('id');
+      const organizationId = parseInt(searchParams.get('organizationId') || '1');
 
-    // Single evaluation by ID
-    if (id) {
-      if (isNaN(parseInt(id))) {
-        return NextResponse.json({ 
-          error: "Valid ID is required",
-          code: "INVALID_ID" 
-        }, { status: 400 });
+      // Single evaluation by ID
+      if (id) {
+        const evaluationId = parseInt(id);
+        if (isNaN(evaluationId)) {
+          return NextResponse.json({ 
+            error: "Valid ID is required",
+            code: "INVALID_ID" 
+          }, { status: 400 });
+        }
+
+        const evaluation = await evaluationService.getById(evaluationId, organizationId);
+
+        if (!evaluation) {
+          return NextResponse.json({ 
+            error: 'Evaluation not found',
+            code: 'NOT_FOUND' 
+          }, { status: 404 });
+        }
+
+        return NextResponse.json(evaluation, {
+          headers: {
+            'Cache-Control': 'private, max-age=60, stale-while-revalidate=120'
+          }
+        });
       }
 
-      const evaluation = await db.select()
-        .from(evaluations)
-        .where(eq(evaluations.id, parseInt(id)))
-        .limit(1);
+      // List evaluations
+      const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
+      const offset = parseInt(searchParams.get('offset') || '0');
+      const status = searchParams.get('status') as any;
 
-      if (evaluation.length === 0) {
-        return NextResponse.json({ 
-          error: 'Evaluation not found',
-          code: 'NOT_FOUND' 
-        }, { status: 404 });
-      }
+      const results = await evaluationService.list(organizationId, {
+        limit,
+        offset,
+        status,
+      });
 
-      return NextResponse.json(evaluation[0], {
+      return NextResponse.json(results, {
         headers: {
-          'Cache-Control': 'private, max-age=60, stale-while-revalidate=120'
+          'Cache-Control': 'private, max-age=30, stale-while-revalidate=60'
         }
       });
+    } catch (error: any) {
+      logger.error('Error fetching evaluations', { 
+        error: error.message,
+        route: '/api/evaluations',
+        method: 'GET' 
+      });
+      return NextResponse.json({ 
+        error: 'Internal server error',
+        code: 'INTERNAL_ERROR' 
+      }, { status: 500 });
     }
-
-    // List evaluations with filtering
-    const conditions = [];
-
-    if (organizationId) {
-      conditions.push(eq(evaluations.organizationId, parseInt(organizationId)));
-    }
-
-    if (type) {
-      conditions.push(eq(evaluations.type, type));
-    }
-
-    if (status) {
-      conditions.push(eq(evaluations.status, status));
-    }
-
-    if (search) {
-      conditions.push(like(evaluations.name, `%${search}%`));
-    }
-
-    // Build the query with all conditions
-    const query = db.select()
-      .from(evaluations)
-      .$dynamic();
-
-    if (conditions.length > 0) {
-      query.where(and(...conditions));
-    }
-
-    const results = await query
-      .orderBy(desc(evaluations.createdAt))
-      .limit(limit)
-      .offset(offset);
-
-    return NextResponse.json(results, {
-      headers: {
-        'Cache-Control': 'private, max-age=30, stale-while-revalidate=60'
-      }
-    });
-  } catch (error) {
-    console.error('GET error:', error);
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
-  }
+  }, { customTier: 'free' });
 }
 
 export async function POST(request: Request) {
@@ -224,7 +208,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newEvaluation, { status: 201 })
   } catch (error) {
-    console.error("Error creating evaluation:", error)
+    logger.error({ error, route: '/api/evaluations', method: 'POST' }, 'Error creating evaluation')
     return NextResponse.json(
       { error: "Failed to create evaluation" },
       { status: 500 }
@@ -236,6 +220,7 @@ export async function PUT(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const organizationId = parseInt(searchParams.get('organizationId') || '1');
 
     if (!id || isNaN(parseInt(id))) {
       return NextResponse.json({ 
@@ -245,39 +230,47 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description, type, status } = body;
+    
+    // Validate request body
+    const updateSchema = z.object({
+      name: z.string().min(1).max(255).optional(),
+      description: z.string().optional(),
+      status: z.enum(['draft', 'active', 'archived']).optional(),
+    });
 
-    // Check if evaluation exists
-    const existing = await db.select()
-      .from(evaluations)
-      .where(eq(evaluations.id, parseInt(id)))
-      .limit(1);
+    const validation = updateSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({
+        error: 'Invalid request body',
+        code: 'VALIDATION_ERROR',
+        details: validation.error.errors,
+      }, { status: 400 });
+    }
 
-    if (existing.length === 0) {
+    const updated = await evaluationService.update(
+      parseInt(id),
+      organizationId,
+      validation.data
+    );
+
+    if (!updated) {
       return NextResponse.json({ 
         error: 'Evaluation not found',
         code: 'NOT_FOUND' 
       }, { status: 404 });
     }
 
-    const updateData: any = {
-      updatedAt: new Date().toISOString()
-    };
-
-    if (name !== undefined) updateData.name = name.trim();
-    if (description !== undefined) updateData.description = description?.trim() || null;
-    if (type !== undefined) updateData.type = type.trim();
-    if (status !== undefined) updateData.status = status;
-
-    const updated = await db.update(evaluations)
-      .set(updateData)
-      .where(eq(evaluations.id, parseInt(id)))
-      .returning();
-
-    return NextResponse.json(updated[0]);
-  } catch (error) {
-    console.error('PUT error:', error);
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+    return NextResponse.json(updated);
+  } catch (error: any) {
+    logger.error('Error updating evaluation', {
+      error: error.message,
+      route: '/api/evaluations',
+      method: 'PUT'
+    });
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR' 
+    }, { status: 500 });
   }
 }
 
@@ -285,6 +278,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const organizationId = parseInt(searchParams.get('organizationId') || '1');
 
     if (!id || isNaN(parseInt(id))) {
       return NextResponse.json({ 
@@ -293,24 +287,28 @@ export async function DELETE(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const existing = await db.select()
-      .from(evaluations)
-      .where(eq(evaluations.id, parseInt(id)))
-      .limit(1);
+    const deleted = await evaluationService.delete(parseInt(id), organizationId);
 
-    if (existing.length === 0) {
+    if (!deleted) {
       return NextResponse.json({ 
         error: 'Evaluation not found',
         code: 'NOT_FOUND' 
       }, { status: 404 });
     }
 
-    await db.delete(evaluations)
-      .where(eq(evaluations.id, parseInt(id)));
-
-    return NextResponse.json({ message: 'Evaluation deleted successfully' });
-  } catch (error) {
-    console.error('DELETE error:', error);
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+    return NextResponse.json({ 
+      message: 'Evaluation deleted successfully',
+      success: true 
+    });
+  } catch (error: any) {
+    logger.error('Error deleting evaluation', {
+      error: error.message,
+      route: '/api/evaluations',
+      method: 'DELETE'
+    });
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR' 
+    }, { status: 500 });
   }
 }
