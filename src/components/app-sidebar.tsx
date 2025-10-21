@@ -12,7 +12,8 @@ import {
   Code,
   Newspaper,
   Terminal,
-  Package
+  Package,
+  Key
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -82,6 +83,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <Link href="/developer" className="flex items-center gap-2">
                   <Terminal />
                   <span>Developer Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/developer/api-keys" className="flex items-center gap-2">
+                  <Key />
+                  <span>API Keys</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

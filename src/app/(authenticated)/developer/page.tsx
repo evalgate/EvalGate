@@ -1,12 +1,14 @@
 "use client"
 
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useOrganizationId } from "@/hooks/use-organization"
 import { getBearerToken } from "@/hooks/use-safe-storage"
-import { Activity, Clock, AlertCircle, TrendingUp, BarChart3, Zap } from "lucide-react"
+import { Activity, Clock, AlertCircle, TrendingUp, BarChart3, Zap, Key, Webhook } from "lucide-react"
 import dynamic from "next/dynamic"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -115,6 +117,60 @@ export default function DeveloperDashboardPage() {
           <option value="30d">Last 30 days</option>
           <option value="90d">Last 90 days</option>
         </select>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              API Keys
+            </CardTitle>
+            <CardDescription>
+              Manage API keys for SDK authentication
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/developer/api-keys">
+              <Button className="w-full">Manage API Keys</Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Webhook className="h-5 w-5" />
+              Webhooks
+            </CardTitle>
+            <CardDescription>
+              Configure webhooks for event notifications
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/developer/webhooks">
+              <Button className="w-full" variant="outline">Coming Soon</Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Documentation
+            </CardTitle>
+            <CardDescription>
+              API reference and integration guides
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/api-reference">
+              <Button className="w-full" variant="outline">View Docs</Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
 
       {summary && (
