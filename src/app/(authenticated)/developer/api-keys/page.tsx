@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   Key, 
   Plus, 
@@ -34,8 +35,11 @@ import {
   CheckCircle2, 
   AlertCircle,
   Calendar,
-  Shield
+  Shield,
+  BarChart3,
+  Webhook
 } from "lucide-react"
+import Link from "next/link"
 import { toast } from "sonner"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -265,17 +269,43 @@ export default function APIKeysPage() {
   return (
     <div className="flex-1 space-y-6 p-4 sm:p-6 md:p-8 pt-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">API Keys</h2>
-          <p className="text-muted-foreground">
-            Manage API keys for programmatic access to your organization
-          </p>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Developer</h2>
+            <p className="text-muted-foreground">
+              API keys, usage metrics, and developer tools
+            </p>
+          </div>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create API Key
+          </Button>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create API Key
-        </Button>
+
+        {/* Navigation Tabs */}
+        <Tabs defaultValue="api-keys" className="w-full">
+          <TabsList>
+            <TabsTrigger value="overview" asChild>
+              <Link href="/developer">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Overview
+              </Link>
+            </TabsTrigger>
+            <TabsTrigger value="api-keys" asChild>
+              <Link href="/developer/api-keys">
+                <Key className="h-4 w-4 mr-2" />
+                API Keys
+              </Link>
+            </TabsTrigger>
+            <TabsTrigger value="webhooks" asChild disabled>
+              <span className="flex items-center">
+                <Webhook className="h-4 w-4 mr-2" />
+                Webhooks
+              </span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* API Keys List */}

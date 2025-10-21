@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
@@ -101,22 +102,48 @@ export default function DeveloperDashboardPage() {
 
   return (
     <div className="flex-1 space-y-6 p-4 sm:p-6 md:p-8 pt-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Developer Dashboard</h2>
-          <p className="text-muted-foreground">
-            API usage metrics, analytics, and performance insights
-          </p>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Developer</h2>
+            <p className="text-muted-foreground">
+              API keys, usage metrics, and developer tools
+            </p>
+          </div>
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className="px-4 py-2 border rounded-lg bg-background"
+          >
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+          </select>
         </div>
-        <select
-          value={period}
-          onChange={(e) => setPeriod(e.target.value)}
-          className="px-4 py-2 border rounded-lg bg-background"
-        >
-          <option value="7d">Last 7 days</option>
-          <option value="30d">Last 30 days</option>
-          <option value="90d">Last 90 days</option>
-        </select>
+
+        {/* Navigation Tabs */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList>
+            <TabsTrigger value="overview" asChild>
+              <Link href="/developer">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Overview
+              </Link>
+            </TabsTrigger>
+            <TabsTrigger value="api-keys" asChild>
+              <Link href="/developer/api-keys">
+                <Key className="h-4 w-4 mr-2" />
+                API Keys
+              </Link>
+            </TabsTrigger>
+            <TabsTrigger value="webhooks" asChild disabled>
+              <span className="flex items-center">
+                <Webhook className="h-4 w-4 mr-2" />
+                Webhooks
+              </span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* Quick Actions */}
