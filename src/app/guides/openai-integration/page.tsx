@@ -1,24 +1,13 @@
-export const dynamic = 'force-static'
-export const revalidate = false
-
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/footer"
 import { ArrowLeft } from "lucide-react"
+import { PublicPageHeader } from "@/components/public-page-header"
 
 export default function OpenAIIntegrationGuide() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <header className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-base sm:text-xl font-bold">AI Evaluation Platform</Link>
-            <Button asChild size="sm" className="h-9">
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <PublicPageHeader />
 
       <main className="mx-auto max-w-4xl px-4 sm:px-6 py-8 sm:py-12 flex-1">
         <Link href="/guides" className="mb-6 sm:mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">

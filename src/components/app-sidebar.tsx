@@ -117,34 +117,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/documentation" className="flex items-center gap-2">
+                <a href="/documentation" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                   <BookOpen />
                   <span>Documentation</span>
-                </Link>
+                </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/guides" className="flex items-center gap-2">
+                <a href="/guides" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                   <FileText />
                   <span>Guides</span>
-                </Link>
+                </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/api-reference" className="flex items-center gap-2">
+                <a href="/api-reference" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                   <Code />
                   <span>API Reference</span>
-                </Link>
+                </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/blog" className="flex items-center gap-2">
+                <a href="/blog" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                   <Newspaper />
                   <span>Blog</span>
-                </Link>
+                </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

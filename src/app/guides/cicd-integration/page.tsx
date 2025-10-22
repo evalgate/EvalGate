@@ -1,13 +1,13 @@
-export const dynamic = 'force-static'
-export const revalidate = false
-
 import { Button } from "@/components/ui/button"
+import { PublicPageHeader } from "@/components/public-page-header"
+import { Footer } from "@/components/footer"
 import { ArrowLeft, GitBranch, CheckCircle2, XCircle } from "lucide-react"
 import Link from "next/link"
 
 export default function CICDIntegrationGuidePage() {
   return (
     <div className="min-h-screen bg-background">
+      <PublicPageHeader />
       <div className="mx-auto max-w-4xl px-4 sm:px-6 py-8 sm:py-12">
         <Link href="/guides" className="mb-6 sm:mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

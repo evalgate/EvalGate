@@ -1,35 +1,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { PublicPageHeader } from "@/components/public-page-header"
 import { Footer } from "@/components/footer"
 import Link from "next/link"
 import { ArrowRight, Copy, CheckCircle2, Terminal, Key, Code2, Rocket } from "lucide-react"
 
-export const dynamic = 'force-static'
-export const revalidate = 3600
-
 export default function QuickStartPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Header */}
-      <header className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex items-center justify-between gap-3">
-            <Link href="/">
-              <h1 className="text-base sm:text-xl font-bold truncate">AI Evaluation Platform</h1>
-            </Link>
-            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-              <ThemeToggle />
-              <Button variant="ghost" asChild size="sm" className="h-9 hidden sm:flex">
-                <Link href="/auth/login">Sign in</Link>
-              </Button>
-              <Button asChild size="sm" className="h-9">
-                <Link href="/auth/sign-up">Get started</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <PublicPageHeader />
 
       {/* Main Content */}
       <main className="flex-1">

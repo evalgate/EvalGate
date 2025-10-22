@@ -1,7 +1,6 @@
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
-export const dynamic = 'force-static'
-export const revalidate = false
+import { PublicPageHeader } from "@/components/public-page-header"
 
 import Link from "next/link"
 import { ArrowLeft, Activity, Code, Eye } from "lucide-react"
@@ -9,21 +8,7 @@ import { ArrowLeft, Activity, Code, Eye } from "lucide-react"
 export default function TracingSetupPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <header className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-base sm:text-xl font-bold">AI Evaluation Platform</h1>
-            <div className="flex items-center gap-2 sm:gap-4">
-              <Button variant="ghost" asChild size="sm" className="h-9">
-                <Link href="/auth/login">Sign in</Link>
-              </Button>
-              <Button asChild size="sm" className="h-9">
-                <Link href="/auth/sign-up">Get started</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <PublicPageHeader />
 
       <main className="flex-1">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 py-8 sm:py-12">

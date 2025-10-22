@@ -1,24 +1,13 @@
-export const dynamic = 'force-static'
-export const revalidate = false
-
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/footer"
+import { PublicPageHeader } from "@/components/public-page-header"
 import { Calendar, Clock, ArrowLeft } from "lucide-react"
 
 export default function BlogPost() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <header className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex items-center justify-between gap-3">
-            <Link href="/" className="text-base sm:text-xl font-bold truncate">AI Evaluation Platform</Link>
-            <Button asChild size="sm" className="h-9 flex-shrink-0">
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <PublicPageHeader />
 
       <main className="mx-auto max-w-4xl px-4 sm:px-6 py-8 sm:py-12 flex-1">
         <Button variant="ghost" size="sm" asChild className="mb-4 sm:mb-6">

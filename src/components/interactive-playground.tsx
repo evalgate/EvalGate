@@ -91,11 +91,54 @@ export function InteractivePlayground({ onSignupPrompt }: PlaygroundProps) {
   };
 
   const handleCopyResults = () => {
-    if (!results) return;
-    
-    const text = JSON.stringify(results, null, 2);
-    navigator.clipboard.writeText(text);
+    const summary = `
+Evaluation Results: ${results.name}
+Total Tests: ${results.results.totalTests}
+Passed: ${results.results.passed}
+Failed: ${results.results.failed}
+Quality Score: ${results.qualityScore.overall}/100
+
+Breakdown:
+- Accuracy: ${results.qualityScore.accuracy}/100
+- Relevance: ${results.qualityScore.relevance}/100
+- Consistency: ${results.qualityScore.consistency}/100
+    `.trim();
+
+    navigator.clipboard.writeText(summary);
     toast.success('Results copied to clipboard!');
+  };
+
+  const handleExport = () => {
+    // Create a clean summary for export
+    const exportData = {
+      name: results.name,
+      timestamp: new Date().toISOString(),
+      summary: {
+        totalTests: results.results.totalTests,
+        passed: results.results.passed,
+        failed: results.results.failed,
+        passRate: `${Math.round((results.results.passed / results.results.totalTests) * 100)}%`
+      },
+      qualityScore: {
+        overall: results.qualityScore.overall,
+        accuracy: results.qualityScore.accuracy,
+        relevance: results.qualityScore.relevance,
+        consistency: results.qualityScore.consistency
+      }
+    };
+
+    // Create downloadable JSON file
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `evaluation-results-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Results exported successfully!');
   };
 
   return (
@@ -181,7 +224,7 @@ export function InteractivePlayground({ onSignupPrompt }: PlaygroundProps) {
                 <Copy className="h-4 w-4 mr-2" />
                 Copy
               </Button>
-              <Button variant="outline" onClick={() => window.print()}>
+              <Button variant="outline" onClick={handleExport}>
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
