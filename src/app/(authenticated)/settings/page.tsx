@@ -320,7 +320,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8 pt-4 sm:pt-6">
+    <div className="flex-1 space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h2>

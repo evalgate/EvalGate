@@ -67,7 +67,7 @@ export default async function DashboardPage() {
   const stats = await getDashboardStats(organizationId)
   const recentRuns = await getRecentEvaluationRuns(organizationId)
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 sm:space-y-8 w-full max-w-full min-w-full">
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
@@ -82,7 +82,7 @@ export default async function DashboardPage() {
       </Suspense>
 
       {/* Stats Grid */}
-      <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-3 w-full">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium">Total Evaluations</CardTitle>

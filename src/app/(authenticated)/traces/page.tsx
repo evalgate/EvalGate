@@ -176,7 +176,7 @@ export default function TracesPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 w-full">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Traces</h1>

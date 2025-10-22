@@ -12,7 +12,7 @@ export function PlanUsageIndicator() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Usage & Limits</CardTitle>
           <CardDescription>Track your plan usage</CardDescription>
@@ -35,7 +35,7 @@ export function PlanUsageIndicator() {
   const projectsFeature = customer.features?.projects
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Usage & Limits</CardTitle>
         <CardDescription>

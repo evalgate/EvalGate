@@ -76,7 +76,7 @@ export default function EvaluationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
+    <div className="mx-auto max-w-7xl">
       <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Evaluations</h2>

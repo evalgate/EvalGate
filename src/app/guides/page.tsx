@@ -1,9 +1,10 @@
+"use client"
+
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Footer } from "@/components/footer"
-export const dynamic = 'force-static'
-export const revalidate = 3600
+import { useSession } from "@/lib/auth-client"
 
 import Link from "next/link"
 import { ArrowRight, Code, Zap, BookOpen, Settings } from "lucide-react"
@@ -77,6 +78,8 @@ const guides = [
 const categories = ["Getting Started", "Integrations", "Use Cases", "Advanced"]
 
 export default function GuidesPage() {
+  const { data: session } = useSession()
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Header */}
@@ -88,12 +91,20 @@ export default function GuidesPage() {
             </Link>
             <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
               <ThemeToggle />
-              <Button variant="ghost" asChild size="sm" className="h-9 hidden sm:flex">
-                <Link href="/auth/login">Sign in</Link>
-              </Button>
-              <Button asChild size="sm" className="h-9">
-                <Link href="/auth/sign-up">Get started</Link>
-              </Button>
+              {session?.user ? (
+                <Button asChild size="sm" className="h-9">
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+              ) : (
+                <>
+                  <Button variant="ghost" asChild size="sm" className="h-9 hidden sm:flex">
+                    <Link href="/auth/login">Sign in</Link>
+                  </Button>
+                  <Button asChild size="sm" className="h-9">
+                    <Link href="/auth/sign-up">Get started</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

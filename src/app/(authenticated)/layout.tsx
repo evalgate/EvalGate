@@ -92,20 +92,20 @@ export default function AuthenticatedLayout({
   return (
     <Suspense fallback={<div className="h-screen w-full bg-background" />}>
       <SidebarProvider>
-        <div className="flex h-screen flex-col">
-          <Suspense fallback={<div className="h-16 border-b w-full" />}>
-            <AppHeader user={{
-              email: session?.user?.email,
-              name: session?.user?.name
-            }} />
+        <div className="flex h-screen w-full">
+          <Suspense fallback={<div className="w-64 bg-background border-r h-full" />}>
+            <AppSidebar />
           </Suspense>
-          <div className="flex flex-1 overflow-hidden">
-            <Suspense fallback={<div className="w-64 bg-background border-r h-full" />}>
-              <AppSidebar />
+          <div className="flex flex-col flex-1 min-w-0">
+            <Suspense fallback={<div className="h-16 border-b w-full" />}>
+              <AppHeader user={{
+                email: session?.user?.email,
+                name: session?.user?.name
+              }} />
             </Suspense>
-            <SidebarInset className="flex-1 overflow-auto">
+            <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 w-full">
               {children}
-            </SidebarInset>
+            </main>
           </div>
         </div>
       </SidebarProvider>
