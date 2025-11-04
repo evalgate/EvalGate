@@ -1,0 +1,23 @@
+{
+  "name": "@evalai/examples-node",
+  "version": "1.0.0",
+  "description": "Node.js examples for AI Evaluation Platform SDK",
+  "type": "module",
+  "scripts": {
+    "demo": "node demo-run.js",
+    "assert": "node assert-eval.js",
+    "trace": "node trace-example.js"
+  },
+  "dependencies": {
+    "@evalai/sdk": "^1.0.0",
+    "dotenv": "^16.3.1"
+  },
+  "keywords": [
+    "ai",
+    "evaluation",
+    "llm",
+    "testing"
+  ],
+  "author": "AI Evaluation Platform",
+  "license": "MIT"
+}

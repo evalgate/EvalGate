@@ -27,8 +27,18 @@ export default function EvaluationsPage() {
   const [typeFilter, setTypeFilter] = useState("all")
 
   useEffect(() => {
+    // If not authenticated, load demo data
     if (!isPending && !session?.user) {
-      router.push("/auth/login")
+      fetch("/api/demo/evaluations")
+        .then(res => res.json())
+        .then(data => {
+          setEvaluations(data.evaluations || [])
+          setFilteredEvaluations(data.evaluations || [])
+          setIsLoading(false)
+        })
+        .catch(() => {
+          setIsLoading(false)
+        })
       return
     }
 
@@ -71,12 +81,25 @@ export default function EvaluationsPage() {
     setFilteredEvaluations(filtered)
   }, [searchQuery, typeFilter, evaluations])
 
-  if (isPending || !session?.user) {
+  if (isPending) {
     return null
   }
 
+  const isDemo = !session?.user
+
   return (
     <div className="mx-auto max-w-7xl">
+      {isDemo && (
+        <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+          <p className="text-sm text-blue-600 dark:text-blue-400">
+            <strong>👁️ Demo Mode:</strong> You're viewing a read-only demo project.{" "}
+            <Link href="/auth/sign-up" className="underline font-semibold">
+              Sign up
+            </Link>{" "}
+            to create your own evaluations and duplicate this workspace.
+          </p>
+        </div>
+      )}
       <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Evaluations</h2>

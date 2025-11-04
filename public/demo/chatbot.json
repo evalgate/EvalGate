@@ -1,0 +1,156 @@
+{
+  "overall": 0.87,
+  "metrics": ["factuality", "toxicity", "latency_ms", "cost_usd"],
+  "histogram": [0.6, 0.7, 0.8, 0.9, 1.0],
+  "items": [
+    {
+      "id": "1",
+      "prompt": "Explain photosynthesis in simple terms.",
+      "output": "Plants convert sunlight into energy through a process called photosynthesis. They use chlorophyll in their leaves to capture light energy, which combines with water and carbon dioxide to produce glucose (sugar) and oxygen.",
+      "expected": "Plants use sunlight to make glucose and oxygen from water and carbon dioxide.",
+      "score": 0.92,
+      "pass": true,
+      "metrics": {
+        "factuality": 0.95,
+        "toxicity": 0.0,
+        "latency_ms": 1240,
+        "cost_usd": 0.0012
+      }
+    },
+    {
+      "id": "2",
+      "prompt": "What is artificial intelligence?",
+      "output": "AI stands for Artificial Intelligence. It refers to computer systems that can perform tasks that typically require human intelligence, such as learning, problem-solving, and decision-making.",
+      "expected": "Artificial Intelligence refers to machines simulating human intelligence capabilities like learning and reasoning.",
+      "score": 0.88,
+      "pass": true,
+      "metrics": {
+        "factuality": 0.90,
+        "toxicity": 0.0,
+        "latency_ms": 980,
+        "cost_usd": 0.0009
+      }
+    },
+    {
+      "id": "3",
+      "prompt": "How does gravity work?",
+      "output": "Gravity is a force that attracts objects with mass toward each other. The more massive an object, the stronger its gravitational pull. This is why we stay on Earth's surface and why planets orbit the sun.",
+      "expected": "Gravity is a fundamental force that causes objects with mass to attract each other.",
+      "score": 0.91,
+      "pass": true,
+      "metrics": {
+        "factuality": 0.93,
+        "toxicity": 0.0,
+        "latency_ms": 1150,
+        "cost_usd": 0.0011
+      }
+    },
+    {
+      "id": "4",
+      "prompt": "What causes seasons?",
+      "output": "Seasons are caused by Earth's tilted axis as it orbits the sun. When the Northern Hemisphere tilts toward the sun, it experiences summer, while the Southern Hemisphere has winter.",
+      "expected": "Seasons occur due to Earth's axial tilt as it revolves around the sun.",
+      "score": 0.89,
+      "pass": true,
+      "metrics": {
+        "factuality": 0.92,
+        "toxicity": 0.0,
+        "latency_ms": 1090,
+        "cost_usd": 0.0010
+      }
+    },
+    {
+      "id": "5",
+      "prompt": "Explain quantum computing.",
+      "output": "Quantum computing uses quantum bits or qubits that can exist in multiple states simultaneously, unlike classical bits. This allows quantum computers to process certain calculations much faster than traditional computers.",
+      "expected": "Quantum computers use qubits that leverage quantum mechanics principles like superposition to perform complex calculations.",
+      "score": 0.85,
+      "pass": true,
+      "metrics": {
+        "factuality": 0.87,
+        "toxicity": 0.0,
+        "latency_ms": 1420,
+        "cost_usd": 0.0014
+      }
+    },
+    {
+      "id": "6",
+      "prompt": "What is blockchain?",
+      "output": "Blockchain is a distributed ledger technology where data is stored in blocks that are linked together. Each block contains transactions and is cryptographically secured, making it difficult to alter past records.",
+      "expected": "Blockchain is a decentralized digital ledger that records transactions in a secure, transparent, and immutable way.",
+      "score": 0.84,
+      "pass": true,
+      "metrics": {
+        "factuality": 0.86,
+        "toxicity": 0.0,
+        "latency_ms": 1280,
+        "cost_usd": 0.0013
+      }
+    },
+    {
+      "id": "7",
+      "prompt": "How do vaccines work?",
+      "output": "Vaccines work by training your immune system to recognize and fight specific diseases. They contain weakened or inactive parts of a pathogen that trigger an immune response without causing illness.",
+      "expected": "Vaccines introduce antigens to stimulate the immune system to produce antibodies and memory cells for future protection.",
+      "score": 0.90,
+      "pass": true,
+      "metrics": {
+        "factuality": 0.94,
+        "toxicity": 0.0,
+        "latency_ms": 1180,
+        "cost_usd": 0.0011
+      }
+    },
+    {
+      "id": "8",
+      "prompt": "What is DNA?",
+      "output": "DNA (deoxyribonucleic acid) is the molecule that carries genetic information in living organisms. It has a double helix structure and contains instructions for building and maintaining an organism.",
+      "expected": "DNA is a molecule containing genetic instructions encoded in sequences of nucleotides.",
+      "score": 0.86,
+      "pass": true,
+      "metrics": {
+        "factuality": 0.88,
+        "toxicity": 0.0,
+        "latency_ms": 1050,
+        "cost_usd": 0.0010
+      }
+    },
+    {
+      "id": "9",
+      "prompt": "Explain climate change.",
+      "output": "Climate change refers to long-term shifts in global temperatures and weather patterns. While climate naturally varies, current changes are primarily driven by human activities that increase greenhouse gases in the atmosphere.",
+      "expected": "Climate change is the long-term alteration of temperature and weather patterns, largely caused by human greenhouse gas emissions.",
+      "score": 0.87,
+      "pass": true,
+      "metrics": {
+        "factuality": 0.89,
+        "toxicity": 0.0,
+        "latency_ms": 1310,
+        "cost_usd": 0.0013
+      }
+    },
+    {
+      "id": "10",
+      "prompt": "What is machine learning?",
+      "output": "Machine learning is a subset of AI where computers learn from data without being explicitly programmed. Systems improve their performance on tasks by analyzing patterns in training data.",
+      "expected": "Machine learning enables computers to learn and improve from experience using algorithms that identify patterns in data.",
+      "score": 0.88,
+      "pass": true,
+      "metrics": {
+        "factuality": 0.90,
+        "toxicity": 0.0,
+        "latency_ms": 1020,
+        "cost_usd": 0.0010
+      }
+    }
+  ],
+  "summary": {
+    "total_items": 10,
+    "passed": 10,
+    "failed": 0,
+    "avg_latency_ms": 1172,
+    "total_cost_usd": 0.0113,
+    "avg_factuality": 0.904,
+    "avg_toxicity": 0.0
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "overall": 0.82,
+  "metrics": ["hallucination_score", "relevance", "groundedness", "latency_ms", "cost_usd"],
+  "histogram": [0.55, 0.65, 0.75, 0.85, 0.95],
+  "items": [
+    {
+      "id": "1",
+      "prompt": "What are the company's vacation policies?",
+      "context": "Employees receive 15 days of paid vacation per year, accruing at 1.25 days per month. Unused vacation can be carried over up to 5 days into the next year.",
+      "output": "According to the company policy, employees get 15 days of paid vacation annually, which accrues monthly at 1.25 days. You can carry over up to 5 unused days to the next year.",
+      "expected": "15 days paid vacation per year with up to 5 days carryover.",
+      "score": 0.95,
+      "pass": true,
+      "metrics": {
+        "hallucination_score": 0.98,
+        "relevance": 0.96,
+        "groundedness": 0.97,
+        "latency_ms": 1850,
+        "cost_usd": 0.0024
+      }
+    },
+    {
+      "id": "2",
+      "prompt": "What is the return policy for electronics?",
+      "context": "Electronics can be returned within 30 days of purchase with original packaging and receipt. Items must be in new condition. Restocking fee of 15% applies.",
+      "output": "You can return electronics within 30 days if they're in new condition with original packaging and receipt. There's a 15% restocking fee.",
+      "expected": "30-day return window with 15% restocking fee, requires original packaging and receipt.",
+      "score": 0.93,
+      "pass": true,
+      "metrics": {
+        "hallucination_score": 0.96,
+        "relevance": 0.94,
+        "groundedness": 0.95,
+        "latency_ms": 1620,
+        "cost_usd": 0.0021
+      }
+    },
+    {
+      "id": "3",
+      "prompt": "How do I reset my password?",
+      "context": "To reset your password, click 'Forgot Password' on the login page. Enter your email address and you'll receive a reset link valid for 24 hours. Click the link and create a new password with at least 8 characters.",
+      "output": "Click 'Forgot Password' on the login page, enter your email, and you'll get a reset link that's valid for 24 hours. Use it to create a new password (minimum 8 characters).",
+      "expected": "Use 'Forgot Password' link, receive email with 24-hour reset link, create new password with 8+ characters.",
+      "score": 0.91,
+      "pass": true,
+      "metrics": {
+        "hallucination_score": 0.94,
+        "relevance": 0.92,
+        "groundedness": 0.93,
+        "latency_ms": 1540,
+        "cost_usd": 0.0020
+      }
+    },
+    {
+      "id": "4",
+      "prompt": "What are the shipping costs?",
+      "context": "Standard shipping is $5.99 for orders under $50. Free shipping on orders over $50. Express shipping available for $12.99 with 2-day delivery.",
+      "output": "Shipping costs $5.99 for orders under $50, but it's free for orders over $50. Express 2-day shipping is available for $12.99.",
+      "expected": "Standard: $5.99 under $50, free over $50. Express: $12.99 for 2-day delivery.",
+      "score": 0.94,
+      "pass": true,
+      "metrics": {
+        "hallucination_score": 0.97,
+        "relevance": 0.95,
+        "groundedness": 0.96,
+        "latency_ms": 1420,
+        "cost_usd": 0.0018
+      }
+    },
+    {
+      "id": "5",
+      "prompt": "What programming languages are required for the job?",
+      "context": "Required: Python, JavaScript. Preferred: TypeScript, Go, Rust. Experience with React and Node.js is essential.",
+      "output": "The position requires Python and JavaScript, with React and Node.js experience being essential. TypeScript, Go, and Rust are preferred but not required.",
+      "expected": "Required: Python, JavaScript, React, Node.js. Preferred: TypeScript, Go, Rust.",
+      "score": 0.89,
+      "pass": true,
+      "metrics": {
+        "hallucination_score": 0.92,
+        "relevance": 0.90,
+        "groundedness": 0.91,
+        "latency_ms": 1680,
+        "cost_usd": 0.0022
+      }
+    },
+    {
+      "id": "6",
+      "prompt": "What is the warranty period?",
+      "context": "All products come with a 1-year manufacturer warranty covering defects in materials and workmanship. Extended warranties available for purchase.",
+      "output": "Products include a 1-year manufacturer warranty that covers defects in materials and workmanship. You can also purchase extended warranty coverage.",
+      "expected": "1-year manufacturer warranty for defects, with optional extended warranty purchase.",
+      "score": 0.92,
+      "pass": true,
+      "metrics": {
+        "hallucination_score": 0.95,
+        "relevance": 0.93,
+        "groundedness": 0.94,
+        "latency_ms": 1380,
+        "cost_usd": 0.0018
+      }
+    },
+    {
+      "id": "7",
+      "prompt": "What are the office hours?",
+      "context": "Office hours are Monday-Friday, 9 AM to 5 PM EST. Customer support available 24/7 via chat and email.",
+      "output": "The office is open Monday through Friday from 9 AM to 5 PM Eastern Time. However, customer support is available 24/7 through chat and email.",
+      "expected": "Office: Mon-Fri 9 AM-5 PM EST. Support: 24/7 via chat/email.",
+      "score": 0.90,
+      "pass": true,
+      "metrics": {
+        "hallucination_score": 0.93,
+        "relevance": 0.91,
+        "groundedness": 0.92,
+        "latency_ms": 1520,
+        "cost_usd": 0.0020
+      }
+    },
+    {
+      "id": "8",
+      "prompt": "How do I cancel my subscription?",
+      "context": "To cancel, go to Account Settings > Subscriptions > Cancel Subscription. Cancellation takes effect at the end of the current billing period. No refunds for partial months.",
+      "output": "Navigate to Account Settings, then Subscriptions, and click Cancel Subscription. Your cancellation will be effective at the end of your current billing period, with no partial refunds.",
+      "expected": "Cancel via Account Settings > Subscriptions. Takes effect end of billing period, no partial refunds.",
+      "score": 0.88,
+      "pass": true,
+      "metrics": {
+        "hallucination_score": 0.91,
+        "relevance": 0.89,
+        "groundedness": 0.90,
+        "latency_ms": 1720,
+        "cost_usd": 0.0023
+      }
+    },
+    {
+      "id": "9",
+      "prompt": "What payment methods are accepted?",
+      "context": "We accept Visa, Mastercard, American Express, Discover, PayPal, and Apple Pay. Cryptocurrency payments not currently supported.",
+      "output": "We accept major credit cards (Visa, Mastercard, American Express, Discover), as well as PayPal and Apple Pay. Cryptocurrency is not supported at this time.",
+      "expected": "Credit cards (Visa, MC, Amex, Discover), PayPal, Apple Pay. No crypto.",
+      "score": 0.86,
+      "pass": true,
+      "metrics": {
+        "hallucination_score": 0.89,
+        "relevance": 0.87,
+        "groundedness": 0.88,
+        "latency_ms": 1590,
+        "cost_usd": 0.0021
+      }
+    },
+    {
+      "id": "10",
+      "prompt": "What is the minimum order quantity?",
+      "context": "No minimum order quantity for retail customers. Wholesale orders require minimum of 100 units. Bulk discounts available for orders over 500 units.",
+      "output": "There's no minimum order for retail customers. Wholesale orders need at least 100 units, and bulk discounts kick in at 500+ units.",
+      "expected": "Retail: no minimum. Wholesale: 100 units minimum. Bulk discounts at 500+.",
+      "score": 0.87,
+      "pass": true,
+      "metrics": {
+        "hallucination_score": 0.90,
+        "relevance": 0.88,
+        "groundedness": 0.89,
+        "latency_ms": 1640,
+        "cost_usd": 0.0021
+      }
+    }
+  ],
+  "summary": {
+    "total_items": 10,
+    "passed": 10,
+    "failed": 0,
+    "avg_latency_ms": 1596,
+    "total_cost_usd": 0.0208,
+    "avg_hallucination_score": 0.935,
+    "avg_relevance": 0.915,
+    "avg_groundedness": 0.925
+  }
+}

@@ -30,10 +30,78 @@ const apiSections = [
     title: "Evaluations API",
     description: "Create, run, and manage evaluations programmatically",
     endpoints: [
-      { method: "GET", path: "/api/evaluations", description: "List all evaluations" },
-      { method: "POST", path: "/api/evaluations", description: "Create new evaluation" },
-      { method: "GET", path: "/api/evaluations/{id}", description: "Get evaluation details" },
-      { method: "POST", path: "/api/evaluations/{id}/runs", description: "Start evaluation run" }
+      { 
+        method: "GET", 
+        path: "/api/evaluations", 
+        description: "List all evaluations",
+        example: `curl ${API_BASE_URL}/api/evaluations \\
+  -H "Authorization: Bearer YOUR_API_KEY"`,
+        response: `{
+  "evaluations": [
+    {
+      "id": "eval_123",
+      "name": "Chatbot Accuracy Test",
+      "status": "completed",
+      "overall": 0.87,
+      "created_at": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "total": 1,
+  "page": 1
+}`
+      },
+      { 
+        method: "POST", 
+        path: "/api/evaluations", 
+        description: "Create new evaluation",
+        example: `curl ${API_BASE_URL}/api/evaluations \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "name": "My Evaluation",
+    "datasetId": "dataset_123",
+    "metrics": ["factuality", "toxicity"]
+  }'`,
+        response: `{
+  "id": "eval_456",
+  "name": "My Evaluation",
+  "status": "pending",
+  "created_at": "2024-01-15T10:35:00Z"
+}`
+      },
+      { 
+        method: "GET", 
+        path: "/api/evaluations/{id}", 
+        description: "Get evaluation details",
+        example: `curl ${API_BASE_URL}/api/evaluations/eval_123 \\
+  -H "Authorization: Bearer YOUR_API_KEY"`,
+        response: `{
+  "id": "eval_123",
+  "name": "Chatbot Accuracy Test",
+  "status": "completed",
+  "overall": 0.87,
+  "metrics": {
+    "factuality": 0.90,
+    "toxicity": 0.02
+  },
+  "items": 10,
+  "passed": 8,
+  "failed": 2
+}`
+      },
+      { 
+        method: "POST", 
+        path: "/api/evaluations/{id}/runs", 
+        description: "Start evaluation run",
+        example: `curl ${API_BASE_URL}/api/evaluations/eval_123/runs \\
+  -X POST \\
+  -H "Authorization: Bearer YOUR_API_KEY"`,
+        response: `{
+  "run_id": "run_789",
+  "status": "running",
+  "started_at": "2024-01-15T10:40:00Z"
+}`
+      }
     ]
   },
   {
@@ -153,6 +221,30 @@ export default function APIReferencePage() {
                         <code className="text-sm sm:text-base font-mono flex-1 break-all">{endpoint.path}</code>
                       </div>
                       <p className="mt-2 sm:mt-3 text-sm sm:text-base text-muted-foreground">{endpoint.description}</p>
+                      
+                      {endpoint.example && (
+                        <div className="mt-4">
+                          <h4 className="text-sm font-semibold mb-2">Example Request</h4>
+                          <div className="bg-muted p-3 rounded-lg font-mono text-xs overflow-x-auto relative group">
+                            <code className="whitespace-pre">{endpoint.example}</code>
+                            <div className="absolute top-2 right-2">
+                              <CopyButton code={endpoint.example} />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {endpoint.response && (
+                        <div className="mt-4">
+                          <h4 className="text-sm font-semibold mb-2">Example Response</h4>
+                          <div className="bg-muted p-3 rounded-lg font-mono text-xs overflow-x-auto relative group">
+                            <code className="whitespace-pre">{endpoint.response}</code>
+                            <div className="absolute top-2 right-2">
+                              <CopyButton code={endpoint.response} />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </Card>
                   ))}
                 </div>

@@ -72,6 +72,35 @@ const suite = createTestSuite({
 
 await suite.run(client)`
 
+  const createSpanCode = `// Create a trace with spans
+const trace = await client.traces.create({
+  name: 'Chat Completion',
+  traceId: \`trace-\${Date.now()}\`,
+})
+
+await client.traces.createSpan(trace.id, {
+  name: 'OpenAI API Call',
+  type: 'llm',
+  input: 'What is AI?',
+  output: 'AI stands for Artificial Intelligence...',
+  metadata: { tokens: 150, latency_ms: 1200 },
+})`
+
+  const runEvaluationCode = `// Run an evaluation
+const result = await client.evaluations.create({
+  datasetId: 'public-demo-chatbot',
+  metrics: ['factuality', 'toxicity'],
+})
+
+console.log('Overall score:', result.overall)`
+
+  const ciAssertCode = `// CI/CD assertion example
+if (result.overall < 0.85) {
+  console.error('Regression detected:', result.overall)
+  process.exit(1)
+}
+console.log('Quality check passed:', result.overall)`
+
   return (
     <div className="space-y-6 sm:space-y-8 w-full">
       {/* Hero Section */}
@@ -219,6 +248,62 @@ await suite.run(client)`
             code={testSuiteCode}
             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
           />
+        </div>
+      </Card>
+
+      {/* Create Trace + Span */}
+      <Card className="p-6">
+        <h2 className="text-2xl font-bold mb-4">Create Traces & Spans</h2>
+        <p className="text-muted-foreground mb-4">
+          Track LLM calls and operations with detailed tracing:
+        </p>
+        <div className="bg-muted/50 rounded-lg p-4 relative group">
+          <pre className="font-mono text-sm overflow-x-auto">
+            <code>{createSpanCode}</code>
+          </pre>
+          <CopyButton 
+            code={createSpanCode}
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          />
+        </div>
+      </Card>
+
+      {/* Run Evaluation */}
+      <Card className="p-6">
+        <h2 className="text-2xl font-bold mb-4">Run Evaluations</h2>
+        <p className="text-muted-foreground mb-4">
+          Execute evaluations with built-in metrics:
+        </p>
+        <div className="bg-muted/50 rounded-lg p-4 relative group">
+          <pre className="font-mono text-sm overflow-x-auto">
+            <code>{runEvaluationCode}</code>
+          </pre>
+          <CopyButton 
+            code={runEvaluationCode}
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          />
+        </div>
+      </Card>
+
+      {/* CI Assert */}
+      <Card className="p-6">
+        <h2 className="text-2xl font-bold mb-4">CI/CD Integration</h2>
+        <p className="text-muted-foreground mb-4">
+          Assert quality thresholds in your CI pipeline:
+        </p>
+        <div className="bg-muted/50 rounded-lg p-4 relative group">
+          <pre className="font-mono text-sm overflow-x-auto">
+            <code>{ciAssertCode}</code>
+          </pre>
+          <CopyButton 
+            code={ciAssertCode}
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          />
+        </div>
+        <div className="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+          <p className="text-sm text-emerald-600 dark:text-emerald-400">
+            <strong>Pro tip:</strong> Use this pattern in GitHub Actions, GitLab CI, or any CI/CD platform to prevent quality regressions.
+          </p>
         </div>
       </Card>
 

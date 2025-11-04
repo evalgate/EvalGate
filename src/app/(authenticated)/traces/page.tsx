@@ -107,8 +107,18 @@ export default function TracesPage() {
   const [copiedExample, setCopiedExample] = useState<string | null>(null)
 
   useEffect(() => {
+    // If not authenticated, load demo data
     if (!isPending && !session?.user) {
-      router.push("/auth/login")
+      fetch("/api/demo/traces")
+        .then(res => res.json())
+        .then(data => {
+          setTraces(data.traces || [])
+          setFilteredTraces(data.traces || [])
+          setIsLoading(false)
+        })
+        .catch(() => {
+          setIsLoading(false)
+        })
       return
     }
 
@@ -171,12 +181,25 @@ export default function TracesPage() {
     setTimeout(() => setCopiedExample(null), 2000)
   }
 
-  if (isPending || !session?.user) {
+  if (isPending) {
     return null
   }
 
+  const isDemo = !session?.user
+
   return (
     <div className="space-y-4 sm:space-y-6 w-full">
+      {isDemo && (
+        <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+          <p className="text-sm text-blue-600 dark:text-blue-400">
+            <strong>👁️ Demo Mode:</strong> You're viewing a read-only demo project.{" "}
+            <Link href="/auth/sign-up" className="underline font-semibold">
+              Sign up
+            </Link>{" "}
+            to create your own traces and duplicate this workspace.
+          </p>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Traces</h1>
