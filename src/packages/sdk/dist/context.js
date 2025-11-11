@@ -28,24 +28,9 @@ exports.withContext = withContext;
 exports.withContextSync = withContextSync;
 exports.WithContext = WithContext;
 // Detect environment
-const isNode = typeof process !== 'undefined' && process.versions?.node;
-/**
- * Context storage implementation
- * Uses AsyncLocalStorage in Node.js, simple stack in browsers
- */
-let contextStorage;
-if (isNode) {
-    try {
-        // Dynamic import for Node.js only
-        const { AsyncLocalStorage } = require('async_hooks');
-        // Create without type argument due to require() being untyped
-        contextStorage = new AsyncLocalStorage();
-    }
-    catch (error) {
-        // Fallback if async_hooks is not available
-        contextStorage = null;
-    }
-}
+const isNode = typeof process !== 'undefined' &&
+    process.versions?.node &&
+    typeof require !== 'undefined';
 // Browser fallback: simple context stack
 class BrowserContextStorage {
     constructor() {
@@ -64,7 +49,25 @@ class BrowserContextStorage {
         return this.stack[this.stack.length - 1];
     }
 }
-if (!contextStorage) {
+/**
+ * Context storage implementation
+ * Uses AsyncLocalStorage in Node.js, simple stack in browsers
+ */
+let contextStorage;
+if (isNode) {
+    try {
+        // Dynamic import for Node.js only
+        const { AsyncLocalStorage } = require('async_hooks');
+        // Create without type argument due to require() being untyped
+        contextStorage = new AsyncLocalStorage();
+    }
+    catch (error) {
+        // Fallback if async_hooks is not available
+        contextStorage = new BrowserContextStorage();
+    }
+}
+else {
+    // Use browser storage for non-Node environments
     contextStorage = new BrowserContextStorage();
 }
 /**

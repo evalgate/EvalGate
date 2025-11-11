@@ -77,6 +77,23 @@ export function InteractivePlayground({ onSignupPrompt }: PlaygroundProps = {}) 
       const data = await response.json();
       
       // Transform the demo data to match the expected format
+      const overallScore = Math.round((data.overall || 0.87) * 100);
+      const passRate = data.items?.length > 0 
+        ? (data.items.filter((item: any) => item.pass).length / data.items.length) * 100 
+        : 87;
+      
+      // Calculate grade based on overall score
+      const calculateGrade = (score: number): 'A+' | 'A' | 'B+' | 'B' | 'C+' | 'C' | 'D' | 'F' => {
+        if (score >= 97) return 'A+';
+        if (score >= 93) return 'A';
+        if (score >= 87) return 'B+';
+        if (score >= 83) return 'B';
+        if (score >= 77) return 'C+';
+        if (score >= 73) return 'C';
+        if (score >= 60) return 'D';
+        return 'F';
+      };
+      
       const transformedData = {
         name: scenarios.find(s => s.id === scenarioId)?.name || 'Demo Evaluation',
         results: {
@@ -86,10 +103,32 @@ export function InteractivePlayground({ onSignupPrompt }: PlaygroundProps = {}) 
           tests: data.items || []
         },
         qualityScore: {
-          overall: Math.round((data.overall || 0.87) * 100),
-          accuracy: Math.round((data.overall || 0.87) * 100),
-          relevance: Math.round((data.overall || 0.87) * 100),
-          consistency: Math.round((data.overall || 0.87) * 100)
+          overall: overallScore,
+          grade: calculateGrade(overallScore),
+          metrics: {
+            accuracy: Math.round(passRate),
+            safety: Math.round(passRate * 0.95),
+            latency: 85,
+            cost: 80,
+            consistency: Math.round(passRate * 0.9)
+          },
+          trend: 0,
+          insights: [
+            overallScore >= 90 ? '🎯 Excellent performance across all metrics' : '✅ Good performance with room for improvement',
+            '⚡ Fast response times',
+            '💰 Cost-efficient operations'
+          ],
+          recommendations: overallScore >= 90 
+            ? [
+                'Continue monitoring for regressions',
+                'Run A/B tests on prompt variations',
+                'Expand test coverage to edge cases'
+              ]
+            : [
+                'Add more specific instructions to your prompts',
+                'Consider using few-shot learning',
+                'Review and update your evaluation rubric'
+              ]
         }
       };
       
