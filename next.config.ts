@@ -74,13 +74,16 @@ const nextConfig: NextConfig = {
   // Performance optimizations
   productionBrowserSourceMaps: false,
   
-  turbopack: {
-    rules: {
-      "*.{jsx,tsx}": {
-        loaders: [LOADER],
+  // Only enable component tagger in development (for visual editing)
+  ...(process.env.NODE_ENV === 'development' ? {
+    turbopack: {
+      rules: {
+        "*.{jsx,tsx}": {
+          loaders: [LOADER],
+        },
       },
     },
-  },
+  } : {}),
 }
 
 // Apply Sentry and Axiom configurations
