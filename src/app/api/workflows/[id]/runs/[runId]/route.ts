@@ -106,7 +106,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         }, { status: 400 });
       }
 
-      const updated = await workflowService.updateRun(runIdNum, validation.data);
+      const updateData = {
+        ...validation.data,
+        // Convert null to undefined for errorMessage (service expects string | undefined)
+        errorMessage: validation.data.errorMessage ?? undefined,
+      };
+      const updated = await workflowService.updateRun(runIdNum, updateData);
 
       if (!updated) {
         return NextResponse.json({
