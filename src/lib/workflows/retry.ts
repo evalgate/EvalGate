@@ -13,8 +13,8 @@ import type { WorkflowTracer } from '@/packages/sdk/src/workflows';
  * Retry configuration options
  */
 export interface RetryConfig {
-  /** Maximum number of retry attempts */
-  maxRetries: number;
+  /** Maximum number of retry attempts (default: 3) */
+  maxRetries?: number;
   /** Fallback model to use on failure */
   fallbackModel?: string;
   /** Whether to escalate to human on final failure */
