@@ -12,28 +12,45 @@ const RATE_LIMITS: Record<RateLimitTier, { requests: number; window: Duration }>
   anonymous: { requests: 10, window: '1 m' },
 };
 
-// Initialize Redis client
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || '',
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
-});
+// Check if Redis is configured
+const isRedisConfigured = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 
-// Create rate limiters for each tier
+// Initialize Redis client only if configured
+const redis = isRedisConfigured ? new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+}) : null;
+
+// Create rate limiters for each tier (only if Redis is configured)
 const rateLimiters: Record<string, Ratelimit> = {};
 
-Object.entries(RATE_LIMITS).forEach(([tier, config]) => {
-  rateLimiters[tier] = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(config.requests, config.window),
-    analytics: true,
-    prefix: `@upstash/ratelimit_${tier}`,
+if (redis) {
+  Object.entries(RATE_LIMITS).forEach(([tier, config]) => {
+    rateLimiters[tier] = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(config.requests, config.window),
+      analytics: true,
+      prefix: `@upstash/ratelimit_${tier}`,
+    });
   });
-});
+}
 
 export async function checkRateLimit(
   identifier: string,
   tier: RateLimitTier = 'anonymous'
 ): Promise<{ success: boolean; headers: Record<string, string> }> {
+  // If Redis is not configured, allow all requests (no rate limiting)
+  if (!redis || Object.keys(rateLimiters).length === 0) {
+    return {
+      success: true,
+      headers: {
+        'X-RateLimit-Limit': 'unlimited',
+        'X-RateLimit-Remaining': 'unlimited',
+        'X-RateLimit-Reset': '0',
+      },
+    };
+  }
+
   // Get the appropriate rate limiter for the tier
   const rateLimiter = rateLimiters[tier] || rateLimiters.anonymous;
   
