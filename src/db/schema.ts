@@ -313,3 +313,157 @@ export const emailSubscribers = sqliteTable('email_subscribers', {
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
+
+// ============================================
+// ORCHESTRATION LAYER - Multi-Agent Workflows
+// ============================================
+
+// Workflow definitions for multi-agent evaluation
+export const workflows = sqliteTable('workflows', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  description: text('description'),
+  organizationId: integer('organization_id').references(() => organizations.id).notNull(),
+  definition: text('definition', { mode: 'json' }).notNull(), // DAG structure with nodes and edges
+  version: integer('version').default(1),
+  status: text('status').notNull().default('draft'), // 'draft', 'active', 'archived'
+  createdBy: text('created_by').references(() => user.id).notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+// Individual workflow executions
+export const workflowRuns = sqliteTable('workflow_runs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  workflowId: integer('workflow_id').references(() => workflows.id),
+  traceId: integer('trace_id').references(() => traces.id).notNull(),
+  status: text('status').notNull().default('running'), // 'running', 'completed', 'failed', 'cancelled'
+  input: text('input', { mode: 'json' }),
+  output: text('output', { mode: 'json' }),
+  totalCost: text('total_cost'), // decimal as string for precision
+  totalDurationMs: integer('total_duration_ms'),
+  agentCount: integer('agent_count'),
+  handoffCount: integer('handoff_count'),
+  retryCount: integer('retry_count').default(0),
+  errorMessage: text('error_message'),
+  metadata: text('metadata', { mode: 'json' }),
+  startedAt: text('started_at').notNull(),
+  completedAt: text('completed_at'),
+});
+
+// Agent handoff events between agents in a workflow
+export const agentHandoffs = sqliteTable('agent_handoffs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  workflowRunId: integer('workflow_run_id').references(() => workflowRuns.id).notNull(),
+  fromSpanId: text('from_span_id'),
+  toSpanId: text('to_span_id').notNull(),
+  fromAgent: text('from_agent'),
+  toAgent: text('to_agent').notNull(),
+  handoffType: text('handoff_type').notNull(), // 'delegation', 'escalation', 'parallel', 'fallback'
+  context: text('context', { mode: 'json' }), // data passed between agents
+  timestamp: text('timestamp').notNull(),
+});
+
+// ============================================
+// ORCHESTRATION LAYER - Decision Auditing
+// ============================================
+
+// Agent decision tracking for audit trails
+export const agentDecisions = sqliteTable('agent_decisions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  spanId: integer('span_id').references(() => spans.id).notNull(),
+  workflowRunId: integer('workflow_run_id').references(() => workflowRuns.id),
+  agentName: text('agent_name').notNull(),
+  decisionType: text('decision_type').notNull(), // 'action', 'tool', 'delegate', 'respond'
+  chosen: text('chosen').notNull(), // the action/tool that was chosen
+  alternatives: text('alternatives', { mode: 'json' }).notNull(), // array of alternative options considered
+  reasoning: text('reasoning'), // why this choice was made
+  confidence: integer('confidence'), // 0-100 confidence score
+  inputContext: text('input_context', { mode: 'json' }), // context that influenced the decision
+  createdAt: text('created_at').notNull(),
+});
+
+// ============================================
+// ORCHESTRATION LAYER - Cost Tracking
+// ============================================
+
+// Cost records for individual LLM calls and operations
+export const costRecords = sqliteTable('cost_records', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  spanId: integer('span_id').references(() => spans.id).notNull(),
+  workflowRunId: integer('workflow_run_id').references(() => workflowRuns.id),
+  provider: text('provider').notNull(), // 'openai', 'anthropic', 'google', etc.
+  model: text('model').notNull(),
+  inputTokens: integer('input_tokens').notNull(),
+  outputTokens: integer('output_tokens').notNull(),
+  totalTokens: integer('total_tokens').notNull(),
+  inputCost: text('input_cost').notNull(), // decimal as string
+  outputCost: text('output_cost').notNull(),
+  totalCost: text('total_cost').notNull(),
+  isRetry: integer('is_retry', { mode: 'boolean' }).default(false),
+  retryNumber: integer('retry_number').default(0),
+  costCategory: text('cost_category').notNull(), // 'llm', 'tool', 'embedding', 'other'
+  createdAt: text('created_at').notNull(),
+});
+
+// Provider pricing table (admin-managed)
+export const providerPricing = sqliteTable('provider_pricing', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  provider: text('provider').notNull(),
+  model: text('model').notNull(),
+  inputPricePerMillion: text('input_price_per_million').notNull(), // price per 1M input tokens
+  outputPricePerMillion: text('output_price_per_million').notNull(), // price per 1M output tokens
+  effectiveDate: text('effective_date').notNull(),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  createdAt: text('created_at').notNull(),
+});
+
+// ============================================
+// ORCHESTRATION LAYER - Benchmarks
+// ============================================
+
+// Benchmark definitions
+export const benchmarks = sqliteTable('benchmarks', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  description: text('description'),
+  organizationId: integer('organization_id').references(() => organizations.id).notNull(),
+  taskType: text('task_type').notNull(), // 'qa', 'coding', 'reasoning', 'tool_use', 'multi_step'
+  dataset: text('dataset', { mode: 'json' }), // test cases for the benchmark
+  metrics: text('metrics', { mode: 'json' }).notNull(), // which metrics to track
+  isPublic: integer('is_public', { mode: 'boolean' }).default(false),
+  createdBy: text('created_by').references(() => user.id).notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+// Agent configurations being benchmarked
+export const agentConfigs = sqliteTable('agent_configs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  organizationId: integer('organization_id').references(() => organizations.id).notNull(),
+  architecture: text('architecture').notNull(), // 'react', 'cot', 'tot', 'custom'
+  model: text('model').notNull(),
+  config: text('config', { mode: 'json' }), // full agent configuration
+  description: text('description'),
+  createdBy: text('created_by').references(() => user.id).notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+// Benchmark results
+export const benchmarkResults = sqliteTable('benchmark_results', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  benchmarkId: integer('benchmark_id').references(() => benchmarks.id).notNull(),
+  agentConfigId: integer('agent_config_id').references(() => agentConfigs.id).notNull(),
+  workflowRunId: integer('workflow_run_id').references(() => workflowRuns.id),
+  accuracy: integer('accuracy'), // 0-100
+  latencyP50: integer('latency_p50'), // median latency in ms
+  latencyP95: integer('latency_p95'), // 95th percentile latency in ms
+  totalCost: text('total_cost'), // total cost in dollars
+  successRate: integer('success_rate'), // 0-100
+  toolUseEfficiency: integer('tool_use_efficiency'), // 0-100
+  customMetrics: text('custom_metrics', { mode: 'json' }),
+  runCount: integer('run_count').default(1),
+  createdAt: text('created_at').notNull(),
+});

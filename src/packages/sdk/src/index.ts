@@ -118,6 +118,34 @@ export { Logger } from './logger'
 export { traceOpenAI } from './integrations/openai'
 export { traceAnthropic } from './integrations/anthropic'
 
+// Workflow tracing (Orchestration Layer)
+export {
+  WorkflowTracer,
+  createWorkflowTracer,
+  traceWorkflowStep,
+  // Framework integrations
+  traceLangChainAgent,
+  traceCrewAI,
+  traceAutoGen,
+  // Types
+  type WorkflowNode,
+  type WorkflowEdge,
+  type WorkflowDefinition,
+  type WorkflowContext,
+  type WorkflowStatus,
+  type HandoffType,
+  type AgentHandoff,
+  type DecisionAlternative,
+  type DecisionType,
+  type RecordDecisionParams,
+  type LLMProvider,
+  type CostCategory,
+  type RecordCostParams,
+  type CostRecord,
+  type WorkflowTracerOptions,
+  type AgentSpanContext,
+} from './workflows'
+
 // Types (Tier 1.4)
 import type {
   ClientConfig,

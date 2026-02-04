@@ -13,7 +13,10 @@ import {
   Newspaper,
   Terminal,
   Package,
-  Key
+  Key,
+  Workflow,
+  DollarSign,
+  Trophy
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -59,9 +62,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
+                <Link href="/workflows" prefetch={true} className="flex items-center gap-2">
+                  <Workflow />
+                  <span>Workflows</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
                 <Link href="/llm-judge" className="flex items-center gap-2">
                   <Users />
                   <span>LLM Judge</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/costs" className="flex items-center gap-2">
+                  <DollarSign />
+                  <span>Costs</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/benchmarks" className="flex items-center gap-2">
+                  <Trophy />
+                  <span>Benchmarks</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
