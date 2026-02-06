@@ -1,15 +1,18 @@
-# @evalai/sdk
+# @pauly4010/evalai-sdk
+
+[![npm version](https://img.shields.io/npm/v/@pauly4010/evalai-sdk.svg)](https://www.npmjs.com/package/@pauly4010/evalai-sdk)
+[![npm downloads](https://img.shields.io/npm/dm/@pauly4010/evalai-sdk.svg)](https://www.npmjs.com/package/@pauly4010/evalai-sdk)
 
 Official TypeScript/JavaScript SDK for the AI Evaluation Platform. Build confidence in your AI systems with comprehensive evaluation tools.
 
 ## Installation
 
 ```bash
-npm install @evalai/sdk
+npm install @pauly4010/evalai-sdk
 # or
-yarn add @evalai/sdk
+yarn add @pauly4010/evalai-sdk
 # or
-pnpm add @evalai/sdk
+pnpm add @pauly4010/evalai-sdk
 ```
 
 ## Environment Support
@@ -47,7 +50,7 @@ Use appropriate features based on your environment. The SDK will throw helpful e
 ## Quick Start
 
 ```typescript
-import { AIEvalClient } from "@evalai/sdk";
+import { AIEvalClient } from "@pauly4010/evalai-sdk";
 
 // Initialize with environment variables
 const client = AIEvalClient.init();
@@ -67,7 +70,7 @@ const client = new AIEvalClient({
 The SDK now includes comprehensive evaluation template types for different testing scenarios:
 
 ```typescript
-import { EvaluationTemplates } from "@evalai/sdk";
+import { EvaluationTemplates } from "@pauly4010/evalai-sdk";
 
 // Create evaluations with predefined templates
 await client.evaluations.create({
@@ -222,7 +225,7 @@ const client = new AIEvalClient({
 ## Error Handling
 
 ```typescript
-import { EvalAIError, RateLimitError } from '@evalai/sdk';
+import { EvalAIError, RateLimitError } from '@pauly4010/evalai-sdk';
 
 try {
   await client.traces.create({...});
@@ -240,7 +243,7 @@ try {
 ### Context Propagation
 
 ```typescript
-import { withContext } from "@evalai/sdk";
+import { withContext } from "@pauly4010/evalai-sdk";
 
 withContext({ userId: "123", sessionId: "abc" }, async () => {
   // Context automatically included in all traces
@@ -254,7 +257,7 @@ withContext({ userId: "123", sessionId: "abc" }, async () => {
 ### Test Suites
 
 ```typescript
-import { createTestSuite } from "@evalai/sdk";
+import { createTestSuite } from "@pauly4010/evalai-sdk";
 
 const suite = createTestSuite({
   name: "Chatbot Tests",
@@ -273,7 +276,7 @@ await suite.run(client);
 ### Framework Integrations
 
 ```typescript
-import { traceOpenAI } from "@evalai/sdk/integrations/openai";
+import { traceOpenAI } from "@pauly4010/evalai-sdk/integrations/openai";
 import OpenAI from "openai";
 
 const openai = traceOpenAI(new OpenAI(), client);

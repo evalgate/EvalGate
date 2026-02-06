@@ -14,7 +14,9 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "sdk:build": "cd src/packages/sdk && pnpm build",
-    "sdk:test": "cd src/packages/sdk && pnpm test"
+    "sdk:test": "cd src/packages/sdk && pnpm test",
+    "remotion:preview": "npx remotion preview src/remotion/index.ts",
+    "remotion:render": "npx remotion render src/remotion/index.ts DemoVideo out/demo-video.mp4"
   },
   "dependencies": {
     "@babel/parser": "^7.28.4",

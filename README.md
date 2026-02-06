@@ -4,6 +4,7 @@ _Enterprise-grade AI agent orchestration, evaluation, and governance platform_
 
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/pauly7610s-projects/v0-ai-evaluation-platform)
 [![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/9narvC0l5kR)
+[![npm](https://img.shields.io/npm/v/@pauly4010/evalai-sdk?style=for-the-badge&logo=npm&color=cb3837)](https://www.npmjs.com/package/@pauly4010/evalai-sdk)
 
 ## Overview
 
@@ -13,7 +14,7 @@ EvalAI is a production-grade platform for deploying, monitoring, auditing, and o
 
 - **Multi-Agent Orchestration** - Visual DAG workflows with 6 node types (agent, tool, decision, parallel, human, LLM)
 - **Decision Auditing** - Full reasoning chains, confidence scores, and alternative analysis
-- **Cost Tracking** - Real-time per-workflow cost calculation with 50+ model pricing
+- **Cost Tracking** - Real-time cost analytics with model-level breakdown (8 models across 3 providers)
 - **Governance Rules** - Configurable approval/blocking rules with compliance presets (SOC2, GDPR, HIPAA, FINRA)
 - **SLA Management** - Latency, cost, and error rate thresholds with violation alerts
 - **Human-in-the-Loop** - Built-in escalation and approval workflows
@@ -36,8 +37,8 @@ EvalAI is a production-grade platform for deploying, monitoring, auditing, and o
 ## Quick Start
 
 ```typescript
-import { AIEvalClient } from '@evalai/sdk';
-import { WorkflowTracer } from '@evalai/sdk/workflows';
+import { AIEvalClient } from '@pauly4010/evalai-sdk';
+import { WorkflowTracer } from '@pauly4010/evalai-sdk/workflows';
 
 const client = new AIEvalClient({ apiKey: process.env.EVALAI_API_KEY });
 const tracer = new WorkflowTracer(client);
@@ -71,7 +72,7 @@ await tracer.endWorkflow({ resolution: 'Issue resolved' });
 ### LangChain
 
 ```typescript
-import { traceLangChainAgent } from '@evalai/sdk/workflows';
+import { traceLangChainAgent } from '@pauly4010/evalai-sdk/workflows';
 
 const agent = await initializeAgent(tools, model, {
   callbacks: [traceLangChainAgent({ apiKey: process.env.EVALAI_API_KEY })]
@@ -88,6 +89,16 @@ class MarketResearchCrew:
     # Your crew definition
     pass
 ```
+
+## SDK
+
+The official SDK is published on npm:
+
+```bash
+npm install @pauly4010/evalai-sdk
+```
+
+See the [SDK README](./src/packages/sdk/README.md) for full documentation.
 
 ## Documentation
 

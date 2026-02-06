@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the @evalai/sdk package will be documented in this file.
+All notable changes to the @pauly4010/evalai-sdk package will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -125,10 +125,10 @@ No breaking changes! Legacy type names are aliased for backward compatibility:
 
 ```typescript
 // OLD (still works, but deprecated)
-import { TestCase } from "@evalai/sdk";
+import { TestCase } from "@pauly4010/evalai-sdk";
 
 // NEW (recommended)
-import { TestSuiteCase } from "@evalai/sdk";
+import { TestSuiteCase } from "@pauly4010/evalai-sdk";
 ```
 
 ---
@@ -222,7 +222,7 @@ All fixes are backward compatible. However, you may notice:
 
    ```javascript
    // In browser:
-   import { snapshot } from "@evalai/sdk";
+   import { snapshot } from "@pauly4010/evalai-sdk";
    snapshot("test", "name"); // ❌ Throws: "Snapshot testing requires Node.js..."
    ```
 
@@ -241,7 +241,7 @@ All fixes are backward compatible. However, you may notice:
 1. **Update CLI scripts** if using `evalai eval run`
 2. **Test browser builds** if using SDK in browsers
 3. **Review trace counts** if you have monitoring based on trace volume
-4. **Update dependencies**: Run `npm update @evalai/sdk`
+4. **Update dependencies**: Run `npm update @pauly4010/evalai-sdk`
 
 ### 🧪 Testing
 
