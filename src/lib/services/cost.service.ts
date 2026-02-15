@@ -5,7 +5,7 @@
 
 import { db } from '@/db';
 import { costRecords, providerPricing, workflowRuns, spans } from '@/db/schema';
-import { eq, and, desc, sql, gte, lte } from 'drizzle-orm';
+import { eq, and, desc, sql, gte, lte, inArray } from 'drizzle-orm';
 
 // ============================================================================
 // TYPES
@@ -262,7 +262,7 @@ class CostService {
     const records = await db
       .select()
       .from(costRecords)
-      .where(sql`${costRecords.spanId} IN (${sql.raw(spanIds.join(','))})`);
+      .where(inArray(costRecords.spanId, spanIds));
 
     const breakdown: CostBreakdown = {
       totalCost: 0,

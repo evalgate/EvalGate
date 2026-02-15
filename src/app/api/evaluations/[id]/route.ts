@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server"
 import { db } from '@/db'
-import { evaluations, testCases, user } from '@/db/schema'
+import { evaluations, testCases, evaluationTestCases, evaluationRuns, testResults, user } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ evaluation: formattedEvaluation })
   } catch (error) {
     console.error('GET evaluation error:', error)
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -83,7 +83,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ evaluation: updated[0] })
   } catch (error) {
     console.error('PATCH evaluation error:', error)
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -96,18 +96,36 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const deleted = await db
-      .delete(evaluations)
+    // First check the evaluation exists
+    const existing = await db
+      .select({ id: evaluations.id })
+      .from(evaluations)
       .where(eq(evaluations.id, parseInt(id)))
-      .returning()
+      .limit(1);
 
-    if (deleted.length === 0) {
+    if (existing.length === 0) {
       return NextResponse.json({ error: "Evaluation not found" }, { status: 404 })
     }
+
+    const evalId = parseInt(id);
+
+    // Cascade delete: delete related records first
+    // 1. Delete test results for runs belonging to this evaluation
+    const runs = await db.select({ id: evaluationRuns.id }).from(evaluationRuns).where(eq(evaluationRuns.evaluationId, evalId));
+    for (const run of runs) {
+      await db.delete(testResults).where(eq(testResults.evaluationRunId, run.id));
+    }
+    // 2. Delete evaluation runs
+    await db.delete(evaluationRuns).where(eq(evaluationRuns.evaluationId, evalId));
+    // 3. Delete test cases (both tables)
+    await db.delete(testCases).where(eq(testCases.evaluationId, evalId));
+    await db.delete(evaluationTestCases).where(eq(evaluationTestCases.evaluationId, evalId));
+    // 4. Delete the evaluation itself
+    await db.delete(evaluations).where(eq(evaluations.id, evalId));
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('DELETE evaluation error:', error)
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

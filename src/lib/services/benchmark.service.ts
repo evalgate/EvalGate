@@ -5,7 +5,7 @@
 
 import { db } from '@/db';
 import { benchmarks, agentConfigs, benchmarkResults, workflowRuns, workflows } from '@/db/schema';
-import { eq, and, desc, sql, asc } from 'drizzle-orm';
+import { eq, and, desc, sql, asc, inArray } from 'drizzle-orm';
 
 // ============================================================================
 // TYPES
@@ -379,7 +379,7 @@ class BenchmarkService {
       .where(
         and(
           eq(benchmarkResults.benchmarkId, benchmarkId),
-          sql`${benchmarkResults.agentConfigId} IN (${sql.raw(agentConfigIds.join(','))})`
+          inArray(benchmarkResults.agentConfigId, agentConfigIds)
         )
       );
 

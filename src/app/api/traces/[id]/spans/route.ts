@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { traceSpans } from '@/db/schema';
-import { eq, asc } from 'drizzle-orm';
+import { traceSpans, traces } from '@/db/schema';
+import { eq, asc, and } from 'drizzle-orm';
+import { requireAuthWithOrg } from '@/lib/autumn-server';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Authenticate and resolve org from user membership (app-layer RLS)
+    const authResult = await requireAuthWithOrg(request);
+    if (!authResult.authenticated) {
+      const data = await authResult.response.json();
+      return NextResponse.json(data, { status: authResult.response.status });
+    }
+
     const { id } = await params;
     const traceId = parseInt(id);
 
@@ -29,12 +37,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json(spans);
   } catch (error) {
     console.error('GET error:', error);
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Authenticate and resolve org from user membership (app-layer RLS)
+    const authResult = await requireAuthWithOrg(request);
+    if (!authResult.authenticated) {
+      const data = await authResult.response.json();
+      return NextResponse.json(data, { status: authResult.response.status });
+    }
+
     const { id } = await params;
     const traceId = parseInt(id);
 
@@ -74,6 +89,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json(newSpan[0], { status: 201 });
   } catch (error) {
     console.error('POST error:', error);
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

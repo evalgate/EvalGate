@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { workflowService } from '@/lib/services/workflow.service';
-import { requireFeature, trackFeature } from '@/lib/autumn-server';
+import { requireFeature, requireAuthWithOrg, trackFeature } from '@/lib/autumn-server';
 import { withRateLimit } from '@/lib/api-rate-limit';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
@@ -37,19 +37,19 @@ const createWorkflowSchema = z.object({
 export async function GET(request: NextRequest) {
   return withRateLimit(request, async (req: NextRequest) => {
     try {
+      // Authenticate and resolve org from user membership (app-layer RLS)
+      const authResult = await requireAuthWithOrg(request);
+      if (!authResult.authenticated) {
+        const data = await authResult.response.json();
+        return NextResponse.json(data, { status: authResult.response.status });
+      }
+
       const { searchParams } = new URL(req.url);
-      const organizationId = parseInt(searchParams.get('organizationId') || '0');
+      const organizationId = authResult.organizationId;
       const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
       const offset = parseInt(searchParams.get('offset') || '0');
       const status = searchParams.get('status') as 'draft' | 'active' | 'archived' | null;
       const search = searchParams.get('search');
-
-      if (!organizationId) {
-        return NextResponse.json({
-          error: 'Organization ID is required',
-          code: 'MISSING_ORGANIZATION_ID',
-        }, { status: 400 });
-      }
 
       const workflows = await workflowService.list(organizationId, {
         limit,
@@ -108,7 +108,25 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
       }
 
-      const { name, description, organizationId, definition, status } = validation.data;
+      const { name, description, definition, status } = validation.data;
+
+      // Use org from authenticated user's membership (app-layer RLS)
+      const { organizationMembers } = await import('@/db/schema');
+      const { eq } = await import('drizzle-orm');
+      const { db } = await import('@/db');
+      const memberships = await db
+        .select()
+        .from(organizationMembers)
+        .where(eq(organizationMembers.userId, userId))
+        .limit(1);
+      const organizationId = memberships.length > 0 ? memberships[0].organizationId : 0;
+
+      if (!organizationId) {
+        return NextResponse.json({
+          error: 'No organization membership found',
+          code: 'NO_ORG_MEMBERSHIP',
+        }, { status: 403 });
+      }
 
       // Check per-organization workflow limit
       const orgLimitCheck = await requireFeature(req, 'workflows_per_project', 1);

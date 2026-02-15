@@ -113,6 +113,27 @@ export function validateRequest<T>(
 }
 
 /**
+ * Sanitize user-provided search/filter strings to prevent LIKE injection.
+ * Escapes SQL LIKE wildcards (% and _) and enforces a max length.
+ */
+export function sanitizeSearchInput(input: string, maxLength: number = 500): string {
+  if (!input || typeof input !== 'string') return '';
+  const trimmed = input.trim().slice(0, maxLength);
+  return trimmed
+    .replace(/%/g, '\\%')
+    .replace(/_/g, '\\_');
+}
+
+/**
+ * Safe parseInt with NaN guard. Returns the default value if parsing fails.
+ */
+export function safeParseInt(value: string | null | undefined, defaultValue: number): number {
+  if (!value) return defaultValue;
+  const parsed = parseInt(value, 10);
+  return isNaN(parsed) ? defaultValue : parsed;
+}
+
+/**
  * Format Zod errors for API responses
  */
 export function formatValidationErrors(errors: z.ZodError): {

@@ -54,6 +54,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ task: formattedTask })
   } catch (error) {
     console.error('GET annotation task error:', error)
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

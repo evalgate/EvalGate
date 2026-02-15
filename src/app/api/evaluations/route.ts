@@ -1,19 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireFeature, trackFeature } from '@/lib/autumn-server';
+import { requireFeature, requireAuthWithOrg, trackFeature } from '@/lib/autumn-server';
 import { withRateLimit } from '@/lib/api-rate-limit';
 import { logger } from '@/lib/logger';
 import { evaluationService } from '@/lib/services/evaluation.service';
 import { validateRequest } from '@/lib/validation';
 import { z } from 'zod';
 import { db } from '@/db';
-import { evaluations, testCases } from '@/db/schema';
+import { evaluations, testCases, organizationMembers } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   return withRateLimit(request, async (req) => {
     try {
+      // Authenticate and resolve org from user membership (app-layer RLS)
+      const authResult = await requireAuthWithOrg(request);
+      if (!authResult.authenticated) {
+        const data = await authResult.response.json();
+        return NextResponse.json(data, { status: authResult.response.status });
+      }
+
       const { searchParams } = new URL(request.url);
       const id = searchParams.get('id');
-      const organizationId = parseInt(searchParams.get('organizationId') || '1');
+      const organizationId = authResult.organizationId;
 
       // Single evaluation by ID
       if (id) {
@@ -42,14 +50,16 @@ export async function GET(request: NextRequest) {
       }
 
       // List evaluations
-      const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
-      const offset = parseInt(searchParams.get('offset') || '0');
-      const status = searchParams.get('status') as any;
+      const parsedLimit = parseInt(searchParams.get('limit') || '50');
+      const parsedOffset = parseInt(searchParams.get('offset') || '0');
+      const limit = Math.min(isNaN(parsedLimit) ? 50 : parsedLimit, 100);
+      const offset = isNaN(parsedOffset) ? 0 : parsedOffset;
+      const status = searchParams.get('status') as 'draft' | 'active' | 'archived' | null;
 
       const results = await evaluationService.list(organizationId, {
         limit,
         offset,
-        status,
+        status: status || undefined,
       });
 
       return NextResponse.json(results, {
@@ -87,7 +97,6 @@ export async function POST(request: Request) {
       name, 
       description, 
       type,
-      organizationId,
       executionSettings, 
       modelSettings, 
       customMetrics 
@@ -100,10 +109,18 @@ export async function POST(request: Request) {
       )
     }
 
+    // Derive organizationId from the authenticated user's membership (app-layer RLS)
+    const memberships = await db
+      .select()
+      .from(organizationMembers)
+      .where(eq(organizationMembers.userId, userId))
+      .limit(1);
+    const organizationId = memberships.length > 0 ? memberships[0].organizationId : null;
+
     if (!organizationId) {
       return NextResponse.json(
-        { error: "Organization ID is required" },
-        { status: 400 }
+        { error: "No organization membership found" },
+        { status: 403 }
       )
     }
 
@@ -169,7 +186,7 @@ export async function POST(request: Request) {
       name,
       description,
       type,
-      organizationId: organizationId || null,
+      organizationId,
       status: "draft",
       createdBy: userId,
       createdAt: now,
@@ -267,9 +284,16 @@ export async function POST(request: Request) {
 
 export async function PUT(request: NextRequest) {
   try {
+    // Authenticate and resolve org from user membership (app-layer RLS)
+    const authResult = await requireAuthWithOrg(request);
+    if (!authResult.authenticated) {
+      const data = await authResult.response.json();
+      return NextResponse.json(data, { status: authResult.response.status });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const organizationId = parseInt(searchParams.get('organizationId') || '1');
+    const organizationId = authResult.organizationId;
 
     if (!id || isNaN(parseInt(id))) {
       return NextResponse.json({ 
@@ -325,9 +349,16 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    // Authenticate and resolve org from user membership (app-layer RLS)
+    const authResult = await requireAuthWithOrg(request);
+    if (!authResult.authenticated) {
+      const data = await authResult.response.json();
+      return NextResponse.json(data, { status: authResult.response.status });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const organizationId = parseInt(searchParams.get('organizationId') || '1');
+    const organizationId = authResult.organizationId;
 
     if (!id || isNaN(parseInt(id))) {
       return NextResponse.json({ 

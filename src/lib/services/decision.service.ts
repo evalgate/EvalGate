@@ -5,7 +5,7 @@
 
 import { db } from '@/db';
 import { agentDecisions, spans, workflowRuns } from '@/db/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 
 // ============================================================================
 // TYPES
@@ -231,7 +231,7 @@ class DecisionService {
     const decisions = await db
       .select()
       .from(agentDecisions)
-      .where(sql`${agentDecisions.spanId} IN (${sql.raw(spanIds.join(','))})`)
+      .where(inArray(agentDecisions.spanId, spanIds))
       .orderBy(agentDecisions.createdAt);
 
     // Build audit trail
@@ -277,7 +277,7 @@ class DecisionService {
         confidence: agentDecisions.confidence,
       })
       .from(agentDecisions)
-      .where(sql`${agentDecisions.workflowRunId} IN (${sql.raw(runIds.join(','))})`);
+      .where(inArray(agentDecisions.workflowRunId, runIds));
 
     // Analyze patterns
     const patterns: Record<string, {

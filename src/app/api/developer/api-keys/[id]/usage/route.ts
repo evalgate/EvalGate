@@ -137,7 +137,7 @@ export async function GET(
   } catch (error) {
     console.error('GET api usage stats error:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

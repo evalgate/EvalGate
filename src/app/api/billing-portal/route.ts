@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     if ('error' in result) {
       console.error('Billing portal error:', result.error?.message || 'Unknown error');
       return NextResponse.json(
-        { error: `Failed to generate billing portal URL: ${result.error?.message || 'Unknown error'}` },
+        { error: 'Failed to generate billing portal URL' },
         { status: 500 }
       );
     }
@@ -38,8 +38,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url }, { status: 200 });
   } catch (err: any) {
+    console.error('Billing portal error:', err);
     return NextResponse.json(
-      { error: "Failed to generate billing portal URL", message: err.message },
+      { error: "Failed to generate billing portal URL" },
       { status: 500 }
     );
   }

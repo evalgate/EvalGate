@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { annotationTasks } from '@/db/schema';
 import { eq, like, and, desc } from 'drizzle-orm';
-import { requireFeature, trackFeature } from '@/lib/autumn-server';
+import { requireFeature, requireAuthWithOrg, trackFeature } from '@/lib/autumn-server';
+import { sanitizeSearchInput } from '@/lib/validation';
 
 export async function GET(request: NextRequest) {
   try {
+    // Authenticate and resolve org from user membership (app-layer RLS)
+    const authResult = await requireAuthWithOrg(request);
+    if (!authResult.authenticated) {
+      const data = await authResult.response.json();
+      return NextResponse.json(data, { status: authResult.response.status });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100);
@@ -13,7 +21,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const status = searchParams.get('status');
 
-    // Single task by ID
+    // Single task by ID — scoped to user's org
     if (id) {
       if (isNaN(parseInt(id))) {
         return NextResponse.json({ 
@@ -24,7 +32,7 @@ export async function GET(request: NextRequest) {
 
       const task = await db.select()
         .from(annotationTasks)
-        .where(eq(annotationTasks.id, parseInt(id)))
+        .where(and(eq(annotationTasks.id, parseInt(id)), eq(annotationTasks.organizationId, authResult.organizationId)))
         .limit(1);
 
       if (task.length === 0) {
@@ -37,36 +45,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(task[0]);
     }
 
-    // List tasks with filtering
-    // Build conditions array first
-    const conditions = [];
+    // List tasks with filtering — scoped to user's org
+    const conditions = [eq(annotationTasks.organizationId, authResult.organizationId)];
 
     if (status) {
       conditions.push(eq(annotationTasks.status, status));
     }
 
     if (search) {
-      conditions.push(like(annotationTasks.name, `%${search}%`));
+      const safeSearch = sanitizeSearchInput(search);
+      if (safeSearch) {
+        conditions.push(like(annotationTasks.name, `%${safeSearch}%`));
+      }
     }
 
-    // Execute query with or without conditions
-    const results = conditions.length > 0
-      ? await db.select()
-          .from(annotationTasks)
-          .where(and(...conditions))
-          .orderBy(desc(annotationTasks.createdAt))
-          .limit(limit)
-          .offset(offset)
-      : await db.select()
-          .from(annotationTasks)
-          .orderBy(desc(annotationTasks.createdAt))
-          .limit(limit)
-          .offset(offset);
+    const results = await db.select()
+      .from(annotationTasks)
+      .where(and(...conditions))
+      .orderBy(desc(annotationTasks.createdAt))
+      .limit(limit)
+      .offset(offset);
 
     return NextResponse.json(results);
   } catch (error) {
     console.error('GET error:', error);
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -85,7 +88,6 @@ export async function POST(request: NextRequest) {
       description, 
       instructions, 
       type,
-      organizationId,
       annotationSettings 
     } = body
 
@@ -96,10 +98,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Derive organizationId from the authenticated user's membership (handled by requireFeature -> requireAuth above)
+    const { organizationMembers: orgMembers } = await import('@/db/schema');
+    const { eq: eqOp } = await import('drizzle-orm');
+    const memberships = await db
+      .select()
+      .from(orgMembers)
+      .where(eqOp(orgMembers.userId, userId))
+      .limit(1);
+    const organizationId = memberships.length > 0 ? memberships[0].organizationId : null;
+
     if (!organizationId) {
       return NextResponse.json(
-        { error: "Organization ID is required" },
-        { status: 400 }
+        { error: "No organization membership found" },
+        { status: 403 }
       )
     }
 
@@ -156,7 +168,7 @@ export async function POST(request: NextRequest) {
       name,
       description: description || null,
       type,
-      organizationId: parseInt(organizationId),
+      organizationId,
       createdBy: userId,
       status: 'draft',
       annotationSettings: annotationSettings || {},
@@ -193,6 +205,13 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    // Authenticate and resolve org from user membership (app-layer RLS)
+    const authResult = await requireAuthWithOrg(request);
+    if (!authResult.authenticated) {
+      const data = await authResult.response.json();
+      return NextResponse.json(data, { status: authResult.response.status });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -206,9 +225,10 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { name, description, status, totalItems, completedItems } = body;
 
+    // Scope to user's org
     const existing = await db.select()
       .from(annotationTasks)
-      .where(eq(annotationTasks.id, parseInt(id)))
+      .where(and(eq(annotationTasks.id, parseInt(id)), eq(annotationTasks.organizationId, authResult.organizationId)))
       .limit(1);
 
     if (existing.length === 0) {
@@ -230,18 +250,25 @@ export async function PUT(request: NextRequest) {
 
     const updated = await db.update(annotationTasks)
       .set(updateData)
-      .where(eq(annotationTasks.id, parseInt(id)))
+      .where(and(eq(annotationTasks.id, parseInt(id)), eq(annotationTasks.organizationId, authResult.organizationId)))
       .returning();
 
     return NextResponse.json(updated[0]);
   } catch (error) {
     console.error('PUT error:', error);
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
+    // Authenticate and resolve org from user membership (app-layer RLS)
+    const authResult = await requireAuthWithOrg(request);
+    if (!authResult.authenticated) {
+      const data = await authResult.response.json();
+      return NextResponse.json(data, { status: authResult.response.status });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -252,9 +279,10 @@ export async function DELETE(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Scope to user's org
     const existing = await db.select()
       .from(annotationTasks)
-      .where(eq(annotationTasks.id, parseInt(id)))
+      .where(and(eq(annotationTasks.id, parseInt(id)), eq(annotationTasks.organizationId, authResult.organizationId)))
       .limit(1);
 
     if (existing.length === 0) {
@@ -265,11 +293,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     await db.delete(annotationTasks)
-      .where(eq(annotationTasks.id, parseInt(id)));
+      .where(and(eq(annotationTasks.id, parseInt(id)), eq(annotationTasks.organizationId, authResult.organizationId)));
 
     return NextResponse.json({ message: 'Annotation task deleted successfully' });
   } catch (error) {
     console.error('DELETE error:', error);
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

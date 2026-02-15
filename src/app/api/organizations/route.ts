@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { organizations } from '@/db/schema';
+import { organizations, organizationMembers, evaluations, workflows, traces, annotationTasks, webhooks } from '@/db/schema';
 import { eq, like, desc, and } from 'drizzle-orm';
 import { getCurrentUser } from '@/lib/auth';
+import { sanitizeSearchInput } from '@/lib/validation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
     // Build and execute the query with search condition
     const results = await db.select()
       .from(organizations)
-      .where(search ? like(organizations.name, `%${search}%`) : undefined)
+      .where(search ? like(organizations.name, `%${sanitizeSearchInput(search)}%`) : undefined)
       .orderBy(desc(organizations.createdAt))
       .limit(limit)
       .offset(offset);
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('GET error:', error);
     return NextResponse.json({ 
-      error: 'Internal server error: ' + error 
+      error: 'Internal server error' 
     }, { status: 500 });
   }
 }
@@ -107,11 +108,21 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
+    // Add the creator as an owner member of the new organization
+    if (newOrganization.length > 0) {
+      await db.insert(organizationMembers).values({
+        organizationId: newOrganization[0].id,
+        userId: user.id,
+        role: 'owner',
+        createdAt: now,
+      });
+    }
+
     return NextResponse.json(newOrganization[0], { status: 201 });
   } catch (error) {
     console.error('POST error:', error);
     return NextResponse.json({ 
-      error: 'Internal server error: ' + error 
+      error: 'Internal server error' 
     }, { status: 500 });
   }
 }
@@ -189,7 +200,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('PUT error:', error);
     return NextResponse.json({ 
-      error: 'Internal server error: ' + error 
+      error: 'Internal server error' 
     }, { status: 500 });
   }
 }
@@ -225,19 +236,28 @@ export async function DELETE(request: NextRequest) {
       }, { status: 404 });
     }
 
-    // Delete organization
+    const orgId = parseInt(id);
+
+    // Cascade delete: remove all org-scoped data before deleting the org
+    await db.delete(webhooks).where(eq(webhooks.organizationId, orgId));
+    await db.delete(annotationTasks).where(eq(annotationTasks.organizationId, orgId));
+    await db.delete(traces).where(eq(traces.organizationId, orgId));
+    await db.delete(workflows).where(eq(workflows.organizationId, orgId));
+    await db.delete(evaluations).where(eq(evaluations.organizationId, orgId));
+    await db.delete(organizationMembers).where(eq(organizationMembers.organizationId, orgId));
+
+    // Delete the organization itself
     const deleted = await db.delete(organizations)
-      .where(eq(organizations.id, parseInt(id)))
+      .where(eq(organizations.id, orgId))
       .returning();
 
     return NextResponse.json({
       message: 'Organization deleted successfully',
-      organization: deleted[0]
     }, { status: 200 });
   } catch (error) {
     console.error('DELETE error:', error);
     return NextResponse.json({ 
-      error: 'Internal server error: ' + error 
+      error: 'Internal server error' 
     }, { status: 500 });
   }
 }

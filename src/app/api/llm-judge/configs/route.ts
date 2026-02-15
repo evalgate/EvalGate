@@ -5,6 +5,7 @@ import { eq, like, and, desc } from 'drizzle-orm';
 import { getCurrentUser } from '@/lib/auth';
 import { withRateLimit } from '@/lib/api-rate-limit';
 import { logger } from '@/lib/logger';
+import { sanitizeSearchInput } from '@/lib/validation';
 
 export async function GET(request: NextRequest) {
   return withRateLimit(request, async (req) => {
@@ -52,7 +53,10 @@ export async function GET(request: NextRequest) {
     const conditions = [];
 
     if (organizationId) {
-      conditions.push(eq(llmJudgeConfigs.organizationId, parseInt(organizationId)));
+      const parsedOrgId = parseInt(organizationId);
+      if (!isNaN(parsedOrgId)) {
+        conditions.push(eq(llmJudgeConfigs.organizationId, parsedOrgId));
+      }
     }
 
     if (model) {
@@ -60,7 +64,10 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      conditions.push(like(llmJudgeConfigs.name, `%${search}%`));
+      const safeSearch = sanitizeSearchInput(search);
+      if (safeSearch) {
+        conditions.push(like(llmJudgeConfigs.name, `%${safeSearch}%`));
+      }
     }
 
     // Build and execute the query with all conditions
@@ -75,7 +82,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logger.error({ error, route: '/api/llm-judge/configs', method: 'GET' }, 'Error fetching LLM judge configs');
     return NextResponse.json({ 
-      error: 'Internal server error: ' + error 
+      error: 'Internal server error' 
     }, { status: 500 });
   }
   }, { customTier: 'free' });
@@ -151,7 +158,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logger.error({ error, route: '/api/llm-judge/configs', method: 'POST' }, 'Error creating LLM judge config');
     return NextResponse.json({ 
-      error: 'Internal server error: ' + error 
+      error: 'Internal server error' 
     }, { status: 500 });
   }
 }
@@ -253,7 +260,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     logger.error({ error, route: '/api/llm-judge/configs', method: 'PUT' }, 'Error updating LLM judge config');
     return NextResponse.json({ 
-      error: 'Internal server error: ' + error 
+      error: 'Internal server error' 
     }, { status: 500 });
   }
 }
@@ -306,7 +313,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     logger.error({ error, route: '/api/llm-judge/configs', method: 'DELETE' }, 'Error deleting LLM judge config');
     return NextResponse.json({ 
-      error: 'Internal server error: ' + error 
+      error: 'Internal server error' 
     }, { status: 500 });
   }
 }

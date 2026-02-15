@@ -34,6 +34,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ trace: traceData[0], spans: traceSpans })
   } catch (error) {
     console.error('GET trace error:', error)
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

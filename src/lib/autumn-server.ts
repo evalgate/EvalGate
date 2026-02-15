@@ -1,6 +1,7 @@
 import { db } from "@/db";
-import { session, user } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { session, user, apiKeys, organizationMembers } from "@/db/schema";
+import { eq, and, isNull } from "drizzle-orm";
+import crypto from "crypto";
 
 /**
  * Server-side Autumn feature checking and tracking
@@ -24,43 +25,84 @@ interface ValidateSessionResult {
   valid: boolean;
   userId?: string;
   error?: string;
+  scopes?: string[];
+  isApiKey?: boolean;
 }
 
 /**
- * Validate bearer token and extract user ID
- * Server-side only - cannot be manipulated by client
+ * Validate a bearer token against both session tokens AND API keys.
+ * Checks session table first (fast path for browser users),
+ * then falls back to the apiKeys table for SDK/programmatic access.
+ *
+ * If `requiredScope` is provided and the token is an API key,
+ * the key's scopes are checked and a 403 is returned if the scope is missing.
+ * Session-based users (browser) are not subject to scope checks.
  */
-export async function validateSession(token: string | null): Promise<ValidateSessionResult> {
+export async function validateSession(token: string | null, requiredScope?: string): Promise<ValidateSessionResult> {
   if (!token) {
     return { valid: false, error: "No authentication token provided" };
   }
 
   try {
-    // Query session table to validate token
+    // ── Path 1: Check better-auth session table ──
     const sessions = await db
       .select()
       .from(session)
       .where(eq(session.token, token))
       .limit(1);
 
-    if (sessions.length === 0) {
-      return { valid: false, error: "Invalid session token" };
+    if (sessions.length > 0) {
+      const userSession = sessions[0];
+      const now = new Date();
+      const expiresAt = new Date(userSession.expiresAt);
+
+      if (expiresAt < now) {
+        return { valid: false, error: "Session expired" };
+      }
+
+      // Session-based users have full access (no scope restrictions)
+      return { valid: true, userId: userSession.userId, isApiKey: false };
     }
 
-    const userSession = sessions[0];
+    // ── Path 2: Check API keys table (for SDK / programmatic access) ──
+    const keyHash = crypto.createHash("sha256").update(token).digest("hex");
 
-    // Check if session is expired
-    const now = new Date();
-    const expiresAt = new Date(userSession.expiresAt);
+    const keys = await db
+      .select()
+      .from(apiKeys)
+      .where(and(eq(apiKeys.keyHash, keyHash), isNull(apiKeys.revokedAt)))
+      .limit(1);
 
-    if (expiresAt < now) {
-      return { valid: false, error: "Session expired" };
+    if (keys.length === 0) {
+      return { valid: false, error: "Invalid token or API key" };
     }
 
-    return {
-      valid: true,
-      userId: userSession.userId,
-    };
+    const apiKey = keys[0];
+
+    // Check expiration
+    if (apiKey.expiresAt) {
+      const expiresAt = new Date(apiKey.expiresAt);
+      if (expiresAt < new Date()) {
+        return { valid: false, error: "API key expired" };
+      }
+    }
+
+    // Enforce scope check if a required scope was specified
+    const keyScopes = Array.isArray(apiKey.scopes) ? apiKey.scopes as string[] : [];
+    if (requiredScope && !keyScopes.includes(requiredScope) && !keyScopes.includes("*")) {
+      return {
+        valid: false,
+        error: `API key does not have the required scope: ${requiredScope}`,
+      };
+    }
+
+    // Update lastUsedAt (fire-and-forget, don't block the response)
+    db.update(apiKeys)
+      .set({ lastUsedAt: new Date().toISOString() })
+      .where(eq(apiKeys.id, apiKey.id))
+      .run();
+
+    return { valid: true, userId: apiKey.userId, scopes: keyScopes, isApiKey: true };
   } catch (error) {
     console.error("Session validation error:", error);
     return { valid: false, error: "Session validation failed" };
@@ -198,6 +240,83 @@ export async function requireAuth(request: Request): Promise<
     authenticated: true,
     userId: validation.userId,
   };
+}
+
+/**
+ * Middleware helper for protected API routes that require org context.
+ * Authenticates the user AND resolves their organization membership in one call.
+ * This is the application-layer RLS foundation: every protected route uses the
+ * returned organizationId to scope DB queries, never trusting client-provided org IDs.
+ */
+export async function requireAuthWithOrg(request: Request): Promise<
+  | { authenticated: true; userId: string; organizationId: number; role: string }
+  | { authenticated: false; response: Response }
+> {
+  const authResult = await requireAuth(request);
+  if (!authResult.authenticated) {
+    return authResult;
+  }
+
+  const memberships = await db
+    .select()
+    .from(organizationMembers)
+    .where(eq(organizationMembers.userId, authResult.userId))
+    .limit(1);
+
+  if (memberships.length === 0) {
+    return {
+      authenticated: false,
+      response: new Response(
+        JSON.stringify({
+          error: "No organization membership found for this user",
+          code: "NO_ORG_MEMBERSHIP",
+        }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        }
+      ),
+    };
+  }
+
+  return {
+    authenticated: true,
+    userId: authResult.userId,
+    organizationId: memberships[0].organizationId,
+    role: memberships[0].role,
+  };
+}
+
+/**
+ * Middleware helper for admin-only API routes.
+ * Requires the user to be an owner or admin of their organization.
+ */
+export async function requireAdmin(request: Request): Promise<
+  | { authenticated: true; userId: string; organizationId: number; role: string }
+  | { authenticated: false; response: Response }
+> {
+  const result = await requireAuthWithOrg(request);
+  if (!result.authenticated) {
+    return result;
+  }
+
+  if (result.role !== "owner" && result.role !== "admin") {
+    return {
+      authenticated: false,
+      response: new Response(
+        JSON.stringify({
+          error: "Admin access required",
+          code: "FORBIDDEN",
+        }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        }
+      ),
+    };
+  }
+
+  return result;
 }
 
 /**

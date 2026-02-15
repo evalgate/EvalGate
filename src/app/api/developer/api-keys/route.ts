@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { apiKeys } from '@/db/schema';
+import { apiKeys, organizationMembers } from '@/db/schema';
 import { eq, and, desc, isNull } from 'drizzle-orm';
 import { getCurrentUser } from '@/lib/auth';
 import { withRateLimit } from '@/lib/api-rate-limit';
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const { name, organizationId, scopes, expiresAt } = body;
+    const { name, scopes, expiresAt } = body;
 
     // Validate required fields
     if (!name || typeof name !== 'string') {
@@ -35,11 +35,19 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    if (!organizationId || typeof organizationId !== 'number') {
+    // Derive organizationId from user's membership (app-layer RLS)
+    const memberships = await db
+      .select()
+      .from(organizationMembers)
+      .where(eq(organizationMembers.userId, user.id))
+      .limit(1);
+    const organizationId = memberships.length > 0 ? memberships[0].organizationId : null;
+
+    if (!organizationId) {
       return NextResponse.json({ 
-        error: "Organization ID is required and must be a number",
-        code: "MISSING_ORGANIZATION_ID" 
-      }, { status: 400 });
+        error: "No organization membership found",
+        code: "NO_ORG_MEMBERSHIP" 
+      }, { status: 403 });
     }
 
     if (!scopes || !Array.isArray(scopes) || scopes.length === 0) {
@@ -113,7 +121,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logger.error({ error, route: '/api/developer/api-keys', method: 'POST' }, 'Error creating API key');
     return NextResponse.json({ 
-      error: 'Internal server error: ' + error 
+      error: 'Internal server error' 
     }, { status: 500 });
   }
   });
@@ -188,7 +196,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logger.error({ error, route: '/api/developer/api-keys', method: 'GET' }, 'Error fetching API keys');
     return NextResponse.json({ 
-      error: 'Internal server error: ' + error 
+      error: 'Internal server error' 
     }, { status: 500 });
   }
   }, { customTier: 'free' });

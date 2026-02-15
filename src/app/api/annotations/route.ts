@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ annotations: formattedAnnotations })
     } catch (error) {
       logger.error({ error, route: '/api/annotations', method: 'GET' }, 'Error fetching annotations')
-      return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 })
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
   }, { customTier: 'free' });
 }
@@ -133,6 +133,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ annotation: newAnnotation[0] }, { status: 201 })
   } catch (error) {
     logger.error({ error, route: '/api/annotations', method: 'POST' }, 'Error creating annotation')
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('POST error:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -183,7 +183,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('GET error:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

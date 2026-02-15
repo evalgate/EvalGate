@@ -45,7 +45,7 @@ export async function GET(
   } catch (error) {
     console.error('GET error:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -151,7 +151,7 @@ export async function PATCH(
   } catch (error) {
     console.error('PATCH error:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -204,17 +204,18 @@ export async function DELETE(
       );
     }
 
+    const { secret: _secret, ...deletedWithoutSecret } = deleted[0];
     return NextResponse.json(
       { 
         message: 'Webhook deleted successfully',
-        deletedWebhook: deleted[0]
+        deletedWebhook: deletedWithoutSecret
       },
       { status: 200 }
     );
   } catch (error) {
     console.error('DELETE error:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

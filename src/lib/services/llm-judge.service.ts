@@ -68,12 +68,11 @@ export class LLMJudgeService {
   async getConfigById(id: number, organizationId: number) {
     logger.info('Getting LLM judge config by ID', { id, organizationId });
 
-    const config = await db.query.llmJudgeConfigs.findFirst({
-      where: and(
-        eq(llmJudgeConfigs.id, id),
-        eq(llmJudgeConfigs.organizationId, organizationId)
-      ),
-    });
+    const [config] = await db
+      .select()
+      .from(llmJudgeConfigs)
+      .where(and(eq(llmJudgeConfigs.id, id), eq(llmJudgeConfigs.organizationId, organizationId)))
+      .limit(1);
 
     if (!config) {
       logger.warn('LLM judge config not found', { id, organizationId });

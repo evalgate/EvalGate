@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { evaluationRuns } from '@/db/schema';
+import { evaluationRuns, organizationMembers, evaluations } from '@/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
-import { getCurrentUser } from '@/lib/auth';
+import { requireAuthWithOrg } from '@/lib/autumn-server';
 import { evaluationService } from '@/lib/services/evaluation.service';
 import { logger } from '@/lib/logger';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Authenticate and resolve org from user membership (app-layer RLS)
+    const authResult = await requireAuthWithOrg(request);
+    if (!authResult.authenticated) {
+      const data = await authResult.response.json();
+      return NextResponse.json(data, { status: authResult.response.status });
+    }
+
     const { id } = await params;
     const evaluationId = parseInt(id);
 
@@ -16,6 +23,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         error: "Valid evaluation ID is required",
         code: "INVALID_ID" 
       }, { status: 400 });
+    }
+
+    // Verify the evaluation belongs to the user's org
+    const evalCheck = await db.select({ id: evaluations.id })
+      .from(evaluations)
+      .where(and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, authResult.organizationId)))
+      .limit(1);
+
+    if (evalCheck.length === 0) {
+      return NextResponse.json({ error: 'Evaluation not found', code: 'NOT_FOUND' }, { status: 404 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -48,9 +65,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const currentUser = await getCurrentUser(request as NextRequest);
-    if (!currentUser) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    // Authenticate and resolve org from user membership (app-layer RLS)
+    const authResult = await requireAuthWithOrg(request);
+    if (!authResult.authenticated) {
+      const data = await authResult.response.json();
+      return NextResponse.json(data, { status: authResult.response.status });
     }
 
     const { id } = await params;
@@ -63,8 +82,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       }, { status: 400 });
     }
 
-    // Use the evaluation service to run the evaluation (fetches test cases, executes, writes results)
-    const organizationId = 1; // Default org — in production, derive from user
+    const organizationId = authResult.organizationId;
     const run = await evaluationService.run(evaluationId, organizationId);
 
     if (!run) {

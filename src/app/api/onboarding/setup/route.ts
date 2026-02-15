@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Onboarding setup error:', error);
     return NextResponse.json({ 
-      error: 'Failed to setup organization: ' + error 
+      error: 'Failed to setup organization' 
     }, { status: 500 });
   }
 }

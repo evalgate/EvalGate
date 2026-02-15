@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
+import { requireAuthWithOrg } from '@/lib/autumn-server';
 import { withRateLimit } from '@/lib/api-rate-limit';
 import { llmJudgeService } from '@/lib/services/llm-judge.service';
 import { logger } from '@/lib/logger';
@@ -7,9 +7,11 @@ import { logger } from '@/lib/logger';
 export async function POST(request: NextRequest) {
   return withRateLimit(request, async (req) => {
     try {
-      const currentUser = await getCurrentUser(request);
-      if (!currentUser) {
-        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      // Authenticate and resolve org from user membership (app-layer RLS)
+      const authResult = await requireAuthWithOrg(request);
+      if (!authResult.authenticated) {
+        const data = await authResult.response.json();
+        return NextResponse.json(data, { status: authResult.response.status });
       }
 
       const body = await request.json();
@@ -22,8 +24,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
       }
 
-      // Use the service layer to actually evaluate with the LLM
-      const organizationId = 1; // Default org — in production, derive from user
+      const organizationId = authResult.organizationId;
       const judgement = await llmJudgeService.evaluate(organizationId, {
         configId,
         input,
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
         expectedOutput,
         metadata: {
           ...metadata,
-          evaluatedBy: currentUser.id,
+          evaluatedBy: authResult.userId,
         },
       });
 
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       logger.error({ error, route: '/api/llm-judge/evaluate', method: 'POST' }, 'Error evaluating with LLM judge');
       return NextResponse.json({ 
-        error: error instanceof Error ? error.message : 'Internal server error' 
+        error: 'Internal server error' 
       }, { status: 500 });
     }
   }, { customTier: 'free' });

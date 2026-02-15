@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server"
 import { db } from '@/db'
-import { evaluationRuns, testResults, testCases, user } from '@/db/schema'
+import { evaluationRuns, testResults, testCases } from '@/db/schema'
 import { eq, asc } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
@@ -13,18 +13,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Fetch run with creator info
+    // Fetch run — evaluationRuns has no createdBy, so no user join needed
     const runData = await db
-      .select({
-        run: evaluationRuns,
-        creator: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-        }
-      })
+      .select()
       .from(evaluationRuns)
-      .leftJoin(user, eq(evaluationRuns.id, user.id))
       .where(eq(evaluationRuns.id, parseInt(runId)))
       .limit(1)
 
@@ -47,20 +39,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       .where(eq(testResults.evaluationRunId, parseInt(runId)))
       .orderBy(asc(testResults.createdAt))
 
-    // Format response to match Supabase structure
-    const formattedRun = {
-      ...runData[0].run,
-      users: runData[0].creator,
-    }
-
     const formattedResults = results.map(r => ({
       ...r.result,
       test_cases: r.testCase,
     }))
 
-    return NextResponse.json({ run: formattedRun, results: formattedResults })
+    return NextResponse.json({ run: runData[0], results: formattedResults })
   } catch (error) {
     console.error('GET evaluation run error:', error)
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

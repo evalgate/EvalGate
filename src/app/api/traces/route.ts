@@ -5,6 +5,7 @@ import { eq, like, and, desc } from 'drizzle-orm';
 import { requireFeature, trackFeature } from '@/lib/autumn-server';
 import { withRateLimit } from '@/lib/api-rate-limit';
 import { getRateLimitTier } from '@/lib/rate-limit';
+import { sanitizeSearchInput } from '@/lib/validation';
 import * as Sentry from '@sentry/nextjs';
 
 export async function GET(request: NextRequest) {
@@ -20,7 +21,10 @@ export async function GET(request: NextRequest) {
       const conditions = [];
 
       if (organizationId) {
-        conditions.push(eq(traces.organizationId, parseInt(organizationId)));
+        const parsedOrgId = parseInt(organizationId);
+        if (!isNaN(parsedOrgId)) {
+          conditions.push(eq(traces.organizationId, parsedOrgId));
+        }
       }
 
       if (status) {
@@ -28,7 +32,10 @@ export async function GET(request: NextRequest) {
       }
 
       if (search) {
-        conditions.push(like(traces.name, `%${search}%`));
+        const safeSearch = sanitizeSearchInput(search);
+        if (safeSearch) {
+          conditions.push(like(traces.name, `%${safeSearch}%`));
+        }
       }
 
       // Build and execute the query with all conditions
@@ -47,9 +54,8 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       Sentry.captureException(error);
       console.error('GET error:', error);
-      return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }, { customTier: 'free' });
 }
 
@@ -123,7 +129,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       Sentry.captureException(error);
       console.error('POST error:', error);
-      return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   }, { customTier: 'free' });
 }
@@ -172,7 +178,7 @@ export async function DELETE(request: NextRequest) {
     } catch (error) {
       Sentry.captureException(error);
       console.error('DELETE error:', error);
-      return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   }, { customTier: 'free' });
 }

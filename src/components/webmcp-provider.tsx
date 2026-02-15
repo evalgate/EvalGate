@@ -147,8 +147,9 @@ export function WebMCPProvider() {
           required: ['evaluationId'],
         },
         execute: async (params: { evaluationId: number }) => {
-          // Fetch the evaluation details
-          const evaluation = await safeFetch(`/api/evaluations/${params.evaluationId}`);
+          // Fetch the evaluation details — route returns { evaluation: {...} }
+          const evalResponse = await safeFetch(`/api/evaluations/${params.evaluationId}`);
+          const evaluation = evalResponse?.evaluation || evalResponse;
 
           // Fetch latest run for metrics
           const runs = await safeFetch(`/api/evaluations/${params.evaluationId}/runs?limit=1`);

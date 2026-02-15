@@ -44,11 +44,20 @@ export async function POST(
     }
     
     // Define public exports directory
+    // NOTE: Vercel has a read-only filesystem, so file writes only work locally or on self-hosted
     const publicDir = join(process.cwd(), 'public', 'exports', 'public')
     
     // Ensure directory exists
-    if (!existsSync(publicDir)) {
-      await mkdir(publicDir, { recursive: true })
+    try {
+      if (!existsSync(publicDir)) {
+        await mkdir(publicDir, { recursive: true })
+      }
+    } catch (fsError) {
+      console.error('Filesystem write not supported (likely serverless):', fsError)
+      return NextResponse.json(
+        { error: 'Publishing is not available in serverless environments. Use self-hosted deployment or database-backed storage.' },
+        { status: 501 }
+      )
     }
     
     // Check if share ID already exists

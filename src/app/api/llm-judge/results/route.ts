@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(results);
   } catch (error) {
     logger.error({ error, route: '/api/llm-judge/results', method: 'GET' }, 'Error fetching LLM judge results');
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
   }, { customTier: 'free' });
 }

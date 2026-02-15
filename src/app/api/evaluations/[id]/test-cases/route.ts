@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { evaluationTestCases } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { evaluationTestCases, evaluations } from '@/db/schema';
+import { eq, desc, and } from 'drizzle-orm';
+import { requireAuthWithOrg } from '@/lib/autumn-server';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Authenticate and resolve org from user membership (app-layer RLS)
+    const authResult = await requireAuthWithOrg(request);
+    if (!authResult.authenticated) {
+      const data = await authResult.response.json();
+      return NextResponse.json(data, { status: authResult.response.status });
+    }
+
     const { id } = await params;
     const evaluationId = parseInt(id);
 
@@ -29,12 +37,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json(testCases);
   } catch (error) {
     console.error('GET error:', error);
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Authenticate and resolve org from user membership (app-layer RLS)
+    const authResult = await requireAuthWithOrg(request);
+    if (!authResult.authenticated) {
+      const data = await authResult.response.json();
+      return NextResponse.json(data, { status: authResult.response.status });
+    }
+
     const { id } = await params;
     const evaluationId = parseInt(id);
 
@@ -69,12 +84,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json(newTestCase[0], { status: 201 });
   } catch (error) {
     console.error('POST error:', error);
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function DELETE(request: Request) {
   try {
+    // Authenticate and resolve org from user membership (app-layer RLS)
+    const authResult = await requireAuthWithOrg(request);
+    if (!authResult.authenticated) {
+      const data = await authResult.response.json();
+      return NextResponse.json(data, { status: authResult.response.status });
+    }
+
     const { searchParams } = new URL(request.url);
     const testCaseId = searchParams.get('testCaseId');
 
@@ -103,6 +125,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ message: 'Test case deleted successfully' });
   } catch (error) {
     console.error('DELETE error:', error);
-    return NextResponse.json({ error: 'Internal server error: ' + error }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

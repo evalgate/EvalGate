@@ -87,6 +87,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     logger.error({ error, route: '/api/llm-judge/alignment' }, "Error calculating alignment")
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

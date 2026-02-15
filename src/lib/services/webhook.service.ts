@@ -50,19 +50,18 @@ export class WebhookService {
   async getById(id: number, organizationId: number) {
     logger.info('Getting webhook by ID', { id, organizationId });
 
-    const webhook = await db.query.webhooks.findFirst({
-      where: and(
-        eq(webhooks.id, id),
-        eq(webhooks.organizationId, organizationId)
-      ),
-    });
+    const results = await db
+      .select()
+      .from(webhooks)
+      .where(and(eq(webhooks.id, id), eq(webhooks.organizationId, organizationId)))
+      .limit(1);
 
-    if (!webhook) {
+    if (results.length === 0) {
       logger.warn('Webhook not found', { id, organizationId });
       return null;
     }
 
-    return webhook;
+    return results[0];
   }
 
   /**

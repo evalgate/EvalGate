@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { costService } from '@/lib/services/cost.service';
+import { requireAdmin } from '@/lib/autumn-server';
 import { withRateLimit } from '@/lib/api-rate-limit';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
@@ -61,6 +62,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   return withRateLimit(request, async (req: NextRequest) => {
     try {
+      // Admin-only: require owner or admin role (app-layer RLS)
+      const authResult = await requireAdmin(request);
+      if (!authResult.authenticated) {
+        const data = await authResult.response.json();
+        return NextResponse.json(data, { status: authResult.response.status });
+      }
+
       const body = await req.json();
 
       // Validate request body

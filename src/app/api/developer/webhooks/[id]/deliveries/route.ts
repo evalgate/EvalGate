@@ -105,7 +105,7 @@ export async function GET(
   } catch (error) {
     console.error('GET webhook deliveries error:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
