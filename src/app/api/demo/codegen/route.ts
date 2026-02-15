@@ -7,8 +7,6 @@
 import { NextResponse } from 'next/server';
 import codegenData from '../../../../../public/demo/codegen.json';
 
-export const runtime = 'edge';
-
 /**
  * GET /api/demo/codegen
  * Returns code generation quality demo data

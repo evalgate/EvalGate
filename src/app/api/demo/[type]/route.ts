@@ -12,8 +12,6 @@ import evaluationsData from '../../../../../public/demo/evaluations.json';
 import tracesData from '../../../../../public/demo/traces.json';
 import judgeData from '../../../../../public/demo/judge.json';
 
-export const runtime = 'edge';
-
 const DEMO_DATA_MAP: Record<string, any> = {
   chatbot: chatbotData,
   rag: ragData,

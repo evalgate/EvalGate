@@ -7,8 +7,6 @@
 import { NextResponse } from 'next/server';
 import chatbotData from '../../../../../public/demo/chatbot.json';
 
-export const runtime = 'edge';
-
 /**
  * GET /api/demo/chatbot
  * Returns chatbot evaluation demo data

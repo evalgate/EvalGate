@@ -7,8 +7,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateQualityScore } from '@/lib/ai-quality-score';
 
-export const runtime = 'edge';
-
 interface DemoScenario {
   id: string;
   name: string;

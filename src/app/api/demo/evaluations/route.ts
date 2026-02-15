@@ -6,8 +6,6 @@
 
 import { NextResponse } from 'next/server';
 
-export const runtime = 'edge';
-
 const demoEvaluations = [
   {
     id: 'demo_eval_1',

@@ -7,8 +7,6 @@
 import { NextResponse } from 'next/server';
 import ragData from '../../../../../public/demo/rag.json';
 
-export const runtime = 'edge';
-
 /**
  * GET /api/demo/rag
  * Returns RAG hallucination detection demo data
