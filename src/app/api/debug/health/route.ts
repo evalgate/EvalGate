@@ -21,11 +21,14 @@ export async function GET() {
     UPSTASH_REDIS_REST_TOKEN: !!process.env.UPSTASH_REDIS_REST_TOKEN,
   };
 
-  // 2. Test DB connection
+  // 2. Test DB connection + list tables
   try {
     const { db } = await import("@/db");
     const rows = await db.all(sql`SELECT 1 as ok`);
-    results.db = { status: "connected", rows };
+    const tables = await db.all(
+      sql`SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`
+    );
+    results.db = { status: "connected", rows, tables };
   } catch (e: unknown) {
     results.db = {
       status: "error",
@@ -40,6 +43,21 @@ export async function GET() {
     results.auth = { status: "initialized", hasApi: !!auth.api };
   } catch (e: unknown) {
     results.auth = {
+      status: "error",
+      message: e instanceof Error ? e.message : String(e),
+      stack: e instanceof Error ? e.stack?.split("\n").slice(0, 5) : undefined,
+    };
+  }
+
+  // 4. Test auth.api.getSession (with empty headers — should return null, not crash)
+  try {
+    const { auth } = await import("@/lib/auth");
+    const session = await auth.api.getSession({
+      headers: new Headers(),
+    });
+    results.sessionTest = { status: "ok", session: session || null };
+  } catch (e: unknown) {
+    results.sessionTest = {
       status: "error",
       message: e instanceof Error ? e.message : String(e),
       stack: e instanceof Error ? e.stack?.split("\n").slice(0, 5) : undefined,
