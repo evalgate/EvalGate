@@ -40,6 +40,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Simpler matcher - avoid complex regex that may fail on Vercel Edge
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Matcher that never matches = middleware disabled. Regex matcher causes Vercel Edge failure.
+  matcher: ["/__middleware-disabled-unused-path"],
 }
