@@ -22,6 +22,7 @@ export default function CustomAutumnProvider({ children }: { children: React.Rea
 
   return (
     <AutumnProvider
+      includeCredentials={true}
       getBearerToken={async () => {
         return localStorage.getItem("bearer_token") || null;
       }}
