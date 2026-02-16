@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -23,30 +24,25 @@ export async function GET() {
   // 2. Test DB connection
   try {
     const { db } = await import("@/db");
-    // Run a simple query to test the connection
-    const testResult = await db.run(
-      // @ts-expect-error raw SQL for diagnostic
-      { sql: "SELECT 1 as ok", args: [] }
-    );
-    results.db = { status: "connected", test: testResult };
+    const rows = await db.all(sql`SELECT 1 as ok`);
+    results.db = { status: "connected", rows };
   } catch (e: unknown) {
     results.db = {
       status: "error",
       message: e instanceof Error ? e.message : String(e),
+      stack: e instanceof Error ? e.stack?.split("\n").slice(0, 5) : undefined,
     };
   }
 
   // 3. Test auth initialization
   try {
     const { auth } = await import("@/lib/auth");
-    results.auth = {
-      status: "initialized",
-      baseURL: auth.options?.baseURL || "(unknown)",
-    };
+    results.auth = { status: "initialized", hasApi: !!auth.api };
   } catch (e: unknown) {
     results.auth = {
       status: "error",
       message: e instanceof Error ? e.message : String(e),
+      stack: e instanceof Error ? e.stack?.split("\n").slice(0, 5) : undefined,
     };
   }
 
