@@ -37,6 +37,6 @@ export const auth = betterAuth({
 
 // Session validation helper
 export async function getCurrentUser(request: NextRequest) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await auth.api.getSession({ headers: request.headers });
   return session?.user || null;
 }
