@@ -1,6 +1,5 @@
 "use client"
 
-import { useCustomer } from "autumn-js/react"
 import { Progress } from "@/components/ui/progress"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
@@ -8,7 +7,9 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export function PlanUsageIndicator() {
-  const { customer, isLoading } = useCustomer()
+  // Temporarily disable autumn-js to avoid global error
+  const isLoading = false
+  const customer = null
 
   if (isLoading) {
     return (
@@ -27,7 +28,19 @@ export function PlanUsageIndicator() {
   }
 
   if (!customer) {
-    return null
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Usage & Limits</CardTitle>
+          <CardDescription>Track your plan usage</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            <p className="text-sm">Usage tracking temporarily disabled</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   const currentPlan = customer.products?.[0]?.name || "Developer"
