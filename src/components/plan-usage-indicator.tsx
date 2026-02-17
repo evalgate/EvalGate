@@ -5,19 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-
-type CustomerWithPlan = {
-  products?: Array<{ name?: string }>;
-  features?: {
-    traces?: { unlimited?: boolean; usage?: number; included_usage?: number; balance?: number };
-    projects?: { unlimited?: boolean; usage?: number; included_usage?: number; balance?: number };
-  };
-};
+import { useCustomer } from "autumn-js/react"
 
 export function PlanUsageIndicator() {
-  // Temporarily disable autumn-js to avoid global error
-  const isLoading = false
-  const customer: CustomerWithPlan | null = null
+  const { customer, isLoading } = useCustomer()
 
   if (isLoading) {
     return (
@@ -51,7 +42,7 @@ export function PlanUsageIndicator() {
     )
   }
 
-  const currentPlan = customer.products?.[0]?.name || "Developer"
+  const currentPlan = customer.products?.[0]?.name ?? "Developer"
   const tracesFeature = customer.features?.traces
   const projectsFeature = customer.features?.projects
 
@@ -81,8 +72,8 @@ export function PlanUsageIndicator() {
             </div>
             {!tracesFeature.unlimited && (
               <>
-                <Progress 
-                  value={((tracesFeature.usage || 0) / (tracesFeature.included_usage || 1)) * 100} 
+                <Progress
+                  value={((tracesFeature.usage || 0) / (tracesFeature.included_usage || 1)) * 100}
                   className="h-2"
                 />
                 <p className="text-xs text-muted-foreground">
@@ -110,12 +101,12 @@ export function PlanUsageIndicator() {
             </div>
             {!projectsFeature.unlimited && (
               <>
-                <Progress 
-                  value={((projectsFeature.usage || 0) / (projectsFeature.included_usage || 1)) * 100} 
+                <Progress
+                  value={((projectsFeature.usage || 0) / (projectsFeature.included_usage || 1)) * 100}
                   className="h-2"
                 />
                 <p className="text-xs text-muted-foreground">
-                  {projectsFeature.balance} {projectsFeature.balance === 1 ? 'project' : 'projects'} available
+                  {projectsFeature.balance} {projectsFeature.balance === 1 ? "project" : "projects"} available
                 </p>
               </>
             )}
@@ -126,9 +117,7 @@ export function PlanUsageIndicator() {
         {currentPlan === "Developer" && (
           <div className="pt-4 border-t">
             <Button asChild className="w-full">
-              <Link href="/pricing">
-                Upgrade Plan
-              </Link>
+              <Link href="/pricing">Upgrade Plan</Link>
             </Button>
           </div>
         )}
