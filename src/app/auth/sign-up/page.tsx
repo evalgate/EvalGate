@@ -25,11 +25,11 @@ function GoogleIcon({ className }: { className?: string }) {
   )
 }
 
-async function startSocialSignIn(provider: string) {
+async function startSocialSignIn(provider: string, callbackURL: string = "/auth/callback-success?redirect=%2Fdashboard") {
   const res = await fetch("/api/auth/sign-in/social", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ provider, callbackURL: "/dashboard" }),
+    body: JSON.stringify({ provider, callbackURL }),
     credentials: "include",
     redirect: "manual",
   })
@@ -47,7 +47,8 @@ export default function SignUpPage() {
   const handleSocialSignIn = async (provider: string) => {
     setIsLoading(provider)
     try {
-      await startSocialSignIn(provider)
+      const callbackURL = `/auth/callback-success?redirect=${encodeURIComponent("/dashboard")}`
+      await startSocialSignIn(provider, callbackURL)
     } catch {
       toast.error(`Failed to start ${provider} sign-up`)
       setIsLoading(null)

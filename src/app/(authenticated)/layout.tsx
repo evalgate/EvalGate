@@ -1,6 +1,6 @@
 "use client"
 
-import { redirect, useRouter } from "next/navigation"
+import { redirect, useRouter, usePathname } from "next/navigation"
 import dynamic from 'next/dynamic';
 import { useSession } from "@/lib/auth-client"
 import { SidebarInset } from "@/components/ui/sidebar"
@@ -36,14 +36,16 @@ export default function AuthenticatedLayout({
 }) {
   const { data: session, isPending } = useSession()
   const router = useRouter()
+  const pathname = usePathname()
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [isLoadingOrg, setIsLoadingOrg] = useState(false)
 
   useEffect(() => {
     if (!isPending && !session?.user) {
-      router.push("/auth/login")
+      const redirectUrl = pathname ? `/auth/login?redirect=${encodeURIComponent(pathname)}` : "/auth/login"
+      router.push(redirectUrl)
     }
-  }, [session, isPending, router])
+  }, [session, isPending, router, pathname])
 
   useEffect(() => {
     const fetchOrganization = async () => {

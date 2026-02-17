@@ -63,7 +63,7 @@ export default async function DashboardPage() {
   const session = await auth.api.getSession({ headers: headersList })
   
   if (!session?.user) {
-    redirect("/auth/login")
+    redirect("/auth/login?redirect=/dashboard")
   }
   
   const organizationId = (session.user as any).organizationId || parseInt(process.env.DEFAULT_ORGANIZATION_ID || '1')

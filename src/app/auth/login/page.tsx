@@ -2,8 +2,10 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
+import { useSession } from "@/lib/auth-client"
+import { useRouter, useSearchParams } from "next/navigation"
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -24,11 +26,11 @@ function GoogleIcon({ className }: { className?: string }) {
   )
 }
 
-async function startSocialSignIn(provider: string) {
+async function startSocialSignIn(provider: string, callbackURL: string = "/dashboard") {
   const res = await fetch("/api/auth/sign-in/social", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ provider, callbackURL: "/dashboard" }),
+    body: JSON.stringify({ provider, callbackURL }),
     credentials: "include",
     redirect: "manual",
   })
@@ -42,15 +44,40 @@ async function startSocialSignIn(provider: string) {
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState<string | null>(null)
+  const { data: session, isPending } = useSession()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Redirect logged-in users to dashboard (or redirect param)
+  useEffect(() => {
+    if (!isPending && session?.user) {
+      const redirectTo = searchParams.get("redirect") || "/dashboard"
+      const safePath = redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/dashboard"
+      router.replace(safePath)
+    }
+  }, [session, isPending, router, searchParams])
 
   const handleSocialSignIn = async (provider: string) => {
     setIsLoading(provider)
     try {
-      await startSocialSignIn(provider)
+      const finalRedirect = typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("redirect") || "/dashboard"
+        : "/dashboard"
+      const callbackURL = `/auth/callback-success?redirect=${encodeURIComponent(finalRedirect)}`
+      await startSocialSignIn(provider, callbackURL)
     } catch {
       toast.error(`Failed to start ${provider} sign-in`)
       setIsLoading(null)
     }
+  }
+
+  // Show loading while checking session (avoid flash of login form when redirecting)
+  if (isPending || session?.user) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    )
   }
 
   return (

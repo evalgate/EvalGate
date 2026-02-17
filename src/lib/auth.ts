@@ -15,7 +15,7 @@ export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "sqlite",
 	}),
-	emailAndPassword: {    
+	emailAndPassword: {
 		enabled: false
 	},
 	socialProviders: {
@@ -32,7 +32,15 @@ export const auth = betterAuth({
 		"http://localhost:3000",
 		"https://v0-ai-evaluation-platform-nu.vercel.app",
 	],
-	plugins: [bearer()]
+	plugins: [bearer()],
+	advanced: {
+		useSecureCookies: process.env.NODE_ENV === "production",
+		defaultCookieAttributes: {
+			// SameSite=None needed for OAuth redirect from Google/GitHub back to app
+			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+			secure: process.env.NODE_ENV === "production",
+		},
+	},
 });
 
 // Session validation helper
