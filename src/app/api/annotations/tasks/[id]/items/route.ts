@@ -5,11 +5,15 @@ import { eq, isNull, isNotNull, asc, and } from 'drizzle-orm';
 import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
 import { notFound, forbidden, validationError } from '@/lib/api/errors';
 
+type VerifyTaskResult =
+  | { error: NextResponse }
+  | { task: typeof annotationTasks.$inferSelect };
+
 /**
  * Verify the parent annotationTask exists and belongs to the caller's org.
  * Returns the task row or a NextResponse error.
  */
-async function verifyTaskOwnership(taskId: number, ctx: AuthContext) {
+async function verifyTaskOwnership(taskId: number, ctx: AuthContext): Promise<VerifyTaskResult> {
   const task = await db
     .select()
     .from(annotationTasks)
@@ -25,15 +29,17 @@ async function verifyTaskOwnership(taskId: number, ctx: AuthContext) {
   return { task: task[0] };
 }
 
-export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
-  const taskId = parseInt(params.id);
+export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params): Promise<NextResponse> => {
+  const taskId = parseInt(params.id ?? '', 10);
 
   if (!taskId || isNaN(taskId)) {
     return validationError('Valid task ID is required');
   }
 
   const ownership = await verifyTaskOwnership(taskId, ctx);
-  if ('error' in ownership) return ownership.error;
+  if ('error' in ownership) {
+    return ownership.error;
+  }
 
   const { searchParams } = new URL(req.url);
   const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);

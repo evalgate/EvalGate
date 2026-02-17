@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { apiKeys } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { requireAdmin } from '@/lib/autumn-server';
+import { requireAdmin, requireAuthWithOrg } from '@/lib/autumn-server';
 import { withRateLimit } from '@/lib/api-rate-limit';
 import { logger } from '@/lib/logger';
 import { scopesForRole, ALL_SCOPES } from '@/lib/auth/scopes';

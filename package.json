@@ -6,6 +6,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
+    "typecheck": "tsc --noEmit",
     "dev:all": "concurrently \"pnpm dev\" \"pnpm dev:sdk\" --names \"app,sdk\" --prefix-colors \"blue,green\"",
     "dev:sdk": "cd src/packages/sdk && pnpm dev",
     "lint": "next lint",

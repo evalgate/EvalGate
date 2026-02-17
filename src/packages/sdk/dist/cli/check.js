@@ -36,6 +36,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EXIT = void 0;
+exports.parseArgs = parseArgs;
 exports.runCheck = runCheck;
 // Standardized exit codes
 exports.EXIT = {

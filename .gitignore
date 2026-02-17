@@ -28,6 +28,9 @@ yarn-error.log*
 # local sqlite (dev)
 local.db
 
+# npm auth (contains tokens)
+**/.npmrc
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -5,11 +5,15 @@ import { eq } from 'drizzle-orm';
 import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
 import { notFound, forbidden, validationError } from '@/lib/api/errors';
 
+type LoadWebhookResult =
+  | { error: NextResponse }
+  | { webhook: typeof webhooks.$inferSelect };
+
 /**
  * Fetch the webhook and verify it belongs to the caller's org.
  * Returns the webhook row or a NextResponse error.
  */
-async function loadOwnedWebhook(webhookId: number, ctx: AuthContext) {
+async function loadOwnedWebhook(webhookId: number, ctx: AuthContext): Promise<LoadWebhookResult> {
   const result = await db
     .select()
     .from(webhooks)

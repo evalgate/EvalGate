@@ -59,7 +59,7 @@ export interface CheckArgs {
   baseline: 'published' | 'previous';
 }
 
-function parseArgs(argv: string[]): CheckArgs {
+export function parseArgs(argv: string[]): CheckArgs {
   const args: Record<string, string> = {};
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];

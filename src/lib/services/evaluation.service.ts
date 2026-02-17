@@ -17,6 +17,7 @@ export const createEvaluationSchema = z.object({
   type: z.string().default('standard'),
   modelConfig: z.record(z.any()).optional(),
   testCases: z.array(z.object({
+    name: z.string().optional(),
     input: z.string(),
     expectedOutput: z.string().optional(),
     metadata: z.record(z.any()).optional(),

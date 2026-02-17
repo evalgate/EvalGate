@@ -15,11 +15,13 @@ import { testResults, evaluationRuns } from '@/db/schema';
  */
 export function transformTestResultToDB(
   sdkResult: SDKTestResult,
-  evaluationRunId: number
+  evaluationRunId: number,
+  organizationId: number
 ): Omit<typeof testResults.$inferInsert, 'id' | 'createdAt'> {
   return {
     evaluationRunId,
     testCaseId: sdkResult.testCaseId,
+    organizationId,
     status: sdkResult.status,
     output: sdkResult.output,
     score: sdkResult.score,
@@ -47,6 +49,7 @@ export function transformEvaluationResultToDB(
   // Transform the main run record
   const run: Omit<typeof evaluationRuns.$inferInsert, 'id' | 'createdAt'> = {
     evaluationId: sdkResult.evaluationId,
+    organizationId,
     status: sdkResult.status,
     totalCases: sdkResult.totalCases,
     processedCount: sdkResult.processedCases,
@@ -67,7 +70,7 @@ export function transformEvaluationResultToDB(
 
   // Transform all test results
   const transformedResults = sdkResult.results.map(result =>
-    transformTestResultToDB(result, 0) // runId will be set after insertion
+    transformTestResultToDB(result, 0, organizationId) // runId will be set after insertion
   );
 
   return { run, testResults: transformedResults };

@@ -54,4 +54,5 @@ export interface CheckArgs {
     policy?: string;
     baseline: 'published' | 'previous';
 }
+export declare function parseArgs(argv: string[]): CheckArgs;
 export declare function runCheck(args: CheckArgs): Promise<number>;
