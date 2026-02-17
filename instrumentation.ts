@@ -1,3 +1,8 @@
+// Polyfill for Edge runtime: Node's `global` doesn't exist in Edge
+if (typeof global === "undefined") {
+  (globalThis as typeof globalThis & { global: typeof globalThis }).global = globalThis;
+}
+
 import * as Sentry from '@sentry/nextjs';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -58,7 +63,8 @@ declare global {
   var __NEXT_USE_INSTRUMENTATION__: boolean | undefined;
 }
 
-// Enable instrumentation in development
-if (global.__NEXT_USE_INSTRUMENTATION__ === undefined) {
-  global.__NEXT_USE_INSTRUMENTATION__ = true;
+// Enable instrumentation in development (use globalThis.global after polyfill for Edge)
+const g = (globalThis as typeof globalThis & { global?: typeof globalThis }).global ?? globalThis;
+if ((g as typeof g & { __NEXT_USE_INSTRUMENTATION__?: boolean }).__NEXT_USE_INSTRUMENTATION__ === undefined) {
+  (g as typeof g & { __NEXT_USE_INSTRUMENTATION__: boolean }).__NEXT_USE_INSTRUMENTATION__ = true;
 }
