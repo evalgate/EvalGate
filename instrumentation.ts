@@ -25,7 +25,11 @@ export async function onRequestError(error: unknown, request: NextRequest) {
       source: 'instrumentation',
       timestamp: new Date().toISOString(),
       method: request.method,
-      headers: Object.fromEntries(request.headers.entries())
+      headers: Object.fromEntries(
+        request.headers && typeof request.headers.entries === 'function'
+          ? request.headers.entries()
+          : Object.entries(request.headers || {})
+      )
     }
   });
   
