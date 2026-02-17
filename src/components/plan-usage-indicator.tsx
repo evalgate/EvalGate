@@ -6,10 +6,18 @@ import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
+type CustomerWithPlan = {
+  products?: Array<{ name?: string }>;
+  features?: {
+    traces?: { unlimited?: boolean; usage?: number; included_usage?: number; balance?: number };
+    projects?: { unlimited?: boolean; usage?: number; included_usage?: number; balance?: number };
+  };
+};
+
 export function PlanUsageIndicator() {
   // Temporarily disable autumn-js to avoid global error
   const isLoading = false
-  const customer = null
+  const customer: CustomerWithPlan | null = null
 
   if (isLoading) {
     return (
