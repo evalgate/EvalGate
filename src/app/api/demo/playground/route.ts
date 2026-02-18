@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { validationError, notFound, internalError } from '@/lib/api/errors';
 import { calculateQualityScore } from '@/lib/ai-quality-score';
 
 interface DemoScenario {
@@ -27,10 +28,7 @@ export async function GET(request: NextRequest) {
   if (scenarioId) {
     const scenario = getDemoScenario(scenarioId);
     if (!scenario) {
-      return NextResponse.json(
-        { error: 'Scenario not found' },
-        { status: 404 }
-      );
+      return notFound('Scenario not found');
     }
     return NextResponse.json(scenario);
   }
@@ -75,18 +73,12 @@ export async function POST(request: NextRequest) {
     const { scenario } = await request.json();
 
     if (!scenario) {
-      return NextResponse.json(
-        { error: 'Scenario is required' },
-        { status: 400 }
-      );
+      return validationError('Scenario is required');
     }
 
     const demoScenario = getDemoScenario(scenario);
     if (!demoScenario) {
-      return NextResponse.json(
-        { error: 'Invalid scenario' },
-        { status: 400 }
-      );
+      return validationError('Invalid scenario');
     }
 
     // Simulate processing time
@@ -97,11 +89,8 @@ export async function POST(request: NextRequest) {
       scenario: demoScenario,
       message: 'Evaluation complete! Sign up to save and share your results.'
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return internalError(error instanceof Error ? error.message : undefined);
   }
 }
 

@@ -1,0 +1,174 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "EvalAI API",
+    "version": "1.0.0",
+    "description": "AI Evaluation Platform API. See docs/api-contract.md for stability commitments."
+  },
+  "servers": [
+    { "url": "https://v0-ai-evaluation-platform-nu.vercel.app", "description": "Production" },
+    { "url": "http://localhost:3000", "description": "Local" }
+  ],
+  "paths": {
+    "/api/quality": {
+      "get": {
+        "summary": "Get quality score",
+        "parameters": [
+          { "name": "evaluationId", "in": "query", "required": true, "schema": { "type": "integer" } },
+          { "name": "action", "in": "query", "schema": { "type": "string", "enum": ["latest", "trend"] } },
+          { "name": "baseline", "in": "query", "schema": { "type": "string", "enum": ["published", "previous", "production"] } }
+        ],
+        "responses": {
+          "200": { "description": "Quality score or trend" },
+          "400": { "$ref": "#/components/responses/ValidationError" }
+        },
+        "security": [{ "bearerAuth": [] }]
+      },
+      "post": {
+        "summary": "Recompute quality score",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["runId"], "properties": { "runId": { "type": "integer" } } }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Recomputed score" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/api/reports": {
+      "post": {
+        "summary": "Create signed report",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["evaluationId", "evaluationRunId"],
+                "properties": {
+                  "evaluationId": { "type": "integer" },
+                  "evaluationRunId": { "type": "integer" },
+                  "expiresInDays": { "type": "number" },
+                  "policyName": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Report created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "shareToken": { "type": "string" },
+                    "shareUrl": { "type": "string" },
+                    "apiUrl": { "type": "string" },
+                    "expiresAt": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/api/mcp/call": {
+      "post": {
+        "summary": "Execute MCP tool",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tool", "arguments"],
+                "properties": {
+                  "tool": { "type": "string", "example": "eval.quality.latest" },
+                  "arguments": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean" },
+                    "content": { "type": "array", "items": { "type": "object" } }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/api/evaluations/{id}/runs/{runId}/export": {
+      "get": {
+        "summary": "Export evaluation run",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "runId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Export payload (type-specific)" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API Key or Session Token"
+      }
+    },
+    "schemas": {
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string", "enum": ["UNAUTHORIZED", "FORBIDDEN", "NOT_FOUND", "VALIDATION_ERROR", "RATE_LIMITED", "CONFLICT", "INTERNAL_ERROR", "SERVICE_UNAVAILABLE", "QUOTA_EXCEEDED", "NO_ORG_MEMBERSHIP"] },
+              "message": { "type": "string" },
+              "details": {},
+              "requestId": { "type": "string", "format": "uuid" }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "ValidationError": {
+        "description": "Validation error",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+        }
+      }
+    }
+  }
+}

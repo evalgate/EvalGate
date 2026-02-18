@@ -1,6 +1,6 @@
-// src/app/api/arena-matches/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuthWithOrg } from '@/lib/autumn-server';
+import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
+import { internalError, zodValidationError } from '@/lib/api/errors';
 import { arenaMatchesService } from '@/lib/services/arena-matches.service';
 import { z } from 'zod';
 
@@ -11,77 +11,39 @@ const createArenaMatchSchema = z.object({
   metadata: z.record(z.any()).optional(),
 });
 
-/**
- * POST /api/arena-matches
- * Create a new arena match between multiple models
- */
-export async function POST(request: NextRequest) {
+export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
-    const authResult = await requireAuthWithOrg(request);
-    if (!authResult.authenticated) {
-      const data = await authResult.response.json();
-      return NextResponse.json(data, { status: authResult.response.status });
-    }
-
-    const { userId, organizationId } = authResult;
-    const body = await request.json();
+    const body = await req.json();
     const parsed = createArenaMatchSchema.parse(body);
 
     const result = await arenaMatchesService.createArenaMatch(
-      organizationId,
+      ctx.organizationId,
       parsed,
-      userId
+      ctx.userId
     );
 
     return NextResponse.json(result, { status: 201 });
-
-  } catch (error: any) {
-    console.error('Arena match creation error:', error);
-    
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
-        { status: 400 }
-      );
+      return zodValidationError(error);
     }
-
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+    return internalError(error instanceof Error ? error.message : undefined);
   }
-}
+});
 
-/**
- * GET /api/arena-matches
- * Get arena matches for an organization
- */
-export async function GET(request: NextRequest) {
+export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
-    const authResult = await requireAuthWithOrg(request);
-    if (!authResult.authenticated) {
-      const data = await authResult.response.json();
-      return NextResponse.json(data, { status: authResult.response.status });
-    }
-
-    const { organizationId } = authResult;
-    const { searchParams } = new URL(request.url);
-    
-    const options: any = {};
-    
-    // Parse query parameters
+    const { searchParams } = new URL(req.url);
+    const options: Record<string, unknown> = {};
     if (searchParams.has('limit')) {
       options.limit = parseInt(searchParams.get('limit') || '10');
     }
-    
     if (searchParams.has('offset')) {
       options.offset = parseInt(searchParams.get('offset') || '0');
     }
-    
     if (searchParams.has('winnerId')) {
       options.winnerId = searchParams.get('winnerId');
     }
-    
     if (searchParams.has('start') && searchParams.has('end')) {
       options.dateRange = {
         start: searchParams.get('start'),
@@ -89,15 +51,9 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    const matches = await arenaMatchesService.getArenaMatches(organizationId, options);
-
+    const matches = await arenaMatchesService.getArenaMatches(ctx.organizationId, options);
     return NextResponse.json(matches);
-
-  } catch (error: any) {
-    console.error('Arena matches fetch error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return internalError(error instanceof Error ? error.message : undefined);
   }
-}
+});

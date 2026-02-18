@@ -1,6 +1,6 @@
 # Example: EvalAI CI gate using quickstart-ci
-# Requires secrets: EVALAI_API_KEY, WEBHOOK_URL
-# Enable manually or in a fork that has a test webhook.
+# Requires secrets: EVALAI_API_KEY
+# Set evaluationId in examples/quickstart-ci/evalai.config.json or pass --evaluationId
 name: Quickstart CI Example
 
 on:
@@ -18,12 +18,11 @@ jobs:
           cache: 'npm'
 
       - name: Install quickstart-ci dependencies
-        run: npm ci
+        run: npm install
         working-directory: examples/quickstart-ci
 
       - name: Run evaluation and gate
         env:
           EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
-          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
         run: npm run ci
         working-directory: examples/quickstart-ci

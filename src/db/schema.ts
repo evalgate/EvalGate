@@ -309,6 +309,7 @@ export const testResults = sqliteTable('test_results', {
   error: text('error'),
   assertionsJson: text('assertions_json', { mode: 'json' }), // Structured assertion outcomes: { pii: false, toxicity: false, ... }
   traceLinkedMatched: integer('trace_linked_matched', { mode: 'boolean' }), // true=matched, false=no span, null=not trace-linked
+  hasProvenance: integer('has_provenance', { mode: 'boolean' }), // true=model/provider from cost; null=unknown
   durationMs: integer('duration_ms'),
   messages: text('messages', { mode: 'json' }), // Raw LLM messages array for each turn
   toolCalls: text('tool_calls', { mode: 'json' }), // Tool arguments and outputs per turn
@@ -592,6 +593,7 @@ export const qualityScores = sqliteTable('quality_scores', {
   score: integer('score').notNull(),
   total: integer('total'), // test case count for minN gating
   traceCoverageRate: text('trace_coverage_rate'), // nullable, for trace-linked runs: matched/total
+  provenanceCoverageRate: text('provenance_coverage_rate'), // 0..1, per-test-case fraction with model/provider
   breakdown: text('breakdown', { mode: 'json' }).notNull(),
   flags: text('flags', { mode: 'json' }).notNull(),
   evidenceLevel: text('evidence_level'), // 'strong' | 'medium' | 'weak'

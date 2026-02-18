@@ -1,0 +1,70 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`API contract snapshots > GET /api/quality?action=latest > matches snapshot for latest quality score 1`] = `
+{
+  "baselineScore": 80,
+  "breakdown": {
+    "passRate": 0.9,
+    "safety": 1,
+  },
+  "createdAt": "2024-01-15T12:00:00.000Z",
+  "evaluationId": 1,
+  "evaluationRunId": 1,
+  "evidenceLevel": "strong",
+  "flags": [],
+  "id": 1,
+  "model": null,
+  "organizationId": 1,
+  "provenanceCoverageRate": "0.9",
+  "regressionDelta": 5,
+  "regressionDetected": false,
+  "score": 85,
+  "scoringVersion": "v1",
+  "total": 10,
+  "traceCoverageRate": "1.0",
+}
+`;
+
+exports[`API contract snapshots > GET /api/reports > matches snapshot for reports list response 1`] = `
+{
+  "count": 0,
+  "data": [],
+}
+`;
+
+exports[`API contract snapshots > POST /api/mcp/call > matches snapshot for error response 1`] = `
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Evaluation not found",
+    "requestId": "00000000-0000-0000-0000-000000000001",
+  },
+  "ok": false,
+}
+`;
+
+exports[`API contract snapshots > POST /api/mcp/call > matches snapshot for successful tool execution 1`] = `
+{
+  "content": [
+    {
+      "json": {
+        "id": 1,
+        "name": "Test Eval",
+        "status": "active",
+        "type": "unit_test",
+      },
+      "type": "json",
+    },
+    {
+      "text": "{
+  "id": 1,
+  "name": "Test Eval",
+  "type": "unit_test",
+  "status": "active"
+}",
+      "type": "text",
+    },
+  ],
+  "ok": true,
+}
+`;

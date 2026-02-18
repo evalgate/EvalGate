@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { logger } from '@/lib/logger';
+import { getRequestId } from '@/lib/api/request-id';
 
 // ── Error codes ──
 
@@ -62,7 +63,7 @@ export function apiError(
   details?: unknown,
 ): NextResponse<ApiErrorResponse> {
   const status = statusOverride ?? CODE_TO_STATUS[code];
-  const requestId = crypto.randomUUID();
+  const requestId = getRequestId();
 
   const body: ApiErrorResponse = {
     error: {
@@ -75,7 +76,9 @@ export function apiError(
 
   logger.warn('API error response', { code, message, status, requestId });
 
-  return NextResponse.json(body, { status });
+  const res = NextResponse.json(body, { status });
+  res.headers.set('x-request-id', requestId);
+  return res;
 }
 
 // ── Convenience helpers ──
@@ -98,6 +101,11 @@ export function validationError(message: string, details?: unknown) {
 
 export function rateLimited(message = 'Too many requests. Please try again later.') {
   return apiError('RATE_LIMITED', message);
+}
+
+/** Plan entitlement / hard limits — use 403 (not 402) per trust plan. */
+export function quotaExceeded(message: string, details?: unknown) {
+  return apiError('QUOTA_EXCEEDED', message, 403, details);
 }
 
 export function conflict(message: string) {

@@ -8,6 +8,7 @@ import { db } from '@/db';
 import { emailSubscribers } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { validationError, notFound, internalError, zodValidationError } from '@/lib/api/errors';
 import { logger } from '@/lib/logger';
 
 const subscribeSchema = z.object({
@@ -109,20 +110,14 @@ export async function POST(request: NextRequest) {
       },
     }, { status: 201 });
 
-  } catch (error: any) {
-    logger.error('Failed to subscribe email', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Failed to subscribe email', { error: error instanceof Error ? error.message : String(error) });
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        success: false,
-        error: error.errors[0].message,
-      }, { status: 400 });
+      return zodValidationError(error);
     }
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to subscribe. Please try again.',
-    }, { status: 500 });
+    return internalError('Failed to subscribe. Please try again.');
   }
 }
 
@@ -135,10 +130,7 @@ export async function DELETE(request: NextRequest) {
     const email = request.nextUrl.searchParams.get('email');
 
     if (!email) {
-      return NextResponse.json({
-        success: false,
-        error: 'Email parameter is required',
-      }, { status: 400 });
+      return validationError('Email parameter is required');
     }
 
     // Find subscriber
@@ -149,10 +141,7 @@ export async function DELETE(request: NextRequest) {
       .limit(1);
 
     if (existing.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'Email not found',
-      }, { status: 404 });
+      return notFound('Email not found');
     }
 
     // Update status to unsubscribed
@@ -172,13 +161,10 @@ export async function DELETE(request: NextRequest) {
       message: 'Successfully unsubscribed',
     });
 
-  } catch (error: any) {
-    logger.error('Failed to unsubscribe email', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Failed to unsubscribe email', { error: error instanceof Error ? error.message : String(error) });
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to unsubscribe. Please try again.',
-    }, { status: 500 });
+    return internalError('Failed to unsubscribe. Please try again.');
   }
 }
 

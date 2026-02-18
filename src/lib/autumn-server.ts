@@ -31,6 +31,8 @@ interface ValidateSessionResult {
   authType?: AuthType;
   /** For API key auth, the org the key is scoped to. */
   apiKeyOrgId?: number;
+  /** For API key auth, the key ID for usage tracking. */
+  apiKeyId?: number;
 }
 
 /**
@@ -117,6 +119,7 @@ export async function validateSession(token: string | null, requiredScope?: stri
       scopes: keyScopes,
       authType: 'apiKey',
       apiKeyOrgId: apiKey.organizationId,
+      apiKeyId: apiKey.id,
     };
   } catch (error) {
     console.error("Session validation error:", error);
@@ -234,6 +237,8 @@ export async function requireAuth(request: Request): Promise<
       authType: Exclude<AuthType, 'anonymous'>;
       /** Present only for API-key auth — the org the key belongs to. */
       apiKeyOrgId?: number;
+      /** Present only for API-key auth — for usage tracking. */
+      apiKeyId?: number;
     }
   | { authenticated: false; response: Response }
 > {
@@ -264,6 +269,7 @@ export async function requireAuth(request: Request): Promise<
     scopes: validation.scopes ?? [],
     authType: (validation.authType as Exclude<AuthType, 'anonymous'>) ?? 'session',
     apiKeyOrgId: validation.apiKeyOrgId,
+    apiKeyId: validation.apiKeyId,
   };
 }
 
@@ -281,6 +287,7 @@ export async function requireAuthWithOrg(request: Request): Promise<
       role: Role;
       scopes: string[];
       authType: Exclude<AuthType, 'anonymous'>;
+      apiKeyId?: number;
     }
   | { authenticated: false; response: Response }
 > {
@@ -298,6 +305,7 @@ export async function requireAuthWithOrg(request: Request): Promise<
       role: 'member' as Role, // API keys don't carry a role; treat as member
       scopes: authResult.scopes,
       authType: 'apiKey',
+      apiKeyId: authResult.apiKeyId,
     };
   }
 

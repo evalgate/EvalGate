@@ -12,6 +12,7 @@
 import { createClient } from '@libsql/client';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 async function loadEnv() {
   for (const f of ['.env.local', '.env']) {
@@ -41,18 +42,33 @@ function parseStatements(sql: string): string[] {
     .filter((s) => s.length > 0);
 }
 
-async function main() {
-  await loadEnv();
+export type RunMigrationsOptions = {
+  url?: string;
+  authToken?: string;
+  only?: string[];
+  silent?: boolean;
+};
 
-  const url = process.env.TURSO_CONNECTION_URL;
-  const authToken = process.env.TURSO_AUTH_TOKEN;
+/**
+ * Run migrations against a database. Used by CLI and test setup.
+ * When url/authToken omitted, loads from .env.
+ */
+export async function runMigrations(options: RunMigrationsOptions = {}): Promise<void> {
+  const { url: optUrl, authToken: optAuthToken, only = [], silent = false } = options;
 
-  if (!url) {
-    console.error('TURSO_CONNECTION_URL is required. Set it in .env.local or .env');
-    process.exit(1);
+  let url = optUrl;
+  let authToken = optAuthToken;
+
+  if (!url || authToken === undefined) {
+    await loadEnv();
+    url = url ?? process.env.TURSO_CONNECTION_URL;
+    authToken = authToken ?? process.env.TURSO_AUTH_TOKEN;
   }
 
-  const only = process.argv.slice(2); // e.g. ['0016', '0017']
+  if (!url) {
+    throw new Error('TURSO_CONNECTION_URL is required. Set it in .env.local, .env, or pass to runMigrations.');
+  }
+
   const client = createClient({
     url,
     authToken: authToken || undefined,
@@ -69,11 +85,16 @@ async function main() {
     });
 
   if (sqlFiles.length === 0) {
-    console.log(only.length ? `No migrations match: ${only.join(', ')}` : 'No migration files found.');
+    if (!silent) {
+      console.log(only.length ? `No migrations match: ${only.join(', ')}` : 'No migration files found.');
+    }
+    client.close();
     return;
   }
 
-  console.log(`Running ${sqlFiles.length} migration(s)...\n`);
+  if (!silent) {
+    console.log(`Running ${sqlFiles.length} migration(s)...\n`);
+  }
 
   for (const file of sqlFiles) {
     const path = join(process.cwd(), 'drizzle', file);
@@ -81,7 +102,7 @@ async function main() {
     const statements = parseStatements(content);
 
     if (statements.length === 0) {
-      console.log(`  [skip] ${file} (no statements)`);
+      if (!silent) console.log(`  [skip] ${file} (no statements)`);
       continue;
     }
 
@@ -100,28 +121,45 @@ async function main() {
           msg.includes('duplicate column') ||
           msg.includes('already exists') ||
           msg.includes('no such table') ||
+          msg.includes('no such column') ||
           msg.includes('UNIQUE constraint failed');
         if (isSkip) {
-          if (msg.includes('UNIQUE constraint failed')) {
+          if (msg.includes('UNIQUE constraint failed') && !silent) {
             console.warn(`  [skip] ${file}: ${msg} (fix duplicate data and re-run to apply constraint)`);
           }
           skipped++;
         } else {
-          console.error(`  [fail] ${file}: ${msg}`);
+          if (!silent) console.error(`  [fail] ${file}: ${msg}`);
+          client.close();
           throw err;
         }
       }
     }
-    if (applied > 0 || skipped > 0) {
+    if (!silent && (applied > 0 || skipped > 0)) {
       console.log(`  [ok]   ${file} (${applied} applied${skipped > 0 ? `, ${skipped} skipped` : ''})`);
     }
   }
 
-  console.log('\nDone.');
+  if (!silent) {
+    console.log('\nDone.');
+  }
   client.close();
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+async function main() {
+  const only = process.argv.slice(2);
+  await runMigrations({ only: only.length > 0 ? only : undefined });
+}
+
+// Only run when executed directly (not when imported)
+const __filename = fileURLToPath(import.meta.url);
+const isEntryPoint =
+  process.argv[1] === __filename ||
+  process.argv[1]?.replace(/\\/g, '/') === __filename.replace(/\\/g, '/') ||
+  process.argv[1]?.endsWith('run-migrations.ts');
+if (isEntryPoint) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

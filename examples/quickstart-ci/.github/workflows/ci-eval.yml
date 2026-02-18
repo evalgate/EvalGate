@@ -24,6 +24,5 @@ jobs:
       - name: Run evaluation and gate
         env:
           EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
-          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
         run: npm run ci
         working-directory: examples/quickstart-ci

@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { notFound } from '@/lib/api/errors';
 import chatbotData from '../../../../../public/demo/chatbot.json';
 import ragData from '../../../../../public/demo/rag.json';
 import codegenData from '../../../../../public/demo/codegen.json';
@@ -30,10 +31,7 @@ export async function GET(
   const data = DEMO_DATA_MAP[type];
   
   if (!data) {
-    return NextResponse.json(
-      { error: 'Unknown demo type. Available: chatbot, rag, codegen, evaluations, traces, judge' },
-      { status: 404 }
-    );
+    return notFound('Unknown demo type. Available: chatbot, rag, codegen, evaluations, traces, judge');
   }
   
   return NextResponse.json(data);

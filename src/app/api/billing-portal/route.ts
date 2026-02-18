@@ -1,6 +1,6 @@
-
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { unauthorized, internalError } from "@/lib/api/errors";
 import { Autumn as autumn, type AutumnError } from "autumn-js";
 
 type BillingPortalResult = {
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: request.headers });
 
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized("Unauthorized");
   }
 
   let body = {};
@@ -28,20 +28,14 @@ export async function POST(request: Request) {
 
     if ('error' in result) {
       console.error('Billing portal error:', result.error?.message || 'Unknown error');
-      return NextResponse.json(
-        { error: 'Failed to generate billing portal URL' },
-        { status: 500 }
-      );
+      return internalError('Failed to generate billing portal URL');
     }
 
     const { url } = result;
 
     return NextResponse.json({ url }, { status: 200 });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Billing portal error:', err);
-    return NextResponse.json(
-      { error: "Failed to generate billing portal URL" },
-      { status: 500 }
-    );
+    return internalError('Failed to generate billing portal URL');
   }
 }

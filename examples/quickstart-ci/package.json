@@ -1,12 +1,13 @@
 {
   "name": "evalai-quickstart-ci",
   "version": "1.0.0",
-  "description": "Minimal EvalAI CI example - webhook executor, eval run, check gate",
+  "description": "Minimal EvalAI CI example - evalai check gate",
   "type": "module",
   "scripts": {
-    "ci": "node ci-eval.js"
+    "ci": "evalai check",
+    "ci:full": "node ci-eval.js"
   },
   "dependencies": {
-    "@pauly4010/evalai-sdk": "^1.3.0"
+    "@pauly4010/evalai-sdk": "^1.4.0"
   }
 }

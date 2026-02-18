@@ -27,6 +27,7 @@ export { RequestBatcher } from './batch';
 export { Logger } from './logger';
 export { traceOpenAI } from './integrations/openai';
 export { traceAnthropic } from './integrations/anthropic';
+export { openAIChatEval, type OpenAIChatEvalOptions, type OpenAIChatEvalResult, type OpenAIChatEvalCase, } from './integrations/openai-eval';
 export { WorkflowTracer, createWorkflowTracer, traceWorkflowStep, traceLangChainAgent, traceCrewAI, traceAutoGen, type WorkflowNode, type WorkflowEdge, type WorkflowDefinition, type WorkflowContext, type WorkflowStatus, type HandoffType, type AgentHandoff, type DecisionAlternative, type DecisionType, type RecordDecisionParams, type LLMProvider, type CostCategory, type RecordCostParams, type CostRecord, type WorkflowTracerOptions, type AgentSpanContext, } from './workflows';
 export type { ClientConfig as AIEvalConfig, Trace as TraceData, Span as SpanData, Evaluation as EvaluationData, LLMJudgeResult as LLMJudgeData, RetryConfig, GenericMetadata as AnnotationData, TracedResponse, TestCase, TestResult, SnapshotData, ExportOptions, ImportOptions, StreamOptions, BatchOptions } from './types';
 export { EvaluationTemplates, type EvaluationTemplateType, type FeatureUsage, type OrganizationLimits } from './types';

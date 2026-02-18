@@ -1,16 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@libsql/client';
+import { internalError } from '@/lib/api/errors';
 
 export async function GET() {
   const url = process.env.TURSO_CONNECTION_URL;
   const token = process.env.TURSO_AUTH_TOKEN;
   
   if (!url || !token) {
-    return NextResponse.json({ 
-      error: 'Missing Turso credentials',
-      url: url ? 'SET' : 'NOT SET',
-      token: token ? 'SET' : 'NOT SET'
-    }, { status: 500 });
+    return internalError('Missing Turso credentials');
   }
 
   const client = createClient({ url, authToken: token });
@@ -36,11 +33,8 @@ export async function GET() {
       tables: allTables.rows.map(r => r.name)
     });
     
-  } catch (err) {
-    return NextResponse.json({ 
-      error: 'Database connection failed',
-      message: err instanceof Error ? err.message : 'Unknown error'
-    }, { status: 500 });
+  } catch (err: unknown) {
+    return internalError(err instanceof Error ? err.message : 'Database connection failed');
   } finally {
     client.close();
   }

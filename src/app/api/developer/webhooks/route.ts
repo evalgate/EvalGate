@@ -2,69 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { webhooks } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { getCurrentUser } from '@/lib/auth';
+import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
+import { validationError, forbidden, internalError } from '@/lib/api/errors';
+import { parseBody } from '@/lib/api/parse';
+import { createWebhookBodySchema } from '@/lib/validation';
 import crypto from 'crypto';
 
-export async function POST(request: NextRequest) {
+export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
+  const parsed = await parseBody(req, createWebhookBodySchema);
+  if (!parsed.ok) return parsed.response;
+
+  const { organizationId, url, events } = parsed.data;
+
+  if (organizationId !== ctx.organizationId) {
+    return forbidden('Organization ID must match your current organization');
+  }
+
   try {
-    const user = await getCurrentUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'UNAUTHORIZED' },
-        { status: 401 }
-      );
-    }
-
-    const body = await request.json();
-    const { organizationId, url, events } = body;
-
-    // Validate required fields
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'Organization ID is required', code: 'MISSING_ORGANIZATION_ID' },
-        { status: 400 }
-      );
-    }
-
-    if (!url) {
-      return NextResponse.json(
-        { error: 'URL is required', code: 'MISSING_URL' },
-        { status: 400 }
-      );
-    }
-
-    if (!events) {
-      return NextResponse.json(
-        { error: 'Events array is required', code: 'MISSING_EVENTS' },
-        { status: 400 }
-      );
-    }
-
-    // Validate URL format
     const trimmedUrl = url.trim();
-    if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
-      return NextResponse.json(
-        { error: 'URL must start with http:// or https://', code: 'INVALID_URL_FORMAT' },
-        { status: 400 }
-      );
-    }
-
-    // Validate events array
-    if (!Array.isArray(events) || events.length === 0) {
-      return NextResponse.json(
-        { error: 'Events must be a non-empty array', code: 'INVALID_EVENTS' },
-        { status: 400 }
-      );
-    }
-
-    // Generate random secret
     const secret = crypto.randomBytes(32).toString('hex');
 
-    // Create webhook
     const now = new Date().toISOString();
     const newWebhook = await db.insert(webhooks)
       .values({
-        organizationId,
+        organizationId: ctx.organizationId,
         url: trimmedUrl,
         events: JSON.stringify(events),
         secret,
@@ -76,13 +37,9 @@ export async function POST(request: NextRequest) {
       .returning();
 
     if (newWebhook.length === 0) {
-      return NextResponse.json(
-        { error: 'Failed to create webhook', code: 'CREATION_FAILED' },
-        { status: 500 }
-      );
+      return internalError('Failed to create webhook');
     }
 
-    // Return webhook with secret (only returned once)
     const created = newWebhook[0];
     return NextResponse.json(
       {
@@ -95,56 +52,37 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('POST error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return internalError();
   }
-}
+});
 
-export async function GET(request: NextRequest) {
+export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
-    const user = await getCurrentUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required', code: 'UNAUTHORIZED' },
-        { status: 401 }
-      );
-    }
-
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
     const organizationIdParam = searchParams.get('organizationId');
     const statusParam = searchParams.get('status');
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Validate required organizationId
     if (!organizationIdParam) {
-      return NextResponse.json(
-        { error: 'Organization ID is required', code: 'MISSING_ORGANIZATION_ID' },
-        { status: 400 }
-      );
+      return validationError('Organization ID is required');
     }
 
     const organizationId = parseInt(organizationIdParam);
     if (isNaN(organizationId)) {
-      return NextResponse.json(
-        { error: 'Valid organization ID is required', code: 'INVALID_ORGANIZATION_ID' },
-        { status: 400 }
-      );
+      return validationError('Valid organization ID is required');
     }
 
-    // Build query with filters
+    if (organizationId !== ctx.organizationId) {
+      return forbidden('Organization ID must match your current organization');
+    }
+
     let conditions = [eq(webhooks.organizationId, organizationId)];
 
     if (statusParam) {
       if (statusParam !== 'active' && statusParam !== 'inactive') {
-        return NextResponse.json(
-          { error: 'Status must be "active" or "inactive"', code: 'INVALID_STATUS' },
-          { status: 400 }
-        );
+        return validationError('Status must be "active" or "inactive"');
       }
       conditions.push(eq(webhooks.status, statusParam));
     }
@@ -167,7 +105,6 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .offset(offset);
 
-    // Parse events JSON and remove secret from response
     const webhooksWithParsedEvents = results.map(webhook => ({
       id: webhook.id,
       organizationId: webhook.organizationId,
@@ -180,11 +117,7 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json(webhooksWithParsedEvents, { status: 200 });
-  } catch (error) {
-    console.error('GET error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return internalError();
   }
-}
+});

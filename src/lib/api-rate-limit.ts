@@ -1,21 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit, getRateLimitTier } from "./rate-limit";
 import * as Sentry from "@sentry/nextjs";
+import crypto from "crypto";
 
 export async function withRateLimit(
   request: NextRequest,
   handler: (req: NextRequest) => Promise<NextResponse>,
   options?: {
     customIdentifier?: string;
-    customTier?: "free" | "pro" | "enterprise" | "anonymous";
+    customTier?: "free" | "pro" | "enterprise" | "anonymous" | "mcp";
   }
 ) {
   try {
     // Get identifier (IP address or custom identifier)
-    const ip = request.headers.get('x-forwarded-for') || 
-               request.headers.get('x-real-ip') ||
-               '127.0.0.1';
-    const identifier = options?.customIdentifier || ip || "anonymous";
+    let identifier = options?.customIdentifier;
+    if (!identifier) {
+      const tier = options?.customTier || "anonymous";
+      // For MCP tier, rate limit per API key when Bearer token present
+      if (tier === "mcp") {
+        const auth = request.headers.get("authorization");
+        if (auth?.startsWith("Bearer ")) {
+          identifier = `mcp:${crypto.createHash("sha256").update(auth).digest("hex").slice(0, 16)}`;
+        }
+      }
+      if (!identifier) {
+        identifier =
+          request.headers.get("x-forwarded-for") ||
+          request.headers.get("x-real-ip") ||
+          "127.0.0.1";
+      }
+    }
+    identifier = identifier || "anonymous";
 
     // Determine rate limit tier
     const tier = options?.customTier || "anonymous";

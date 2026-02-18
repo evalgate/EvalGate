@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { costService } from '@/lib/services/cost.service';
 import { requireAdmin } from '@/lib/autumn-server';
 import { withRateLimit } from '@/lib/api-rate-limit';
+import { internalError, zodValidationError } from '@/lib/api/errors';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
@@ -42,16 +43,13 @@ export async function GET(request: NextRequest) {
           'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error fetching pricing', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         route: '/api/costs/pricing',
         method: 'GET',
       });
-      return NextResponse.json({
-        error: 'Internal server error',
-        code: 'INTERNAL_ERROR',
-      }, { status: 500 });
+      return internalError();
     }
   }, { customTier: 'free' });
 }
@@ -74,11 +72,7 @@ export async function POST(request: NextRequest) {
       // Validate request body
       const validation = updatePricingSchema.safeParse(body);
       if (!validation.success) {
-        return NextResponse.json({
-          error: 'Invalid request body',
-          code: 'VALIDATION_ERROR',
-          details: validation.error.errors,
-        }, { status: 400 });
+        return zodValidationError(validation.error);
       }
 
       const { provider, model, inputPricePerMillion, outputPricePerMillion } = validation.data;
@@ -98,16 +92,13 @@ export async function POST(request: NextRequest) {
       });
 
       return NextResponse.json(pricing, { status: 201 });
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error updating pricing', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         route: '/api/costs/pricing',
         method: 'POST',
       });
-      return NextResponse.json({
-        error: 'Internal server error',
-        code: 'INTERNAL_ERROR',
-      }, { status: 500 });
+      return internalError();
     }
   }, { customTier: 'free' });
 }

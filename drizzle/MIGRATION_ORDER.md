@@ -28,6 +28,8 @@
 | 0018 | — | indexes (spans) |
 | 0019 | — | quality_scores |
 | 0020 | — | evaluation_runs |
+| 0021 | — | test_results |
+| 0022 | — | quality_scores |
 
 ## Tables NOT created by migrations (created via drizzle-kit push)
 
@@ -38,4 +40,5 @@
 - `duplicate column` – column already added
 - `already exists` – index/table already exists
 - `no such table` – table from schema not yet in migrations
+- `no such column` – index references column with different casing (e.g. 0005 camelCase vs snake_case)
 - `UNIQUE constraint failed` – data has duplicates; constraint cannot be applied

@@ -1,21 +1,16 @@
-import { NextResponse, NextRequest } from "next/server"
-import { db } from '@/db'
-import { evaluations, testCases, evaluationRuns, testResults, user } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
-import { requireAuthWithOrg } from '@/lib/autumn-server'
+import { NextResponse, NextRequest } from 'next/server';
+import { db } from '@/db';
+import { evaluations, testCases, evaluationRuns, testResults, user } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
+import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
+import { notFound, internalError } from '@/lib/api/errors';
+import { parseBody } from '@/lib/api/parse';
+import { updateEvaluationBodySchema } from '@/lib/validation';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
   try {
-    const authResult = await requireAuthWithOrg(request)
-    if (!authResult.authenticated) {
-      const data = await authResult.response.json()
-      return NextResponse.json(data, { status: authResult.response.status })
-    }
+    const { id } = params;
 
-    const { userId, organizationId } = authResult
-    const { id } = await params
-
-    // Fetch evaluation with test cases and user info - ORG SCOPED
     const evaluationData = await db
       .select({
         evaluation: evaluations,
@@ -27,49 +22,39 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       })
       .from(evaluations)
       .leftJoin(user, eq(evaluations.createdBy, user.id))
-      .where(and(eq(evaluations.id, parseInt(id)), eq(evaluations.organizationId, organizationId)))
-      .limit(1)
+      .where(and(eq(evaluations.id, parseInt(id)), eq(evaluations.organizationId, ctx.organizationId)))
+      .limit(1);
 
     if (evaluationData.length === 0) {
-      return NextResponse.json({ error: "Evaluation not found" }, { status: 404 })
+      return notFound('Evaluation not found');
     }
 
-    // Fetch test cases for this evaluation - ORG SCOPED
-    // Fetch test cases for this evaluation
     const evalTestCases = await db
       .select()
       .from(testCases)
-      .where(eq(testCases.evaluationId, parseInt(id)))
+      .where(eq(testCases.evaluationId, parseInt(id)));
 
-    // Format response to match Supabase structure
     const formattedEvaluation = {
       ...evaluationData[0].evaluation,
       test_cases: evalTestCases,
       users: evaluationData[0].creator,
-    }
+    };
 
-    return NextResponse.json({ evaluation: formattedEvaluation })
+    return NextResponse.json({ evaluation: formattedEvaluation });
   } catch (error) {
-    console.error('GET evaluation error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return internalError('Internal server error');
   }
-}
+});
 
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const PATCH = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
   try {
-    const authResult = await requireAuthWithOrg(request)
-    if (!authResult.authenticated) {
-      const data = await authResult.response.json()
-      return NextResponse.json(data, { status: authResult.response.status })
-    }
+    const { id } = params;
 
-    const { userId, organizationId } = authResult
-    const { id } = await params
+    const parsed = await parseBody(req, updateEvaluationBodySchema);
+    if (!parsed.ok) return parsed.response;
 
-    const body = await request.json()
-    const { name, description, config } = body
-
-    const now = new Date().toISOString()
+    const { name, description } = parsed.data;
+    const now = new Date().toISOString();
 
     const updated = await db
       .update(evaluations)
@@ -78,60 +63,45 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         description: description !== undefined ? description : undefined,
         updatedAt: now,
       })
-      .where(and(eq(evaluations.id, parseInt(id)), eq(evaluations.organizationId, organizationId)))
-      .returning()
+      .where(and(eq(evaluations.id, parseInt(id)), eq(evaluations.organizationId, ctx.organizationId)))
+      .returning();
 
     if (updated.length === 0) {
-      return NextResponse.json({ error: "Evaluation not found" }, { status: 404 })
+      return notFound('Evaluation not found');
     }
 
-    return NextResponse.json({ evaluation: updated[0] })
+    return NextResponse.json({ evaluation: updated[0] });
   } catch (error) {
-    console.error('PATCH evaluation error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return internalError('Internal server error');
   }
-}
+});
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const DELETE = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
   try {
-    const authResult = await requireAuthWithOrg(request)
-    if (!authResult.authenticated) {
-      const data = await authResult.response.json()
-      return NextResponse.json(data, { status: authResult.response.status })
-    }
+    const { id } = params;
 
-    const { userId, organizationId } = authResult
-    const { id } = await params
-
-    // First check the evaluation exists - ORG SCOPED
     const existing = await db
       .select({ id: evaluations.id })
       .from(evaluations)
-      .where(and(eq(evaluations.id, parseInt(id)), eq(evaluations.organizationId, organizationId)))
+      .where(and(eq(evaluations.id, parseInt(id)), eq(evaluations.organizationId, ctx.organizationId)))
       .limit(1);
 
     if (existing.length === 0) {
-      return NextResponse.json({ error: "Evaluation not found" }, { status: 404 })
+      return notFound('Evaluation not found');
     }
 
     const evalId = parseInt(id);
 
-    // Cascade delete: delete related records first
-    // 1. Delete test results for runs belonging to this evaluation
     const runs = await db.select({ id: evaluationRuns.id }).from(evaluationRuns).where(eq(evaluationRuns.evaluationId, evalId));
     for (const run of runs) {
       await db.delete(testResults).where(eq(testResults.evaluationRunId, run.id));
     }
-    // 2. Delete evaluation runs
     await db.delete(evaluationRuns).where(eq(evaluationRuns.evaluationId, evalId));
-    // 3. Delete test cases
     await db.delete(testCases).where(eq(testCases.evaluationId, evalId));
-    // 4. Delete the evaluation itself - ORG SCOPED
-    await db.delete(evaluations).where(and(eq(evaluations.id, evalId), eq(evaluations.organizationId, organizationId)));
+    await db.delete(evaluations).where(and(eq(evaluations.id, evalId), eq(evaluations.organizationId, ctx.organizationId)));
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('DELETE evaluation error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return internalError('Internal server error');
   }
-}
+});

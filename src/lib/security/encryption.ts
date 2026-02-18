@@ -1,5 +1,5 @@
 // src/lib/security/encryption.ts
-import { createHash, randomBytes } from 'crypto';
+import crypto, { createHash, randomBytes } from 'crypto';
 
 /**
  * AES-256-GCM encryption utilities for secure key storage.
@@ -53,8 +53,7 @@ export class AESEncryption {
       const keyBuffer = Buffer.from(key, 'base64');
       const iv = this.generateIV();
       const ivBuffer = Buffer.from(iv, 'base64');
-      
-      const crypto = require('crypto');
+
       const cipher = crypto.createCipheriv(this.algorithm, keyBuffer, ivBuffer);
       
       let encrypted = cipher.update(data, 'utf8', 'hex');
@@ -67,8 +66,8 @@ export class AESEncryption {
         iv,
         tag: tag.toString('base64'),
       };
-    } catch (error: any) {
-      throw new Error(`Encryption failed: ${error.message}`);
+    } catch (error: unknown) {
+      throw new Error(`Encryption failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -83,8 +82,7 @@ export class AESEncryption {
       const keyBuffer = Buffer.from(key, 'base64');
       const ivBuffer = Buffer.from(encryptedData.iv, 'base64');
       const tagBuffer = Buffer.from(encryptedData.tag, 'base64');
-      
-      const crypto = require('crypto');
+
       const decipher = crypto.createDecipheriv(this.algorithm, keyBuffer, ivBuffer);
       
       decipher.setAuthTag(tagBuffer);
@@ -96,11 +94,11 @@ export class AESEncryption {
         decrypted,
         success: true,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         decrypted: '',
         success: false,
-        error: `Decryption failed: ${error.message}`,
+        error: `Decryption failed: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   }
@@ -139,7 +137,7 @@ export class AESEncryption {
       }
       
       return JSON.parse(result.decrypted);
-    } catch (error: any) {
+    } catch {
       return null;
     }
   }
@@ -165,7 +163,6 @@ export class AESEncryption {
    * @returns Derived key
    */
   deriveKey(password: string, salt: string, iterations: number = 100000): string {
-    const crypto = require('crypto');
     const key = crypto.pbkdf2Sync(password, salt, iterations, this.keyLength, 'sha256');
     return key.toString('base64');
   }
@@ -265,7 +262,6 @@ export class SecureRandom {
    * Generate a UUID v4.
    */
   static uuid(): string {
-    const crypto = require('crypto');
     return crypto.randomUUID();
   }
 
@@ -285,9 +281,8 @@ export class SecureRandom {
    * @returns Random number
    */
   static integer(min: number = 0, max: number = Number.MAX_SAFE_INTEGER): number {
-    const crypto = require('crypto');
-    const randomBytes = crypto.randomBytes(4);
-    const randomValue = randomBytes.readUInt32BE(0, false);
+    const bytes = crypto.randomBytes(4);
+    const randomValue = bytes.readUInt32BE(0, false);
     return min + (randomValue % (max - min));
   }
 }

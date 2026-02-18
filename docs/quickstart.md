@@ -1,134 +1,75 @@
 # EvalAI Quickstart
 
-Get from zero to a gated evaluation run in CI in under 15 minutes.
+Get from zero to a gated evaluation run in CI in under 5 minutes.
 
-## Prerequisites
-
-- Node.js 18+
-- An EvalAI account and API key (create at [v0-ai-evaluation-platform-nu.vercel.app](https://v0-ai-evaluation-platform-nu.vercel.app))
-- A webhook endpoint that accepts `POST { input: string }` and returns `{ output: string }`
-
-## Step 1: Install the SDK
+## Step 1: Run a regression test locally (no account)
 
 ```bash
-npm install @pauly4010/evalai-sdk
+npm install @pauly4010/evalai-sdk openai
 ```
 
-## Step 2: Create an Evaluation with Webhook Executor
-
-The webhook executor sends test inputs to your endpoint and scores the responses. It works with any model, framework, or language.
-
 ```typescript
-import { AIEvalClient } from '@pauly4010/evalai-sdk';
+import { openAIChatEval } from '@pauly4010/evalai-sdk';
 
-const client = new AIEvalClient({
-  baseUrl: process.env.EVALAI_BASE_URL || 'https://v0-ai-evaluation-platform-nu.vercel.app',
-  apiKey: process.env.EVALAI_API_KEY!,
-});
-
-const evaluation = await client.evaluations.create({
-  name: 'Chatbot Quality Gate',
-  description: 'CI gate for production chatbot',
-  type: 'unit_test',
-  executorType: 'webhook',
-  executorConfig: {
-    url: process.env.WEBHOOK_URL!,
-    secret: process.env.WEBHOOK_SECRET,
-  },
+await openAIChatEval({
+  name: 'chat-regression',
+  cases: [
+    { input: 'Hello', expectedOutput: 'greeting' },
+    { input: '2 + 2 = ?', expectedOutput: '4' }
+  ]
 });
 ```
 
-## Step 3: Add Test Cases
+You'll see: `PASS 2/2 (score: 100)`. No account required. Just a score.
 
-```typescript
-const testCases = [
-  { name: 'Greeting', input: 'Hello!', expectedOutput: 'greeting' },
-  { name: 'Product', input: 'What do you sell?', expectedOutput: 'product info' },
-];
+## Step 2: Connect to CI
 
-for (const tc of testCases) {
-  await client.evaluations.createTestCase(evaluation.id, tc);
-}
-```
-
-## Step 4: Run the Evaluation
-
-```typescript
-const run = await client.evaluations.createRun(evaluation.id, {});
-
-// Poll for completion
-while (run.status === 'pending' || run.status === 'running') {
-  await new Promise((r) => setTimeout(r, 3000));
-  const updated = await client.evaluations.getRun(evaluation.id, run.id);
-  Object.assign(run, updated);
-}
-```
-
-## Step 5: Check the Score (Gate)
-
-Use the `evalai` CLI to gate on quality score:
+Create a config file:
 
 ```bash
-npx evalai check --evaluationId <id> --minScore 85 --minN 5
+npx evalai init
 ```
 
-Or fetch the score programmatically:
+Create an evaluation in the [dashboard](https://v0-ai-evaluation-platform-nu.vercel.app), then paste its ID into `evalai.config.json`:
 
-```typescript
-const res = await fetch(
-  `${baseUrl}/api/quality?evaluationId=${evaluation.id}&action=latest`,
-  { headers: { Authorization: `Bearer ${apiKey}` } }
-);
-const { score, total, evidenceLevel, flags } = await res.json();
-if (score < 85) process.exit(1);
+```json
+{ "evaluationId": "42" }
 ```
 
-## Step 6: Generate a Signed Report
+## Step 3: Gate CI
 
-For audit trails and compliance:
+Add to your CI workflow:
 
-```typescript
-const reportRes = await fetch(`${baseUrl}/api/reports`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${apiKey}`,
-  },
-  body: JSON.stringify({
-    evaluationId: evaluation.id,
-    evaluationRunId: run.id,
-  }),
-});
-const { shareUrl } = await reportRes.json();
-console.log('Report:', shareUrl);
+```bash
+npx evalai check
 ```
 
-## Environment Variables
+If your score drops below the baseline, CI fails. That's your regression gate.
+
+## Remove anytime
+
+Delete `evalai.config.json`. That's it.
+
+## Environment Variables (for CI)
 
 | Variable | Description |
 |----------|-------------|
-| `EVALAI_API_KEY` | Your API key (required) |
+| `EVALAI_API_KEY` | Your API key (required for `evalai check`) |
 | `EVALAI_BASE_URL` | API base URL (default: production) |
-| `WEBHOOK_URL` | Your endpoint URL for webhook executor |
-| `WEBHOOK_SECRET` | Optional secret for `X-EvalAI-Secret` header |
-
-## CI Integration
-
-See `examples/quickstart-ci/` for a minimal project that runs in GitHub Actions. The workflow:
-
-1. Creates an evaluation with webhook executor
-2. Adds test cases
-3. Runs the evaluation
-4. Gates on `evalai check --minScore 85`
-5. Exits with code 0 (pass) or 1+ (fail)
 
 ## CLI Reference
 
 ```bash
-evalai check --evaluationId <id> [options]
-  --minScore <n>       Fail if score < n (0-100)
-  --minN <n>           Fail if total test cases < n
-  --allowWeakEvidence  Permit weak evidence level
-  --maxDrop <n>        Fail if regression > n points
-  --policy <name>      Enforce HIPAA, SOC2, GDPR, etc.
+evalai init                    # Create evalai.config.json
+evalai check [options]         # Gate on quality score (reads config or --evaluationId)
+  --evaluationId <id>          # Evaluation to gate on (or from config)
+  --minScore <n>               # Fail if score < n (0-100)
+  --minN <n>                   # Fail if total test cases < n
+  --allowWeakEvidence          # Permit weak evidence level
+  --maxDrop <n>                # Fail if regression > n points
+  --policy <name>              # Enforce HIPAA, SOC2, GDPR, etc.
 ```
+
+## CI Integration
+
+See `examples/quickstart-ci/` for a minimal project that runs in GitHub Actions.

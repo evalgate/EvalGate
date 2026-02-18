@@ -1,29 +1,23 @@
-// src/app/api/arena/leaderboard/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuthWithOrg } from '@/lib/autumn-server';
+import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
+import { internalError } from '@/lib/api/errors';
 import { arenaMatchesService } from '@/lib/services/arena-matches.service';
 
-export async function GET(request: NextRequest) {
-  const authResult = await requireAuthWithOrg(request);
-  if (!authResult.authenticated) {
-    const data = await authResult.response.json();
-    return NextResponse.json(data, { status: authResult.response.status });
-  }
-
-  const { searchParams } = new URL(request.url);
+export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
+  const { searchParams } = new URL(req.url);
   const limit = parseInt(searchParams.get('limit') || '20');
   const days = parseInt(searchParams.get('days') || '30');
 
   try {
     const leaderboard = await arenaMatchesService.getLeaderboard(
-      authResult.organizationId,
+      ctx.organizationId,
       { limit, timeRange: { days } }
     );
 
-    const stats = await arenaMatchesService.getArenaStats(authResult.organizationId);
+    const stats = await arenaMatchesService.getArenaStats(ctx.organizationId);
 
     return NextResponse.json({ leaderboard, stats });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return internalError(error instanceof Error ? error.message : undefined);
   }
-}
+});

@@ -4,6 +4,8 @@ import { traces, spans } from '@/db/schema';
 import { eq, and, asc } from 'drizzle-orm';
 import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
 import { notFound, validationError } from '@/lib/api/errors';
+import { parseBody } from '@/lib/api/parse';
+import { updateTraceBodySchema } from '@/lib/validation';
 import { SCOPES } from '@/lib/auth/scopes';
 
 export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
@@ -52,7 +54,10 @@ export const PATCH = secureRoute(async (req: NextRequest, ctx: AuthContext, para
     return notFound('Trace not found');
   }
 
-  const body = await req.json();
+  const parsed = await parseBody(req, updateTraceBodySchema);
+  if (!parsed.ok) return parsed.response;
+
+  const body = parsed.data;
   const updateData: Record<string, unknown> = {};
 
   if (body.status !== undefined) updateData.status = body.status;

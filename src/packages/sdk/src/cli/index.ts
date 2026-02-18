@@ -3,15 +3,21 @@
  * evalai — EvalAI CLI
  *
  * Commands:
+ *   evalai init   — Create evalai.config.json
  *   evalai check  — CI/CD evaluation gate (see evalai check --help)
  */
 
 import { parseArgs, runCheck } from './check';
+import { runInit } from './init';
 
 const argv = process.argv.slice(2);
 const subcommand = argv[0];
 
-if (subcommand === 'check') {
+if (subcommand === 'init') {
+  const cwd = process.cwd();
+  const ok = runInit(cwd);
+  process.exit(ok ? 0 : 1);
+} else if (subcommand === 'check') {
   const args = parseArgs(argv.slice(1));
   runCheck(args)
     .then((code) => process.exit(code))
@@ -23,20 +29,22 @@ if (subcommand === 'check') {
   console.log(`EvalAI CLI
 
 Usage:
+  evalai init              Create evalai.config.json
   evalai check [options]   CI/CD evaluation gate
 
 Options for check:
-  --evaluationId <id>  Required. Evaluation to gate on.
+  --evaluationId <id>  Evaluation to gate on (or from config)
   --apiKey <key>      API key (or EVALAI_API_KEY env)
   --minScore <n>      Fail if score < n (0-100)
   --maxDrop <n>       Fail if score dropped > n from baseline
   --minN <n>          Fail if total test cases < n
   --allowWeakEvidence Allow weak evidence level
   --policy <name>     Enforce policy (HIPAA, SOC2, GDPR, etc.)
-  --baseline <mode>   "published" or "previous"
+  --baseline <mode>   "published", "previous", or "production"
   --baseUrl <url>     API base URL
 
 Examples:
+  evalai init
   evalai check --minScore 92 --evaluationId 42 --apiKey $EVALAI_API_KEY
   evalai check --policy HIPAA --evaluationId 42 --apiKey $EVALAI_API_KEY
 `);

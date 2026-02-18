@@ -1,6 +1,6 @@
-// src/app/api/shadow-evals/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuthWithOrg } from '@/lib/autumn-server';
+import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
+import { internalError, zodValidationError } from '@/lib/api/errors';
 import { shadowEvalService } from '@/lib/services/shadow-eval.service';
 import { z } from 'zod';
 
@@ -20,43 +20,22 @@ const createShadowEvalSchema = z.object({
   }).optional(),
 });
 
-/**
- * POST /api/shadow-evals
- * Create a new shadow evaluation against production traces
- */
-export async function POST(request: NextRequest) {
+export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
-    const authResult = await requireAuthWithOrg(request);
-    if (!authResult.authenticated) {
-      const data = await authResult.response.json();
-      return NextResponse.json(data, { status: authResult.response.status });
-    }
-
-    const { userId, organizationId } = authResult;
-    const body = await request.json();
+    const body = await req.json();
     const parsed = createShadowEvalSchema.parse(body);
 
     const result = await shadowEvalService.createShadowEval(
-      organizationId,
+      ctx.organizationId,
       parsed,
-      userId
+      ctx.userId
     );
 
     return NextResponse.json(result, { status: 201 });
-
-  } catch (error: any) {
-    console.error('Shadow eval creation error:', error);
-    
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
-        { status: 400 }
-      );
+      return zodValidationError(error);
     }
-
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+    return internalError(error instanceof Error ? error.message : undefined);
   }
-}
+});

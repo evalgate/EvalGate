@@ -53,6 +53,13 @@ export function toAssertionsEnvelope(legacy: Record<string, boolean>): Assertion
       });
     }
   }
+  if ('harmful' in legacy) {
+    assertions.push({
+      key: 'hallucination',
+      category: 'quality',
+      passed: !legacy.harmful,
+    });
+  }
   return { version: 'v1', assertions };
 }
 
@@ -93,6 +100,33 @@ export function parseAssertionsJson(
   }
 
   return null;
+}
+
+/** Known assertion keys — reject unknown keys at write boundary */
+export const KNOWN_ASSERTION_KEYS = ['pii', 'toxicity', 'json_schema', 'functional', 'safety', 'judge', 'hallucination', 'instruction_following', 'readability'] as const;
+
+/** Validate envelope at write boundary: filter to known keys only; unknown go to meta */
+export function validateAssertionsEnvelope(
+  envelope: AssertionsEnvelope
+): AssertionsEnvelope {
+  const known = new Set(KNOWN_ASSERTION_KEYS);
+  const assertions = envelope.assertions.filter((a) => known.has(a.key as (typeof KNOWN_ASSERTION_KEYS)[number]));
+  return { version: 'v1', assertions };
+}
+
+/**
+ * Normalize for write: produce canonical envelope or null.
+ * Rejects malformed; converts legacy to canonical; drops unknown keys.
+ * Use at every write boundary so we never store half-legacy or invalid shapes.
+ */
+export function normalizeAssertionsForWrite(val: unknown): AssertionsEnvelope | null {
+  if (val == null) return null;
+  const parsed = parseAssertionsJson(val);
+  if (!parsed) return null;
+  if ('version' in parsed && parsed.version === 'v1') {
+    return validateAssertionsEnvelope(parsed);
+  }
+  return validateAssertionsEnvelope(toAssertionsEnvelope(parsed as LegacyAssertions));
 }
 
 /** Compute safety pass rate from parsed value (envelope or legacy) */

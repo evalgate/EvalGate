@@ -28,6 +28,9 @@ yarn-error.log*
 # local sqlite (dev)
 local.db
 
+# test sqlite (vitest)
+test.db
+
 # npm auth (contains tokens)
 **/.npmrc
 

@@ -132,8 +132,40 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
     if (!qualityScore || !evaluation) return null
     
     const latestRun = runs[0]
-    
-    // Base export data
+    const runId = latestRun?.id ?? latestRun?.runId
+
+    // Prefer server-side export when we have a run (includes IAA for human_eval)
+    if (runId) {
+      try {
+        const token = localStorage.getItem('bearer_token')
+        const res = await fetch(`/api/evaluations/${id}/runs/${runId}/export`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const exportData = await res.json()
+          if (options.publishAsDemo) {
+            const publishRes = await fetch(`/api/evaluations/${id}/publish`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ exportData, customShareId: options.customShareId }),
+            })
+            if (!publishRes.ok) {
+              const err = await publishRes.json()
+              throw new Error(err.error || 'Failed to publish')
+            }
+            const result = await publishRes.json()
+            downloadExportFile(exportData, evaluation)
+            return result.shareId
+          }
+          downloadExportFile(exportData, evaluation)
+          return null
+        }
+      } catch (e) {
+        console.warn('Server export failed, falling back to client:', e)
+      }
+    }
+
+    // Fallback: client-side export
     const baseData = {
       evaluation: {
         id: evaluation.id,

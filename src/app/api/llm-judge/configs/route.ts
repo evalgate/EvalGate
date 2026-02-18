@@ -2,137 +2,96 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { llmJudgeConfigs } from '@/db/schema';
 import { eq, like, and, desc } from 'drizzle-orm';
-import { requireAuthWithOrg } from '@/lib/autumn-server';
-import { withRateLimit } from '@/lib/api-rate-limit';
+import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
+import { validationError, notFound, internalError } from '@/lib/api/errors';
 import { logger } from '@/lib/logger';
 import { sanitizeSearchInput } from '@/lib/validation';
 
-export async function GET(request: NextRequest) {
-  return withRateLimit(request, async (req) => {
-    try {
-      const authResult = await requireAuthWithOrg(request);
-      if (!authResult.authenticated) {
-        const data = await authResult.response.json();
-        return NextResponse.json(data, { status: authResult.response.status });
-      }
-
-      const searchParams = request.nextUrl.searchParams;
-      const id = searchParams.get('id');
-
-      // Single record fetch — scoped by org
-      if (id) {
-        if (isNaN(parseInt(id))) {
-          return NextResponse.json({ 
-            error: "Valid ID is required",
-            code: "INVALID_ID" 
-          }, { status: 400 });
-        }
-
-        const config = await db.select()
-          .from(llmJudgeConfigs)
-          .where(and(eq(llmJudgeConfigs.id, parseInt(id)), eq(llmJudgeConfigs.organizationId, authResult.organizationId)))
-          .limit(1);
-
-        if (config.length === 0) {
-          return NextResponse.json({ 
-            error: 'LLM judge config not found',
-            code: 'CONFIG_NOT_FOUND' 
-          }, { status: 404 });
-        }
-
-        return NextResponse.json(config[0], { status: 200 });
-      }
-
-      // List with pagination and filtering
-      const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
-      const offset = parseInt(searchParams.get('offset') || '0');
-      const model = searchParams.get('model');
-      const search = searchParams.get('search');
-
-      // Build filter conditions — always scope by auth org
-      const conditions = [eq(llmJudgeConfigs.organizationId, authResult.organizationId)];
-
-      if (model) {
-        conditions.push(eq(llmJudgeConfigs.model, model));
-      }
-
-      if (search) {
-        const safeSearch = sanitizeSearchInput(search);
-        if (safeSearch) {
-          conditions.push(like(llmJudgeConfigs.name, `%${safeSearch}%`));
-        }
-      }
-
-      // Build and execute the query with all conditions
-      const results = await db.select()
-        .from(llmJudgeConfigs)
-        .where(conditions.length > 0 ? and(...conditions) : undefined)
-        .orderBy(desc(llmJudgeConfigs.updatedAt))
-        .limit(limit)
-        .offset(offset);
-
-      return NextResponse.json(results, { status: 200 });
-    } catch (error) {
-      logger.error({ error, route: '/api/llm-judge/configs', method: 'GET' }, 'Error fetching LLM judge configs');
-      return NextResponse.json({ 
-        error: 'Internal server error' 
-      }, { status: 500 });
-    }
-  }, { customTier: 'free' });
-}
-
-export async function POST(request: NextRequest) {
+export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
-    const authResult = await requireAuthWithOrg(request);
-    if (!authResult.authenticated) {
-      const data = await authResult.response.json();
-      return NextResponse.json(data, { status: authResult.response.status });
+    const searchParams = req.nextUrl.searchParams;
+    const id = searchParams.get('id');
+
+    if (id) {
+      if (isNaN(parseInt(id))) {
+        return validationError('Valid ID is required');
+      }
+
+      const config = await db.select()
+        .from(llmJudgeConfigs)
+        .where(and(eq(llmJudgeConfigs.id, parseInt(id)), eq(llmJudgeConfigs.organizationId, ctx.organizationId)))
+        .limit(1);
+
+      if (config.length === 0) {
+        return notFound('LLM judge config not found');
+      }
+
+      return NextResponse.json(config[0], { status: 200 });
     }
 
-    const body = await request.json();
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
+    const offset = parseInt(searchParams.get('offset') || '0');
+    const model = searchParams.get('model');
+    const search = searchParams.get('search');
 
-    // Security check: reject if userId provided in body
+    const conditions = [eq(llmJudgeConfigs.organizationId, ctx.organizationId)];
+
+    if (model) {
+      conditions.push(eq(llmJudgeConfigs.model, model));
+    }
+
+    if (search) {
+      const safeSearch = sanitizeSearchInput(search);
+      if (safeSearch) {
+        conditions.push(like(llmJudgeConfigs.name, `%${safeSearch}%`));
+      }
+    }
+
+    const results = await db.select()
+      .from(llmJudgeConfigs)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(llmJudgeConfigs.updatedAt))
+      .limit(limit)
+      .offset(offset);
+
+    return NextResponse.json(results, { status: 200 });
+  } catch (error: unknown) {
+    logger.error({ error, route: '/api/llm-judge/configs', method: 'GET' }, 'Error fetching LLM judge configs');
+    return internalError();
+  }
+}, { rateLimit: 'free' });
+
+export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
+  try {
+    const body = await req.json();
+
     if ('userId' in body || 'user_id' in body || 'createdBy' in body) {
-      return NextResponse.json({ 
-        error: "User ID cannot be provided in request body",
-        code: "USER_ID_NOT_ALLOWED" 
-      }, { status: 400 });
+      return validationError('User ID cannot be provided in request body');
     }
 
     const { name, model, promptTemplate, criteria, settings } = body;
 
-    // Validate required fields
     if (!name || typeof name !== 'string' || name.trim() === '') {
-      return NextResponse.json({ 
-        error: "Name is required and must be a non-empty string",
-        code: "MISSING_NAME" 
-      }, { status: 400 });
+      return validationError('Name is required and must be a non-empty string');
     }
 
     if (!model || typeof model !== 'string' || model.trim() === '') {
-      return NextResponse.json({ 
-        error: "Model is required and must be a non-empty string",
-        code: "MISSING_MODEL" 
-      }, { status: 400 });
+      return validationError('Model is required and must be a non-empty string');
     }
 
     if (!promptTemplate || typeof promptTemplate !== 'string' || promptTemplate.trim() === '') {
-      return NextResponse.json({ 
-        error: "Prompt template is required and must be a non-empty string",
-        code: "MISSING_PROMPT_TEMPLATE" 
-      }, { status: 400 });
+      return validationError('Prompt template is required and must be a non-empty string');
     }
 
-    // Prepare insert data — org from auth, not body
     const now = new Date().toISOString();
     const insertData = {
       name: name.trim(),
-      organizationId: authResult.organizationId,
+      organizationId: ctx.organizationId,
       model: model.trim(),
       promptTemplate: promptTemplate.trim(),
       criteria: criteria ? JSON.stringify(criteria) : null,
       settings: settings ? JSON.stringify(settings) : null,
-      createdBy: authResult.userId,
+      createdBy: ctx.userId,
       createdAt: now,
       updatedAt: now,
     };
@@ -142,88 +101,59 @@ export async function POST(request: NextRequest) {
       .returning();
 
     return NextResponse.json(newConfig[0], { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error({ error, route: '/api/llm-judge/configs', method: 'POST' }, 'Error creating LLM judge config');
-    return NextResponse.json({ 
-      error: 'Internal server error' 
-    }, { status: 500 });
+    return internalError();
   }
-}
+});
 
-export async function PUT(request: NextRequest) {
+export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
-    const authResult = await requireAuthWithOrg(request);
-    if (!authResult.authenticated) {
-      const data = await authResult.response.json();
-      return NextResponse.json(data, { status: authResult.response.status });
-    }
-
-    const searchParams = request.nextUrl.searchParams;
+    const searchParams = req.nextUrl.searchParams;
     const id = searchParams.get('id');
 
     if (!id || isNaN(parseInt(id))) {
-      return NextResponse.json({ 
-        error: "Valid ID is required",
-        code: "INVALID_ID" 
-      }, { status: 400 });
+      return validationError('Valid ID is required');
     }
 
-    const body = await request.json();
+    const body = await req.json();
 
-    // Security check: reject if userId provided in body
     if ('userId' in body || 'user_id' in body || 'createdBy' in body) {
-      return NextResponse.json({ 
-        error: "User ID cannot be provided in request body",
-        code: "USER_ID_NOT_ALLOWED" 
-      }, { status: 400 });
+      return validationError('User ID cannot be provided in request body');
     }
 
-    // Check if config exists — scoped by org
     const existing = await db.select()
       .from(llmJudgeConfigs)
-      .where(and(eq(llmJudgeConfigs.id, parseInt(id)), eq(llmJudgeConfigs.organizationId, authResult.organizationId)))
+      .where(and(eq(llmJudgeConfigs.id, parseInt(id)), eq(llmJudgeConfigs.organizationId, ctx.organizationId)))
       .limit(1);
 
     if (existing.length === 0) {
-      return NextResponse.json({ 
-        error: 'LLM judge config not found',
-        code: 'CONFIG_NOT_FOUND' 
-      }, { status: 404 });
+      return notFound('LLM judge config not found');
     }
 
     const { name, model, promptTemplate, criteria } = body;
 
-    // Build update object with only provided fields
-    const updates: Record<string, any> = {
+    const updates: Record<string, unknown> = {
       updatedAt: new Date().toISOString(),
     };
 
     if (name !== undefined) {
       if (typeof name !== 'string' || name.trim() === '') {
-        return NextResponse.json({ 
-          error: "Name must be a non-empty string",
-          code: "INVALID_NAME" 
-        }, { status: 400 });
+        return validationError('Name must be a non-empty string');
       }
       updates.name = name.trim();
     }
 
     if (model !== undefined) {
       if (typeof model !== 'string' || model.trim() === '') {
-        return NextResponse.json({ 
-          error: "Model must be a non-empty string",
-          code: "INVALID_MODEL" 
-        }, { status: 400 });
+        return validationError('Model must be a non-empty string');
       }
       updates.model = model.trim();
     }
 
     if (promptTemplate !== undefined) {
       if (typeof promptTemplate !== 'string' || promptTemplate.trim() === '') {
-        return NextResponse.json({ 
-          error: "Prompt template must be a non-empty string",
-          code: "INVALID_PROMPT_TEMPLATE" 
-        }, { status: 400 });
+        return validationError('Prompt template must be a non-empty string');
       }
       updates.promptTemplate = promptTemplate.trim();
     }
@@ -234,75 +164,52 @@ export async function PUT(request: NextRequest) {
 
     const updated = await db.update(llmJudgeConfigs)
       .set(updates)
-      .where(and(eq(llmJudgeConfigs.id, parseInt(id)), eq(llmJudgeConfigs.organizationId, authResult.organizationId)))
+      .where(and(eq(llmJudgeConfigs.id, parseInt(id)), eq(llmJudgeConfigs.organizationId, ctx.organizationId)))
       .returning();
 
     if (updated.length === 0) {
-      return NextResponse.json({ 
-        error: 'LLM judge config not found',
-        code: 'CONFIG_NOT_FOUND' 
-      }, { status: 404 });
+      return notFound('LLM judge config not found');
     }
 
     return NextResponse.json(updated[0], { status: 200 });
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error({ error, route: '/api/llm-judge/configs', method: 'PUT' }, 'Error updating LLM judge config');
-    return NextResponse.json({ 
-      error: 'Internal server error' 
-    }, { status: 500 });
+    return internalError();
   }
-}
+});
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
-    const authResult = await requireAuthWithOrg(request);
-    if (!authResult.authenticated) {
-      const data = await authResult.response.json();
-      return NextResponse.json(data, { status: authResult.response.status });
-    }
-
-    const searchParams = request.nextUrl.searchParams;
+    const searchParams = req.nextUrl.searchParams;
     const id = searchParams.get('id');
 
     if (!id || isNaN(parseInt(id))) {
-      return NextResponse.json({ 
-        error: "Valid ID is required",
-        code: "INVALID_ID" 
-      }, { status: 400 });
+      return validationError('Valid ID is required');
     }
 
-    // Check if config exists — scoped by org
     const existing = await db.select()
       .from(llmJudgeConfigs)
-      .where(and(eq(llmJudgeConfigs.id, parseInt(id)), eq(llmJudgeConfigs.organizationId, authResult.organizationId)))
+      .where(and(eq(llmJudgeConfigs.id, parseInt(id)), eq(llmJudgeConfigs.organizationId, ctx.organizationId)))
       .limit(1);
 
     if (existing.length === 0) {
-      return NextResponse.json({ 
-        error: 'LLM judge config not found',
-        code: 'CONFIG_NOT_FOUND' 
-      }, { status: 404 });
+      return notFound('LLM judge config not found');
     }
 
     const deleted = await db.delete(llmJudgeConfigs)
-      .where(and(eq(llmJudgeConfigs.id, parseInt(id)), eq(llmJudgeConfigs.organizationId, authResult.organizationId)))
+      .where(and(eq(llmJudgeConfigs.id, parseInt(id)), eq(llmJudgeConfigs.organizationId, ctx.organizationId)))
       .returning();
 
     if (deleted.length === 0) {
-      return NextResponse.json({ 
-        error: 'LLM judge config not found',
-        code: 'CONFIG_NOT_FOUND' 
-      }, { status: 404 });
+      return notFound('LLM judge config not found');
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'LLM judge config deleted successfully',
-      deleted: deleted[0] 
+      deleted: deleted[0],
     }, { status: 200 });
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error({ error, route: '/api/llm-judge/configs', method: 'DELETE' }, 'Error deleting LLM judge config');
-    return NextResponse.json({ 
-      error: 'Internal server error' 
-    }, { status: 500 });
+    return internalError();
   }
-}
+});

@@ -26,7 +26,8 @@ describe('/api/demo/custom-eval', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.code).toBe('MISSING_OUTPUT');
+    expect(data.error?.code).toBe('VALIDATION_ERROR');
+    expect(data.error?.message).toContain('output');
   });
 
   it('should return 400 if assertions array is empty', async () => {
@@ -35,7 +36,8 @@ describe('/api/demo/custom-eval', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.code).toBe('MISSING_ASSERTIONS');
+    expect(data.error?.code).toBe('VALIDATION_ERROR');
+    expect(data.error?.message).toContain('assertions');
   });
 
   it('should return 400 if assertions is not provided', async () => {
@@ -44,7 +46,8 @@ describe('/api/demo/custom-eval', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.code).toBe('MISSING_ASSERTIONS');
+    expect(data.error?.code).toBe('VALIDATION_ERROR');
+    expect(data.error?.message).toContain('assertions');
   });
 
   it('should pass no-pii assertion on clean text', async () => {

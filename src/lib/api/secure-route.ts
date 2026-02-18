@@ -24,12 +24,15 @@ import {
   zodValidationError,
   type ApiErrorCode,
 } from '@/lib/api/errors';
+import { extractOrGenerateRequestId, runWithRequestIdAsync, setRequestContext, getRequestContext } from '@/lib/api/request-id';
 import { logger } from '@/lib/logger';
 import { ZodError } from 'zod';
 
+const REQUEST_ID_HEADER = 'x-request-id';
+
 // ── Types ──
 
-export type RateLimitTier = 'anonymous' | 'free' | 'pro' | 'enterprise';
+export type RateLimitTier = 'anonymous' | 'free' | 'pro' | 'enterprise' | 'mcp';
 
 export type Role = 'viewer' | 'member' | 'admin' | 'owner';
 export type AuthType = 'session' | 'apiKey' | 'anonymous';
@@ -40,6 +43,8 @@ export interface AuthContext {
   role: Role;
   scopes: string[];
   authType: AuthType;
+  /** Present when authenticated via API key; used for usage tracking. */
+  apiKeyId?: number;
 }
 
 export interface AuthOnlyContext {
@@ -134,17 +139,26 @@ export function secureRoute(
   } = options;
 
   return async (req: NextRequest, props: { params: Promise<Record<string, string>> }) => {
+    const requestId = extractOrGenerateRequestId(req);
     const resolvedParams = await props.params;
+
+    const addRequestIdHeader = (res: NextResponse): NextResponse => {
+      res.headers.set(REQUEST_ID_HEADER, requestId);
+      return res;
+    };
 
     // ── Anonymous path: check first, before auth; always apply rate limit ──
     if (allowAnonymous) {
       const hasAuth = !!req.headers.get('authorization');
       if (!hasAuth) {
-        return withRateLimit(
-          req,
-          async () => handler(req, { authType: 'anonymous' }, resolvedParams),
-          { customTier: tier ?? 'anonymous' },
-        );
+        return runWithRequestIdAsync(requestId, async () => {
+          const res = await withRateLimit(
+            req,
+            async () => handler(req, { authType: 'anonymous' }, resolvedParams),
+            { customTier: tier ?? 'anonymous' },
+          );
+          return addRequestIdHeader(res);
+        });
       }
       // Auth header exists — fall through to authed path
     }
@@ -173,7 +187,9 @@ export function secureRoute(
               role: authResult.role,
               scopes: authResult.scopes,
               authType: authResult.authType,
+              apiKeyId: authResult.apiKeyId,
             };
+            setRequestContext({ userId: ctx.userId, organizationId: ctx.organizationId });
 
             // ── Role gate ──
             if (options.minRole && !hasMinRole(ctx.role, options.minRole)) {
@@ -195,6 +211,7 @@ export function secureRoute(
               scopes: authResult.scopes,
               authType: authResult.authType,
             };
+            setRequestContext({ userId: ctx.userId });
 
             // ── Scope gate (no role check for user-only routes) ──
             if (options.requiredScopes?.length && !hasScopes(ctx.scopes, options.requiredScopes)) {
@@ -217,10 +234,25 @@ export function secureRoute(
       }
     };
 
-    // ── Rate limiting wrapper ──
-    if (tier) {
-      return withRateLimit(req, coreHandler, { customTier: tier });
-    }
-    return coreHandler(req);
+    // ── Rate limiting wrapper (run in request-id context, add header to response, log duration) ──
+    const runAndAddHeader = async (): Promise<NextResponse> => {
+      const start = performance.now();
+      const res = tier
+        ? await withRateLimit(req, coreHandler, { customTier: tier })
+        : await coreHandler(req);
+      const durationMs = Math.round(performance.now() - start);
+      const reqCtx = getRequestContext();
+      logger.info('Request completed', {
+        requestId,
+        route: req.nextUrl.pathname,
+        method: req.method,
+        userId: reqCtx?.userId ?? null,
+        organizationId: reqCtx?.organizationId ?? null,
+        durationMs,
+        statusCode: res.status,
+      });
+      return addRequestIdHeader(res);
+    };
+    return runWithRequestIdAsync(requestId, runAndAddHeader);
   };
 }

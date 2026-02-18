@@ -5,11 +5,13 @@
  * and provides built-in executor implementations.
  */
 
+import crypto from 'crypto';
 import { db } from '@/db';
+import { sha256Hex } from '@/lib/crypto/hash';
+import { sha256Input } from '@/lib/utils/input-hash';
 import { spans, traces, costRecords } from '@/db/schema';
 import { eq, desc, and, gte, sql } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
-import { sha256Input } from '@/lib/utils/input-hash';
 import { providerKeysService } from './provider-keys.service';
 
 // ── Interface ──
@@ -20,7 +22,7 @@ export interface EvalExecutorResult {
   tokens?: { input: number; output: number };
   model?: string;
   provider?: string;
-  meta?: { matched?: boolean; reason?: string };
+  meta?: { matched?: boolean; reason?: string; hasProvenance?: boolean };
 }
 
 export interface EvalExecutor {
@@ -133,14 +135,36 @@ export class WebhookExecutor implements EvalExecutor {
 
   async run(input: string, ctx?: { traceId?: string; metadata?: Record<string, unknown> }): Promise<EvalExecutorResult> {
     const t0 = Date.now();
+    const timestamp = new Date().toISOString();
+    const metadata = ctx?.metadata ?? {};
+    const evaluationRunId = metadata.evaluationRunId as number | undefined;
+    const testCaseId = metadata.testCaseId as number | undefined;
+    const inputHash = sha256Input(input);
+    const idempotencyKey =
+      evaluationRunId != null && testCaseId != null
+        ? sha256Hex(`${evaluationRunId}.${testCaseId}.${inputHash}`)
+        : crypto.randomUUID();
+    const rawBody = JSON.stringify({ input, ...ctx });
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'X-EvalAI-Timestamp': timestamp,
+      'X-EvalAI-Idempotency-Key': idempotencyKey,
+    };
+
+    if (this.secret) {
+      const payloadToSign = `${timestamp}.${rawBody}`;
+      const signature = crypto
+        .createHmac('sha256', this.secret)
+        .update(payloadToSign)
+        .digest('hex');
+      headers['X-EvalAI-Signature'] = `sha256=${signature}`;
+    }
 
     const response = await fetch(this.url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(this.secret ? { 'X-EvalAI-Secret': this.secret } : {}),
-      },
-      body: JSON.stringify({ input, ...ctx }),
+      headers,
+      body: rawBody,
     });
 
     if (!response.ok) {
@@ -184,7 +208,8 @@ export class TraceLinkedExecutor implements EvalExecutor {
       eq(spans.inputHash, inputHash),
     ];
 
-    // Prefer strict run binding; use both when both exist (prevents old spans from matching)
+    // Apply BOTH when available (defense-in-depth: createdAt floor prevents old spans
+    // from matching even if a client stamps the wrong runId maliciously)
     if (this.evaluationRunId) {
       conditions.push(eq(spans.evaluationRunId, this.evaluationRunId));
     }
@@ -227,12 +252,13 @@ export class TraceLinkedExecutor implements EvalExecutor {
       .limit(1);
 
     if (matched) {
+      const hasProvenance = !!matched.model; // model comes from cost_records join
       return {
         output: matched.output ?? '',
         latencyMs: matched.durationMs ?? (Date.now() - t0),
         model: matched.model ?? undefined,
         provider: matched.provider ?? 'trace-linked',
-        meta: { matched: true },
+        meta: { matched: true, hasProvenance },
       };
     }
 

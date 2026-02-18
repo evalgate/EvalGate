@@ -1,30 +1,17 @@
-// src/app/api/stream/[evalId]/route.ts
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
 import { sseServer, createSSEMessage, SSE_MESSAGE_TYPES } from '@/lib/streaming/sse-server';
 
-/**
- * Per-evaluation SSE endpoint.
- * Client connects via EventSource(`/api/stream/${evalId}`) and receives
- * real-time progress events for that evaluation.
- */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ evalId: string }> }
-) {
-  const { evalId } = await params;
+export const GET = secureRoute(async (request: NextRequest, ctx: AuthContext, params) => {
+  const { evalId } = params;
   const channel = `eval:${evalId}`;
   const clientId = `${evalId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-  // Parse org from query (set by the client-side hook)
-  const orgId = parseInt(request.nextUrl.searchParams.get('orgId') || '0');
-
   const stream = new ReadableStream({
     start(controller) {
-      // Register client with the SSE server
-      const response = new Response(); // placeholder for client lookup
-      sseServer.addClient(clientId, response, orgId, undefined, [channel], controller);
+      const response = new Response();
+      sseServer.addClient(clientId, response, ctx.organizationId, ctx.userId, [channel], controller);
 
-      // Send connection established event
       const msg = createSSEMessage(SSE_MESSAGE_TYPES.CONNECTION_ESTABLISHED, {
         clientId,
         evaluationId: evalId,
@@ -37,11 +24,11 @@ export async function GET(
     },
   });
 
-  return new Response(stream, {
+  return new NextResponse(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',
     },
   });
-}
+});

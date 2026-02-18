@@ -2,16 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { organizations, organizationMembers } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { getCurrentUser } from '@/lib/auth';
+import { secureRoute, type AuthOnlyContext } from '@/lib/api/secure-route';
+import { notFound, internalError } from '@/lib/api/errors';
 
-export async function GET(request: NextRequest) {
+export const GET = secureRoute(async (req: NextRequest, ctx: AuthOnlyContext) => {
   try {
-    const user = await getCurrentUser(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get user's first organization membership
     const memberships = await db
       .select({
         role: organizationMembers.role,
@@ -20,11 +15,11 @@ export async function GET(request: NextRequest) {
       })
       .from(organizationMembers)
       .innerJoin(organizations, eq(organizationMembers.organizationId, organizations.id))
-      .where(eq(organizationMembers.userId, user.id))
+      .where(eq(organizationMembers.userId, ctx.userId))
       .limit(1);
 
     if (!memberships || memberships.length === 0) {
-      return NextResponse.json({ error: 'No organization found' }, { status: 404 });
+      return notFound('No organization found');
     }
 
     return NextResponse.json({
@@ -34,10 +29,7 @@ export async function GET(request: NextRequest) {
         role: memberships[0].role,
       },
     });
-  } catch (error) {
-    console.error('GET /api/organizations/current error:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error' 
-    }, { status: 500 });
+  } catch (error: unknown) {
+    return internalError();
   }
-}
+}, { requireOrg: false });

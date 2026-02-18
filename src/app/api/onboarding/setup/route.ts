@@ -3,12 +3,13 @@ import { db } from '@/db';
 import { organizations, organizationMembers } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { getCurrentUser } from '@/lib/auth';
+import { unauthorized, internalError } from '@/lib/api/errors';
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      return unauthorized('Authentication required');
     }
 
     // Check if user already has an organization
@@ -53,10 +54,8 @@ export async function POST(request: NextRequest) {
       organizationId: organizationId,
       organization: newOrganization[0]
     }, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Onboarding setup error:', error);
-    return NextResponse.json({ 
-      error: 'Failed to setup organization' 
-    }, { status: 500 });
+    return internalError('Failed to setup organization');
   }
 }

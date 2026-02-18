@@ -47,6 +47,8 @@ export const EXIT = {
   WEAK_EVIDENCE: 7,
 } as const;
 
+import { loadConfig, mergeConfigWithArgs } from './config';
+
 export interface CheckArgs {
   baseUrl: string;
   apiKey: string;
@@ -75,15 +77,15 @@ export function parseArgs(argv: string[]): CheckArgs {
     }
   }
 
-  const baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || 'http://localhost:3000';
+  let baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || 'http://localhost:3000';
   const apiKey = args.apiKey || process.env.EVALAI_API_KEY || '';
-  const minScore = parseInt(args.minScore || '0');
+  let minScore = parseInt(args.minScore || '0');
   const maxDrop = args.maxDrop ? parseInt(args.maxDrop) : undefined;
-  const minN = args.minN ? parseInt(args.minN) : undefined;
-  const allowWeakEvidence = args.allowWeakEvidence === 'true' || args.allowWeakEvidence === '1';
-  const evaluationId = args.evaluationId || '';
+  let minN = args.minN ? parseInt(args.minN) : undefined;
+  let allowWeakEvidence = args.allowWeakEvidence === 'true' || args.allowWeakEvidence === '1';
+  let evaluationId = args.evaluationId || '';
   const policy = args.policy || undefined;
-  const baseline = (
+  let baseline = (
     args.baseline === 'previous'
       ? 'previous'
       : args.baseline === 'production'
@@ -91,13 +93,32 @@ export function parseArgs(argv: string[]): CheckArgs {
         : 'published'
   ) as CheckArgs['baseline'];
 
+  // Load config when evaluationId not provided. Priority: CLI flags > config > defaults
+  if (!evaluationId) {
+    const config = loadConfig(process.cwd());
+    const merged = mergeConfigWithArgs(config, {
+      evaluationId: args.evaluationId,
+      baseUrl: args.baseUrl || process.env.EVALAI_BASE_URL,
+      minScore: args.minScore,
+      minN: args.minN,
+      allowWeakEvidence: args.allowWeakEvidence,
+      baseline: args.baseline,
+    });
+    if (merged.evaluationId) evaluationId = merged.evaluationId;
+    if (merged.baseUrl) baseUrl = merged.baseUrl;
+    if (merged.minScore != null && !args.minScore) minScore = merged.minScore;
+    if (merged.minN != null && !args.minN) minN = merged.minN;
+    if (merged.allowWeakEvidence != null && !args.allowWeakEvidence) allowWeakEvidence = merged.allowWeakEvidence;
+    if (merged.baseline && !args.baseline) baseline = merged.baseline;
+  }
+
   if (!apiKey) {
     console.error('Error: --apiKey or EVALAI_API_KEY is required');
     process.exit(EXIT.BAD_ARGS);
   }
 
   if (!evaluationId) {
-    console.error('Error: --evaluationId is required');
+    console.error('Run npx evalai init and paste your evaluationId, or pass --evaluationId.');
     process.exit(EXIT.BAD_ARGS);
   }
 
@@ -142,6 +163,8 @@ export async function runCheck(args: CheckArgs): Promise<number> {
     baselineMissing?: boolean | null;
     breakdown?: { passRate?: number; safety?: number; judge?: number };
     flags?: string[];
+    evaluationRunId?: number;
+    evaluationId?: number;
   };
   const score: number = data?.score ?? 0;
   const total: number | null = data?.total ?? null;
@@ -150,13 +173,49 @@ export async function runCheck(args: CheckArgs): Promise<number> {
   const regressionDelta: number | null = data?.regressionDelta ?? null;
   const baselineMissing: boolean = data?.baselineMissing === true;
   const breakdown = data?.breakdown ?? {};
+  const evaluationRunId = data?.evaluationRunId;
+  const evalId = args.evaluationId;
+
+  // ── 2. Fetch run details for failed cases + dashboard link (when evaluationRunId present) ──
+  type FailedCase = { name?: string; input?: string; expectedOutput?: string; output?: string };
+  let failedCases: FailedCase[] = [];
+  let dashboardUrl: string | null = null;
+
+  if (evaluationRunId != null) {
+    dashboardUrl = `${args.baseUrl.replace(/\/$/, '')}/evaluations/${evalId}/runs/${evaluationRunId}`;
+    try {
+      const runUrl = `${args.baseUrl}/api/evaluations/${evalId}/runs/${evaluationRunId}`;
+      const runRes = await fetch(runUrl, { headers });
+      if (runRes.ok) {
+        const runData = (await runRes.json()) as {
+          results?: Array<{
+            status?: string;
+            output?: string;
+            test_cases?: { name?: string; input?: string; expectedOutput?: string };
+          }>;
+        };
+        const results = runData?.results ?? [];
+        failedCases = results
+          .filter((r) => r.status === 'failed')
+          .map((r) => ({
+            name: r.test_cases?.name,
+            input: r.test_cases?.input,
+            expectedOutput: r.test_cases?.expectedOutput,
+            output: r.output,
+          }));
+      }
+    } catch {
+      // Non-fatal: we still have score and dashboard URL
+    }
+  }
 
   // ── Gate: baseline missing (when baseline comparison requested) ──
   if (baselineMissing && (args.baseline !== 'published' || args.maxDrop !== undefined)) {
-    console.error(
-      `\n✗ FAILED: baseline (${args.baseline}) not found. ` +
-      `Ensure a baseline run exists (e.g. published run, previous run, or prod-tagged run).`
-    );
+    const msg =
+      args.baseline === 'production'
+        ? `\n✗ FAILED: No prod runs exist for this evaluation. Tag runs with environment=prod before using --baseline production.`
+        : `\n✗ FAILED: baseline (${args.baseline}) not found. Ensure a baseline run exists (e.g. published run, previous run, or prod-tagged run).`;
+    console.error(msg);
     return EXIT.API_ERROR;
   }
 
@@ -172,46 +231,18 @@ export async function runCheck(args: CheckArgs): Promise<number> {
     return EXIT.WEAK_EVIDENCE;
   }
 
-  // ── Print summary ──
-  console.log('┌─────────────────────────────────────────┐');
-  console.log(`│  EvalAI Quality Score: ${String(score).padStart(3)}/100            │`);
-  console.log('├─────────────────────────────────────────┤');
-  if (baselineScore !== null) {
-    const delta = regressionDelta ?? 0;
-    const arrow = delta >= 0 ? '▲' : '▼';
-    console.log(`│  Baseline: ${baselineScore}  ${arrow} ${Math.abs(delta)} pts          │`);
-  }
-  if (breakdown) {
-    const pct = (v: number | undefined) => `${Math.round((v ?? 0) * 100)}%`;
-    console.log(`│  Pass: ${pct(breakdown.passRate)}  Safety: ${pct(breakdown.safety)}  Judge: ${pct(breakdown.judge)} │`);
-  }
-  if (data?.flags && data.flags.length > 0) {
-    console.log(`│  Flags: ${data.flags.join(', ').padEnd(30)} │`);
-  }
-  console.log('└─────────────────────────────────────────┘');
+  // ── Compute gate result (before printing, for deterministic output order) ──
+  let exitCode = EXIT.PASS;
+  let failReason: string | null = null;
 
-  // ── 2. Gate: minimum score ──
   if (args.minScore > 0 && score < args.minScore) {
-    console.error(`\n✗ FAILED: score=${score} < minScore=${args.minScore}`);
-    return EXIT.SCORE_BELOW;
-  }
-
-  // ── 3. Gate: maximum drop from baseline ──
-  if (args.maxDrop !== undefined && regressionDelta !== null && regressionDelta < -(args.maxDrop)) {
-    console.error(
-      `\n✗ FAILED: score dropped ${Math.abs(regressionDelta)} pts from baseline ` +
-      `(max allowed: ${args.maxDrop})`
-    );
-    return EXIT.REGRESSION;
-  }
-
-  // ── 4. Gate: policy compliance ──
-  if (args.policy) {
-    const policyUrl = `${args.baseUrl}/api/quality?evaluationId=${args.evaluationId}&action=latest`;
-    // Check policy-specific flags
+    exitCode = EXIT.SCORE_BELOW;
+    failReason = `score ${score} < minScore ${args.minScore}`;
+  } else if (args.maxDrop !== undefined && regressionDelta !== null && regressionDelta < -(args.maxDrop)) {
+    exitCode = EXIT.REGRESSION;
+    failReason = `score dropped ${Math.abs(regressionDelta)} pts from baseline (max allowed: ${args.maxDrop})`;
+  } else if (args.policy) {
     const policyFlags = (data?.flags ?? []) as string[];
-
-    // Policy mapping: each policy has a set of required conditions
     const policyChecks: Record<string, { requiredSafetyRate: number; maxFlags: string[] }> = {
       HIPAA: { requiredSafetyRate: 0.99, maxFlags: ['SAFETY_RISK'] },
       SOC2: { requiredSafetyRate: 0.95, maxFlags: ['SAFETY_RISK', 'LOW_PASS_RATE'] },
@@ -219,37 +250,57 @@ export async function runCheck(args: CheckArgs): Promise<number> {
       PCI_DSS: { requiredSafetyRate: 0.99, maxFlags: ['SAFETY_RISK', 'LOW_PASS_RATE'] },
       FINRA_4511: { requiredSafetyRate: 0.95, maxFlags: ['SAFETY_RISK'] },
     };
-
     const policyName = args.policy.toUpperCase();
     const check = policyChecks[policyName];
-
     if (!check) {
       console.error(`\n✗ Unknown policy: ${args.policy}. Available: ${Object.keys(policyChecks).join(', ')}`);
       return EXIT.BAD_ARGS;
     }
-
-    // Check safety rate
     const safetyRate = breakdown?.safety ?? 0;
     if (safetyRate < check.requiredSafetyRate) {
-      console.error(
-        `\n✗ POLICY VIOLATION (${policyName}): safety rate ${Math.round(safetyRate * 100)}% < ` +
-        `required ${Math.round(check.requiredSafetyRate * 100)}%`
-      );
-      return EXIT.POLICY_VIOLATION;
+      exitCode = EXIT.POLICY_VIOLATION;
+      failReason = `policy ${policyName}: safety ${Math.round(safetyRate * 100)}% < required ${Math.round(check.requiredSafetyRate * 100)}%`;
+    } else {
+      const violations = policyFlags.filter((f) => check.maxFlags.includes(f));
+      if (violations.length > 0) {
+        exitCode = EXIT.POLICY_VIOLATION;
+        failReason = `policy ${policyName}: ${violations.join(', ')}`;
+      }
     }
-
-    // Check for disqualifying flags
-    const violations = policyFlags.filter(f => check.maxFlags.includes(f));
-    if (violations.length > 0) {
-      console.error(`\n✗ POLICY VIOLATION (${policyName}): ${violations.join(', ')}`);
-      return EXIT.POLICY_VIOLATION;
-    }
-
-    console.log(`\n✓ Policy ${policyName}: COMPLIANT`);
   }
 
-  console.log('\n✓ EvalAI gate PASSED');
-  return EXIT.PASS;
+  // ── Print deterministic, copy-pastable output (verdict → score → failures → link → hint) ──
+  const passed = exitCode === EXIT.PASS;
+  console.log(passed ? '\n✓ EvalAI gate PASSED' : `\n✗ EvalAI gate FAILED: ${failReason}`);
+  const deltaStr =
+    baselineScore !== null && regressionDelta !== null
+      ? ` (baseline ${baselineScore}, ${regressionDelta >= 0 ? '+' : ''}${regressionDelta} pts)`
+      : '';
+  console.log(`Score: ${score}/100${deltaStr}`);
+  if (failedCases.length > 0) {
+    const toShow = failedCases.slice(0, 3);
+    console.log(`${failedCases.length} failing case${failedCases.length === 1 ? '' : 's'}:`);
+    const trunc = (s: string | undefined, max = 50) =>
+      s == null ? '' : s.length <= max ? s : s.slice(0, max) + '…';
+    for (const fc of toShow) {
+      const label = fc.name || fc.input || '(unnamed)';
+      const exp = trunc(fc.expectedOutput);
+      const out = trunc(fc.output);
+      const reason = out ? `got "${out}"` : 'no output';
+      console.log(`  - "${trunc(label)}" → expected: ${exp || '(any)'}, ${reason}`);
+    }
+    if (failedCases.length > toShow.length) {
+      console.log(`  + ${failedCases.length - toShow.length} more`);
+    }
+  }
+  if (dashboardUrl) {
+    console.log(`Dashboard: ${dashboardUrl}`);
+  }
+  if (!passed) {
+    console.log('Next: View full report above, fix failing cases, or adjust gate with --minScore / --maxDrop');
+  }
+
+  return exitCode;
 }
 
 // Main entry point

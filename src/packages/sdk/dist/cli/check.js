@@ -123,8 +123,10 @@ async function runCheck(args) {
     const breakdown = data?.breakdown ?? {};
     // ── Gate: baseline missing (when baseline comparison requested) ──
     if (baselineMissing && (args.baseline !== 'published' || args.maxDrop !== undefined)) {
-        console.error(`\n✗ FAILED: baseline (${args.baseline}) not found. ` +
-            `Ensure a baseline run exists (e.g. published run, previous run, or prod-tagged run).`);
+        const msg = args.baseline === 'production'
+            ? `\n✗ FAILED: No prod runs exist for this evaluation. Tag runs with environment=prod before using --baseline production.`
+            : `\n✗ FAILED: baseline (${args.baseline}) not found. Ensure a baseline run exists (e.g. published run, previous run, or prod-tagged run).`;
+        console.error(msg);
         return exports.EXIT.API_ERROR;
     }
     // ── Gate: minN (low sample size) ──

@@ -4,6 +4,8 @@ import { webhooks } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
 import { notFound, forbidden, validationError } from '@/lib/api/errors';
+import { parseBody } from '@/lib/api/parse';
+import { updateWebhookBodySchema } from '@/lib/validation';
 
 type LoadWebhookResult =
   | { error: NextResponse }
@@ -51,26 +53,10 @@ export const PATCH = secureRoute(async (req: NextRequest, ctx: AuthContext, para
   const result = await loadOwnedWebhook(webhookId, ctx);
   if ('error' in result) return result.error;
 
-  const body = await req.json();
-  const { url, events, status } = body;
+  const parsed = await parseBody(req, updateWebhookBodySchema);
+  if (!parsed.ok) return parsed.response;
 
-  if (url !== undefined) {
-    if (typeof url !== 'string' || (!url.startsWith('http://') && !url.startsWith('https://'))) {
-      return validationError('URL must start with http:// or https://');
-    }
-  }
-
-  if (events !== undefined) {
-    if (!Array.isArray(events) || events.length === 0) {
-      return validationError('Events array cannot be empty');
-    }
-  }
-
-  if (status !== undefined) {
-    if (status !== 'active' && status !== 'inactive') {
-      return validationError('Status must be "active" or "inactive"');
-    }
-  }
+  const { url, events, status } = parsed.data;
 
   const updates: Record<string, unknown> = {
     updatedAt: new Date().toISOString()

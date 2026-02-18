@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { workflowService } from '@/lib/services/workflow.service';
-import { requireAuthWithOrg } from '@/lib/autumn-server';
-import { withRateLimit } from '@/lib/api-rate-limit';
+import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
+import { validationError, notFound, internalError, zodValidationError } from '@/lib/api/errors';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
-type RouteParams = {
-  params: Promise<{ id: string }>;
-};
-
-// Validation schemas
 const workflowDefinitionSchema = z.object({
   nodes: z.array(z.object({
     id: z.string(),
@@ -34,209 +29,126 @@ const updateWorkflowSchema = z.object({
   status: z.enum(['draft', 'active', 'archived']).optional(),
 });
 
-/**
- * GET /api/workflows/[id] - Get a single workflow
- */
-export async function GET(request: NextRequest, { params }: RouteParams) {
-  return withRateLimit(request, async (req: NextRequest) => {
-    try {
-      const authResult = await requireAuthWithOrg(req);
-      if (!authResult.authenticated) {
-        const data = await authResult.response.json();
-        return NextResponse.json(data, { status: authResult.response.status });
-      }
+export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
+  try {
+    const { id } = params;
+    const workflowId = parseInt(id);
 
-      const { id } = await params;
-      const workflowId = parseInt(id);
-
-      if (isNaN(workflowId)) {
-        return NextResponse.json({
-          error: 'Valid workflow ID is required',
-          code: 'INVALID_ID',
-        }, { status: 400 });
-      }
-
-      const { searchParams } = new URL(req.url);
-      const organizationId = authResult.organizationId;
-
-      // Check if stats are requested
-      const includeStats = searchParams.get('includeStats') === 'true';
-
-      if (includeStats) {
-        const result = await workflowService.getStats(workflowId, organizationId);
-        if (!result) {
-          return NextResponse.json({
-            error: 'Workflow not found',
-            code: 'NOT_FOUND',
-          }, { status: 404 });
-        }
-        return NextResponse.json(result);
-      }
-
-      const workflow = await workflowService.getById(workflowId, organizationId);
-
-      if (!workflow) {
-        return NextResponse.json({
-          error: 'Workflow not found',
-          code: 'NOT_FOUND',
-        }, { status: 404 });
-      }
-
-      return NextResponse.json(workflow, {
-        headers: {
-          'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
-        },
-      });
-    } catch (error: any) {
-      logger.error('Error fetching workflow', {
-        error: error.message,
-        route: '/api/workflows/[id]',
-        method: 'GET',
-      });
-      return NextResponse.json({
-        error: 'Internal server error',
-        code: 'INTERNAL_ERROR',
-      }, { status: 500 });
+    if (isNaN(workflowId)) {
+      return validationError('Valid workflow ID is required');
     }
-  }, { customTier: 'free' });
-}
 
-/**
- * PUT /api/workflows/[id] - Update a workflow
- */
-export async function PUT(request: NextRequest, { params }: RouteParams) {
-  return withRateLimit(request, async (req: NextRequest) => {
-    try {
-      const authResult = await requireAuthWithOrg(req);
-      if (!authResult.authenticated) {
-        const data = await authResult.response.json();
-        return NextResponse.json(data, { status: authResult.response.status });
+    const { searchParams } = new URL(req.url);
+    const includeStats = searchParams.get('includeStats') === 'true';
+
+    if (includeStats) {
+      const result = await workflowService.getStats(workflowId, ctx.organizationId);
+      if (!result) {
+        return notFound('Workflow not found');
+      }
+      return NextResponse.json(result);
+    }
+
+    const workflow = await workflowService.getById(workflowId, ctx.organizationId);
+
+    if (!workflow) {
+      return notFound('Workflow not found');
+    }
+
+    return NextResponse.json(workflow, {
+      headers: {
+        'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
+      },
+    });
+  } catch (error: unknown) {
+    logger.error('Error fetching workflow', {
+      error: error instanceof Error ? error.message : String(error),
+      route: '/api/workflows/[id]',
+      method: 'GET',
+    });
+    return internalError();
+  }
+}, { rateLimit: 'free' });
+
+export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
+  try {
+    const { id } = params;
+    const workflowId = parseInt(id);
+
+    if (isNaN(workflowId)) {
+      return validationError('Valid workflow ID is required');
+    }
+
+    const body = await req.json();
+    const validation = updateWorkflowSchema.safeParse(body);
+    if (!validation.success) {
+      return zodValidationError(validation.error);
+    }
+
+    if (validation.data.definition) {
+      const { definition } = validation.data;
+      if (!definition.nodes.some(n => n.id === definition.entrypoint)) {
+        return validationError('Entrypoint must reference a valid node ID');
       }
 
-      const { id } = await params;
-      const workflowId = parseInt(id);
-
-      if (isNaN(workflowId)) {
-        return NextResponse.json({
-          error: 'Valid workflow ID is required',
-          code: 'INVALID_ID',
-        }, { status: 400 });
-      }
-
-      const organizationId = authResult.organizationId;
-      const body = await req.json();
-
-      // Validate request body
-      const validation = updateWorkflowSchema.safeParse(body);
-      if (!validation.success) {
-        return NextResponse.json({
-          error: 'Invalid request body',
-          code: 'VALIDATION_ERROR',
-          details: validation.error.errors,
-        }, { status: 400 });
-      }
-
-      // Validate definition structure if provided
-      if (validation.data.definition) {
-        const { definition } = validation.data;
-        
-        if (!definition.nodes.some(n => n.id === definition.entrypoint)) {
-          return NextResponse.json({
-            error: 'Entrypoint must reference a valid node ID',
-            code: 'INVALID_ENTRYPOINT',
-          }, { status: 400 });
-        }
-
-        const nodeIds = new Set(definition.nodes.map(n => n.id));
-        for (const edge of definition.edges) {
-          if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to)) {
-            return NextResponse.json({
-              error: `Edge references invalid node: ${edge.from} -> ${edge.to}`,
-              code: 'INVALID_EDGE',
-            }, { status: 400 });
-          }
+      const nodeIds = new Set(definition.nodes.map(n => n.id));
+      for (const edge of definition.edges) {
+        if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to)) {
+          return validationError(`Edge references invalid node: ${edge.from} -> ${edge.to}`);
         }
       }
-
-      const updateData = {
-        ...validation.data,
-        // Convert null to undefined for description (service expects string | undefined)
-        description: validation.data.description ?? undefined,
-      };
-      const updated = await workflowService.update(workflowId, organizationId, updateData);
-
-      if (!updated) {
-        return NextResponse.json({
-          error: 'Workflow not found',
-          code: 'NOT_FOUND',
-        }, { status: 404 });
-      }
-
-      logger.info('Workflow updated', { workflowId, organizationId });
-
-      return NextResponse.json(updated);
-    } catch (error: any) {
-      logger.error('Error updating workflow', {
-        error: error.message,
-        route: '/api/workflows/[id]',
-        method: 'PUT',
-      });
-      return NextResponse.json({
-        error: 'Internal server error',
-        code: 'INTERNAL_ERROR',
-      }, { status: 500 });
     }
-  }, { customTier: 'free' });
-}
 
-/**
- * DELETE /api/workflows/[id] - Delete a workflow
- */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
-  return withRateLimit(request, async (req: NextRequest) => {
-    try {
-      const authResult = await requireAuthWithOrg(req);
-      if (!authResult.authenticated) {
-        const data = await authResult.response.json();
-        return NextResponse.json(data, { status: authResult.response.status });
-      }
+    const updateData = {
+      ...validation.data,
+      description: validation.data.description ?? undefined,
+    };
+    const updated = await workflowService.update(workflowId, ctx.organizationId, updateData);
 
-      const { id } = await params;
-      const workflowId = parseInt(id);
-
-      if (isNaN(workflowId)) {
-        return NextResponse.json({
-          error: 'Valid workflow ID is required',
-          code: 'INVALID_ID',
-        }, { status: 400 });
-      }
-
-      const organizationId = authResult.organizationId;
-      const deleted = await workflowService.delete(workflowId, organizationId);
-
-      if (!deleted) {
-        return NextResponse.json({
-          error: 'Workflow not found',
-          code: 'NOT_FOUND',
-        }, { status: 404 });
-      }
-
-      logger.info('Workflow deleted', { workflowId, organizationId });
-
-      return NextResponse.json({
-        message: 'Workflow deleted successfully',
-        success: true,
-      });
-    } catch (error: any) {
-      logger.error('Error deleting workflow', {
-        error: error.message,
-        route: '/api/workflows/[id]',
-        method: 'DELETE',
-      });
-      return NextResponse.json({
-        error: 'Internal server error',
-        code: 'INTERNAL_ERROR',
-      }, { status: 500 });
+    if (!updated) {
+      return notFound('Workflow not found');
     }
-  }, { customTier: 'free' });
-}
+
+    logger.info('Workflow updated', { workflowId, organizationId: ctx.organizationId });
+
+    return NextResponse.json(updated);
+  } catch (error: unknown) {
+    logger.error('Error updating workflow', {
+      error: error instanceof Error ? error.message : String(error),
+      route: '/api/workflows/[id]',
+      method: 'PUT',
+    });
+    return internalError();
+  }
+}, { rateLimit: 'free' });
+
+export const DELETE = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
+  try {
+    const { id } = params;
+    const workflowId = parseInt(id);
+
+    if (isNaN(workflowId)) {
+      return validationError('Valid workflow ID is required');
+    }
+
+    const deleted = await workflowService.delete(workflowId, ctx.organizationId);
+
+    if (!deleted) {
+      return notFound('Workflow not found');
+    }
+
+    logger.info('Workflow deleted', { workflowId, organizationId: ctx.organizationId });
+
+    return NextResponse.json({
+      message: 'Workflow deleted successfully',
+      success: true,
+    });
+  } catch (error: unknown) {
+    logger.error('Error deleting workflow', {
+      error: error instanceof Error ? error.message : String(error),
+      route: '/api/workflows/[id]',
+      method: 'DELETE',
+    });
+    return internalError();
+  }
+}, { rateLimit: 'free' });

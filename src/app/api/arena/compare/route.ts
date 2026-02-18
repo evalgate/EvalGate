@@ -1,39 +1,28 @@
-// src/app/api/arena/compare/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuthWithOrg } from '@/lib/autumn-server';
+import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
+import { validationError, internalError } from '@/lib/api/errors';
 import { comparisonEngine } from '@/lib/arena/comparison-engine';
 import { arenaMatchesService } from '@/lib/services/arena-matches.service';
 
-export async function POST(request: NextRequest) {
-  const authResult = await requireAuthWithOrg(request);
-  if (!authResult.authenticated) {
-    const data = await authResult.response.json();
-    return NextResponse.json(data, { status: authResult.response.status });
-  }
-
-  const body = await request.json();
+export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
+  const body = await req.json();
   const { prompt, models, judgeConfigId } = body;
 
   if (!prompt || !models || !Array.isArray(models) || models.length < 2) {
-    return NextResponse.json(
-      { error: 'prompt (string) and models (array of ≥2 model IDs) are required' },
-      { status: 400 }
-    );
+    return validationError('prompt (string) and models (array of ≥2 model IDs) are required');
   }
 
   try {
-    // Run side-by-side comparison via real LLM APIs
     const comparison = await comparisonEngine.compare({
       prompt,
       models,
-      organizationId: authResult.organizationId,
+      organizationId: ctx.organizationId,
     });
 
-    // Persist as an arena match (judge scoring + leaderboard update)
     const match = await arenaMatchesService.createArenaMatch(
-      authResult.organizationId,
+      ctx.organizationId,
       { prompt, models, judgeConfigId },
-      authResult.userId
+      ctx.userId
     );
 
     return NextResponse.json({
@@ -42,7 +31,7 @@ export async function POST(request: NextRequest) {
       responses: comparison.responses,
       scores: match.scores,
     }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return internalError(error instanceof Error ? error.message : undefined);
   }
-}
+});

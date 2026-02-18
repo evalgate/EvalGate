@@ -1,7 +1,13 @@
 /**
  * Scoring spec — declared scoring formula for audit verification.
  * Mirrors hardcoded knobs in quality-score.ts.
+ *
+ * Version contract: scores computed with a given version use this exact spec.
+ * Clients can fetch /api/quality/spec to verify the formula.
  */
+
+/** Canonical version string — single source of truth for scoring version. */
+export const SCORING_SPEC_VERSION = 'v1' as const;
 
 export interface ScoringSpecV1 {
   version: 'v1';
@@ -34,7 +40,7 @@ export interface ScoringSpecV1 {
 }
 
 export const SCORING_SPEC_V1: ScoringSpecV1 = {
-  version: 'v1',
+  version: SCORING_SPEC_VERSION,
   weights: {
     passRate: 0.5,
     safety: 0.25,

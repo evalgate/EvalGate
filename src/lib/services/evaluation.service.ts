@@ -10,6 +10,8 @@ import { eq, and, desc } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
 import { createExecutor, type ExecutorType, type ExecutorConfig } from './eval-executor';
+import { runAssertions } from '@/lib/eval/assertion-runners';
+import { validateAssertionsEnvelope } from '@/lib/eval/assertions';
 
 export const createEvaluationSchema = z.object({
   name: z.string().min(1).max(255),
@@ -197,7 +199,7 @@ export class EvaluationService {
   /**
    * Run an evaluation — fetches test cases, executes them, writes results, computes metrics
    */
-  async run(id: number, organizationId: number) {
+  async run(id: number, organizationId: number, options?: { environment?: 'dev' | 'staging' | 'prod' }) {
     logger.info('Running evaluation', { id, organizationId });
 
     const evaluation = await this.getById(id, organizationId);
@@ -212,6 +214,7 @@ export class EvaluationService {
       .from(testCases)
       .where(eq(testCases.evaluationId, id));
 
+    const env = options?.environment ?? 'dev';
     const [run] = await db.insert(evaluationRuns).values({
       evaluationId: id,
       organizationId,
@@ -220,7 +223,7 @@ export class EvaluationService {
       totalCases: cases.length,
       passedCases: 0,
       failedCases: 0,
-      environment: 'dev',
+      environment: env,
       createdAt: new Date().toISOString(),
     }).returning();
 
@@ -256,6 +259,7 @@ export class EvaluationService {
       let score: number | null = null;
       let error: string | null = null;
       let traceLinkedMatched: boolean | null = null;
+      let hasProvenance: boolean | null = null;
 
       try {
         if (evaluation.type === 'unit_test' || evaluation.type === 'standard') {
@@ -270,10 +274,15 @@ export class EvaluationService {
               ? { evaluationRunId: run.id, runStartedAt: run.startedAt }
               : undefined;
             const executor = createExecutor(execType, execConfig, organizationId, runContext);
-            const execResult = await executor.run(tc.input);
+            const execResult = await executor.run(tc.input, {
+              metadata: { evaluationRunId: run.id, testCaseId: tc.id },
+            });
             output = execResult.output ?? '';
             traceLinkedMatched = execType === 'trace_linked' && execResult.meta?.matched != null
               ? execResult.meta.matched
+              : null;
+            hasProvenance = execType === 'trace_linked' && execResult.meta?.hasProvenance === true
+              ? true
               : null;
 
             // Compare executor output against expected
@@ -367,6 +376,13 @@ export class EvaluationService {
 
       const durationMs = Date.now() - startTime;
 
+      // Run safety assertions when we have output (pii, toxicity)
+      let assertionsJson: Record<string, unknown> | null = null;
+      if (output && (evaluation.type === 'unit_test' || evaluation.type === 'standard')) {
+        const envelope = runAssertions(output, ['pii', 'toxicity']);
+        assertionsJson = validateAssertionsEnvelope(envelope) as unknown as Record<string, unknown>;
+      }
+
       if (status === 'passed') passedCount++;
       else failedCount++;
 
@@ -380,6 +396,8 @@ export class EvaluationService {
         score,
         error,
         traceLinkedMatched: traceLinkedMatched ?? null,
+        ...(hasProvenance != null && { hasProvenance }),
+        assertionsJson: assertionsJson ?? undefined,
         durationMs,
         createdAt: new Date().toISOString(),
       });

@@ -87,4 +87,5 @@ describe('secureRoute allowAnonymous', () => {
       { customTier: 'free' },
     );
   });
+
 });

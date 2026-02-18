@@ -1,44 +1,25 @@
-// src/app/api/arena-matches/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuthWithOrg } from '@/lib/autumn-server';
+import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
+import { validationError, notFound, internalError } from '@/lib/api/errors';
 import { arenaMatchesService } from '@/lib/services/arena-matches.service';
 
-/**
- * GET /api/arena-matches/[id]
- * Get a specific arena match
- */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
+  const { id } = params;
+  const matchId = parseInt(id);
+
+  if (isNaN(matchId)) {
+    return validationError('Invalid arena match ID');
+  }
+
   try {
-    const authResult = await requireAuthWithOrg(request);
-    if (!authResult.authenticated) {
-      const data = await authResult.response.json();
-      return NextResponse.json(data, { status: authResult.response.status });
-    }
-
-    const { organizationId } = authResult;
-    const { id } = await params;
-    const matchId = parseInt(id);
-
-    if (isNaN(matchId)) {
-      return NextResponse.json({ error: 'Invalid arena match ID' }, { status: 400 });
-    }
-
-    const match = await arenaMatchesService.getArenaMatch(organizationId, matchId);
+    const match = await arenaMatchesService.getArenaMatch(ctx.organizationId, matchId);
 
     if (!match) {
-      return NextResponse.json({ error: 'Arena match not found' }, { status: 404 });
+      return notFound('Arena match not found');
     }
 
     return NextResponse.json(match);
-
-  } catch (error: any) {
-    console.error('Arena match fetch error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return internalError(error instanceof Error ? error.message : undefined);
   }
-}
+});

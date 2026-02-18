@@ -8,12 +8,32 @@ Official TypeScript/JavaScript SDK for the AI Evaluation Platform. Build confide
 ## Installation
 
 ```bash
-npm install @pauly4010/evalai-sdk
+npm install @pauly4010/evalai-sdk openai
 # or
-yarn add @pauly4010/evalai-sdk
+yarn add @pauly4010/evalai-sdk openai
 # or
-pnpm add @pauly4010/evalai-sdk
+pnpm add @pauly4010/evalai-sdk openai
 ```
+
+## Quick Start — openAIChatEval (No Account Required)
+
+Run OpenAI chat regression tests locally in 60 seconds. No EvalAI account, no dashboard, just a score.
+
+```typescript
+import { openAIChatEval } from "@pauly4010/evalai-sdk";
+
+await openAIChatEval({
+  name: "chat-regression",
+  cases: [
+    { input: "Hello", expectedOutput: "greeting" },
+    { input: "2 + 2 = ?", expectedOutput: "4" },
+  ],
+});
+```
+
+You'll see: `PASS 2/2 (score: 100)`. Set `OPENAI_API_KEY` in your environment.
+
+**Gate in CI:** Run `npx evalai init`, paste your evaluation ID into `evalai.config.json`, then add `npx evalai check` to your CI workflow.
 
 ## Environment Support
 
@@ -47,7 +67,7 @@ The following features require Node.js and **will not work in browsers**:
 
 Use appropriate features based on your environment. The SDK will throw helpful errors if you try to use Node.js-only features in a browser.
 
-## Quick Start
+## AIEvalClient (Platform API)
 
 ```typescript
 import { AIEvalClient } from "@pauly4010/evalai-sdk";

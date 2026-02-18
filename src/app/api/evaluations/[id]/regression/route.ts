@@ -1,49 +1,37 @@
-// src/app/api/evaluations/[id]/regression/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuthWithOrg } from '@/lib/autumn-server';
+import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
+import { validationError, internalError } from '@/lib/api/errors';
 import { regressionService } from '@/lib/services/regression.service';
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const authResult = await requireAuthWithOrg(request);
-  if (!authResult.authenticated) {
-    const data = await authResult.response.json();
-    return NextResponse.json(data, { status: authResult.response.status });
-  }
-
-  const { id } = await params;
+export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
+  const { id } = params;
   const evaluationId = parseInt(id);
 
   try {
-    const result = await regressionService.runQuick(evaluationId, authResult.organizationId);
+    const result = await regressionService.runQuick(evaluationId, ctx.organizationId);
     return NextResponse.json(result);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error: unknown) {
+    return validationError(error instanceof Error ? error.message : 'Regression failed');
   }
-}
+});
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const authResult = await requireAuthWithOrg(request);
-  if (!authResult.authenticated) {
-    const data = await authResult.response.json();
-    return NextResponse.json(data, { status: authResult.response.status });
-  }
-
-  const { id } = await params;
+export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
+  const { id } = params;
   const evaluationId = parseInt(id);
-  const body = await request.json();
+  const body = await req.json();
 
   if (!body.testCaseIds || !Array.isArray(body.testCaseIds)) {
-    return NextResponse.json({ error: 'testCaseIds array is required' }, { status: 400 });
+    return validationError('testCaseIds array is required');
   }
 
   try {
     const goldenSetId = await regressionService.setGoldenCases(
       evaluationId,
-      authResult.organizationId,
+      ctx.organizationId,
       body.testCaseIds
     );
     return NextResponse.json({ goldenSetId });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return internalError(error instanceof Error ? error.message : undefined);
   }
-}
+});

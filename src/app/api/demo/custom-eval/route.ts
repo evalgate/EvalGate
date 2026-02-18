@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/api-rate-limit';
+import { validationError, internalError } from '@/lib/api/errors';
 import { calculateQualityScore } from '@/lib/ai-quality-score';
 import { expect as evalExpect } from '@/packages/sdk/src/assertions';
 
@@ -117,17 +118,11 @@ export async function POST(request: NextRequest) {
       const { input, output, expectedOutput, assertions, keywords, lengthMin, lengthMax } = body;
 
       if (!output || typeof output !== 'string') {
-        return NextResponse.json(
-          { error: 'output is required and must be a string', code: 'MISSING_OUTPUT' },
-          { status: 400 }
-        );
+        return validationError('output is required and must be a string');
       }
 
       if (!assertions || !Array.isArray(assertions) || assertions.length === 0) {
-        return NextResponse.json(
-          { error: 'assertions must be a non-empty array of assertion IDs', code: 'MISSING_ASSERTIONS' },
-          { status: 400 }
-        );
+        return validationError('assertions must be a non-empty array of assertion IDs');
       }
 
       const startTime = Date.now();
@@ -171,12 +166,9 @@ export async function POST(request: NextRequest) {
         },
         qualityScore,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Custom eval error:', error);
-      return NextResponse.json(
-        { error: 'Internal server error' },
-        { status: 500 }
-      );
+      return internalError();
     }
   }, { customTier: 'anonymous' });
 }

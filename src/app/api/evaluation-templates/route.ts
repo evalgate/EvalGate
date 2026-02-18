@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { secureRoute } from '@/lib/api/secure-route';
+import { internalError } from '@/lib/api/errors';
 import { evaluationTemplates } from '@/lib/evaluation-templates-library';
 import {
   COMPREHENSIVE_TEMPLATES,
@@ -66,10 +67,7 @@ export const GET = secureRoute(async (req: NextRequest, _ctx, _params) => {
         description: c.description,
       })),
     });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return internalError(error instanceof Error ? error.message : undefined);
   }
 }, { allowAnonymous: true, rateLimit: 'anonymous' });

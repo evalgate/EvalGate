@@ -85,6 +85,10 @@
     "./integrations/anthropic": {
       "import": "./dist/integrations/anthropic.js",
       "types": "./dist/integrations/anthropic.d.ts"
+    },
+    "./integrations/openai-eval": {
+      "import": "./dist/integrations/openai-eval.js",
+      "types": "./dist/integrations/openai-eval.d.ts"
     }
   }
 }

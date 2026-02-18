@@ -15,11 +15,11 @@ import {
   costRecords,
   qualityScores,
 } from '@/db/schema';
-import { eq, and, sql, desc, isNotNull } from 'drizzle-orm';
+import { eq, and, sql, desc, isNotNull, isNull } from 'drizzle-orm';
 import { computeQualityScore, type ScoreInputs, type QualityScoreResult } from '@/lib/scoring/quality-score';
 import { logger } from '@/lib/logger';
 import { parseAssertionsJson, computeSafetyPassRate } from '@/lib/eval/assertions';
-import { SCORING_SPEC_V1 } from '@/lib/scoring/scoring-spec';
+import { SCORING_SPEC_V1, SCORING_SPEC_VERSION } from '@/lib/scoring/scoring-spec';
 import { canonicalizeJson } from '@/lib/crypto/canonical-json';
 import { sha256Hex } from '@/lib/crypto/hash';
 
@@ -41,6 +41,8 @@ export interface AggregateMetrics {
   avgCostUsd: number | null;
   /** Count of cost_records for this run (for hasProvenance) */
   costRecordCount: number;
+  /** Per-test-case: fraction of results with provenance (model/provider from cost). 0..1 or null. */
+  provenanceCoverageRate: number | null;
 }
 
 export interface ConfidenceBand {
@@ -191,6 +193,29 @@ export async function computeRunAggregates(
     traceCoverageRate = Number(tcRow.matched) / Number(tcRow.total);
   }
 
+  // Provenance coverage: per-test-case fraction with model/provider from cost
+  const provenanceCount = await db
+    .select({
+      withProvenance: sql<number>`sum(case when ${testResults.hasProvenance} = 1 then 1 else 0 end)`,
+      nullProvenance: sql<number>`sum(case when ${testResults.hasProvenance} is null then 1 else 0 end)`,
+    })
+    .from(testResults)
+    .where(
+      and(
+        eq(testResults.evaluationRunId, evaluationRunId),
+        eq(testResults.organizationId, organizationId),
+      ),
+    );
+  const provRow = provenanceCount[0];
+  let provenanceCoverageRate: number | null = null;
+  if (total > 0 && provRow) {
+    const withProv = Number(provRow.withProvenance ?? 0);
+    const nullProv = Number(provRow.nullProvenance ?? 0);
+    // When run has cost records, treat null hasProvenance as provenance (direct_llm path)
+    const effectiveWithProvenance = costRecordCount > 0 ? withProv + nullProv : withProv;
+    provenanceCoverageRate = effectiveWithProvenance / total;
+  }
+
   return {
     total,
     passed,
@@ -205,6 +230,7 @@ export async function computeRunAggregates(
     avgCostPerTestCaseUsd,
     avgCostUsd: avgCostPerTestCaseUsd,
     costRecordCount,
+    provenanceCoverageRate,
   };
 }
 
@@ -245,6 +271,20 @@ export async function computeAndStoreQualityScore(
   const scoringCommit =
     process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GIT_SHA ?? null;
 
+  // Backfill hasProvenance for direct_llm runs when cost records exist (only where null)
+  if (metrics.costRecordCount > 0) {
+    await db
+      .update(testResults)
+      .set({ hasProvenance: true })
+      .where(
+        and(
+          eq(testResults.evaluationRunId, evaluationRunId),
+          eq(testResults.organizationId, organizationId),
+          isNull(testResults.hasProvenance),
+        ),
+      );
+  }
+
   // Persist to quality_scores table
   await db.insert(qualityScores).values({
     evaluationRunId,
@@ -253,10 +293,11 @@ export async function computeAndStoreQualityScore(
     score: result.score,
     total: metrics.total,
     traceCoverageRate: metrics.traceCoverageRate != null ? String(metrics.traceCoverageRate) : null,
+    provenanceCoverageRate: metrics.provenanceCoverageRate != null ? String(metrics.provenanceCoverageRate) : null,
     breakdown: JSON.stringify(result.breakdown),
     flags: JSON.stringify(result.flags),
     evidenceLevel: result.evidenceLevel,
-    scoringVersion: 'v1',
+    scoringVersion: SCORING_SPEC_VERSION,
     model: model ?? null,
     inputsJson: inputs,
     scoringSpecJson: SCORING_SPEC_V1,
@@ -272,6 +313,46 @@ export async function computeAndStoreQualityScore(
     score: result.score,
     flags: result.flags,
   });
+
+  return result;
+}
+
+/**
+ * Recompute and store quality score for an evaluation run.
+ * Deletes any existing score for the run, then computes fresh from aggregates.
+ * Returns null if run not found or not in org.
+ */
+export async function recomputeAndStoreQualityScore(
+  evaluationRunId: number,
+  organizationId: number,
+): Promise<QualityScoreResult | null> {
+  const [run] = await db
+    .select({ id: evaluationRuns.id, evaluationId: evaluationRuns.evaluationId })
+    .from(evaluationRuns)
+    .where(
+      and(
+        eq(evaluationRuns.id, evaluationRunId),
+        eq(evaluationRuns.organizationId, organizationId),
+      ),
+    )
+    .limit(1);
+
+  if (!run) return null;
+
+  await db
+    .delete(qualityScores)
+    .where(
+      and(
+        eq(qualityScores.evaluationRunId, evaluationRunId),
+        eq(qualityScores.organizationId, organizationId),
+      ),
+    );
+
+  const result = await computeAndStoreQualityScore(
+    evaluationRunId,
+    run.evaluationId,
+    organizationId,
+  );
 
   return result;
 }

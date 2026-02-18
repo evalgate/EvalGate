@@ -4,6 +4,12 @@
  * Ensures every API route either uses `secureRoute` or is in the explicit
  * public allowlist. Legacy auth patterns (requireAuthWithOrg, requireAuth,
  * getCurrentUser) are flagged as tech debt needing migration.
+ *
+ * SHRINK-ONLY: The allowlists must only shrink over time. Do NOT add new
+ * routes to LEGACY_AUTH_ALLOWLIST — migrate them to secureRoute instead.
+ * New routes MUST use secureRoute or be added to PUBLIC_ROUTE_ALLOWLIST
+ * (for intentionally public endpoints). Fail the suite if new legacy routes
+ * appear without migration.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -12,34 +18,27 @@ import { globSync } from 'glob';
 import path from 'path';
 
 // Routes that are intentionally public / use their own auth mechanisms
+// Paths are relative to src/app/api/ (e.g. health/route.ts, demo/custom-eval/route.ts)
+// SHRINK-ONLY: Prefer secureRoute({ allowAnonymous: true }) over adding here
 const PUBLIC_ROUTE_ALLOWLIST = [
-  'api/health',
-  'api/debug/db',
-  'api/debug/health',
-  'api/docs',
-  'api/auth',
-  'api/demo',
-  // api/evaluation-templates: migrated to secureRoute({ allowAnonymous: true })
-  'api/subscribers',
-  'api/sentry-example-api',
-  'api/autumn',
-  'api/billing-portal',
-  'api/costs/pricing',
-  'api/onboarding',
-  'api/org/switch',
+  'health',
+  'debug/',
+  'docs',
+  'auth',
+  'demo',
+  'subscribers',
+  'sentry-example-api',
+  'autumn',
+  'billing-portal',
+  'costs/pricing',
+  'onboarding',
+  'org/switch',
 ];
 
 // Routes still using legacy auth that should be migrated to secureRoute
-// This list must shrink over time — do NOT add to it.
-const LEGACY_AUTH_ALLOWLIST = [
-  'api/evaluations/route.ts',
-  'api/evaluations/[id]/route.ts',
-  'api/decisions/route.ts',
-  'api/costs/route.ts',
-  'api/organizations/route.ts',
-  'api/organizations/current/route.ts',
-  'api/developer/api-keys/route.ts',
-];
+// Paths relative to src/app/api/ (e.g. evaluations/route.ts)
+// SHRINK-ONLY: Do NOT add to this list. Migrate to secureRoute instead.
+const LEGACY_AUTH_ALLOWLIST: string[] = [];
 
 function isAllowlisted(routePath: string): boolean {
   const normalized = routePath.replace(/\\/g, '/');
@@ -75,21 +74,31 @@ describe('API Route Auth Audit', () => {
   describe('legacy routes have SOME auth', () => {
     const legacyRoutes = nonAllowlisted.filter((f) => isLegacyAllowlisted(f));
 
-    it.each(legacyRoutes)('%s uses some auth pattern (legacy)', (routeFile) => {
-      const fullPath = path.join(apiDir, routeFile);
-      const content = readFileSync(fullPath, 'utf-8');
+    if (legacyRoutes.length > 0) {
+      it.each(legacyRoutes)('%s uses some auth pattern (legacy)', (routeFile) => {
+        const fullPath = path.join(apiDir, routeFile);
+        const content = readFileSync(fullPath, 'utf-8');
 
-      const usesSecureRoute = content.includes('secureRoute');
-      const usesRequireAuth = content.includes('requireAuthWithOrg') || content.includes('requireAuth(') || content.includes('requireAdmin');
-      const usesGetCurrentUser = content.includes('getCurrentUser');
+        const usesSecureRoute = content.includes('secureRoute');
+        const usesRequireAuth = content.includes('requireAuthWithOrg') || content.includes('requireAuth(') || content.includes('requireAdmin');
+        const usesGetCurrentUser = content.includes('getCurrentUser');
 
-      expect(
-        usesSecureRoute || usesRequireAuth || usesGetCurrentUser,
-      ).toBe(true);
-    });
+        expect(
+          usesSecureRoute || usesRequireAuth || usesGetCurrentUser,
+        ).toBe(true);
+      });
+    } else {
+      it('all routes migrated to secureRoute', () => {
+        expect(LEGACY_AUTH_ALLOWLIST).toHaveLength(0);
+      });
+    }
   });
 
-  it('legacy allowlist should shrink over time (currently ≤ 8)', () => {
+  it('legacy allowlist must shrink over time (no new additions)', () => {
     expect(LEGACY_AUTH_ALLOWLIST.length).toBeLessThanOrEqual(8);
+  });
+
+  it('legacy allowlist should be empty (all routes migrated)', () => {
+    expect(LEGACY_AUTH_ALLOWLIST.length).toBe(0);
   });
 });

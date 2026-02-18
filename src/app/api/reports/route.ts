@@ -108,6 +108,26 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
     .orderBy(desc(driftAlerts.createdAt))
     .limit(1);
 
+  // Baseline comparison (published run if set)
+  let baselineScore: number | null = null;
+  let regressionDelta: number | null = null;
+  let regressionDetected = false;
+  if (evaluation.publishedRunId && evaluation.publishedRunId !== evaluationRunId) {
+    const [baselineQs] = await db
+      .select()
+      .from(qualityScores)
+      .where(and(
+        eq(qualityScores.evaluationRunId, evaluation.publishedRunId),
+        eq(qualityScores.organizationId, ctx.organizationId),
+      ))
+      .limit(1);
+    if (baselineQs && qs) {
+      baselineScore = baselineQs.score;
+      regressionDelta = qs.score - baselineQs.score;
+      regressionDetected = regressionDelta <= -5;
+    }
+  }
+
   // Build audit-defensible report payload
   const reportPayload = {
     signatureAlgorithm: 'hmac-sha256-v1',
@@ -139,6 +159,10 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
       breakdown: qs.breakdown,
       flags: qs.flags,
       scoringVersion: qs.scoringVersion ?? 'v1',
+      scoringSpecHash: qs.scoringSpecHash ?? null,
+      scoringCommit: qs.scoringCommit ?? null,
+      inputsHash: qs.inputsHash ?? null,
+      provenanceCoverageRate: qs.provenanceCoverageRate ?? null,
     } : null,
     testResultsSummary: {
       total: results.length,
@@ -155,6 +179,11 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
     policyResult: body.policyName ? {
       policy: body.policyName,
       compliant: qs ? !((qs.flags as string[] | null)?.includes('SAFETY_RISK')) : null,
+    } : null,
+    baseline: baselineScore != null ? {
+      baselineScore,
+      regressionDelta: regressionDelta ?? 0,
+      regressionDetected,
     } : null,
   };
 
@@ -180,7 +209,8 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 
   return NextResponse.json({
     shareToken,
-    shareUrl: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/api/r/${shareToken}`,
+    shareUrl: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/r/${shareToken}`,
+    apiUrl: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/api/r/${shareToken}`,
     expiresAt,
   }, { status: 201 });
 }, { requiredScopes: [SCOPES.REPORTS_WRITE] });

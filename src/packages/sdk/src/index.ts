@@ -118,6 +118,14 @@ export { Logger } from './logger'
 export { traceOpenAI } from './integrations/openai'
 export { traceAnthropic } from './integrations/anthropic'
 
+// OpenAI regression eval (local-first, no account required)
+export {
+  openAIChatEval,
+  type OpenAIChatEvalOptions,
+  type OpenAIChatEvalResult,
+  type OpenAIChatEvalCase,
+} from './integrations/openai-eval'
+
 // Workflow tracing (Orchestration Layer)
 export {
   WorkflowTracer,

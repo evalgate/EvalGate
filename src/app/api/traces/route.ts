@@ -1,198 +1,129 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { traces } from '@/db/schema';
-import { eq, like, and, desc } from 'drizzle-orm';
-import { requireFeature, trackFeature, requireAuthWithOrg } from '@/lib/autumn-server';
-import { withRateLimit } from '@/lib/api-rate-limit';
-import { getRateLimitTier } from '@/lib/rate-limit';
-import { sanitizeSearchInput } from '@/lib/validation';
+import { checkFeature, trackFeature } from '@/lib/autumn-server';
+import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
+import { validationError, notFound, internalError, quotaExceeded } from '@/lib/api/errors';
+import { parseBody } from '@/lib/api/parse';
+import { sanitizeSearchInput, createTraceBodySchema } from '@/lib/validation';
+import { traceService } from '@/lib/services/trace.service';
 import * as Sentry from '@sentry/nextjs';
 
-export async function GET(request: NextRequest) {
-  return withRateLimit(request, async (req: NextRequest) => {
-    try {
-      const authResult = await requireAuthWithOrg(req);
-      if (!authResult.authenticated) {
-        const data = await authResult.response.json();
-        return NextResponse.json(data, { status: authResult.response.status });
-      }
+export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
+  try {
+    const { searchParams } = new URL(req.url);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
+    const offset = parseInt(searchParams.get('offset') || '0');
+    const status = searchParams.get('status') ?? undefined;
+    const searchRaw = searchParams.get('search');
+    const search = searchRaw ? sanitizeSearchInput(searchRaw) : undefined;
 
-      const { searchParams } = new URL(req.url);
-      const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
-      const offset = parseInt(searchParams.get('offset') || '0');
-      const status = searchParams.get('status');
-      const search = searchParams.get('search');
+    const results = await traceService.list(ctx.organizationId, {
+      limit,
+      offset,
+      status,
+      search,
+    });
 
-      // ALWAYS scope by authenticated org — never trust query param
-      const conditions = [eq(traces.organizationId, authResult.organizationId)];
+    return NextResponse.json(results, {
+      headers: {
+        'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
+      },
+    });
+  } catch (error) {
+    Sentry.captureException(error);
+    return internalError();
+  }
+}, { rateLimit: 'free' });
 
-      if (status) {
-        conditions.push(eq(traces.status, status));
-      }
+export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
+  const featureCheck = await checkFeature({
+    userId: ctx.userId,
+    featureId: 'traces',
+    requiredBalance: 1,
+  });
 
-      if (search) {
-        const safeSearch = sanitizeSearchInput(search);
-        if (safeSearch) {
-          conditions.push(like(traces.name, `%${safeSearch}%`));
-        }
-      }
+  if (!featureCheck.allowed) {
+    return quotaExceeded('Traces limit reached. Upgrade your plan to increase quota.', {
+      featureId: 'traces',
+      remaining: featureCheck.remaining ?? 0,
+    });
+  }
 
-      // Build and execute the query with all conditions
-      const results = await db.select()
-        .from(traces)
-        .where(conditions.length > 0 ? and(...conditions) : undefined)
-        .orderBy(desc(traces.createdAt))
-        .limit(limit)
-        .offset(offset);
+  const orgLimitCheck = await checkFeature({
+    userId: ctx.userId,
+    featureId: 'traces_per_project',
+    requiredBalance: 1,
+  });
 
-      return NextResponse.json(results, {
-        headers: {
-          'Cache-Control': 'private, max-age=30, stale-while-revalidate=60'
-        }
-      });
-    } catch (error) {
-      Sentry.captureException(error);
-      console.error('GET error:', error);
-      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
-  }, { customTier: 'free' });
-}
+  if (!orgLimitCheck.allowed) {
+    return quotaExceeded("You've reached your trace limit for this organization. Please upgrade your plan.");
+  }
 
-export async function POST(request: NextRequest) {
-  return withRateLimit(request, async (req: NextRequest) => {
-    // Step 1: Check authentication and global feature allowance
-    const featureCheck = await requireFeature(req, 'traces', 1);
-    
-    if (!featureCheck.allowed) {
-      // Convert Response to NextResponse
-      const responseData = await featureCheck.response.json();
-      return NextResponse.json(responseData, { 
-        status: featureCheck.response.status,
-        headers: Object.fromEntries(featureCheck.response.headers.entries())
-      });
-    }
+  const parsed = await parseBody(req, createTraceBodySchema);
+  if (!parsed.ok) return parsed.response;
 
-    const userId = featureCheck.userId;
+  try {
+    const { name, traceId, status, durationMs, metadata } = parsed.data;
 
-    try {
-      const body = await req.json();
-      const { name, traceId, status, durationMs, metadata } = body;
+    const newTrace = await traceService.create(ctx.organizationId, {
+      name,
+      traceId,
+      status,
+      durationMs,
+      metadata,
+    });
 
-      // Resolve org from auth context
-      const authResult = await requireAuthWithOrg(req);
-      if (!authResult.authenticated) {
-        const data = await authResult.response.json();
-        return NextResponse.json(data, { status: authResult.response.status });
-      }
-      const organizationId = authResult.organizationId;
+    await trackFeature({
+      userId: ctx.userId,
+      featureId: 'traces',
+      value: 1,
+      idempotencyKey: `trace-${newTrace[0].id}-${Date.now()}`,
+    });
 
-      if (!name || !traceId) {
-        return NextResponse.json({ 
-          error: "Name and traceId are required",
-          code: "MISSING_REQUIRED_FIELDS" 
-        }, { status: 400 });
-      }
+    await trackFeature({
+      userId: ctx.userId,
+      featureId: 'traces_per_project',
+      value: 1,
+      idempotencyKey: `trace-org-${ctx.organizationId}-${newTrace[0].id}-${Date.now()}`,
+    });
 
-      // Step 2: Check per-organization trace limit
-      const orgLimitCheck = await requireFeature(req, 'traces_per_project', 1);
-      
-      if (!orgLimitCheck.allowed) {
-        return NextResponse.json({
-          error: "You've reached your trace limit for this organization. Please upgrade your plan.",
-          code: "ORGANIZATION_TRACE_LIMIT_REACHED"
-        }, { status: 402 });
-      }
+    return NextResponse.json(newTrace[0], { status: 201 });
+  } catch (error) {
+    Sentry.captureException(error);
+    return internalError();
+  }
+}, { rateLimit: 'free' });
 
-      const now = new Date().toISOString();
-      const newTrace = await db.insert(traces)
-        .values({
-          name: name.trim(),
-          traceId: traceId.trim(),
-          organizationId,
-          status: status || 'pending',
-          durationMs: durationMs || null,
-          metadata: metadata || null,
-          createdAt: now,
-        })
-        .returning();
+export const DELETE = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
+  const featureCheck = await checkFeature({
+    userId: ctx.userId,
+    featureId: 'trace_deletion',
+    requiredBalance: 1,
+  });
 
-      // Step 3: Track usage for BOTH global and per-organization features
-      await trackFeature({
-        userId,
-        featureId: 'traces',
-        value: 1,
-        idempotencyKey: `trace-${newTrace[0].id}-${Date.now()}`,
-      });
+  if (!featureCheck.allowed) {
+    return quotaExceeded('Trace deletion limit reached. Upgrade your plan to increase quota.', {
+      featureId: 'trace_deletion',
+      remaining: featureCheck.remaining ?? 0,
+    });
+  }
 
-      // Track per-organization trace usage
-      await trackFeature({
-        userId,
-        featureId: 'traces_per_project',
-        value: 1,
-        idempotencyKey: `trace-org-${organizationId}-${newTrace[0].id}-${Date.now()}`,
-      });
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
 
-      return NextResponse.json(newTrace[0], { status: 201 });
-    } catch (error) {
-      Sentry.captureException(error);
-      console.error('POST error:', error);
-      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
-  }, { customTier: 'free' });
-}
-
-export async function DELETE(request: NextRequest) {
-  return withRateLimit(request, async (req: NextRequest) => {
-    // Check authentication and feature allowance first
-    const featureCheck = await requireFeature(req, 'trace_deletion', 1);
-    
-    if (!featureCheck.allowed) {
-      // Convert Response to NextResponse
-      const responseData = await featureCheck.response.json();
-      return NextResponse.json(responseData, { 
-        status: featureCheck.response.status,
-        headers: Object.fromEntries(featureCheck.response.headers.entries())
-      });
+    if (!id || isNaN(parseInt(id))) {
+      return validationError('Valid ID is required');
     }
 
-    try {
-      const { searchParams } = new URL(req.url);
-      const id = searchParams.get('id');
+    const removed = await traceService.remove(ctx.organizationId, parseInt(id));
 
-      if (!id || isNaN(parseInt(id))) {
-        return NextResponse.json({ 
-          error: "Valid ID is required",
-          code: "INVALID_ID" 
-        }, { status: 400 });
-      }
-
-      // Scope delete by org
-      const authResult = await requireAuthWithOrg(req);
-      if (!authResult.authenticated) {
-        const data = await authResult.response.json();
-        return NextResponse.json(data, { status: authResult.response.status });
-      }
-
-      const existing = await db.select()
-        .from(traces)
-        .where(and(eq(traces.id, parseInt(id)), eq(traces.organizationId, authResult.organizationId)))
-        .limit(1);
-
-      if (existing.length === 0) {
-        return NextResponse.json({ 
-          error: 'Trace not found',
-          code: 'NOT_FOUND' 
-        }, { status: 404 });
-      }
-
-      await db.delete(traces)
-        .where(and(eq(traces.id, parseInt(id)), eq(traces.organizationId, authResult.organizationId)));
-
-      return NextResponse.json({ message: 'Trace deleted successfully' });
-    } catch (error) {
-      Sentry.captureException(error);
-      console.error('DELETE error:', error);
-      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    if (!removed) {
+      return notFound('Trace not found');
     }
-  }, { customTier: 'free' });
-}
+
+    return NextResponse.json({ message: 'Trace deleted successfully' });
+  } catch (error) {
+    Sentry.captureException(error);
+    return internalError();
+  }
+}, { rateLimit: 'free' });

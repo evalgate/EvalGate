@@ -2,7 +2,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { Duration } from "@upstash/ratelimit";
 
-type RateLimitTier = "free" | "pro" | "enterprise" | "anonymous";
+type RateLimitTier = "free" | "pro" | "enterprise" | "anonymous" | "mcp";
 
 // Rate limit configurations for different tiers (softer limits for better DX)
 const RATE_LIMITS: Record<RateLimitTier, { requests: number; window: Duration }> = {
@@ -10,6 +10,7 @@ const RATE_LIMITS: Record<RateLimitTier, { requests: number; window: Duration }>
   free: { requests: 200, window: '1 m' },
   pro: { requests: 1000, window: '1 m' },
   enterprise: { requests: 10000, window: '1 m' },
+  mcp: { requests: 100, window: '1 m' },
 };
 
 // Check if Redis is configured
