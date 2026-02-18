@@ -103,7 +103,7 @@ function printSummary(result: OpenAIChatEvalResult): void {
       console.log(`+ ${more} more`);
     }
     console.log('\nGate this in CI:');
-    console.log('  npx evalai init');
+    console.log('  npx -y @pauly4010/evalai-sdk@^1 init');
   } else {
     console.log('Tip: Want dashboards and history?');
     console.log('Set EVALAI_API_KEY and connect this to the platform.');

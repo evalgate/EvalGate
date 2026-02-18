@@ -27,7 +27,7 @@ You'll see: `PASS 2/2 (score: 100)`. No account required. Just a score.
 Create a config file:
 
 ```bash
-npx evalai init
+npx -y @pauly4010/evalai-sdk@^1 init
 ```
 
 Create an evaluation in the [dashboard](https://v0-ai-evaluation-platform-nu.vercel.app), then paste its ID into `evalai.config.json`:
@@ -40,11 +40,14 @@ Create an evaluation in the [dashboard](https://v0-ai-evaluation-platform-nu.ver
 
 Add to your CI workflow:
 
-```bash
-npx evalai check
+```yaml
+- name: EvalAI gate
+  env:
+    EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
+  run: npx -y @pauly4010/evalai-sdk@^1 check --format github --onFail import
 ```
 
-If your score drops below the baseline, CI fails. That's your regression gate.
+If your score drops below the baseline, CI fails. That's your regression gate. `--format github` gives annotations + step summary; `--onFail import` uploads failing runs to the dashboard for debugging.
 
 ## Remove anytime
 
@@ -60,15 +63,12 @@ Delete `evalai.config.json`. That's it.
 ## CLI Reference
 
 ```bash
-evalai init                    # Create evalai.config.json
-evalai check [options]         # Gate on quality score (reads config or --evaluationId)
-  --evaluationId <id>          # Evaluation to gate on (or from config)
-  --minScore <n>               # Fail if score < n (0-100)
-  --minN <n>                   # Fail if total test cases < n
-  --allowWeakEvidence          # Permit weak evidence level
-  --maxDrop <n>                # Fail if regression > n points
-  --policy <name>              # Enforce HIPAA, SOC2, GDPR, etc.
+npx -y @pauly4010/evalai-sdk@^1 init     # Create evalai.config.json
+npx -y @pauly4010/evalai-sdk@^1 check    # Gate on quality score (reads config or --evaluationId)
+npx -y @pauly4010/evalai-sdk@^1 doctor   # Verify CI setup
 ```
+
+**check options:** `--evaluationId`, `--minScore`, `--minN`, `--allowWeakEvidence`, `--maxDrop`, `--policy`, `--format github|json|human`, `--onFail import`, `--explain`
 
 ## CI Integration
 

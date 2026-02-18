@@ -20,6 +20,7 @@ import { importRunBodySchema } from '@/lib/validation';
 import { SCOPES } from '@/lib/auth/scopes';
 import { computeAndStoreQualityScore } from '@/lib/services/aggregate-metrics.service';
 import { logger } from '@/lib/logger';
+import { getRequestId } from '@/lib/api/request-id';
 
 export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
   const { id } = params;
@@ -32,7 +33,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, param
   const parsed = await parseBody(req, importRunBodySchema);
   if (!parsed.ok) return parsed.response;
 
-  const { environment, results, importClientVersion } = parsed.data;
+  const { environment, results, importClientVersion, ci } = parsed.data;
   const idempotencyKey = req.headers.get('Idempotency-Key') ?? req.headers.get('X-EvalAI-Idempotency-Key');
 
   // Verify evaluation exists and belongs to org
@@ -112,6 +113,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, param
   }
 
   const now = new Date().toISOString();
+  const requestId = getRequestId();
 
   // Create run (tagged as import for audit/debug; metadata in traceLog.import)
   const passedCount = results.filter((r) => r.status === 'passed').length;
@@ -121,6 +123,9 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, param
       source: 'import',
       importedAt: now,
       clientReportedVersion: importClientVersion ?? null,
+      ci: ci ?? undefined,
+      serverReceivedAt: now,
+      requestId,
     },
   });
 

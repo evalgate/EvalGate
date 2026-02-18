@@ -5,6 +5,40 @@ All notable changes to the @pauly4010/evalai-sdk package will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-02-18
+
+### ✨ Added
+
+#### evalai CLI — CI DevX
+
+- **`--format github`** — GitHub Actions annotations + step summary (`$GITHUB_STEP_SUMMARY`)
+- **`--format json`** — Machine-readable output only
+- **`--onFail import`** — On gate failure, import run metadata + failures to dashboard (idempotent per CI run)
+- **`--explain`** — Show score breakdown (contribPts) and thresholds
+- **`evalai doctor`** — Verify CI setup (config, API key, quality endpoint, baseline)
+- **Pinned CLI invocation** — Use `npx -y @pauly4010/evalai-sdk@^1` for stable CI (avoids surprise v2 breaks)
+
+#### Documentation
+
+- **README** — 3-section adoption flow: 60s local → optional CI gate → no lock-in
+- **Init output** — Shows path written, pinned snippet with `--format github --onFail import`
+- **openAIChatEval** — "Gate this in CI" hint uses pinned invocation
+
+### 🔧 Changed
+
+- **evalai init** — Output: "Wrote evalai.config.json at {path}", one next step, uninstall line
+- **Baseline missing** — Treated as config failure (BAD_ARGS), not API error
+- **parseArgs** — Returns `{ ok, args }` or `{ ok: false }` (no `process.exit` inside) for testability
+
+### 📦 Internal
+
+- Refactored `check.ts` into modules: `api.ts`, `gate.ts`, `report/build-check-report.ts`, `formatters/`
+- Deterministic helpers: `truncateSnippet`, `sortFailedCases`
+- Formatter tests: `json.test.ts`, `github.test.ts`
+- Doctor tests: `doctor.test.ts`
+
+---
+
 ## [1.4.1] - 2026-02-18
 
 ### ✨ Added

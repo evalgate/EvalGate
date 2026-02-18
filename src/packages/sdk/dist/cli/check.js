@@ -15,7 +15,7 @@
  *   --minN <n>           Fail if total test cases < n (low sample size)
  *   --allowWeakEvidence  If false (default), fail when evidenceLevel is 'weak'
  *   --policy <name>      Enforce a compliance policy (e.g. HIPAA, SOC2, GDPR)
- *   --baseline <mode>    Baseline comparison mode: "published" (default), "previous", or "production"
+ *   --baseline <mode>   Baseline comparison mode: "published" (default), "previous", or "production"
  *   --evaluationId <id>  Required. The evaluation to gate on.
  *   --baseUrl <url>      API base URL (default: EVALAI_BASE_URL or http://localhost:3000)
  *   --apiKey <key>       API key (default: EVALAI_API_KEY env var)
@@ -38,17 +38,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EXIT = void 0;
 exports.parseArgs = parseArgs;
 exports.runCheck = runCheck;
-// Standardized exit codes
-exports.EXIT = {
-    PASS: 0,
-    SCORE_BELOW: 1,
-    REGRESSION: 2,
-    POLICY_VIOLATION: 3,
-    API_ERROR: 4,
-    BAD_ARGS: 5,
-    LOW_N: 6,
-    WEAK_EVIDENCE: 7,
-};
+const config_1 = require("./config");
+const api_1 = require("./api");
+const ci_context_1 = require("./ci-context");
+const gate_1 = require("./gate");
+const build_check_report_1 = require("./report/build-check-report");
+const human_1 = require("./formatters/human");
+const json_1 = require("./formatters/json");
+const github_1 = require("./formatters/github");
+const constants_1 = require("./constants");
+var constants_2 = require("./constants");
+Object.defineProperty(exports, "EXIT", { enumerable: true, get: function () { return constants_2.EXIT; } });
 function parseArgs(argv) {
     const args = {};
     for (let i = 0; i < argv.length; i++) {
@@ -61,157 +61,134 @@ function parseArgs(argv) {
                 i++;
             }
             else {
-                args[key] = 'true'; // bare flag
+                args[key] = 'true';
             }
         }
     }
-    const baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || 'http://localhost:3000';
+    let baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || 'http://localhost:3000';
     const apiKey = args.apiKey || process.env.EVALAI_API_KEY || '';
-    const minScore = parseInt(args.minScore || '0');
+    let minScore = parseInt(args.minScore || '0');
     const maxDrop = args.maxDrop ? parseInt(args.maxDrop) : undefined;
-    const minN = args.minN ? parseInt(args.minN) : undefined;
-    const allowWeakEvidence = args.allowWeakEvidence === 'true' || args.allowWeakEvidence === '1';
-    const evaluationId = args.evaluationId || '';
+    let minN = args.minN ? parseInt(args.minN) : undefined;
+    let allowWeakEvidence = args.allowWeakEvidence === 'true' || args.allowWeakEvidence === '1';
+    let evaluationId = args.evaluationId || '';
     const policy = args.policy || undefined;
-    const baseline = (args.baseline === 'previous'
+    const formatRaw = args.format || 'human';
+    const format = formatRaw === 'json' ? 'json' : formatRaw === 'github' ? 'github' : 'human';
+    const explain = args.explain === 'true' || args.explain === '1';
+    const onFail = args.onFail === 'import' ? 'import' : undefined;
+    let baseline = (args.baseline === 'previous'
         ? 'previous'
         : args.baseline === 'production'
             ? 'production'
             : 'published');
+    if (!evaluationId) {
+        const config = (0, config_1.loadConfig)(process.cwd());
+        const merged = (0, config_1.mergeConfigWithArgs)(config, {
+            evaluationId: args.evaluationId,
+            baseUrl: args.baseUrl || process.env.EVALAI_BASE_URL,
+            minScore: args.minScore,
+            minN: args.minN,
+            allowWeakEvidence: args.allowWeakEvidence,
+            baseline: args.baseline,
+        });
+        if (merged.evaluationId)
+            evaluationId = merged.evaluationId;
+        if (merged.baseUrl)
+            baseUrl = merged.baseUrl;
+        if (merged.minScore != null && !args.minScore)
+            minScore = merged.minScore ?? 0;
+        if (merged.minN != null && !args.minN)
+            minN = merged.minN;
+        if (merged.allowWeakEvidence != null && !args.allowWeakEvidence)
+            allowWeakEvidence = merged.allowWeakEvidence ?? false;
+        if (merged.baseline && !args.baseline)
+            baseline = merged.baseline;
+    }
     if (!apiKey) {
-        console.error('Error: --apiKey or EVALAI_API_KEY is required');
-        process.exit(exports.EXIT.BAD_ARGS);
+        return { ok: false, exitCode: constants_1.EXIT.BAD_ARGS, message: 'Error: --apiKey or EVALAI_API_KEY is required' };
     }
     if (!evaluationId) {
-        console.error('Error: --evaluationId is required');
-        process.exit(exports.EXIT.BAD_ARGS);
+        return { ok: false, exitCode: constants_1.EXIT.BAD_ARGS, message: 'Run npx evalai init and paste your evaluationId, or pass --evaluationId.' };
     }
     if (isNaN(minScore) || minScore < 0 || minScore > 100) {
-        console.error('Error: --minScore must be 0-100');
-        process.exit(exports.EXIT.BAD_ARGS);
+        return { ok: false, exitCode: constants_1.EXIT.BAD_ARGS, message: 'Error: --minScore must be 0-100' };
     }
     if (minN !== undefined && (isNaN(minN) || minN < 1)) {
-        console.error('Error: --minN must be a positive number');
-        process.exit(exports.EXIT.BAD_ARGS);
+        return { ok: false, exitCode: constants_1.EXIT.BAD_ARGS, message: 'Error: --minN must be a positive number' };
     }
-    return { baseUrl, apiKey, minScore, maxDrop, minN, allowWeakEvidence, evaluationId, policy, baseline };
+    return {
+        ok: true,
+        args: { baseUrl, apiKey, minScore, maxDrop, minN, allowWeakEvidence, evaluationId, policy, baseline, format, explain, onFail },
+    };
 }
 async function runCheck(args) {
-    const headers = { Authorization: `Bearer ${args.apiKey}` };
-    // ── 1. Fetch latest quality score ──
-    const scoreUrl = `${args.baseUrl}/api/quality?evaluationId=${args.evaluationId}&action=latest&baseline=${args.baseline}`;
-    let scoreRes;
-    try {
-        scoreRes = await fetch(scoreUrl, { headers });
-    }
-    catch (err) {
-        console.error(`EvalAI gate ERROR: Network failure — ${err.message}`);
-        return exports.EXIT.API_ERROR;
-    }
-    if (!scoreRes.ok) {
-        const body = await scoreRes.text();
-        console.error(`EvalAI gate ERROR: API returned ${scoreRes.status} — ${body}`);
-        return exports.EXIT.API_ERROR;
-    }
-    const data = (await scoreRes.json());
-    const score = data?.score ?? 0;
-    const total = data?.total ?? null;
-    const evidenceLevel = data?.evidenceLevel ?? null;
-    const baselineScore = data?.baselineScore ?? null;
-    const regressionDelta = data?.regressionDelta ?? null;
-    const baselineMissing = data?.baselineMissing === true;
-    const breakdown = data?.breakdown ?? {};
-    // ── Gate: baseline missing (when baseline comparison requested) ──
-    if (baselineMissing && (args.baseline !== 'published' || args.maxDrop !== undefined)) {
-        const msg = args.baseline === 'production'
-            ? `\n✗ FAILED: No prod runs exist for this evaluation. Tag runs with environment=prod before using --baseline production.`
-            : `\n✗ FAILED: baseline (${args.baseline}) not found. Ensure a baseline run exists (e.g. published run, previous run, or prod-tagged run).`;
-        console.error(msg);
-        return exports.EXIT.API_ERROR;
-    }
-    // ── Gate: minN (low sample size) ──
-    if (args.minN !== undefined && total !== null && total < args.minN) {
-        console.error(`\n✗ FAILED: total test cases (${total}) < minN (${args.minN})`);
-        return exports.EXIT.LOW_N;
-    }
-    // ── Gate: allowWeakEvidence ──
-    if (!args.allowWeakEvidence && evidenceLevel === 'weak') {
-        console.error(`\n✗ FAILED: evidence level is 'weak' (use --allowWeakEvidence to permit)`);
-        return exports.EXIT.WEAK_EVIDENCE;
-    }
-    // ── Print summary ──
-    console.log('┌─────────────────────────────────────────┐');
-    console.log(`│  EvalAI Quality Score: ${String(score).padStart(3)}/100            │`);
-    console.log('├─────────────────────────────────────────┤');
-    if (baselineScore !== null) {
-        const delta = regressionDelta ?? 0;
-        const arrow = delta >= 0 ? '▲' : '▼';
-        console.log(`│  Baseline: ${baselineScore}  ${arrow} ${Math.abs(delta)} pts          │`);
-    }
-    if (breakdown) {
-        const pct = (v) => `${Math.round((v ?? 0) * 100)}%`;
-        console.log(`│  Pass: ${pct(breakdown.passRate)}  Safety: ${pct(breakdown.safety)}  Judge: ${pct(breakdown.judge)} │`);
-    }
-    if (data?.flags && data.flags.length > 0) {
-        console.log(`│  Flags: ${data.flags.join(', ').padEnd(30)} │`);
-    }
-    console.log('└─────────────────────────────────────────┘');
-    // ── 2. Gate: minimum score ──
-    if (args.minScore > 0 && score < args.minScore) {
-        console.error(`\n✗ FAILED: score=${score} < minScore=${args.minScore}`);
-        return exports.EXIT.SCORE_BELOW;
-    }
-    // ── 3. Gate: maximum drop from baseline ──
-    if (args.maxDrop !== undefined && regressionDelta !== null && regressionDelta < -(args.maxDrop)) {
-        console.error(`\n✗ FAILED: score dropped ${Math.abs(regressionDelta)} pts from baseline ` +
-            `(max allowed: ${args.maxDrop})`);
-        return exports.EXIT.REGRESSION;
-    }
-    // ── 4. Gate: policy compliance ──
-    if (args.policy) {
-        const policyUrl = `${args.baseUrl}/api/quality?evaluationId=${args.evaluationId}&action=latest`;
-        // Check policy-specific flags
-        const policyFlags = (data?.flags ?? []);
-        // Policy mapping: each policy has a set of required conditions
-        const policyChecks = {
-            HIPAA: { requiredSafetyRate: 0.99, maxFlags: ['SAFETY_RISK'] },
-            SOC2: { requiredSafetyRate: 0.95, maxFlags: ['SAFETY_RISK', 'LOW_PASS_RATE'] },
-            GDPR: { requiredSafetyRate: 0.95, maxFlags: ['SAFETY_RISK'] },
-            PCI_DSS: { requiredSafetyRate: 0.99, maxFlags: ['SAFETY_RISK', 'LOW_PASS_RATE'] },
-            FINRA_4511: { requiredSafetyRate: 0.95, maxFlags: ['SAFETY_RISK'] },
-        };
-        const policyName = args.policy.toUpperCase();
-        const check = policyChecks[policyName];
-        if (!check) {
-            console.error(`\n✗ Unknown policy: ${args.policy}. Available: ${Object.keys(policyChecks).join(', ')}`);
-            return exports.EXIT.BAD_ARGS;
+    const qualityResult = await (0, api_1.fetchQualityLatest)(args.baseUrl, args.apiKey, args.evaluationId, args.baseline);
+    if (!qualityResult.ok) {
+        if (qualityResult.status === 0) {
+            console.error(`EvalAI gate ERROR: Network failure — ${qualityResult.body}`);
         }
-        // Check safety rate
-        const safetyRate = breakdown?.safety ?? 0;
-        if (safetyRate < check.requiredSafetyRate) {
-            console.error(`\n✗ POLICY VIOLATION (${policyName}): safety rate ${Math.round(safetyRate * 100)}% < ` +
-                `required ${Math.round(check.requiredSafetyRate * 100)}%`);
-            return exports.EXIT.POLICY_VIOLATION;
+        else {
+            console.error(`EvalAI gate ERROR: API returned ${qualityResult.status} — ${qualityResult.body}`);
         }
-        // Check for disqualifying flags
-        const violations = policyFlags.filter(f => check.maxFlags.includes(f));
-        if (violations.length > 0) {
-            console.error(`\n✗ POLICY VIOLATION (${policyName}): ${violations.join(', ')}`);
-            return exports.EXIT.POLICY_VIOLATION;
-        }
-        console.log(`\n✓ Policy ${policyName}: COMPLIANT`);
+        return constants_1.EXIT.API_ERROR;
     }
-    console.log('\n✓ EvalAI gate PASSED');
-    return exports.EXIT.PASS;
+    const { data: quality, requestId } = qualityResult;
+    const evaluationRunId = quality?.evaluationRunId;
+    let runDetails = null;
+    if (evaluationRunId != null) {
+        const runRes = await (0, api_1.fetchRunDetails)(args.baseUrl, args.apiKey, args.evaluationId, evaluationRunId);
+        if (runRes.ok)
+            runDetails = runRes.data;
+    }
+    const gateResult = (0, gate_1.evaluateGate)(args, quality);
+    const report = (0, build_check_report_1.buildCheckReport)({
+        args,
+        quality,
+        runDetails,
+        gateResult,
+        requestId,
+    });
+    const formatted = args.format === 'json'
+        ? (0, json_1.formatJson)(report)
+        : args.format === 'github'
+            ? (0, github_1.formatGitHub)(report)
+            : (0, human_1.formatHuman)(report);
+    console.log(formatted);
+    // --onFail import: when gate fails, import run with CI context
+    if (!gateResult.passed && args.onFail === 'import' && runDetails?.results && quality?.evaluationRunId) {
+        const importResults = runDetails.results
+            .filter((r) => r.testCaseId != null && (r.status === 'passed' || r.status === 'failed'))
+            .map((r) => ({
+            testCaseId: r.testCaseId,
+            status: r.status,
+            output: r.output ?? '',
+            latencyMs: r.durationMs,
+            assertionsJson: r.assertionsJson,
+        }));
+        if (importResults.length > 0) {
+            const ci = (0, ci_context_1.captureCiContext)();
+            const idempotencyKey = ci ? (0, ci_context_1.computeIdempotencyKey)(args.evaluationId, ci) : undefined;
+            const importRes = await (0, api_1.importRunOnFail)(args.baseUrl, args.apiKey, args.evaluationId, importResults, { idempotencyKey, ci, importClientVersion: 'evalai-cli' });
+            if (!importRes.ok) {
+                console.error(`EvalAI import (onFail): ${importRes.status} — ${importRes.body}`);
+            }
+        }
+    }
+    return gateResult.exitCode;
 }
 // Main entry point
 const isDirectRun = typeof require !== 'undefined' && require.main === module;
 if (isDirectRun) {
-    const args = parseArgs(process.argv.slice(2));
-    runCheck(args).then((code) => {
-        process.exit(code);
-    }).catch((err) => {
-        console.error(`EvalAI gate ERROR: ${err.message}`);
-        process.exit(exports.EXIT.API_ERROR);
+    const parsed = parseArgs(process.argv.slice(2));
+    if (!parsed.ok) {
+        console.error(parsed.message);
+        process.exit(parsed.exitCode);
+    }
+    runCheck(parsed.args)
+        .then((code) => process.exit(code))
+        .catch((err) => {
+        console.error(`EvalAI gate ERROR: ${err instanceof Error ? err.message : String(err)}`);
+        process.exit(constants_1.EXIT.API_ERROR);
     });
 }

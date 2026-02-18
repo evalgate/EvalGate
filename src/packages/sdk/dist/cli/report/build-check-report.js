@@ -1,0 +1,94 @@
+"use strict";
+/**
+ * Build CheckReport from API data and gate result.
+ * Normalizes failed cases (truncate, sort), dashboard URL, top N + more.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.buildCheckReport = buildCheckReport;
+const snippet_1 = require("../render/snippet");
+const sort_1 = require("../render/sort");
+const TOP_N = 3;
+/** ContribPts from weights: passRate*50, safety*25, (0.6*judge+0.4*schema)*15, (0.6*latency+0.4*cost)*10 */
+function computeContribPts(b) {
+    const pr = b.passRate ?? 0;
+    const s = b.safety ?? 0;
+    const j = b.judge ?? 0;
+    const sc = b.schema ?? 0;
+    const l = b.latency ?? 0;
+    const c = b.cost ?? 0;
+    return {
+        passRatePts: Math.round(pr * 50 * 10) / 10,
+        safetyPts: Math.round(s * 25 * 10) / 10,
+        compliancePts: Math.round((0.6 * j + 0.4 * sc) * 15 * 10) / 10,
+        performancePts: Math.round((0.6 * l + 0.4 * c) * 10 * 10) / 10,
+    };
+}
+const SNIPPET_MAX = 50;
+function buildCheckReport(input) {
+    const { args, quality, runDetails, gateResult, requestId } = input;
+    const score = quality?.score ?? 0;
+    const total = quality?.total ?? null;
+    const baselineScore = quality?.baselineScore ?? null;
+    const regressionDelta = quality?.regressionDelta ?? null;
+    const evaluationRunId = quality?.evaluationRunId;
+    const breakdown = quality?.breakdown ?? {};
+    const flags = (quality?.flags ?? []);
+    const baseUrl = args.baseUrl.replace(/\/$/, '');
+    const dashboardUrl = evaluationRunId != null
+        ? `${baseUrl}/evaluations/${args.evaluationId}/runs/${evaluationRunId}`
+        : undefined;
+    // Build failed cases from run details
+    let failedCases = [];
+    if (runDetails?.results && evaluationRunId != null) {
+        const raw = runDetails.results
+            .filter((r) => r.status === 'failed')
+            .map((r) => ({
+            testCaseId: r.testCaseId,
+            status: 'failed',
+            name: r.test_cases?.name,
+            input: r.test_cases?.input,
+            expectedOutput: r.test_cases?.expectedOutput,
+            output: r.output,
+        }));
+        failedCases = (0, sort_1.sortFailedCases)(raw).map((fc) => ({
+            ...fc,
+            inputSnippet: (0, snippet_1.truncateSnippet)(fc.input, SNIPPET_MAX),
+            expectedSnippet: (0, snippet_1.truncateSnippet)(fc.expectedOutput, SNIPPET_MAX),
+            outputSnippet: (0, snippet_1.truncateSnippet)(fc.output, SNIPPET_MAX),
+        }));
+    }
+    const failedCasesShown = Math.min(failedCases.length, TOP_N);
+    const failedCasesMore = failedCases.length - failedCasesShown;
+    const breakdown01 = Object.keys(breakdown).length > 0 ? breakdown : undefined;
+    const contribPts = args.explain && breakdown01 ? computeContribPts(breakdown01) : undefined;
+    const report = {
+        evaluationId: args.evaluationId,
+        runId: evaluationRunId,
+        verdict: gateResult.passed ? 'pass' : 'fail',
+        reasonCode: gateResult.reasonCode,
+        reasonMessage: gateResult.reasonMessage ?? undefined,
+        score,
+        baselineScore: baselineScore ?? undefined,
+        delta: regressionDelta ?? undefined,
+        n: total ?? undefined,
+        evidenceLevel: quality?.evidenceLevel ?? undefined,
+        baselineMissing: quality?.baselineMissing === true,
+        flags: flags.length > 0 ? [...flags].sort() : undefined,
+        breakdown01,
+        contribPts,
+        thresholds: {
+            minScore: args.minScore,
+            maxDrop: args.maxDrop,
+            minN: args.minN,
+            allowWeakEvidence: args.allowWeakEvidence,
+            baseline: args.baseline,
+        },
+        dashboardUrl,
+        failedCases,
+        failedCasesShown: failedCases.length > 0 ? failedCasesShown : undefined,
+        failedCasesMore: failedCasesMore > 0 ? failedCasesMore : undefined,
+        requestId,
+        explain: args.explain,
+    };
+    return report;
+}

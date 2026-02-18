@@ -14,7 +14,7 @@
  *   --minN <n>           Fail if total test cases < n (low sample size)
  *   --allowWeakEvidence  If false (default), fail when evidenceLevel is 'weak'
  *   --policy <name>      Enforce a compliance policy (e.g. HIPAA, SOC2, GDPR)
- *   --baseline <mode>    Baseline comparison mode: "published" (default), "previous", or "production"
+ *   --baseline <mode>   Baseline comparison mode: "published" (default), "previous", or "production"
  *   --evaluationId <id>  Required. The evaluation to gate on.
  *   --baseUrl <url>      API base URL (default: EVALAI_BASE_URL or http://localhost:3000)
  *   --apiKey <key>       API key (default: EVALAI_API_KEY env var)
@@ -33,16 +33,8 @@
  *   EVALAI_BASE_URL  — API base URL (default: http://localhost:3000)
  *   EVALAI_API_KEY   — API key for authentication
  */
-export declare const EXIT: {
-    readonly PASS: 0;
-    readonly SCORE_BELOW: 1;
-    readonly REGRESSION: 2;
-    readonly POLICY_VIOLATION: 3;
-    readonly API_ERROR: 4;
-    readonly BAD_ARGS: 5;
-    readonly LOW_N: 6;
-    readonly WEAK_EVIDENCE: 7;
-};
+export { EXIT } from './constants';
+export type FormatType = 'human' | 'json' | 'github';
 export interface CheckArgs {
     baseUrl: string;
     apiKey: string;
@@ -53,6 +45,17 @@ export interface CheckArgs {
     evaluationId: string;
     policy?: string;
     baseline: 'published' | 'previous' | 'production';
+    format: FormatType;
+    explain: boolean;
+    onFail?: 'import';
 }
-export declare function parseArgs(argv: string[]): CheckArgs;
+export type ParseArgsResult = {
+    ok: true;
+    args: CheckArgs;
+} | {
+    ok: false;
+    exitCode: number;
+    message: string;
+};
+export declare function parseArgs(argv: string[]): ParseArgsResult;
 export declare function runCheck(args: CheckArgs): Promise<number>;

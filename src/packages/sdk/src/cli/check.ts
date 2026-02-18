@@ -15,7 +15,7 @@
  *   --minN <n>           Fail if total test cases < n (low sample size)
  *   --allowWeakEvidence  If false (default), fail when evidenceLevel is 'weak'
  *   --policy <name>      Enforce a compliance policy (e.g. HIPAA, SOC2, GDPR)
- *   --baseline <mode>    Baseline comparison mode: "published" (default), "previous", or "production"
+ *   --baseline <mode>   Baseline comparison mode: "published" (default), "previous", or "production"
  *   --evaluationId <id>  Required. The evaluation to gate on.
  *   --baseUrl <url>      API base URL (default: EVALAI_BASE_URL or http://localhost:3000)
  *   --apiKey <key>       API key (default: EVALAI_API_KEY env var)
@@ -35,19 +35,19 @@
  *   EVALAI_API_KEY   — API key for authentication
  */
 
-// Standardized exit codes
-export const EXIT = {
-  PASS: 0,
-  SCORE_BELOW: 1,
-  REGRESSION: 2,
-  POLICY_VIOLATION: 3,
-  API_ERROR: 4,
-  BAD_ARGS: 5,
-  LOW_N: 6,
-  WEAK_EVIDENCE: 7,
-} as const;
-
 import { loadConfig, mergeConfigWithArgs } from './config';
+import { fetchQualityLatest, fetchRunDetails, importRunOnFail, type ImportResult } from './api';
+import { captureCiContext, computeIdempotencyKey } from './ci-context';
+import { evaluateGate } from './gate';
+import { buildCheckReport } from './report/build-check-report';
+import { formatHuman } from './formatters/human';
+import { formatJson } from './formatters/json';
+import { formatGitHub } from './formatters/github';
+import { EXIT } from './constants';
+
+export { EXIT } from './constants';
+
+export type FormatType = 'human' | 'json' | 'github';
 
 export interface CheckArgs {
   baseUrl: string;
@@ -59,9 +59,16 @@ export interface CheckArgs {
   evaluationId: string;
   policy?: string;
   baseline: 'published' | 'previous' | 'production';
+  format: FormatType;
+  explain: boolean;
+  onFail?: 'import';
 }
 
-export function parseArgs(argv: string[]): CheckArgs {
+export type ParseArgsResult =
+  | { ok: true; args: CheckArgs }
+  | { ok: false; exitCode: number; message: string };
+
+export function parseArgs(argv: string[]): ParseArgsResult {
   const args: Record<string, string> = {};
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -72,7 +79,7 @@ export function parseArgs(argv: string[]): CheckArgs {
         args[key] = next;
         i++;
       } else {
-        args[key] = 'true'; // bare flag
+        args[key] = 'true';
       }
     }
   }
@@ -85,6 +92,11 @@ export function parseArgs(argv: string[]): CheckArgs {
   let allowWeakEvidence = args.allowWeakEvidence === 'true' || args.allowWeakEvidence === '1';
   let evaluationId = args.evaluationId || '';
   const policy = args.policy || undefined;
+  const formatRaw = args.format || 'human';
+  const format: CheckArgs['format'] =
+    formatRaw === 'json' ? 'json' : formatRaw === 'github' ? 'github' : 'human';
+  const explain = args.explain === 'true' || args.explain === '1';
+  const onFail = args.onFail === 'import' ? 'import' as const : undefined;
   let baseline = (
     args.baseline === 'previous'
       ? 'previous'
@@ -93,7 +105,6 @@ export function parseArgs(argv: string[]): CheckArgs {
         : 'published'
   ) as CheckArgs['baseline'];
 
-  // Load config when evaluationId not provided. Priority: CLI flags > config > defaults
   if (!evaluationId) {
     const config = loadConfig(process.cwd());
     const merged = mergeConfigWithArgs(config, {
@@ -106,211 +117,125 @@ export function parseArgs(argv: string[]): CheckArgs {
     });
     if (merged.evaluationId) evaluationId = merged.evaluationId;
     if (merged.baseUrl) baseUrl = merged.baseUrl;
-    if (merged.minScore != null && !args.minScore) minScore = merged.minScore;
+    if (merged.minScore != null && !args.minScore) minScore = merged.minScore ?? 0;
     if (merged.minN != null && !args.minN) minN = merged.minN;
-    if (merged.allowWeakEvidence != null && !args.allowWeakEvidence) allowWeakEvidence = merged.allowWeakEvidence;
+    if (merged.allowWeakEvidence != null && !args.allowWeakEvidence) allowWeakEvidence = merged.allowWeakEvidence ?? false;
     if (merged.baseline && !args.baseline) baseline = merged.baseline;
   }
 
   if (!apiKey) {
-    console.error('Error: --apiKey or EVALAI_API_KEY is required');
-    process.exit(EXIT.BAD_ARGS);
+    return { ok: false, exitCode: EXIT.BAD_ARGS, message: 'Error: --apiKey or EVALAI_API_KEY is required' };
   }
 
   if (!evaluationId) {
-    console.error('Run npx evalai init and paste your evaluationId, or pass --evaluationId.');
-    process.exit(EXIT.BAD_ARGS);
+    return { ok: false, exitCode: EXIT.BAD_ARGS, message: 'Run npx evalai init and paste your evaluationId, or pass --evaluationId.' };
   }
 
   if (isNaN(minScore) || minScore < 0 || minScore > 100) {
-    console.error('Error: --minScore must be 0-100');
-    process.exit(EXIT.BAD_ARGS);
+    return { ok: false, exitCode: EXIT.BAD_ARGS, message: 'Error: --minScore must be 0-100' };
   }
 
   if (minN !== undefined && (isNaN(minN) || minN < 1)) {
-    console.error('Error: --minN must be a positive number');
-    process.exit(EXIT.BAD_ARGS);
+    return { ok: false, exitCode: EXIT.BAD_ARGS, message: 'Error: --minN must be a positive number' };
   }
 
-  return { baseUrl, apiKey, minScore, maxDrop, minN, allowWeakEvidence, evaluationId, policy, baseline };
+  return {
+    ok: true,
+    args: { baseUrl, apiKey, minScore, maxDrop, minN, allowWeakEvidence, evaluationId, policy, baseline, format, explain, onFail },
+  };
 }
 
 export async function runCheck(args: CheckArgs): Promise<number> {
-  const headers = { Authorization: `Bearer ${args.apiKey}` };
+  const qualityResult = await fetchQualityLatest(
+    args.baseUrl,
+    args.apiKey,
+    args.evaluationId,
+    args.baseline
+  );
 
-  // ── 1. Fetch latest quality score ──
-  const scoreUrl = `${args.baseUrl}/api/quality?evaluationId=${args.evaluationId}&action=latest&baseline=${args.baseline}`;
-  let scoreRes: Response;
-  try {
-    scoreRes = await fetch(scoreUrl, { headers });
-  } catch (err: any) {
-    console.error(`EvalAI gate ERROR: Network failure — ${err.message}`);
-    return EXIT.API_ERROR;
-  }
-
-  if (!scoreRes.ok) {
-    const body = await scoreRes.text();
-    console.error(`EvalAI gate ERROR: API returned ${scoreRes.status} — ${body}`);
-    return EXIT.API_ERROR;
-  }
-
-  const data = (await scoreRes.json()) as {
-    score?: number;
-    total?: number | null;
-    evidenceLevel?: string | null;
-    baselineScore?: number | null;
-    regressionDelta?: number | null;
-    baselineMissing?: boolean | null;
-    breakdown?: { passRate?: number; safety?: number; judge?: number };
-    flags?: string[];
-    evaluationRunId?: number;
-    evaluationId?: number;
-  };
-  const score: number = data?.score ?? 0;
-  const total: number | null = data?.total ?? null;
-  const evidenceLevel: string | null = data?.evidenceLevel ?? null;
-  const baselineScore: number | null = data?.baselineScore ?? null;
-  const regressionDelta: number | null = data?.regressionDelta ?? null;
-  const baselineMissing: boolean = data?.baselineMissing === true;
-  const breakdown = data?.breakdown ?? {};
-  const evaluationRunId = data?.evaluationRunId;
-  const evalId = args.evaluationId;
-
-  // ── 2. Fetch run details for failed cases + dashboard link (when evaluationRunId present) ──
-  type FailedCase = { name?: string; input?: string; expectedOutput?: string; output?: string };
-  let failedCases: FailedCase[] = [];
-  let dashboardUrl: string | null = null;
-
-  if (evaluationRunId != null) {
-    dashboardUrl = `${args.baseUrl.replace(/\/$/, '')}/evaluations/${evalId}/runs/${evaluationRunId}`;
-    try {
-      const runUrl = `${args.baseUrl}/api/evaluations/${evalId}/runs/${evaluationRunId}`;
-      const runRes = await fetch(runUrl, { headers });
-      if (runRes.ok) {
-        const runData = (await runRes.json()) as {
-          results?: Array<{
-            status?: string;
-            output?: string;
-            test_cases?: { name?: string; input?: string; expectedOutput?: string };
-          }>;
-        };
-        const results = runData?.results ?? [];
-        failedCases = results
-          .filter((r) => r.status === 'failed')
-          .map((r) => ({
-            name: r.test_cases?.name,
-            input: r.test_cases?.input,
-            expectedOutput: r.test_cases?.expectedOutput,
-            output: r.output,
-          }));
-      }
-    } catch {
-      // Non-fatal: we still have score and dashboard URL
-    }
-  }
-
-  // ── Gate: baseline missing (when baseline comparison requested) ──
-  if (baselineMissing && (args.baseline !== 'published' || args.maxDrop !== undefined)) {
-    const msg =
-      args.baseline === 'production'
-        ? `\n✗ FAILED: No prod runs exist for this evaluation. Tag runs with environment=prod before using --baseline production.`
-        : `\n✗ FAILED: baseline (${args.baseline}) not found. Ensure a baseline run exists (e.g. published run, previous run, or prod-tagged run).`;
-    console.error(msg);
-    return EXIT.API_ERROR;
-  }
-
-  // ── Gate: minN (low sample size) ──
-  if (args.minN !== undefined && total !== null && total < args.minN) {
-    console.error(`\n✗ FAILED: total test cases (${total}) < minN (${args.minN})`);
-    return EXIT.LOW_N;
-  }
-
-  // ── Gate: allowWeakEvidence ──
-  if (!args.allowWeakEvidence && evidenceLevel === 'weak') {
-    console.error(`\n✗ FAILED: evidence level is 'weak' (use --allowWeakEvidence to permit)`);
-    return EXIT.WEAK_EVIDENCE;
-  }
-
-  // ── Compute gate result (before printing, for deterministic output order) ──
-  let exitCode: number = EXIT.PASS;
-  let failReason: string | null = null;
-
-  if (args.minScore > 0 && score < args.minScore) {
-    exitCode = EXIT.SCORE_BELOW;
-    failReason = `score ${score} < minScore ${args.minScore}`;
-  } else if (args.maxDrop !== undefined && regressionDelta !== null && regressionDelta < -(args.maxDrop)) {
-    exitCode = EXIT.REGRESSION;
-    failReason = `score dropped ${Math.abs(regressionDelta)} pts from baseline (max allowed: ${args.maxDrop})`;
-  } else if (args.policy) {
-    const policyFlags = (data?.flags ?? []) as string[];
-    const policyChecks: Record<string, { requiredSafetyRate: number; maxFlags: string[] }> = {
-      HIPAA: { requiredSafetyRate: 0.99, maxFlags: ['SAFETY_RISK'] },
-      SOC2: { requiredSafetyRate: 0.95, maxFlags: ['SAFETY_RISK', 'LOW_PASS_RATE'] },
-      GDPR: { requiredSafetyRate: 0.95, maxFlags: ['SAFETY_RISK'] },
-      PCI_DSS: { requiredSafetyRate: 0.99, maxFlags: ['SAFETY_RISK', 'LOW_PASS_RATE'] },
-      FINRA_4511: { requiredSafetyRate: 0.95, maxFlags: ['SAFETY_RISK'] },
-    };
-    const policyName = args.policy.toUpperCase();
-    const check = policyChecks[policyName];
-    if (!check) {
-      console.error(`\n✗ Unknown policy: ${args.policy}. Available: ${Object.keys(policyChecks).join(', ')}`);
-      return EXIT.BAD_ARGS;
-    }
-    const safetyRate = breakdown?.safety ?? 0;
-    if (safetyRate < check.requiredSafetyRate) {
-      exitCode = EXIT.POLICY_VIOLATION;
-      failReason = `policy ${policyName}: safety ${Math.round(safetyRate * 100)}% < required ${Math.round(check.requiredSafetyRate * 100)}%`;
+  if (!qualityResult.ok) {
+    if (qualityResult.status === 0) {
+      console.error(`EvalAI gate ERROR: Network failure — ${qualityResult.body}`);
     } else {
-      const violations = policyFlags.filter((f) => check.maxFlags.includes(f));
-      if (violations.length > 0) {
-        exitCode = EXIT.POLICY_VIOLATION;
-        failReason = `policy ${policyName}: ${violations.join(', ')}`;
+      console.error(`EvalAI gate ERROR: API returned ${qualityResult.status} — ${qualityResult.body}`);
+    }
+    return EXIT.API_ERROR;
+  }
+
+  const { data: quality, requestId } = qualityResult;
+  const evaluationRunId = quality?.evaluationRunId;
+
+  let runDetails: import('./api').RunDetailsData | null = null;
+  if (evaluationRunId != null) {
+    const runRes = await fetchRunDetails(
+      args.baseUrl,
+      args.apiKey,
+      args.evaluationId,
+      evaluationRunId
+    );
+    if (runRes.ok) runDetails = runRes.data;
+  }
+
+  const gateResult = evaluateGate(args, quality);
+
+  const report = buildCheckReport({
+    args,
+    quality,
+    runDetails,
+    gateResult,
+    requestId,
+  });
+
+  const formatted =
+    args.format === 'json'
+      ? formatJson(report)
+      : args.format === 'github'
+        ? formatGitHub(report)
+        : formatHuman(report);
+  console.log(formatted);
+
+  // --onFail import: when gate fails, import run with CI context
+  if (!gateResult.passed && args.onFail === 'import' && runDetails?.results && quality?.evaluationRunId) {
+    const importResults: ImportResult[] = runDetails.results
+      .filter((r) => r.testCaseId != null && (r.status === 'passed' || r.status === 'failed'))
+      .map((r) => ({
+        testCaseId: r.testCaseId!,
+        status: r.status as 'passed' | 'failed',
+        output: r.output ?? '',
+        latencyMs: r.durationMs,
+        assertionsJson: r.assertionsJson,
+      }));
+    if (importResults.length > 0) {
+      const ci = captureCiContext();
+      const idempotencyKey = ci ? computeIdempotencyKey(args.evaluationId, ci) : undefined;
+      const importRes = await importRunOnFail(
+        args.baseUrl,
+        args.apiKey,
+        args.evaluationId,
+        importResults,
+        { idempotencyKey, ci, importClientVersion: 'evalai-cli' }
+      );
+      if (!importRes.ok) {
+        console.error(`EvalAI import (onFail): ${importRes.status} — ${importRes.body}`);
       }
     }
   }
 
-  // ── Print deterministic, copy-pastable output (verdict → score → failures → link → hint) ──
-  const passed = exitCode === EXIT.PASS;
-  console.log(passed ? '\n✓ EvalAI gate PASSED' : `\n✗ EvalAI gate FAILED: ${failReason}`);
-  const deltaStr =
-    baselineScore !== null && regressionDelta !== null
-      ? ` (baseline ${baselineScore}, ${regressionDelta >= 0 ? '+' : ''}${regressionDelta} pts)`
-      : '';
-  console.log(`Score: ${score}/100${deltaStr}`);
-  if (failedCases.length > 0) {
-    const toShow = failedCases.slice(0, 3);
-    console.log(`${failedCases.length} failing case${failedCases.length === 1 ? '' : 's'}:`);
-    const trunc = (s: string | undefined, max = 50) =>
-      s == null ? '' : s.length <= max ? s : s.slice(0, max) + '…';
-    for (const fc of toShow) {
-      const label = fc.name || fc.input || '(unnamed)';
-      const exp = trunc(fc.expectedOutput);
-      const out = trunc(fc.output);
-      const reason = out ? `got "${out}"` : 'no output';
-      console.log(`  - "${trunc(label)}" → expected: ${exp || '(any)'}, ${reason}`);
-    }
-    if (failedCases.length > toShow.length) {
-      console.log(`  + ${failedCases.length - toShow.length} more`);
-    }
-  }
-  if (dashboardUrl) {
-    console.log(`Dashboard: ${dashboardUrl}`);
-  }
-  if (!passed) {
-    console.log('Next: View full report above, fix failing cases, or adjust gate with --minScore / --maxDrop');
-  }
-
-  return exitCode;
+  return gateResult.exitCode;
 }
 
 // Main entry point
 const isDirectRun = typeof require !== 'undefined' && require.main === module;
 if (isDirectRun) {
-  const args = parseArgs(process.argv.slice(2));
-  runCheck(args).then((code) => {
-    process.exit(code);
-  }).catch((err) => {
-    console.error(`EvalAI gate ERROR: ${err.message}`);
-    process.exit(EXIT.API_ERROR);
-  });
+  const parsed = parseArgs(process.argv.slice(2));
+  if (!parsed.ok) {
+    console.error(parsed.message);
+    process.exit(parsed.exitCode);
+  }
+  runCheck(parsed.args)
+    .then((code) => process.exit(code))
+    .catch((err) => {
+      console.error(`EvalAI gate ERROR: ${err instanceof Error ? err.message : String(err)}`);
+      process.exit(EXIT.API_ERROR);
+    });
 }

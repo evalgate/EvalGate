@@ -101,11 +101,22 @@ export const createRunBodySchema = z.object({
   environment: z.enum(['dev', 'staging', 'prod']).optional(),
 }).default({});
 
+const ciContextSchema = z.object({
+  provider: z.enum(['github', 'gitlab', 'circle', 'unknown']).optional(),
+  repo: z.string().optional(),
+  sha: z.string().optional(),
+  branch: z.string().optional(),
+  pr: z.number().optional(),
+  runUrl: z.string().optional(),
+  actor: z.string().optional(),
+}).optional();
+
 /** Body for POST /api/evaluations/:id/runs/import */
 export const importRunBodySchema = z
   .object({
     environment: z.enum(['dev', 'staging', 'prod']).optional().default('dev'),
     importClientVersion: z.string().optional(),
+    ci: ciContextSchema,
     results: z.array(
       z.object({
         testCaseId: z.number().int().positive(),

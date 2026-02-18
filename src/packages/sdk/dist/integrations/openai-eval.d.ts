@@ -21,6 +21,8 @@ import type { TestSuiteCaseResult } from '../testing';
 export interface OpenAIChatEvalCase {
     input: string;
     expectedOutput?: string;
+    /** Platform test case ID. When provided, used directly for reportToEvalAI (no input matching). */
+    testCaseId?: number;
     assertions?: ((output: string) => import('../assertions').AssertionResult)[];
 }
 export interface OpenAIChatEvalOptions {
@@ -28,6 +30,14 @@ export interface OpenAIChatEvalOptions {
     model?: string;
     apiKey?: string;
     cases: OpenAIChatEvalCase[];
+    /** v1.5: Upload results to EvalAI platform for an existing evaluation. Requires evaluationId and EVALAI_API_KEY. */
+    reportToEvalAI?: boolean;
+    /** Evaluation ID (from config or arg). Required when reportToEvalAI is true. */
+    evaluationId?: string;
+    /** EvalAI API base URL. Default: EVALAI_BASE_URL or http://localhost:3000 */
+    baseUrl?: string;
+    /** Idempotency key for import (e.g. CI run ID). Prevents duplicate runs on retry. */
+    idempotencyKey?: string;
 }
 export interface OpenAIChatEvalResult {
     passed: number;

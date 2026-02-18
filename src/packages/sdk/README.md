@@ -3,21 +3,17 @@
 [![npm version](https://img.shields.io/npm/v/@pauly4010/evalai-sdk.svg)](https://www.npmjs.com/package/@pauly4010/evalai-sdk)
 [![npm downloads](https://img.shields.io/npm/dm/@pauly4010/evalai-sdk.svg)](https://www.npmjs.com/package/@pauly4010/evalai-sdk)
 
-Official TypeScript/JavaScript SDK for the AI Evaluation Platform. Build confidence in your AI systems with comprehensive evaluation tools.
+Evaluate your AI systems locally in 60 seconds. Add an optional CI gate in 2 minutes. No lock-in — remove by deleting the config file.
 
-## Installation
+---
+
+## 1. 60 seconds: Run locally (no account)
+
+Install, run, get a score. No EvalAI account, no API key, no dashboard.
 
 ```bash
 npm install @pauly4010/evalai-sdk openai
-# or
-yarn add @pauly4010/evalai-sdk openai
-# or
-pnpm add @pauly4010/evalai-sdk openai
 ```
-
-## Quick Start — openAIChatEval (No Account Required)
-
-Run OpenAI chat regression tests locally in 60 seconds. No EvalAI account, no dashboard, just a score.
 
 ```typescript
 import { openAIChatEval } from "@pauly4010/evalai-sdk";
@@ -31,9 +27,64 @@ await openAIChatEval({
 });
 ```
 
-You'll see: `PASS 2/2 (score: 100)`. Set `OPENAI_API_KEY` in your environment.
+Set `OPENAI_API_KEY` in your environment. You'll see something like:
 
-**Gate in CI:** Run `npx evalai init`, paste your evaluation ID into `evalai.config.json`, then add `npx evalai check` to your CI workflow.
+```
+PASS 2/2  (score: 100)
+
+Tip: Want dashboards and history?
+Set EVALAI_API_KEY and connect this to the platform.
+```
+
+With failures you get `FAIL 9/10 (score 90)`, failed cases listed, and a hint: `Gate this in CI: npx -y @pauly4010/evalai-sdk@^1 init`.
+
+---
+
+## 2. Optional: Add a CI gate (2 minutes)
+
+When you're ready to gate PRs on quality:
+
+```bash
+npx -y @pauly4010/evalai-sdk@^1 init
+```
+
+**Create an evaluation in the dashboard → paste its ID into `evalai.config.json`:**
+
+```json
+{ "evaluationId": "42" }
+```
+
+Then add to your CI:
+
+```yaml
+- name: EvalAI gate
+  env:
+    EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
+  run: npx -y @pauly4010/evalai-sdk@^1 check --format github --onFail import
+```
+
+You'll get GitHub annotations + a step summary + a dashboard link.
+
+- `--format github` — Annotations and step summary in GitHub Actions
+- `--onFail import` — On failure, EvalAI imports the run metadata + failures into the dashboard (idempotent per CI run)
+
+---
+
+## 3. No lock-in
+
+To stop using EvalAI: delete `evalai.config.json`. Your local `openAIChatEval` runs work the same without it. No account cancellation, no data export.
+
+---
+
+## Installation
+
+```bash
+npm install @pauly4010/evalai-sdk openai
+# or
+yarn add @pauly4010/evalai-sdk openai
+# or
+pnpm add @pauly4010/evalai-sdk openai
+```
 
 ## Environment Support
 
@@ -521,13 +572,13 @@ console.log("Plan:", org.plan);
 console.log("Status:", org.status);
 ```
 
-## evalai CLI (v1.4.1)
+## evalai CLI (v1.5.0)
 
 The SDK includes a CLI for CI/CD evaluation gates. Install globally or use via `npx`:
 
 ```bash
 # Via npx (no global install)
-npx @pauly4010/evalai-sdk check --minScore 92 --evaluationId 42 --apiKey $EVALAI_API_KEY
+npx -y @pauly4010/evalai-sdk@^1 check --minScore 92 --evaluationId 42 --apiKey $EVALAI_API_KEY
 
 # Or install globally
 npm install -g @pauly4010/evalai-sdk
@@ -542,6 +593,9 @@ Gate deployments on quality scores, regression, and compliance:
 |--------|-------------|
 | `--evaluationId <id>` | **Required.** Evaluation to gate on |
 | `--apiKey <key>` | API key (or `EVALAI_API_KEY` env) |
+| `--format <fmt>` | `human` (default), `json`, or `github` (annotations + step summary) |
+| `--onFail import` | When gate fails, import run with CI context for debugging |
+| `--explain` | Show score breakdown and thresholds |
 | `--minScore <n>` | Fail if score &lt; n (0–100) |
 | `--maxDrop <n>` | Fail if score dropped &gt; n from baseline |
 | `--minN <n>` | Fail if total test cases &lt; n |
@@ -552,9 +606,29 @@ Gate deployments on quality scores, regression, and compliance:
 
 **Exit codes:** 0=pass, 1=score below, 2=regression, 3=policy violation, 4=API error, 5=bad args, 6=low N, 7=weak evidence
 
+### evalai doctor
+
+Verify CI/CD setup before running check:
+
+```bash
+npx -y @pauly4010/evalai-sdk@^1 doctor --evaluationId 42 --apiKey $EVALAI_API_KEY
+```
+
+Uses the same quality endpoint as `check` — if doctor passes, check works.
+
 ## Changelog
 
-### v1.4.1 (Latest)
+### v1.5.0 (Latest)
+
+- **`--format github`** — Annotations + step summary in GitHub Actions
+- **`--format json`** — Machine-readable output
+- **`--onFail import`** — Import failing runs to dashboard (idempotent per CI run)
+- **`--explain`** — Score breakdown and thresholds
+- **`evalai doctor`** — Verify CI setup
+- **Pinned invocation** — Use `npx -y @pauly4010/evalai-sdk@^1` for stable CI
+- **README** — 3-section adoption flow (60s local → CI gate → no lock-in)
+
+### v1.4.1
 
 - **evalai check `--baseline production`** — Compare against latest prod-tagged run
 - **Package hardening** — Leaner npm publish with `files`, `sideEffects: false`
