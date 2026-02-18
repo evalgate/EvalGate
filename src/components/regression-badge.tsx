@@ -1,36 +1,36 @@
-'use client';
+"use client";
 
+import { CheckCircle, Loader2, XCircle } from "lucide-react";
 // src/components/regression-badge.tsx
-import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 interface RegressionBadgeProps {
   evaluationId: number;
   /** If provided, shows static status. Otherwise fetches on mount. */
-  initialStatus?: 'passed' | 'failed' | null;
+  initialStatus?: "passed" | "failed" | null;
 }
 
 export function RegressionBadge({ evaluationId, initialStatus }: RegressionBadgeProps) {
-  const [status, setStatus] = useState<'idle' | 'running' | 'passed' | 'failed'>(
-    initialStatus ?? 'idle'
+  const [status, setStatus] = useState<"idle" | "running" | "passed" | "failed">(
+    initialStatus ?? "idle",
   );
   const [score, setScore] = useState<number | null>(null);
 
   const runCheck = async () => {
-    setStatus('running');
+    setStatus("running");
     try {
-      const res = await fetch(`/api/evaluations/${evaluationId}/regression`, { method: 'POST' });
+      const res = await fetch(`/api/evaluations/${evaluationId}/regression`, { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setStatus(data.status);
       setScore(data.avgScore);
     } catch {
-      setStatus('failed');
+      setStatus("failed");
     }
   };
 
-  if (status === 'idle') {
+  if (status === "idle") {
     return (
       <Badge
         variant="outline"
@@ -42,7 +42,7 @@ export function RegressionBadge({ evaluationId, initialStatus }: RegressionBadge
     );
   }
 
-  if (status === 'running') {
+  if (status === "running") {
     return (
       <Badge variant="outline" className="text-yellow-400 border-yellow-400/30">
         <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -51,7 +51,7 @@ export function RegressionBadge({ evaluationId, initialStatus }: RegressionBadge
     );
   }
 
-  if (status === 'passed') {
+  if (status === "passed") {
     return (
       <Badge className="bg-green-500/10 text-green-400 border border-green-500/30">
         <CheckCircle className="h-3 w-3 mr-1" />

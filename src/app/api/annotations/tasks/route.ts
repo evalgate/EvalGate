@@ -1,33 +1,39 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { annotationTasks } from '@/db/schema';
-import { eq, like, and, desc } from 'drizzle-orm';
-import { checkFeature, trackFeature } from '@/lib/autumn-server';
-import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
-import { validationError, notFound, internalError, quotaExceeded } from '@/lib/api/errors';
-import { sanitizeSearchInput } from '@/lib/validation';
+import { and, desc, eq, like } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { annotationTasks } from "@/db/schema";
+import { internalError, notFound, quotaExceeded, validationError } from "@/lib/api/errors";
+import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { checkFeature, trackFeature } from "@/lib/autumn-server";
+import { sanitizeSearchInput } from "@/lib/validation";
 
 export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100);
-    const offset = parseInt(searchParams.get('offset') || '0');
-    const search = searchParams.get('search');
-    const status = searchParams.get('status');
+    const id = searchParams.get("id");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "10", 10), 100);
+    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const search = searchParams.get("search");
+    const status = searchParams.get("status");
 
     if (id) {
-      if (isNaN(parseInt(id))) {
-        return validationError('Valid ID is required');
+      if (Number.isNaN(parseInt(id, 10))) {
+        return validationError("Valid ID is required");
       }
 
-      const task = await db.select()
+      const task = await db
+        .select()
         .from(annotationTasks)
-        .where(and(eq(annotationTasks.id, parseInt(id)), eq(annotationTasks.organizationId, ctx.organizationId)))
+        .where(
+          and(
+            eq(annotationTasks.id, parseInt(id, 10)),
+            eq(annotationTasks.organizationId, ctx.organizationId),
+          ),
+        )
         .limit(1);
 
       if (task.length === 0) {
-        return notFound('Annotation task not found');
+        return notFound("Annotation task not found");
       }
 
       return NextResponse.json(task[0]);
@@ -46,7 +52,8 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
       }
     }
 
-    const results = await db.select()
+    const results = await db
+      .select()
       .from(annotationTasks)
       .where(and(...conditions))
       .orderBy(desc(annotationTasks.createdAt))
@@ -54,7 +61,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
       .offset(offset);
 
     return NextResponse.json(results);
-  } catch (error: unknown) {
+  } catch (_error: unknown) {
     return internalError();
   }
 });
@@ -62,39 +69,35 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   const featureCheck = await checkFeature({
     userId: ctx.userId,
-    featureId: 'annotations',
+    featureId: "annotations",
     requiredBalance: 1,
   });
 
   if (!featureCheck.allowed) {
-    return quotaExceeded('Annotations limit reached. Upgrade your plan to increase quota.', {
-      featureId: 'annotations',
+    return quotaExceeded("Annotations limit reached. Upgrade your plan to increase quota.", {
+      featureId: "annotations",
       remaining: featureCheck.remaining || 0,
     });
   }
 
   const orgLimitCheck = await checkFeature({
     userId: ctx.userId,
-    featureId: 'annotations_per_project',
+    featureId: "annotations_per_project",
     requiredBalance: 1,
   });
 
   if (!orgLimitCheck.allowed) {
-    return quotaExceeded("You've reached your annotation task limit for this organization. Please upgrade your plan.");
+    return quotaExceeded(
+      "You've reached your annotation task limit for this organization. Please upgrade your plan.",
+    );
   }
 
   try {
     const body = await req.json();
-    const {
-      name,
-      description,
-      instructions,
-      type,
-      annotationSettings
-    } = body;
+    const { name, description, instructions, type, annotationSettings } = body;
 
     if (!name || !type) {
-      return validationError('Name and type are required');
+      return validationError("Name and type are required");
     }
 
     if (annotationSettings) {
@@ -103,83 +106,95 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
       if (multipleAnnotators) {
         const { annotatorsPerItem, minAgreementScore } = multipleAnnotators;
         if (annotatorsPerItem && (annotatorsPerItem < 1 || annotatorsPerItem > 10)) {
-          return validationError('Annotators per item must be between 1 and 10');
+          return validationError("Annotators per item must be between 1 and 10");
         }
         if (minAgreementScore && (minAgreementScore < 0 || minAgreementScore > 100)) {
-          return validationError('Minimum agreement score must be between 0 and 100');
+          return validationError("Minimum agreement score must be between 0 and 100");
         }
       }
 
       if (qualityControl) {
         const { minAnnotationsPerItem, maxAnnotationsPerAnnotator } = qualityControl;
         if (minAnnotationsPerItem && (minAnnotationsPerItem < 1 || minAnnotationsPerItem > 100)) {
-          return validationError('Minimum annotations per item must be between 1 and 100');
+          return validationError("Minimum annotations per item must be between 1 and 100");
         }
-        if (maxAnnotationsPerAnnotator && (maxAnnotationsPerAnnotator < 1 || maxAnnotationsPerAnnotator > 10000)) {
-          return validationError('Maximum annotations per annotator must be between 1 and 10000');
+        if (
+          maxAnnotationsPerAnnotator &&
+          (maxAnnotationsPerAnnotator < 1 || maxAnnotationsPerAnnotator > 10000)
+        ) {
+          return validationError("Maximum annotations per annotator must be between 1 and 10000");
         }
       }
     }
 
     const now = new Date().toISOString();
 
-    const inserted = await db.insert(annotationTasks).values({
-      name,
-      description: description || null,
-      type,
-      organizationId: ctx.organizationId,
-      createdBy: ctx.userId,
-      status: 'draft',
-      annotationSettings: annotationSettings || {},
-      createdAt: now,
-      updatedAt: now,
-      totalItems: 0,
-      completedItems: 0
-    }).returning();
+    const inserted = await db
+      .insert(annotationTasks)
+      .values({
+        name,
+        description: description || null,
+        type,
+        organizationId: ctx.organizationId,
+        createdBy: ctx.userId,
+        status: "draft",
+        annotationSettings: annotationSettings || {},
+        createdAt: now,
+        updatedAt: now,
+        totalItems: 0,
+        completedItems: 0,
+      })
+      .returning();
 
     if (inserted.length > 0) {
       await trackFeature({
         userId: ctx.userId,
-        featureId: 'annotations',
-        value: 1
+        featureId: "annotations",
+        value: 1,
       });
 
       await trackFeature({
         userId: ctx.userId,
-        featureId: 'annotations_per_project',
-        value: 1
+        featureId: "annotations_per_project",
+        value: 1,
       });
     }
 
     return NextResponse.json(inserted[0], { status: 201 });
-  } catch (error: unknown) {
-    return internalError('Failed to create annotation task');
+  } catch (_error: unknown) {
+    return internalError("Failed to create annotation task");
   }
 });
 
 export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
 
-    if (!id || isNaN(parseInt(id))) {
-      return validationError('Valid ID is required');
+    if (!id || Number.isNaN(parseInt(id, 10))) {
+      return validationError("Valid ID is required");
     }
 
     const body = await req.json();
     const { name, description, status, totalItems, completedItems } = body;
 
-    const existing = await db.select()
+    const existing = await db
+      .select()
       .from(annotationTasks)
-      .where(and(eq(annotationTasks.id, parseInt(id)), eq(annotationTasks.organizationId, ctx.organizationId)))
+      .where(
+        and(
+          eq(annotationTasks.id, parseInt(id, 10)),
+          eq(annotationTasks.organizationId, ctx.organizationId),
+        ),
+      )
       .limit(1);
 
     if (existing.length === 0) {
-      return notFound('Annotation task not found');
+      return notFound("Annotation task not found");
     }
 
     const updateData: any = {
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     if (name !== undefined) updateData.name = name.trim();
@@ -188,13 +203,19 @@ export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
     if (totalItems !== undefined) updateData.totalItems = totalItems;
     if (completedItems !== undefined) updateData.completedItems = completedItems;
 
-    const updated = await db.update(annotationTasks)
+    const updated = await db
+      .update(annotationTasks)
       .set(updateData)
-      .where(and(eq(annotationTasks.id, parseInt(id)), eq(annotationTasks.organizationId, ctx.organizationId)))
+      .where(
+        and(
+          eq(annotationTasks.id, parseInt(id, 10)),
+          eq(annotationTasks.organizationId, ctx.organizationId),
+        ),
+      )
       .returning();
 
     return NextResponse.json(updated[0]);
-  } catch (error: unknown) {
+  } catch (_error: unknown) {
     return internalError();
   }
 });
@@ -202,26 +223,38 @@ export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 export const DELETE = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
 
-    if (!id || isNaN(parseInt(id))) {
-      return validationError('Valid ID is required');
+    if (!id || Number.isNaN(parseInt(id, 10))) {
+      return validationError("Valid ID is required");
     }
 
-    const existing = await db.select()
+    const existing = await db
+      .select()
       .from(annotationTasks)
-      .where(and(eq(annotationTasks.id, parseInt(id)), eq(annotationTasks.organizationId, ctx.organizationId)))
+      .where(
+        and(
+          eq(annotationTasks.id, parseInt(id, 10)),
+          eq(annotationTasks.organizationId, ctx.organizationId),
+        ),
+      )
       .limit(1);
 
     if (existing.length === 0) {
-      return notFound('Annotation task not found');
+      return notFound("Annotation task not found");
     }
 
-    await db.delete(annotationTasks)
-      .where(and(eq(annotationTasks.id, parseInt(id)), eq(annotationTasks.organizationId, ctx.organizationId)));
+    await db
+      .delete(annotationTasks)
+      .where(
+        and(
+          eq(annotationTasks.id, parseInt(id, 10)),
+          eq(annotationTasks.organizationId, ctx.organizationId),
+        ),
+      );
 
-    return NextResponse.json({ message: 'Annotation task deleted successfully' });
-  } catch (error: unknown) {
+    return NextResponse.json({ message: "Annotation task deleted successfully" });
+  } catch (_error: unknown) {
     return internalError();
   }
 });

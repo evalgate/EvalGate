@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +26,7 @@ export async function GET() {
     const { db } = await import("@/db");
     const rows = await db.all(sql`SELECT 1 as ok`);
     const tables = await db.all(
-      sql`SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`
+      sql`SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`,
     );
     results.db = { status: "connected", rows, tables };
   } catch (e: unknown) {

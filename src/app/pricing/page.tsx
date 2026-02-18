@@ -1,25 +1,29 @@
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
-import { StaticPricingCards, PricingOverageInfo, PricingRateLimits } from "@/components/static-pricing-cards"
-import { PricingHeader } from "./pricing-header"
-import type { Metadata } from "next"
+import type { Metadata } from "next";
+import { Footer } from "@/components/footer";
+import {
+  PricingOverageInfo,
+  PricingRateLimits,
+  StaticPricingCards,
+} from "@/components/static-pricing-cards";
+import { PricingHeader } from "./pricing-header";
 
 export const metadata: Metadata = {
   title: "Pricing - AI Evaluation Platform",
-  description: "Start with our free Developer plan or upgrade for more traces, projects, and premium support. Transparent pricing with no hidden fees.",
+  description:
+    "Start with our free Developer plan or upgrade for more traces, projects, and premium support. Transparent pricing with no hidden fees.",
   openGraph: {
     title: "Pricing - AI Evaluation Platform",
-    description: "Start with our free Developer plan or upgrade for more traces, projects, and premium support.",
+    description:
+      "Start with our free Developer plan or upgrade for more traces, projects, and premium support.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Pricing - AI Evaluation Platform",
-    description: "Start with our free Developer plan or upgrade for more traces, projects, and premium support.",
+    description:
+      "Start with our free Developer plan or upgrade for more traces, projects, and premium support.",
   },
-}
+};
 
 export default function PricingPage() {
   return (
@@ -34,16 +38,17 @@ export default function PricingPage() {
             Choose Your Plan
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-            Start with our free Developer plan or upgrade for more traces, projects, and premium support.
+            Start with our free Developer plan or upgrade for more traces, projects, and premium
+            support.
           </p>
         </div>
 
         {/* Static Pricing Cards */}
         <StaticPricingCards />
-        
+
         {/* Overage Info */}
         <PricingOverageInfo />
-        
+
         {/* Rate Limits */}
         <PricingRateLimits />
       </main>
@@ -51,5 +56,5 @@ export default function PricingPage() {
       {/* Footer */}
       <Footer />
     </div>
-  )
+  );
 }

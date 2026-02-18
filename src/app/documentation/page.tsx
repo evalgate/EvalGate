@@ -1,13 +1,12 @@
-"use client"
+"use client";
 
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Footer } from "@/components/footer"
-import { useSession } from "@/lib/auth-client"
-
-import Link from "next/link"
-import { ArrowRight, BookOpen, Code, Zap, Users } from "lucide-react"
+import { ArrowRight, BookOpen, Code, Users, Zap } from "lucide-react";
+import Link from "next/link";
+import { Footer } from "@/components/footer";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useSession } from "@/lib/auth-client";
 
 const docSections = [
   {
@@ -17,8 +16,8 @@ const docSections = [
     links: [
       { label: "Quick Start", href: "/guides/quick-start" },
       { label: "Core Concepts", href: "/documentation#concepts" },
-      { label: "Best Practices", href: "/documentation#best-practices" }
-    ]
+      { label: "Best Practices", href: "/documentation#best-practices" },
+    ],
   },
   {
     icon: Code,
@@ -27,8 +26,8 @@ const docSections = [
     links: [
       { label: "OpenAI", href: "/guides/openai-integration" },
       { label: "LangChain", href: "/guides/langchain-integration" },
-      { label: "CI/CD Integration", href: "/guides/cicd-integration" }
-    ]
+      { label: "CI/CD Integration", href: "/guides/cicd-integration" },
+    ],
   },
   {
     icon: Zap,
@@ -38,8 +37,8 @@ const docSections = [
       { label: "Evaluations", href: "/evaluations" },
       { label: "Traces", href: "/traces" },
       { label: "LLM Judge", href: "/llm-judge" },
-      { label: "Annotations", href: "/annotations" }
-    ]
+      { label: "Annotations", href: "/annotations" },
+    ],
   },
   {
     icon: Users,
@@ -48,13 +47,13 @@ const docSections = [
     links: [
       { label: "Changelog", href: "/changelog" },
       { label: "Tracing Setup", href: "/guides/tracing-setup" },
-      { label: "SDK Reference", href: "/sdk" }
-    ]
-  }
-]
+      { label: "SDK Reference", href: "/sdk" },
+    ],
+  },
+];
 
 export default function DocumentationPage() {
-  const { data: session } = useSession()
+  const { data: session } = useSession();
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -99,18 +98,20 @@ export default function DocumentationPage() {
           {/* Documentation Sections */}
           <div className="grid gap-6 sm:gap-8 md:grid-cols-2 mb-12 sm:mb-16">
             {docSections.map((section) => {
-              const Icon = section.icon
+              const Icon = section.icon;
               return (
                 <Card key={section.title} className="p-5 sm:p-6">
                   <div className="mb-3 sm:mb-4 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-blue-500/10">
                     <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
                   </div>
                   <h2 className="mb-2 text-lg sm:text-xl font-semibold">{section.title}</h2>
-                  <p className="mb-3 sm:mb-4 text-sm sm:text-base text-muted-foreground">{section.description}</p>
+                  <p className="mb-3 sm:mb-4 text-sm sm:text-base text-muted-foreground">
+                    {section.description}
+                  </p>
                   <ul className="space-y-2">
                     {section.links.map((link) => (
                       <li key={link.href}>
-                        <Link 
+                        <Link
                           href={link.href}
                           className="group inline-flex items-center text-sm sm:text-base text-blue-500 hover:text-blue-400 transition-colors"
                         >
@@ -121,7 +122,7 @@ export default function DocumentationPage() {
                     ))}
                   </ul>
                 </Card>
-              )
+              );
             })}
           </div>
 
@@ -145,5 +146,5 @@ export default function DocumentationPage() {
       {/* Footer */}
       <Footer />
     </div>
-  )
+  );
 }

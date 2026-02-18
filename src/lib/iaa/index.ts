@@ -30,7 +30,7 @@ export interface IAAResult {
  * κ = (p_o - p_e) / (1 - p_e)
  */
 export function cohensKappa(
-  pairs: Array<{ rater1: string | number; rater2: string | number }>
+  pairs: Array<{ rater1: string | number; rater2: string | number }>,
 ): number {
   if (pairs.length === 0) return 0;
 
@@ -87,9 +87,7 @@ export function cohensKappa(
  * Compute Fleiss's Kappa for multiple raters.
  * κ = (P_bar - p_e) / (1 - p_e)
  */
-export function fleissKappa(
-  matrix: Array<Record<string, number>>
-): number {
+export function fleissKappa(matrix: Array<Record<string, number>>): number {
   if (matrix.length === 0) return 0;
 
   const categories = new Set<string>();
@@ -141,13 +139,16 @@ export function fleissKappa(
  * Groups by itemId, extracts category from rating or labels.
  */
 export function computeIAA(annotations: AnnotationRecord[]): IAAResult {
-  const byItem = new Map<string | number, Array<{ annotatorId: string; category: string | number }>>();
+  const byItem = new Map<
+    string | number,
+    Array<{ annotatorId: string; category: string | number }>
+  >();
   const annotators = new Set<string>();
 
   annotations.forEach((a) => {
     const cat = a.category;
-    if (cat === null || cat === undefined || cat === '') return;
-    const key = String(cat);
+    if (cat === null || cat === undefined || cat === "") return;
+    const _key = String(cat);
     if (!byItem.has(a.itemId)) byItem.set(a.itemId, []);
     byItem.get(a.itemId)!.push({ annotatorId: a.annotatorId, category: String(cat) });
     annotators.add(a.annotatorId);

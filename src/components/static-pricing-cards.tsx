@@ -1,7 +1,7 @@
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Check } from "lucide-react"
-import Link from "next/link"
+import { Check } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 const pricingPlans = [
   {
@@ -60,7 +60,7 @@ const pricingPlans = [
     href: "/auth/sign-up",
     popular: false,
   },
-]
+];
 
 export function StaticPricingCards() {
   return (
@@ -69,9 +69,7 @@ export function StaticPricingCards() {
         <Card
           key={plan.name}
           className={`p-6 flex flex-col ${
-            plan.popular
-              ? "border-primary shadow-lg scale-105 relative"
-              : ""
+            plan.popular ? "border-primary shadow-lg scale-105 relative" : ""
           }`}
         >
           {plan.popular && (
@@ -79,17 +77,13 @@ export function StaticPricingCards() {
               Most Popular
             </div>
           )}
-          
+
           <div className="mb-6">
             <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-            <p className="text-muted-foreground text-sm mb-4">
-              {plan.description}
-            </p>
+            <p className="text-muted-foreground text-sm mb-4">{plan.description}</p>
             <div className="flex items-baseline gap-1">
               <span className="text-4xl font-bold">{plan.price}</span>
-              {plan.period && (
-                <span className="text-muted-foreground">{plan.period}</span>
-              )}
+              {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
             </div>
           </div>
 
@@ -113,7 +107,7 @@ export function StaticPricingCards() {
         </Card>
       ))}
     </div>
-  )
+  );
 }
 
 export function PricingOverageInfo() {
@@ -123,22 +117,18 @@ export function PricingOverageInfo() {
       <div className="grid md:grid-cols-2 gap-4 text-sm">
         <div>
           <p className="font-medium mb-2">Additional Traces</p>
-          <p className="text-muted-foreground">
-            $0.01 per 100 traces above your plan limit
-          </p>
+          <p className="text-muted-foreground">$0.01 per 100 traces above your plan limit</p>
         </div>
         <div>
           <p className="font-medium mb-2">Additional Annotations</p>
-          <p className="text-muted-foreground">
-            $0.50 per annotation above your plan limit
-          </p>
+          <p className="text-muted-foreground">$0.50 per annotation above your plan limit</p>
         </div>
       </div>
       <p className="text-xs text-muted-foreground mt-4">
         All plans include a 14-day free trial. No credit card required. Cancel anytime.
       </p>
     </Card>
-  )
+  );
 }
 
 export function PricingRateLimits() {
@@ -168,9 +158,10 @@ export function PricingRateLimits() {
       </p>
       <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
         <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-          <strong>After limits:</strong> Requests return HTTP 429 unless overage billing is enabled in your plan.
+          <strong>After limits:</strong> Requests return HTTP 429 unless overage billing is enabled
+          in your plan.
         </p>
       </div>
     </Card>
-  )
+  );
 }

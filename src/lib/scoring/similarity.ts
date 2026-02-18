@@ -50,7 +50,7 @@ export function levenshteinSimilarity(a: string, b: string): number {
 export function combinedScore(
   expected: string,
   actual: string,
-  weights: { cosine?: number; levenshtein?: number } = {}
+  weights: { cosine?: number; levenshtein?: number } = {},
 ): number {
   const cosineWeight = weights.cosine ?? 0.6;
   const levWeight = weights.levenshtein ?? 0.4;
@@ -66,7 +66,10 @@ export function combinedScore(
  * Returns a value between 0 and 100.
  */
 export function keywordMatchRate(expected: string, actual: string): number {
-  const keywords = expected.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+  const keywords = expected
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w) => w.length > 3);
   if (keywords.length === 0) return 100;
   const actLower = actual.toLowerCase();
   const matched = keywords.filter((w) => actLower.includes(w)).length;
@@ -97,9 +100,9 @@ function levenshteinDistance(a: string, b: string): number {
     for (let j = 1; j <= n; j++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
       curr[j] = Math.min(
-        prev[j] + 1,      // deletion
-        curr[j - 1] + 1,  // insertion
-        prev[j - 1] + cost // substitution
+        prev[j] + 1, // deletion
+        curr[j - 1] + 1, // insertion
+        prev[j - 1] + cost, // substitution
       );
     }
     [prev, curr] = [curr, prev];

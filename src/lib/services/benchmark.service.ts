@@ -3,9 +3,9 @@
  * Business logic for agent performance benchmarking and leaderboards
  */
 
-import { db } from '@/db';
-import { benchmarks, agentConfigs, benchmarkResults, workflowRuns, workflows } from '@/db/schema';
-import { eq, and, desc, sql, asc, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { agentConfigs, benchmarkResults, benchmarks, workflowRuns, workflows } from "@/db/schema";
 
 // ============================================================================
 // TYPES
@@ -15,7 +15,7 @@ export interface CreateBenchmarkParams {
   name: string;
   description?: string;
   organizationId: number;
-  taskType: 'qa' | 'coding' | 'reasoning' | 'tool_use' | 'multi_step';
+  taskType: "qa" | "coding" | "reasoning" | "tool_use" | "multi_step";
   dataset?: Array<{ input: string; expectedOutput?: string; metadata?: Record<string, any> }>;
   metrics: string[];
   isPublic?: boolean;
@@ -25,7 +25,7 @@ export interface CreateBenchmarkParams {
 export interface CreateAgentConfigParams {
   name: string;
   organizationId: number;
-  architecture: 'react' | 'cot' | 'tot' | 'custom';
+  architecture: "react" | "cot" | "tot" | "custom";
   model: string;
   config?: Record<string, any>;
   description?: string;
@@ -92,11 +92,7 @@ class BenchmarkService {
    * Get a single benchmark by ID
    */
   async getBenchmarkById(id: number) {
-    const result = await db
-      .select()
-      .from(benchmarks)
-      .where(eq(benchmarks.id, id))
-      .limit(1);
+    const result = await db.select().from(benchmarks).where(eq(benchmarks.id, id)).limit(1);
 
     return result[0] || null;
   }
@@ -114,7 +110,7 @@ class BenchmarkService {
         description: params.description?.trim() || null,
         organizationId: params.organizationId,
         taskType: params.taskType,
-        dataset: params.dataset as any || null,
+        dataset: (params.dataset as any) || null,
         metrics: params.metrics as any,
         isPublic: params.isPublic || false,
         createdBy: params.createdBy,
@@ -160,11 +156,7 @@ class BenchmarkService {
    * Get a single agent config by ID
    */
   async getAgentConfigById(id: number) {
-    const result = await db
-      .select()
-      .from(agentConfigs)
-      .where(eq(agentConfigs.id, id))
-      .limit(1);
+    const result = await db.select().from(agentConfigs).where(eq(agentConfigs.id, id)).limit(1);
 
     return result[0] || null;
   }
@@ -182,7 +174,7 @@ class BenchmarkService {
         organizationId: params.organizationId,
         architecture: params.architecture,
         model: params.model,
-        config: params.config as any || null,
+        config: (params.config as any) || null,
         description: params.description?.trim() || null,
         createdBy: params.createdBy,
         createdAt: now,
@@ -223,8 +215,8 @@ class BenchmarkService {
       .where(
         and(
           eq(benchmarkResults.benchmarkId, params.benchmarkId),
-          eq(benchmarkResults.agentConfigId, params.agentConfigId)
-        )
+          eq(benchmarkResults.agentConfigId, params.agentConfigId),
+        ),
       )
       .limit(1);
 
@@ -237,25 +229,33 @@ class BenchmarkService {
       const result = await db
         .update(benchmarkResults)
         .set({
-          accuracy: params.accuracy !== undefined
-            ? Math.round(((existingResult.accuracy || 0) + params.accuracy) / 2)
-            : existingResult.accuracy,
-          latencyP50: params.latencyP50 !== undefined
-            ? Math.round(((existingResult.latencyP50 || 0) + params.latencyP50) / 2)
-            : existingResult.latencyP50,
-          latencyP95: params.latencyP95 !== undefined
-            ? Math.round(((existingResult.latencyP95 || 0) + params.latencyP95) / 2)
-            : existingResult.latencyP95,
-          totalCost: params.totalCost !== undefined
-            ? (parseFloat(existingResult.totalCost || '0') + parseFloat(params.totalCost)).toFixed(6)
-            : existingResult.totalCost,
-          successRate: params.successRate !== undefined
-            ? Math.round(((existingResult.successRate || 0) + params.successRate) / 2)
-            : existingResult.successRate,
-          toolUseEfficiency: params.toolUseEfficiency !== undefined
-            ? Math.round(((existingResult.toolUseEfficiency || 0) + params.toolUseEfficiency) / 2)
-            : existingResult.toolUseEfficiency,
-          customMetrics: params.customMetrics as any || existingResult.customMetrics,
+          accuracy:
+            params.accuracy !== undefined
+              ? Math.round(((existingResult.accuracy || 0) + params.accuracy) / 2)
+              : existingResult.accuracy,
+          latencyP50:
+            params.latencyP50 !== undefined
+              ? Math.round(((existingResult.latencyP50 || 0) + params.latencyP50) / 2)
+              : existingResult.latencyP50,
+          latencyP95:
+            params.latencyP95 !== undefined
+              ? Math.round(((existingResult.latencyP95 || 0) + params.latencyP95) / 2)
+              : existingResult.latencyP95,
+          totalCost:
+            params.totalCost !== undefined
+              ? (
+                  parseFloat(existingResult.totalCost || "0") + parseFloat(params.totalCost)
+                ).toFixed(6)
+              : existingResult.totalCost,
+          successRate:
+            params.successRate !== undefined
+              ? Math.round(((existingResult.successRate || 0) + params.successRate) / 2)
+              : existingResult.successRate,
+          toolUseEfficiency:
+            params.toolUseEfficiency !== undefined
+              ? Math.round(((existingResult.toolUseEfficiency || 0) + params.toolUseEfficiency) / 2)
+              : existingResult.toolUseEfficiency,
+          customMetrics: (params.customMetrics as any) || existingResult.customMetrics,
           runCount: newRunCount,
           workflowRunId: params.workflowRunId || existingResult.workflowRunId,
         })
@@ -278,7 +278,7 @@ class BenchmarkService {
         totalCost: params.totalCost || null,
         successRate: params.successRate || null,
         toolUseEfficiency: params.toolUseEfficiency || null,
-        customMetrics: params.customMetrics as any || null,
+        customMetrics: (params.customMetrics as any) || null,
         runCount: 1,
         createdAt: now,
       })
@@ -292,8 +292,8 @@ class BenchmarkService {
    */
   async getLeaderboard(
     benchmarkId: number,
-    sortBy: 'accuracy' | 'latency' | 'cost' | 'score' = 'score',
-    limit = 20
+    sortBy: "accuracy" | "latency" | "cost" | "score" = "score",
+    limit = 20,
   ): Promise<LeaderboardEntry[]> {
     const results = await db
       .select({
@@ -306,7 +306,7 @@ class BenchmarkService {
       .limit(limit);
 
     // Calculate composite scores and sort
-    const entries: LeaderboardEntry[] = results.map(r => {
+    const entries: LeaderboardEntry[] = results.map((r) => {
       // Composite score: weighted average of metrics
       // Higher accuracy, success rate, tool efficiency = better
       // Lower latency, cost = better
@@ -314,14 +314,16 @@ class BenchmarkService {
       const successScore = r.result.successRate || 0;
       const efficiencyScore = r.result.toolUseEfficiency || 0;
       const latencyScore = r.result.latencyP50 ? Math.max(0, 100 - r.result.latencyP50 / 100) : 0;
-      const costScore = r.result.totalCost ? Math.max(0, 100 - parseFloat(r.result.totalCost) * 100) : 50;
+      const costScore = r.result.totalCost
+        ? Math.max(0, 100 - parseFloat(r.result.totalCost) * 100)
+        : 50;
 
       const compositeScore = Math.round(
         accuracyScore * 0.35 +
-        successScore * 0.25 +
-        efficiencyScore * 0.15 +
-        latencyScore * 0.15 +
-        costScore * 0.10
+          successScore * 0.25 +
+          efficiencyScore * 0.15 +
+          latencyScore * 0.15 +
+          costScore * 0.1,
       );
 
       return {
@@ -345,13 +347,12 @@ class BenchmarkService {
     // Sort by specified metric
     entries.sort((a, b) => {
       switch (sortBy) {
-        case 'accuracy':
+        case "accuracy":
           return (b.accuracy || 0) - (a.accuracy || 0);
-        case 'latency':
+        case "latency":
           return (a.latencyP50 || Infinity) - (b.latencyP50 || Infinity);
-        case 'cost':
-          return parseFloat(a.totalCost || '999999') - parseFloat(b.totalCost || '999999');
-        case 'score':
+        case "cost":
+          return parseFloat(a.totalCost || "999999") - parseFloat(b.totalCost || "999999");
         default:
           return b.score - a.score;
       }
@@ -379,11 +380,11 @@ class BenchmarkService {
       .where(
         and(
           eq(benchmarkResults.benchmarkId, benchmarkId),
-          inArray(benchmarkResults.agentConfigId, agentConfigIds)
-        )
+          inArray(benchmarkResults.agentConfigId, agentConfigIds),
+        ),
       );
 
-    return results.map(r => ({
+    return results.map((r) => ({
       agentConfig: {
         id: r.config.id,
         name: r.config.name,
@@ -427,9 +428,10 @@ class BenchmarkService {
     const avgLatency = results.reduce((sum, r) => sum + (r.latencyP50 || 0), 0) / results.length;
 
     // Find top performer by accuracy
-    const topResult = results.reduce((best, r) => 
-      (r.accuracy || 0) > (best.accuracy || 0) ? r : best
-    , results[0]);
+    const topResult = results.reduce(
+      (best, r) => ((r.accuracy || 0) > (best.accuracy || 0) ? r : best),
+      results[0],
+    );
 
     const topConfig = topResult ? await this.getAgentConfigById(topResult.agentConfigId) : null;
 
@@ -438,11 +440,13 @@ class BenchmarkService {
       totalRuns,
       avgAccuracy: Math.round(avgAccuracy),
       avgLatency: Math.round(avgLatency),
-      topPerformer: topConfig ? {
-        name: topConfig.name,
-        architecture: topConfig.architecture,
-        accuracy: topResult.accuracy,
-      } : null,
+      topPerformer: topConfig
+        ? {
+            name: topConfig.name,
+            architecture: topConfig.architecture,
+            accuracy: topResult.accuracy,
+          }
+        : null,
     };
   }
 
@@ -463,11 +467,11 @@ class BenchmarkService {
       .where(eq(agentConfigs.organizationId, organizationId))
       .groupBy(agentConfigs.architecture);
 
-    return results.map(r => ({
+    return results.map((r) => ({
       architecture: r.architecture,
       avgAccuracy: Math.round(r.avgAccuracy || 0),
       avgLatency: Math.round(r.avgLatency || 0),
-      avgCost: parseFloat(r.avgCost || '0').toFixed(4),
+      avgCost: parseFloat(r.avgCost || "0").toFixed(4),
       benchmarkCount: r.count,
     }));
   }
@@ -480,10 +484,10 @@ export const benchmarkService = new BenchmarkService();
 // ============================================================================
 
 export interface SLAViolation {
-  type: 'latency' | 'cost' | 'error_rate';
+  type: "latency" | "cost" | "error_rate";
   threshold: number | string;
   actual: number | string;
-  severity: 'warning' | 'critical';
+  severity: "warning" | "critical";
   message: string;
 }
 
@@ -523,12 +527,13 @@ export async function checkSLAViolations(workflowRunId: number): Promise<SLAChec
   // Check latency SLA
   if (workflow?.slaLatencyMs && workflowRun.totalDurationMs) {
     if (workflowRun.totalDurationMs > workflow.slaLatencyMs) {
-      const overagePercent = ((workflowRun.totalDurationMs - workflow.slaLatencyMs) / workflow.slaLatencyMs) * 100;
+      const overagePercent =
+        ((workflowRun.totalDurationMs - workflow.slaLatencyMs) / workflow.slaLatencyMs) * 100;
       violations.push({
-        type: 'latency',
+        type: "latency",
         threshold: workflow.slaLatencyMs,
         actual: workflowRun.totalDurationMs,
-        severity: overagePercent > 50 ? 'critical' : 'warning',
+        severity: overagePercent > 50 ? "critical" : "warning",
         message: `Latency ${workflowRun.totalDurationMs}ms exceeds SLA threshold of ${workflow.slaLatencyMs}ms (${overagePercent.toFixed(1)}% over)`,
       });
     }
@@ -541,10 +546,10 @@ export async function checkSLAViolations(workflowRunId: number): Promise<SLAChec
     if (actualCost > slaCost) {
       const overagePercent = ((actualCost - slaCost) / slaCost) * 100;
       violations.push({
-        type: 'cost',
+        type: "cost",
         threshold: workflow.slaCostDollars,
         actual: workflowRun.totalCost,
-        severity: overagePercent > 50 ? 'critical' : 'warning',
+        severity: overagePercent > 50 ? "critical" : "warning",
         message: `Cost $${actualCost.toFixed(4)} exceeds SLA threshold of $${slaCost.toFixed(4)} (${overagePercent.toFixed(1)}% over)`,
       });
     }
@@ -562,15 +567,15 @@ export async function checkSLAViolations(workflowRunId: number): Promise<SLAChec
       .limit(100);
 
     if (recentRuns.length >= 10) {
-      const failedCount = recentRuns.filter(r => r.status === 'failed').length;
+      const failedCount = recentRuns.filter((r) => r.status === "failed").length;
       const errorRate = (failedCount / recentRuns.length) * 100;
-      
+
       if (errorRate > workflow.slaErrorRate) {
         violations.push({
-          type: 'error_rate',
+          type: "error_rate",
           threshold: workflow.slaErrorRate,
           actual: Math.round(errorRate),
-          severity: errorRate > workflow.slaErrorRate * 1.5 ? 'critical' : 'warning',
+          severity: errorRate > workflow.slaErrorRate * 1.5 ? "critical" : "warning",
           message: `Error rate ${errorRate.toFixed(1)}% exceeds SLA threshold of ${workflow.slaErrorRate}% (last ${recentRuns.length} runs)`,
         });
       }
@@ -589,16 +594,18 @@ export async function checkSLAViolations(workflowRunId: number): Promise<SLAChec
  * Get SLA status summary for a workflow
  */
 export async function getWorkflowSLAStatus(workflowId: number): Promise<{
-  workflow: { id: number; name: string; slaLatencyMs: number | null; slaCostDollars: string | null; slaErrorRate: number | null };
+  workflow: {
+    id: number;
+    name: string;
+    slaLatencyMs: number | null;
+    slaCostDollars: string | null;
+    slaErrorRate: number | null;
+  };
   recentViolations: number;
   complianceRate: number;
   lastChecked: string;
 }> {
-  const workflow = await db
-    .select()
-    .from(workflows)
-    .where(eq(workflows.id, workflowId))
-    .limit(1);
+  const workflow = await db.select().from(workflows).where(eq(workflows.id, workflowId)).limit(1);
 
   if (workflow.length === 0) {
     throw new Error(`Workflow ${workflowId} not found`);
@@ -619,9 +626,8 @@ export async function getWorkflowSLAStatus(workflowId: number): Promise<{
     }
   }
 
-  const complianceRate = recentRuns.length > 0 
-    ? ((recentRuns.length - violationCount) / recentRuns.length) * 100 
-    : 100;
+  const complianceRate =
+    recentRuns.length > 0 ? ((recentRuns.length - violationCount) / recentRuns.length) * 100 : 100;
 
   return {
     workflow: {

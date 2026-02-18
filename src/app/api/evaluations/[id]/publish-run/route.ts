@@ -4,82 +4,75 @@
  * Makes "published baseline" a real release artifact.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { evaluations, evaluationRuns } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
-import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
-import { validationError, notFound } from '@/lib/api/errors';
-import { parseBody } from '@/lib/api/parse';
-import { publishRunBodySchema } from '@/lib/validation';
-import { logger } from '@/lib/logger';
+import { and, eq } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { evaluationRuns, evaluations } from "@/db/schema";
+import { notFound, validationError } from "@/lib/api/errors";
+import { parseBody } from "@/lib/api/parse";
+import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { logger } from "@/lib/logger";
+import { publishRunBodySchema } from "@/lib/validation";
 
-export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
-  const { id } = params;
-  const evaluationId = parseInt(id);
-  if (isNaN(evaluationId)) {
-    return validationError('Valid evaluation ID is required');
-  }
+export const POST = secureRoute(
+  async (req: NextRequest, ctx: AuthContext, params) => {
+    const { id } = params;
+    const evaluationId = parseInt(id, 10);
+    if (Number.isNaN(evaluationId)) {
+      return validationError("Valid evaluation ID is required");
+    }
 
-  const parsed = await parseBody(req, publishRunBodySchema);
-  if (!parsed.ok) return parsed.response;
+    const parsed = await parseBody(req, publishRunBodySchema);
+    if (!parsed.ok) return parsed.response;
 
-  const runId = parsed.data.runId;
+    const runId = parsed.data.runId;
 
-  const organizationId = ctx.organizationId;
+    const organizationId = ctx.organizationId;
 
-  // Verify evaluation belongs to org
-  const [evalRow] = await db
-    .select({ id: evaluations.id })
-    .from(evaluations)
-    .where(
-      and(
-        eq(evaluations.id, evaluationId),
-        eq(evaluations.organizationId, organizationId)
+    // Verify evaluation belongs to org
+    const [evalRow] = await db
+      .select({ id: evaluations.id })
+      .from(evaluations)
+      .where(and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, organizationId)))
+      .limit(1);
+
+    if (!evalRow) {
+      return notFound("Evaluation not found");
+    }
+
+    // Verify run belongs to this evaluation and org
+    const [runRow] = await db
+      .select({ id: evaluationRuns.id })
+      .from(evaluationRuns)
+      .where(
+        and(
+          eq(evaluationRuns.id, runId),
+          eq(evaluationRuns.evaluationId, evaluationId),
+          eq(evaluationRuns.organizationId, organizationId),
+        ),
       )
-    )
-    .limit(1);
+      .limit(1);
 
-  if (!evalRow) {
-    return notFound('Evaluation not found');
-  }
+    if (!runRow) {
+      return notFound("Run not found or does not belong to this evaluation");
+    }
 
-  // Verify run belongs to this evaluation and org
-  const [runRow] = await db
-    .select({ id: evaluationRuns.id })
-    .from(evaluationRuns)
-    .where(
-      and(
-        eq(evaluationRuns.id, runId),
-        eq(evaluationRuns.evaluationId, evaluationId),
-        eq(evaluationRuns.organizationId, organizationId)
-      )
-    )
-    .limit(1);
+    const now = new Date().toISOString();
+    await db
+      .update(evaluations)
+      .set({
+        publishedRunId: runId,
+        updatedAt: now,
+      })
+      .where(and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, organizationId)));
 
-  if (!runRow) {
-    return notFound('Run not found or does not belong to this evaluation');
-  }
+    logger.info("Published run set", { evaluationId, runId, organizationId });
 
-  const now = new Date().toISOString();
-  await db
-    .update(evaluations)
-    .set({
+    return NextResponse.json({
+      success: true,
+      evaluationId,
       publishedRunId: runId,
-      updatedAt: now,
-    })
-    .where(
-      and(
-        eq(evaluations.id, evaluationId),
-        eq(evaluations.organizationId, organizationId)
-      )
-    );
-
-  logger.info('Published run set', { evaluationId, runId, organizationId });
-
-  return NextResponse.json({
-    success: true,
-    evaluationId,
-    publishedRunId: runId,
-  });
-}, { minRole: 'admin' });
+    });
+  },
+  { minRole: "admin" },
+);

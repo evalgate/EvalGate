@@ -1,25 +1,23 @@
 // src/components/evaluations/visual-diff.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  Minus, 
-  Eye, 
-  GitCompare, 
-  BarChart3, 
-  FileText,
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  BarChart3,
   CheckCircle,
+  Clock,
+  Eye,
+  GitCompare,
+  Minus,
   XCircle,
-  Clock
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 interface DiffResult {
   traceId: string;
@@ -46,20 +44,23 @@ interface VisualDiffProps {
 
 export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: VisualDiffProps) {
   const [selectedTrace, setSelectedTrace] = useState<DiffResult | null>(null);
-  
+
   const stats = {
-    averageScoreImprovement: shadowResults.length > 0 
-      ? shadowResults.reduce((sum, r) => sum + r.scoreDiff, 0) / shadowResults.length 
-      : 0,
-    passRate: shadowResults.length > 0 
-      ? (shadowResults.filter(r => r.passed).length / shadowResults.length) * 100 
-      : 0,
-    averageDuration: shadowResults.length > 0 
-      ? shadowResults.reduce((sum, r) => sum + r.duration, 0) / shadowResults.length 
-      : 0,
-    improvedTraces: shadowResults.filter(r => r.scoreDiff > 0).length,
-    degradedTraces: shadowResults.filter(r => r.scoreDiff < 0).length,
-    unchangedTraces: shadowResults.filter(r => r.scoreDiff === 0).length,
+    averageScoreImprovement:
+      shadowResults.length > 0
+        ? shadowResults.reduce((sum, r) => sum + r.scoreDiff, 0) / shadowResults.length
+        : 0,
+    passRate:
+      shadowResults.length > 0
+        ? (shadowResults.filter((r) => r.passed).length / shadowResults.length) * 100
+        : 0,
+    averageDuration:
+      shadowResults.length > 0
+        ? shadowResults.reduce((sum, r) => sum + r.duration, 0) / shadowResults.length
+        : 0,
+    improvedTraces: shadowResults.filter((r) => r.scoreDiff > 0).length,
+    degradedTraces: shadowResults.filter((r) => r.scoreDiff < 0).length,
+    unchangedTraces: shadowResults.filter((r) => r.scoreDiff === 0).length,
   };
 
   const getScoreDiffIcon = (diff: number) => {
@@ -69,15 +70,15 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
   };
 
   const getScoreDiffColor = (diff: number) => {
-    if (diff > 0) return 'text-green-600';
-    if (diff < 0) return 'text-red-600';
-    return 'text-gray-600';
+    if (diff > 0) return "text-green-600";
+    if (diff < 0) return "text-red-600";
+    return "text-gray-600";
   };
 
-  const getPassRateColor = (rate: number) => {
-    if (rate >= 80) return 'text-green-600';
-    if (rate >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+  const _getPassRateColor = (rate: number) => {
+    if (rate >= 80) return "text-green-600";
+    if (rate >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   if (isLoading) {
@@ -111,12 +112,11 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
             <div className="flex items-center gap-2">
               {getScoreDiffIcon(stats.averageScoreImprovement)}
               <div className="text-2xl font-bold">
-                {stats.averageScoreImprovement > 0 ? '+' : ''}{stats.averageScoreImprovement.toFixed(1)}
+                {stats.averageScoreImprovement > 0 ? "+" : ""}
+                {stats.averageScoreImprovement.toFixed(1)}
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Average score change
-            </p>
+            <p className="text-xs text-muted-foreground">Average score change</p>
           </CardContent>
         </Card>
 
@@ -126,9 +126,7 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.passRate.toFixed(1)}%
-            </div>
+            <div className="text-2xl font-bold">{stats.passRate.toFixed(1)}%</div>
             <Progress value={stats.passRate} className="mt-2" />
           </CardContent>
         </Card>
@@ -139,12 +137,8 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {(stats.averageDuration / 1000).toFixed(1)}s
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Per trace
-            </p>
+            <div className="text-2xl font-bold">{(stats.averageDuration / 1000).toFixed(1)}s</div>
+            <p className="text-xs text-muted-foreground">Per trace</p>
           </CardContent>
         </Card>
 
@@ -193,7 +187,7 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
 
             <TabsContent value="overview" className="space-y-4">
               <div className="space-y-2">
-                {shadowResults.map((result, index) => (
+                {shadowResults.map((result, _index) => (
                   <div
                     key={result.traceId}
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
@@ -211,9 +205,7 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center gap-1">
                           <span className="text-muted-foreground">Original:</span>
-                          <span className="font-medium">
-                            {result.originalScore || 'N/A'}
-                          </span>
+                          <span className="font-medium">{result.originalScore || "N/A"}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="text-muted-foreground">Shadow:</span>
@@ -222,14 +214,13 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
                         <div className="flex items-center gap-1">
                           {getScoreDiffIcon(result.scoreDiff)}
                           <span className={cn("font-medium", getScoreDiffColor(result.scoreDiff))}>
-                            {result.scoreDiff > 0 ? '+' : ''}{result.scoreDiff}
+                            {result.scoreDiff > 0 ? "+" : ""}
+                            {result.scoreDiff}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {result.duration}ms
-                    </div>
+                    <div className="text-xs text-muted-foreground">{result.duration}ms</div>
                   </div>
                 ))}
               </div>
@@ -240,8 +231,8 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">{selectedTrace.traceId}</h3>
-                    <Badge variant={selectedTrace.passed ? 'default' : 'destructive'}>
-                      {selectedTrace.passed ? 'Passed' : 'Failed'}
+                    <Badge variant={selectedTrace.passed ? "default" : "destructive"}>
+                      {selectedTrace.passed ? "Passed" : "Failed"}
                     </Badge>
                   </div>
 
@@ -252,7 +243,7 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
                         <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Score:</span>
                           <span className="font-medium">
-                            {selectedTrace.originalScore || 'N/A'}
+                            {selectedTrace.originalScore || "N/A"}
                           </span>
                         </div>
                         {selectedTrace.originalOutput && (
@@ -277,8 +268,14 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
                           <span className="text-sm text-muted-foreground">Change:</span>
                           <div className="flex items-center gap-1">
                             {getScoreDiffIcon(selectedTrace.scoreDiff)}
-                            <span className={cn("font-medium", getScoreDiffColor(selectedTrace.scoreDiff))}>
-                              {selectedTrace.scoreDiff > 0 ? '+' : ''}{selectedTrace.scoreDiff}
+                            <span
+                              className={cn(
+                                "font-medium",
+                                getScoreDiffColor(selectedTrace.scoreDiff),
+                              )}
+                            >
+                              {selectedTrace.scoreDiff > 0 ? "+" : ""}
+                              {selectedTrace.scoreDiff}
                             </span>
                           </div>
                         </div>
@@ -311,10 +308,10 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
             </TabsContent>
 
             <TabsContent value="comparison" className="space-y-4">
-              {selectedTrace && selectedTrace.originalOutput && selectedTrace.shadowOutput ? (
+              {selectedTrace?.originalOutput && selectedTrace.shadowOutput ? (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Output Comparison</h3>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <h4 className="font-medium mb-2">Original Output</h4>
@@ -324,7 +321,7 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
                         </div>
                       </div>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-medium mb-2">Shadow Output</h4>
                       <div className="p-4 border rounded-lg">
@@ -342,7 +339,7 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
                         <div className="flex justify-between items-center">
                           <span>Original Score:</span>
                           <span className="font-medium">
-                            {selectedTrace.originalScore || 'N/A'}
+                            {selectedTrace.originalScore || "N/A"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
@@ -353,8 +350,14 @@ export function VisualDiff({ originalEvaluation, shadowResults, isLoading }: Vis
                           <span>Difference:</span>
                           <div className="flex items-center gap-1">
                             {getScoreDiffIcon(selectedTrace.scoreDiff)}
-                            <span className={cn("font-bold", getScoreDiffColor(selectedTrace.scoreDiff))}>
-                              {selectedTrace.scoreDiff > 0 ? '+' : ''}{selectedTrace.scoreDiff}
+                            <span
+                              className={cn(
+                                "font-bold",
+                                getScoreDiffColor(selectedTrace.scoreDiff),
+                              )}
+                            >
+                              {selectedTrace.scoreDiff > 0 ? "+" : ""}
+                              {selectedTrace.scoreDiff}
                             </span>
                           </div>
                         </div>

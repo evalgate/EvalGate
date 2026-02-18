@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
 // src/components/ui/diff-viewer.tsx
-import { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useMemo } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface DiffViewerProps {
   expected: string;
@@ -13,7 +13,7 @@ interface DiffViewerProps {
 }
 
 interface DiffLine {
-  type: 'equal' | 'added' | 'removed';
+  type: "equal" | "added" | "removed";
   text: string;
 }
 
@@ -24,17 +24,24 @@ interface DiffLine {
 export function DiffViewer({ expected, actual, label, score }: DiffViewerProps) {
   const diff = useMemo(() => computeDiff(expected, actual), [expected, actual]);
 
-  const addedCount = diff.filter((l) => l.type === 'added').length;
-  const removedCount = diff.filter((l) => l.type === 'removed').length;
+  const addedCount = diff.filter((l) => l.type === "added").length;
+  const removedCount = diff.filter((l) => l.type === "removed").length;
 
   return (
     <Card className="bg-zinc-900/50 border-zinc-800">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm">{label || 'Diff'}</CardTitle>
+          <CardTitle className="text-sm">{label || "Diff"}</CardTitle>
           <div className="flex items-center gap-2">
             {score !== undefined && (
-              <Badge variant="outline" className={score >= 70 ? 'text-green-400 border-green-400/30' : 'text-red-400 border-red-400/30'}>
+              <Badge
+                variant="outline"
+                className={
+                  score >= 70
+                    ? "text-green-400 border-green-400/30"
+                    : "text-red-400 border-red-400/30"
+                }
+              >
                 {score}%
               </Badge>
             )}
@@ -49,17 +56,17 @@ export function DiffViewer({ expected, actual, label, score }: DiffViewerProps) 
             <div
               key={i}
               className={`px-2 py-0.5 whitespace-pre-wrap ${
-                line.type === 'added'
-                  ? 'bg-green-500/10 text-green-400'
-                  : line.type === 'removed'
-                  ? 'bg-red-500/10 text-red-400'
-                  : 'text-zinc-400'
+                line.type === "added"
+                  ? "bg-green-500/10 text-green-400"
+                  : line.type === "removed"
+                    ? "bg-red-500/10 text-red-400"
+                    : "text-zinc-400"
               }`}
             >
               <span className="inline-block w-4 mr-2 text-zinc-600 select-none">
-                {line.type === 'added' ? '+' : line.type === 'removed' ? '-' : ' '}
+                {line.type === "added" ? "+" : line.type === "removed" ? "-" : " "}
               </span>
-              {line.text || '\u00A0'}
+              {line.text || "\u00A0"}
             </div>
           ))}
         </div>
@@ -73,8 +80,8 @@ export function DiffViewer({ expected, actual, label, score }: DiffViewerProps) 
  * Compares lines of expected vs actual and marks additions/removals.
  */
 function computeDiff(expected: string, actual: string): DiffLine[] {
-  const expLines = expected.split('\n');
-  const actLines = actual.split('\n');
+  const expLines = expected.split("\n");
+  const actLines = actual.split("\n");
   const result: DiffLine[] = [];
 
   const maxLen = Math.max(expLines.length, actLines.length);
@@ -84,14 +91,14 @@ function computeDiff(expected: string, actual: string): DiffLine[] {
     const act = actLines[i];
 
     if (exp === undefined) {
-      result.push({ type: 'added', text: act });
+      result.push({ type: "added", text: act });
     } else if (act === undefined) {
-      result.push({ type: 'removed', text: exp });
+      result.push({ type: "removed", text: exp });
     } else if (exp === act) {
-      result.push({ type: 'equal', text: exp });
+      result.push({ type: "equal", text: exp });
     } else {
-      result.push({ type: 'removed', text: exp });
-      result.push({ type: 'added', text: act });
+      result.push({ type: "removed", text: exp });
+      result.push({ type: "added", text: act });
     }
   }
 

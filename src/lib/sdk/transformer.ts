@@ -1,14 +1,8 @@
 // src/lib/sdk/transformer.ts
-import {
-  SDKTestResult,
-  SDKEvaluationResult,
-  SDKMessage,
-  SDKToolCall,
-  SDKTraceSpan,
-  SDKTrace,
-} from './mapper';
-import { testResults, evaluationRuns } from '@/db/schema';
-import type { AssertionResult, AssertionsEnvelope } from '@/lib/eval/assertions';
+
+import type { evaluationRuns, testResults } from "@/db/schema";
+import type { AssertionResult, AssertionsEnvelope } from "@/lib/eval/assertions";
+import type { SDKEvaluationResult, SDKTestResult, SDKTrace } from "./mapper";
 
 /**
  * Transform SDK test result to database format.
@@ -18,19 +12,19 @@ import type { AssertionResult, AssertionsEnvelope } from '@/lib/eval/assertions'
 export function transformTestResultToDB(
   sdkResult: SDKTestResult,
   evaluationRunId: number,
-  organizationId: number
-): Omit<typeof testResults.$inferInsert, 'id' | 'createdAt'> {
+  organizationId: number,
+): Omit<typeof testResults.$inferInsert, "id" | "createdAt"> {
   let assertionsJson: AssertionsEnvelope | null = null;
   if (sdkResult.assertions?.length) {
     const assertions: AssertionResult[] = sdkResult.assertions.map((a) => ({
-      key: a.key as AssertionResult['key'],
+      key: a.key as AssertionResult["key"],
       category: a.category,
       passed: a.passed,
       score: a.score,
       severity: a.severity,
       details: a.details,
     }));
-    assertionsJson = { version: 'v1', assertions };
+    assertionsJson = { version: "v1", assertions };
   }
 
   return {
@@ -55,15 +49,15 @@ export function transformTestResultToDB(
 export function transformEvaluationResultToDB(
   sdkResult: SDKEvaluationResult,
   organizationId: number,
-  userId: string
+  userId: string,
 ): {
-  run: Omit<typeof evaluationRuns.$inferInsert, 'id' | 'createdAt'>;
-  testResults: Array<Omit<typeof testResults.$inferInsert, 'id' | 'createdAt'>>;
+  run: Omit<typeof evaluationRuns.$inferInsert, "id" | "createdAt">;
+  testResults: Array<Omit<typeof testResults.$inferInsert, "id" | "createdAt">>;
 } {
-  const now = new Date().toISOString();
-  
+  const _now = new Date().toISOString();
+
   // Transform the main run record
-  const run: Omit<typeof evaluationRuns.$inferInsert, 'id' | 'createdAt'> = {
+  const run: Omit<typeof evaluationRuns.$inferInsert, "id" | "createdAt"> = {
     evaluationId: sdkResult.evaluationId,
     organizationId,
     status: sdkResult.status,
@@ -85,8 +79,8 @@ export function transformEvaluationResultToDB(
   };
 
   // Transform all test results
-  const transformedResults = sdkResult.results.map(result =>
-    transformTestResultToDB(result, 0, organizationId) // runId will be set after insertion
+  const transformedResults = sdkResult.results.map(
+    (result) => transformTestResultToDB(result, 0, organizationId), // runId will be set after insertion
   );
 
   return { run, testResults: transformedResults };
@@ -98,7 +92,7 @@ export function transformEvaluationResultToDB(
  */
 export function transformTraceToDB(
   sdkTrace: SDKTrace,
-  organizationId: number
+  organizationId: number,
 ): {
   traceLog: string;
   metadata: Record<string, any>;
@@ -113,7 +107,7 @@ export function transformTraceToDB(
       startTime: sdkTrace.startTime,
       endTime: sdkTrace.endTime,
       durationMs: sdkTrace.durationMs,
-      spans: sdkTrace.spans.map(span => ({
+      spans: sdkTrace.spans.map((span) => ({
         spanId: span.spanId,
         parentSpanId: span.parentSpanId,
         name: span.name,
@@ -137,7 +131,10 @@ export function transformTraceToDB(
       duration: sdkTrace.durationMs,
       spanCount: sdkTrace.spans.length,
       messageCount: sdkTrace.spans.reduce((total, span) => total + (span.messages?.length || 0), 0),
-      toolCallCount: sdkTrace.spans.reduce((total, span) => total + (span.toolCalls?.length || 0), 0),
+      toolCallCount: sdkTrace.spans.reduce(
+        (total, span) => total + (span.toolCalls?.length || 0),
+        0,
+      ),
     },
   };
 }
@@ -172,21 +169,21 @@ export function extractMessagesFromTrace(sdkTrace: SDKTrace): Array<{
         });
       }
     }
-    
+
     if (span.toolCalls) {
       for (const toolCall of span.toolCalls) {
         messages.push({
           timestamp: toolCall.timestamp || span.startTime,
-          role: 'tool',
+          role: "tool",
           content: `Calling ${toolCall.function.name} with args: ${JSON.stringify(toolCall.function.arguments)}`,
           spanName: span.name,
           toolCall: toolCall,
         });
-        
+
         if (toolCall.result) {
           messages.push({
             timestamp: toolCall.timestamp || span.startTime,
-            role: 'tool_result',
+            role: "tool_result",
             content: `Result: ${JSON.stringify(toolCall.result)}`,
             spanName: span.name,
             toolCall: toolCall,
@@ -223,9 +220,10 @@ export function extractToolCallsFromTrace(sdkTrace: SDKTrace): Array<{
   for (const span of sdkTrace.spans) {
     if (span.toolCalls) {
       for (const toolCall of span.toolCalls) {
-        const duration = span.endTime && span.startTime 
-          ? new Date(span.endTime).getTime() - new Date(span.startTime).getTime()
-          : undefined;
+        const duration =
+          span.endTime && span.startTime
+            ? new Date(span.endTime).getTime() - new Date(span.startTime).getTime()
+            : undefined;
 
         toolCalls.push({
           timestamp: toolCall.timestamp || span.startTime,
@@ -239,7 +237,9 @@ export function extractToolCallsFromTrace(sdkTrace: SDKTrace): Array<{
     }
   }
 
-  return toolCalls.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  return toolCalls.sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  );
 }
 
 /**
@@ -251,25 +251,26 @@ export function calculateMetrics(sdkResult: SDKEvaluationResult): {
   averageDuration: number;
   totalDuration: number;
 } {
-  const passRate = sdkResult.totalCases > 0 
-    ? Math.round((sdkResult.passedCases / sdkResult.totalCases) * 100)
-    : 0;
+  const passRate =
+    sdkResult.totalCases > 0 ? Math.round((sdkResult.passedCases / sdkResult.totalCases) * 100) : 0;
 
   const scores = sdkResult.results
-    .map(r => r.score)
-    .filter(score => score !== null && score !== undefined) as number[];
-  
-  const averageScore = scores.length > 0
-    ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
-    : 0;
+    .map((r) => r.score)
+    .filter((score) => score !== null && score !== undefined) as number[];
+
+  const averageScore =
+    scores.length > 0
+      ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
+      : 0;
 
   const durations = sdkResult.results
-    .map(r => r.durationMs)
-    .filter(duration => duration !== null && duration !== undefined) as number[];
-  
-  const averageDuration = durations.length > 0
-    ? Math.round(durations.reduce((sum, duration) => sum + duration, 0) / durations.length)
-    : 0;
+    .map((r) => r.durationMs)
+    .filter((duration) => duration !== null && duration !== undefined) as number[];
+
+  const averageDuration =
+    durations.length > 0
+      ? Math.round(durations.reduce((sum, duration) => sum + duration, 0) / durations.length)
+      : 0;
 
   const totalDuration = sdkResult.durationMs || 0;
 

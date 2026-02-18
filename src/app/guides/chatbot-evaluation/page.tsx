@@ -1,21 +1,25 @@
-import { Button } from "@/components/ui/button"
-import { PublicPageHeader } from "@/components/public-page-header"
-import { Footer } from "@/components/footer"
-import { ArrowLeft, MessageSquare, CheckCircle, XCircle } from "lucide-react"
-import Link from "next/link"
+import { ArrowLeft, CheckCircle, MessageSquare, XCircle } from "lucide-react";
+import Link from "next/link";
+import { PublicPageHeader } from "@/components/public-page-header";
+import { Button } from "@/components/ui/button";
 
 export default function ChatbotEvaluationGuidePage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <PublicPageHeader />
       <div className="mx-auto max-w-4xl px-4 sm:px-6 py-8 sm:py-12">
-        <Link href="/guides" className="mb-6 sm:mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          href="/guides"
+          className="mb-6 sm:mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           Back to Guides
         </Link>
 
         <div className="mb-6 sm:mb-8">
-          <h1 className="mb-3 sm:mb-4 text-3xl sm:text-4xl font-bold tracking-tight">Evaluating Chatbots</h1>
+          <h1 className="mb-3 sm:mb-4 text-3xl sm:text-4xl font-bold tracking-tight">
+            Evaluating Chatbots
+          </h1>
           <p className="text-base sm:text-lg text-muted-foreground">
             A comprehensive guide to testing and improving conversational AI systems
           </p>
@@ -23,18 +27,28 @@ export default function ChatbotEvaluationGuidePage() {
 
         <div className="prose prose-sm sm:prose-base max-w-none">
           <section className="mb-8 sm:mb-12">
-            <h2 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-semibold">Key Evaluation Dimensions</h2>
-            
+            <h2 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-semibold">
+              Key Evaluation Dimensions
+            </h2>
+
             <div className="mb-6 rounded-lg border border-border bg-card p-4 sm:p-6">
               <div className="mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
                 <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
                 <h3 className="text-base sm:text-lg font-semibold">Response Quality</h3>
               </div>
               <ul className="space-y-2 text-sm sm:text-base text-muted-foreground">
-                <li>• <strong>Relevance:</strong> Does the response address the user's query?</li>
-                <li>• <strong>Accuracy:</strong> Is the information correct and up-to-date?</li>
-                <li>• <strong>Completeness:</strong> Does it provide all necessary information?</li>
-                <li>• <strong>Clarity:</strong> Is the response easy to understand?</li>
+                <li>
+                  • <strong>Relevance:</strong> Does the response address the user's query?
+                </li>
+                <li>
+                  • <strong>Accuracy:</strong> Is the information correct and up-to-date?
+                </li>
+                <li>
+                  • <strong>Completeness:</strong> Does it provide all necessary information?
+                </li>
+                <li>
+                  • <strong>Clarity:</strong> Is the response easy to understand?
+                </li>
               </ul>
             </div>
 
@@ -44,10 +58,18 @@ export default function ChatbotEvaluationGuidePage() {
                 <h3 className="text-base sm:text-lg font-semibold">Conversational Flow</h3>
               </div>
               <ul className="space-y-2 text-sm sm:text-base text-muted-foreground">
-                <li>• <strong>Context awareness:</strong> Does it remember previous messages?</li>
-                <li>• <strong>Natural language:</strong> Does it sound human and conversational?</li>
-                <li>• <strong>Tone consistency:</strong> Is the personality consistent?</li>
-                <li>• <strong>Error handling:</strong> How does it handle misunderstandings?</li>
+                <li>
+                  • <strong>Context awareness:</strong> Does it remember previous messages?
+                </li>
+                <li>
+                  • <strong>Natural language:</strong> Does it sound human and conversational?
+                </li>
+                <li>
+                  • <strong>Tone consistency:</strong> Is the personality consistent?
+                </li>
+                <li>
+                  • <strong>Error handling:</strong> How does it handle misunderstandings?
+                </li>
               </ul>
             </div>
 
@@ -57,10 +79,18 @@ export default function ChatbotEvaluationGuidePage() {
                 <h3 className="text-base sm:text-lg font-semibold">Safety & Guardrails</h3>
               </div>
               <ul className="space-y-2 text-sm sm:text-base text-muted-foreground">
-                <li>• <strong>Harmful content:</strong> Does it avoid toxic or offensive responses?</li>
-                <li>• <strong>Privacy:</strong> Does it protect user information?</li>
-                <li>• <strong>Boundaries:</strong> Does it refuse inappropriate requests?</li>
-                <li>• <strong>Hallucinations:</strong> Does it admit when it doesn't know?</li>
+                <li>
+                  • <strong>Harmful content:</strong> Does it avoid toxic or offensive responses?
+                </li>
+                <li>
+                  • <strong>Privacy:</strong> Does it protect user information?
+                </li>
+                <li>
+                  • <strong>Boundaries:</strong> Does it refuse inappropriate requests?
+                </li>
+                <li>
+                  • <strong>Hallucinations:</strong> Does it admit when it doesn't know?
+                </li>
               </ul>
             </div>
           </section>
@@ -145,19 +175,22 @@ export default function ChatbotEvaluationGuidePage() {
               <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
                 <h3 className="mb-2 text-base sm:text-lg font-semibold">Over-optimizing</h3>
                 <p className="text-sm sm:text-base text-muted-foreground">
-                  Don't just optimize for test cases. Ensure your chatbot handles novel user inputs gracefully.
+                  Don't just optimize for test cases. Ensure your chatbot handles novel user inputs
+                  gracefully.
                 </p>
               </div>
               <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
                 <h3 className="mb-2 text-base sm:text-lg font-semibold">Ignoring Context</h3>
                 <p className="text-sm sm:text-base text-muted-foreground">
-                  Test multi-turn conversations, not just single exchanges. Context is critical for chatbots.
+                  Test multi-turn conversations, not just single exchanges. Context is critical for
+                  chatbots.
                 </p>
               </div>
               <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
                 <h3 className="mb-2 text-base sm:text-lg font-semibold">No Monitoring</h3>
                 <p className="text-sm sm:text-base text-muted-foreground">
-                  Evaluation doesn't end at deployment. Continuously monitor production conversations.
+                  Evaluation doesn't end at deployment. Continuously monitor production
+                  conversations.
                 </p>
               </div>
               <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
@@ -180,5 +213,5 @@ export default function ChatbotEvaluationGuidePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,13 +1,12 @@
-"use client"
+"use client";
 
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Footer } from "@/components/footer"
-import { useSession } from "@/lib/auth-client"
-
-import Link from "next/link"
-import { ArrowRight, Code, Zap, BookOpen, Settings } from "lucide-react"
+import { ArrowRight, BookOpen, Code, Settings, Zap } from "lucide-react";
+import Link from "next/link";
+import { Footer } from "@/components/footer";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useSession } from "@/lib/auth-client";
 
 const guides = [
   {
@@ -15,70 +14,70 @@ const guides = [
     description: "Get up and running with your first evaluation in 5 minutes",
     category: "Getting Started",
     icon: Zap,
-    href: "/guides/quick-start"
+    href: "/guides/quick-start",
   },
   {
     title: "OpenAI Integration",
     description: "Connect OpenAI models for evaluation and testing",
     category: "Integrations",
     icon: Code,
-    href: "/guides/openai-integration"
+    href: "/guides/openai-integration",
   },
   {
     title: "LangChain Integration",
     description: "Integrate LangChain applications with the platform",
     category: "Integrations",
     icon: Code,
-    href: "/guides/langchain-integration"
+    href: "/guides/langchain-integration",
   },
   {
     title: "Chatbot Evaluation",
     description: "Best practices for evaluating conversational AI",
     category: "Use Cases",
     icon: BookOpen,
-    href: "/guides/chatbot-evaluation"
+    href: "/guides/chatbot-evaluation",
   },
   {
     title: "RAG Evaluation",
     description: "Evaluate retrieval-augmented generation systems",
     category: "Use Cases",
     icon: BookOpen,
-    href: "/guides/rag-evaluation"
+    href: "/guides/rag-evaluation",
   },
   {
     title: "Code Generation",
     description: "Test and validate code generation models",
     category: "Use Cases",
     icon: BookOpen,
-    href: "/guides/code-generation"
+    href: "/guides/code-generation",
   },
   {
     title: "LLM Judge Setup",
     description: "Configure LLM judges for automated evaluation",
     category: "Advanced",
     icon: Settings,
-    href: "/guides/llm-judge"
+    href: "/guides/llm-judge",
   },
   {
     title: "Tracing Setup",
     description: "Implement distributed tracing for LLM applications",
     category: "Advanced",
     icon: Settings,
-    href: "/guides/tracing-setup"
+    href: "/guides/tracing-setup",
   },
   {
     title: "CI/CD Integration",
     description: "Automate evaluations in your deployment pipeline",
     category: "Advanced",
     icon: Settings,
-    href: "/guides/cicd-integration"
-  }
-]
+    href: "/guides/cicd-integration",
+  },
+];
 
-const categories = ["Getting Started", "Integrations", "Use Cases", "Advanced"]
+const categories = ["Getting Started", "Integrations", "Use Cases", "Advanced"];
 
 export default function GuidesPage() {
-  const { data: session } = useSession()
+  const { data: session } = useSession();
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -122,31 +121,44 @@ export default function GuidesPage() {
 
           {/* Guides by Category */}
           {categories.map((category) => {
-            const categoryGuides = guides.filter((guide) => guide.category === category)
+            const categoryGuides = guides.filter((guide) => guide.category === category);
             return (
               <section key={category} className="mb-8 sm:mb-12">
                 <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">{category}</h2>
                 <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {categoryGuides.map((guide) => {
-                    const Icon = guide.icon
+                    const Icon = guide.icon;
                     return (
-                      <Card key={guide.href} className="p-5 sm:p-6 hover:border-blue-500/50 transition-colors">
+                      <Card
+                        key={guide.href}
+                        className="p-5 sm:p-6 hover:border-blue-500/50 transition-colors"
+                      >
                         <div className="mb-3 sm:mb-4 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-blue-500/10">
                           <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
                         </div>
                         <h3 className="mb-2 text-lg sm:text-xl font-semibold">{guide.title}</h3>
-                        <p className="mb-3 sm:mb-4 text-sm sm:text-base text-muted-foreground">{guide.description}</p>
-                        <Button asChild variant="ghost" size="sm" className="w-full justify-start p-0 h-auto">
-                          <Link href={guide.href} className="inline-flex items-center text-blue-500 hover:text-blue-400">
+                        <p className="mb-3 sm:mb-4 text-sm sm:text-base text-muted-foreground">
+                          {guide.description}
+                        </p>
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start p-0 h-auto"
+                        >
+                          <Link
+                            href={guide.href}
+                            className="inline-flex items-center text-blue-500 hover:text-blue-400"
+                          >
                             Read guide <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>
                       </Card>
-                    )
+                    );
                   })}
                 </div>
               </section>
-            )
+            );
           })}
         </div>
       </main>
@@ -154,5 +166,5 @@ export default function GuidesPage() {
       {/* Footer */}
       <Footer />
     </div>
-  )
+  );
 }

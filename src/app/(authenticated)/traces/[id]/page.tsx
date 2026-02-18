@@ -1,88 +1,87 @@
-"use client"
+"use client";
 
-import { use } from 'react'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import Link from "next/link"
-import { ArrowLeft, Clock, Zap, AlertCircle } from "lucide-react"
-import { useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { AlertCircle, ArrowLeft, Clock, Zap } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSession } from "@/lib/auth-client";
 
 type PageProps = {
-  params: Promise<{ id: string }>
-}
+  params: Promise<{ id: string }>;
+};
 
 export default function TraceDetailPage({ params }: PageProps) {
-  const { id } = use(params)
-  const { data: session, isPending } = useSession()
-  const router = useRouter()
-  const [trace, setTrace] = useState<any>(null)
-  const [spans, setSpans] = useState<any[]>([])
-  const [rootSpans, setRootSpans] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const { id } = use(params);
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const [trace, setTrace] = useState<any>(null);
+  const [spans, setSpans] = useState<any[]>([]);
+  const [rootSpans, setRootSpans] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
-      router.push("/auth/login")
-      return
+      router.push("/auth/login");
+      return;
     }
 
     if (session?.user) {
-      const token = localStorage.getItem("bearer_token")
-      
+      const token = localStorage.getItem("bearer_token");
+
       fetch(`/api/traces/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       })
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (data.error) {
-            router.push("/traces")
+            router.push("/traces");
           } else {
-            setTrace(data.trace)
+            setTrace(data.trace);
           }
-        })
+        });
 
       fetch(`/api/traces/${id}/spans`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       })
-        .then(res => res.json())
-        .then(data => {
-          const fetchedSpans = data.spans || []
-          setSpans(fetchedSpans)
-          
-          const spanMap = new Map()
-          const roots: any[] = []
+        .then((res) => res.json())
+        .then((data) => {
+          const fetchedSpans = data.spans || [];
+          setSpans(fetchedSpans);
+
+          const spanMap = new Map();
+          const roots: any[] = [];
 
           fetchedSpans.forEach((span: any) => {
-            spanMap.set(span.id, { ...span, children: [] })
-          })
+            spanMap.set(span.id, { ...span, children: [] });
+          });
 
           fetchedSpans.forEach((span: any) => {
-            const spanNode = spanMap.get(span.id)
+            const spanNode = spanMap.get(span.id);
             if (span.parent_span_id) {
-              const parent = spanMap.get(span.parent_span_id)
+              const parent = spanMap.get(span.parent_span_id);
               if (parent) {
-                parent.children.push(spanNode)
+                parent.children.push(spanNode);
               } else {
-                roots.push(spanNode)
+                roots.push(spanNode);
               }
             } else {
-              roots.push(spanNode)
+              roots.push(spanNode);
             }
-          })
+          });
 
-          setRootSpans(roots)
-          setIsLoading(false)
-        })
+          setRootSpans(roots);
+          setIsLoading(false);
+        });
     }
-  }, [session, isPending, router, id])
+  }, [session, isPending, router, id]);
 
   if (isPending || !session?.user || isLoading || !trace) {
-    return null
+    return null;
   }
 
-  const totalDuration = spans.reduce((sum: number, span: any) => sum + (span.duration_ms || 0), 0)
+  const totalDuration = spans.reduce((sum: number, span: any) => sum + (span.duration_ms || 0), 0);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -147,7 +146,9 @@ export default function TraceDetailPage({ params }: PageProps) {
             <CardTitle className="text-xs sm:text-sm font-medium">Errors</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-2xl font-bold">{spans.filter((s: any) => s.error).length}</div>
+            <div className="text-xl sm:text-2xl font-bold">
+              {spans.filter((s: any) => s.error).length}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -155,7 +156,9 @@ export default function TraceDetailPage({ params }: PageProps) {
       <Card>
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="text-base sm:text-lg">Span Timeline</CardTitle>
-          <CardDescription className="text-xs sm:text-sm">Hierarchical view of all spans in this trace</CardDescription>
+          <CardDescription className="text-xs sm:text-sm">
+            Hierarchical view of all spans in this trace
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
           {rootSpans.length > 0 ? (
@@ -170,11 +173,11 @@ export default function TraceDetailPage({ params }: PageProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 function SpanNode({ span, level }: { span: any; level: number }) {
-  const hasError = !!span.error
+  const hasError = !!span.error;
 
   return (
     <div className="space-y-2">
@@ -245,5 +248,5 @@ function SpanNode({ span, level }: { span: any; level: number }) {
         </div>
       )}
     </div>
-  )
+  );
 }

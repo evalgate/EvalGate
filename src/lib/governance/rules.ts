@@ -1,7 +1,7 @@
 /**
  * Governance Rules Engine
  * Enterprise-grade governance for multi-agent AI systems
- * 
+ *
  * Provides configurable rules for:
  * - Approval requirements based on confidence, amount, or sensitivity
  * - Execution blocking for high-risk decisions
@@ -9,7 +9,7 @@
  * - Cost controls and model restrictions
  */
 
-import type { DecisionAlternative } from '@/lib/services/decision.service';
+import type { DecisionAlternative } from "@/lib/services/decision.service";
 
 // ============================================================================
 // TYPES
@@ -21,7 +21,7 @@ import type { DecisionAlternative } from '@/lib/services/decision.service';
 export interface Decision {
   id?: number;
   agentName: string;
-  decisionType: 'action' | 'tool' | 'delegate' | 'respond' | 'route';
+  decisionType: "action" | "tool" | "delegate" | "respond" | "route";
   chosen: string;
   confidence: number;
   alternatives: DecisionAlternative[];
@@ -36,16 +36,16 @@ export interface DecisionContext {
   amount?: number;
   sensitiveData?: boolean;
   piiDetected?: boolean;
-  userTier?: 'free' | 'pro' | 'enterprise';
+  userTier?: "free" | "pro" | "enterprise";
   region?: string;
-  dataClassification?: 'public' | 'internal' | 'confidential' | 'restricted';
+  dataClassification?: "public" | "internal" | "confidential" | "restricted";
   customFields?: Record<string, any>;
 }
 
 /**
  * Audit compliance levels
  */
-export type AuditLevel = 'BASIC' | 'SOC2' | 'GDPR' | 'HIPAA' | 'FINRA_4511' | 'PCI_DSS';
+export type AuditLevel = "BASIC" | "SOC2" | "GDPR" | "HIPAA" | "FINRA_4511" | "PCI_DSS";
 
 /**
  * Governance rule configuration
@@ -86,10 +86,10 @@ export interface GovernanceResult {
  * SLA violation types
  */
 export interface SLAViolation {
-  type: 'latency' | 'cost' | 'error_rate' | 'throughput';
+  type: "latency" | "cost" | "error_rate" | "throughput";
   threshold: number;
   actual: number;
-  severity: 'warning' | 'critical';
+  severity: "warning" | "critical";
   message: string;
 }
 
@@ -104,7 +104,7 @@ const DEFAULT_CONFIG: Required<GovernanceConfig> = {
   requireApprovalForPII: true,
   allowedModels: [],
   maxCostPerRun: 10.0,
-  auditLevel: 'BASIC',
+  auditLevel: "BASIC",
   customApprovalRules: [],
   customBlockingRules: [],
 };
@@ -144,7 +144,7 @@ export const GovernanceRules = {
     }
 
     // Restricted data classification requires approval
-    if (decision.context.dataClassification === 'restricted') {
+    if (decision.context.dataClassification === "restricted") {
       return true;
     }
 
@@ -166,7 +166,7 @@ export const GovernanceRules = {
 
     // Block if any alternative indicates fraud risk
     const hasFraudRisk = decision.alternatives.some(
-      (alt) => alt.reasoning?.toLowerCase().includes('fraud') && alt.confidence > 0.3
+      (alt) => alt.reasoning?.toLowerCase().includes("fraud") && alt.confidence > 0.3,
     );
     if (hasFraudRisk) {
       return true;
@@ -174,7 +174,7 @@ export const GovernanceRules = {
 
     // Block if any alternative indicates security risk
     const hasSecurityRisk = decision.alternatives.some(
-      (alt) => alt.reasoning?.toLowerCase().includes('security') && alt.confidence > 0.4
+      (alt) => alt.reasoning?.toLowerCase().includes("security") && alt.confidence > 0.4,
     );
     if (hasSecurityRisk) {
       return true;
@@ -203,23 +203,27 @@ export const GovernanceRules = {
     const reasons: string[] = [];
 
     if (decision.confidence < cfg.confidenceThreshold) {
-      reasons.push(`Low confidence (${(decision.confidence * 100).toFixed(0)}% < ${(cfg.confidenceThreshold * 100).toFixed(0)}% threshold)`);
+      reasons.push(
+        `Low confidence (${(decision.confidence * 100).toFixed(0)}% < ${(cfg.confidenceThreshold * 100).toFixed(0)}% threshold)`,
+      );
     }
 
     if (decision.context.amount !== undefined && decision.context.amount > cfg.amountThreshold) {
-      reasons.push(`High value transaction ($${decision.context.amount} > $${cfg.amountThreshold} threshold)`);
+      reasons.push(
+        `High value transaction ($${decision.context.amount} > $${cfg.amountThreshold} threshold)`,
+      );
     }
 
     if (cfg.requireApprovalForSensitiveData && decision.context.sensitiveData === true) {
-      reasons.push('Contains sensitive data');
+      reasons.push("Contains sensitive data");
     }
 
     if (cfg.requireApprovalForPII && decision.context.piiDetected === true) {
-      reasons.push('PII detected in context');
+      reasons.push("PII detected in context");
     }
 
-    if (decision.context.dataClassification === 'restricted') {
-      reasons.push('Restricted data classification');
+    if (decision.context.dataClassification === "restricted") {
+      reasons.push("Restricted data classification");
     }
 
     return reasons;
@@ -228,21 +232,21 @@ export const GovernanceRules = {
   /**
    * Get blocking reasons
    */
-  getBlockingReasons: (decision: Decision, config: GovernanceConfig = {}): string[] => {
+  getBlockingReasons: (decision: Decision, _config: GovernanceConfig = {}): string[] => {
     const reasons: string[] = [];
 
     const hasFraudRisk = decision.alternatives.some(
-      (alt) => alt.reasoning?.toLowerCase().includes('fraud') && alt.confidence > 0.3
+      (alt) => alt.reasoning?.toLowerCase().includes("fraud") && alt.confidence > 0.3,
     );
     if (hasFraudRisk) {
-      reasons.push('Potential fraud risk detected in alternatives');
+      reasons.push("Potential fraud risk detected in alternatives");
     }
 
     const hasSecurityRisk = decision.alternatives.some(
-      (alt) => alt.reasoning?.toLowerCase().includes('security') && alt.confidence > 0.4
+      (alt) => alt.reasoning?.toLowerCase().includes("security") && alt.confidence > 0.4,
     );
     if (hasSecurityRisk) {
-      reasons.push('Security risk detected in alternatives');
+      reasons.push("Security risk detected in alternatives");
     }
 
     if (decision.confidence < 0.3) {
@@ -365,42 +369,42 @@ export const CompliancePresets: Record<AuditLevel, GovernanceConfig> = {
     amountThreshold: 1000,
     requireApprovalForSensitiveData: false,
     requireApprovalForPII: false,
-    auditLevel: 'BASIC',
+    auditLevel: "BASIC",
   },
   SOC2: {
     confidenceThreshold: 0.7,
     amountThreshold: 500,
     requireApprovalForSensitiveData: true,
     requireApprovalForPII: true,
-    auditLevel: 'SOC2',
+    auditLevel: "SOC2",
   },
   GDPR: {
     confidenceThreshold: 0.75,
     amountThreshold: 250,
     requireApprovalForSensitiveData: true,
     requireApprovalForPII: true,
-    auditLevel: 'GDPR',
+    auditLevel: "GDPR",
   },
   HIPAA: {
     confidenceThreshold: 0.8,
     amountThreshold: 100,
     requireApprovalForSensitiveData: true,
     requireApprovalForPII: true,
-    auditLevel: 'HIPAA',
+    auditLevel: "HIPAA",
   },
   FINRA_4511: {
     confidenceThreshold: 0.85,
     amountThreshold: 100,
     requireApprovalForSensitiveData: true,
     requireApprovalForPII: true,
-    auditLevel: 'FINRA_4511',
+    auditLevel: "FINRA_4511",
   },
   PCI_DSS: {
     confidenceThreshold: 0.8,
     amountThreshold: 50,
     requireApprovalForSensitiveData: true,
     requireApprovalForPII: true,
-    auditLevel: 'PCI_DSS',
+    auditLevel: "PCI_DSS",
   },
 };
 

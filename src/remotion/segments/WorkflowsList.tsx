@@ -1,9 +1,16 @@
-import React from "react";
+import type React from "react";
 import { interpolate, useCurrentFrame } from "remotion";
-import { colors, card, badge as badgeStyle } from "../styles";
+import { badge as badgeStyle, card, colors } from "../styles";
 
 const workflows = [
-  { name: "Customer Support Pipeline", status: "active", agents: 3, nodes: 6, runs: 156, success: 91 },
+  {
+    name: "Customer Support Pipeline",
+    status: "active",
+    agents: 3,
+    nodes: 6,
+    runs: 156,
+    success: 91,
+  },
   { name: "Research Assistant", status: "active", agents: 3, nodes: 3, runs: 89, success: 96 },
   { name: "Code Review Pipeline", status: "draft", agents: 3, nodes: 4, runs: 12, success: 83 },
 ];
@@ -23,8 +30,14 @@ export const WorkflowsList: React.FC = () => {
       <div style={{ display: "flex", gap: 24 }}>
         {workflows.map((wf, i) => {
           const delay = i * 12;
-          const opacity = interpolate(frame, [delay, delay + 15], [0, 1], { extrapolateRight: "clamp", extrapolateLeft: "clamp" });
-          const translateY = interpolate(frame, [delay, delay + 15], [25, 0], { extrapolateRight: "clamp", extrapolateLeft: "clamp" });
+          const opacity = interpolate(frame, [delay, delay + 15], [0, 1], {
+            extrapolateRight: "clamp",
+            extrapolateLeft: "clamp",
+          });
+          const translateY = interpolate(frame, [delay, delay + 15], [25, 0], {
+            extrapolateRight: "clamp",
+            extrapolateLeft: "clamp",
+          });
 
           return (
             <div
@@ -40,9 +53,24 @@ export const WorkflowsList: React.FC = () => {
                 gap: 16,
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                }}
+              >
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={colors.primary}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                   </svg>
                   <span style={{ fontSize: 18, fontWeight: 600 }}>{wf.name}</span>
@@ -52,7 +80,15 @@ export const WorkflowsList: React.FC = () => {
                 </span>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: colors.textMuted }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontSize: 14,
+                  color: colors.textMuted,
+                }}
+              >
                 <span style={{ color: colors.purple }}>●</span>
                 <span>{wf.agents} agents</span>
                 <span style={{ color: colors.textDim }}>›</span>

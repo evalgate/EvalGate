@@ -1,6 +1,6 @@
-import React from "react";
+import type React from "react";
 import { interpolate, useCurrentFrame } from "remotion";
-import { colors, card, badge as badgeStyle } from "../styles";
+import { badge as badgeStyle, card, colors } from "../styles";
 
 const stats = [
   { label: "Total Runs", value: "156", color: colors.primary },
@@ -22,18 +22,39 @@ export const WorkflowStats: React.FC = () => {
       <div style={{ display: "flex", gap: 24 }}>
         {stats.map((stat, i) => {
           const delay = i * 8;
-          const opacity = interpolate(frame, [delay, delay + 15], [0, 1], { extrapolateRight: "clamp", extrapolateLeft: "clamp" });
-          const translateY = interpolate(frame, [delay, delay + 15], [20, 0], { extrapolateRight: "clamp", extrapolateLeft: "clamp" });
+          const opacity = interpolate(frame, [delay, delay + 15], [0, 1], {
+            extrapolateRight: "clamp",
+            extrapolateLeft: "clamp",
+          });
+          const translateY = interpolate(frame, [delay, delay + 15], [20, 0], {
+            extrapolateRight: "clamp",
+            extrapolateLeft: "clamp",
+          });
 
           return (
             <div
               key={stat.label}
-              style={{ ...card, flex: 1, padding: 28, opacity, transform: `translateY(${translateY}px)` }}
+              style={{
+                ...card,
+                flex: 1,
+                padding: 28,
+                opacity,
+                transform: `translateY(${translateY}px)`,
+              }}
             >
-              <div style={{ fontSize: 16, color: colors.textMuted, marginBottom: 12 }}>{stat.label}</div>
+              <div style={{ fontSize: 16, color: colors.textMuted, marginBottom: 12 }}>
+                {stat.label}
+              </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <span style={{ fontSize: 36, fontWeight: 700 }}>{stat.value}</span>
-                <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: stat.color }} />
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    backgroundColor: stat.color,
+                  }}
+                />
               </div>
             </div>
           );

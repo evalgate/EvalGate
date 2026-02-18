@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { CheckCircle2, Copy, Terminal, Code, Rocket } from "lucide-react"
-import { toast } from "sonner"
+import { CheckCircle2, Code, Copy, Rocket, Terminal } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface WizardProps {
-  apiKey?: string
-  onComplete?: () => void
+  apiKey?: string;
+  onComplete?: () => void;
 }
 
 export function GettingStartedWizard({ apiKey, onComplete }: WizardProps) {
-  const [currentStep, setCurrentStep] = useState(0)
-  const [completedSteps, setCompletedSteps] = useState<number[]>([])
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
   const steps = [
     {
@@ -43,23 +43,23 @@ await client.traces.create({
   output: { response: 'Hi there!' }
 });`,
     },
-  ]
+  ];
 
   const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code)
-    toast.success("Copied to clipboard!")
-  }
+    navigator.clipboard.writeText(code);
+    toast.success("Copied to clipboard!");
+  };
 
   const markStepComplete = (step: number) => {
     if (!completedSteps.includes(step)) {
-      setCompletedSteps([...completedSteps, step])
+      setCompletedSteps([...completedSteps, step]);
     }
     if (step < steps.length - 1) {
-      setCurrentStep(step + 1)
+      setCurrentStep(step + 1);
     } else if (onComplete) {
-      onComplete()
+      onComplete();
     }
-  }
+  };
 
   return (
     <Card className="p-6 max-w-3xl mx-auto">
@@ -73,15 +73,15 @@ await client.traces.create({
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          {steps.map((step, index) => (
+          {steps.map((_step, index) => (
             <div key={index} className="flex items-center flex-1">
               <div
                 className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${
                   completedSteps.includes(index)
                     ? "bg-green-500 border-green-500 text-white"
                     : index === currentStep
-                    ? "border-blue-500 text-blue-500"
-                    : "border-muted text-muted-foreground"
+                      ? "border-blue-500 text-blue-500"
+                      : "border-muted text-muted-foreground"
                 }`}
               >
                 {completedSteps.includes(index) ? (
@@ -105,19 +105,14 @@ await client.traces.create({
       {/* Current Step */}
       <div className="space-y-6">
         {steps.map((step, index) => {
-          const Icon = step.icon
-          const isActive = index === currentStep
-          const isCompleted = completedSteps.includes(index)
+          const Icon = step.icon;
+          const isActive = index === currentStep;
+          const isCompleted = completedSteps.includes(index);
 
-          if (!isActive && !isCompleted) return null
+          if (!isActive && !isCompleted) return null;
 
           return (
-            <div
-              key={index}
-              className={`space-y-4 ${
-                isActive ? "opacity-100" : "opacity-50"
-              }`}
-            >
+            <div key={index} className={`space-y-4 ${isActive ? "opacity-100" : "opacity-50"}`}>
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
                   <Icon className="h-5 w-5 text-blue-500" />
@@ -148,17 +143,14 @@ await client.traces.create({
                     {index === steps.length - 1 ? "Finish" : "Next Step"}
                   </Button>
                   {index > 0 && (
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentStep(index - 1)}
-                    >
+                    <Button variant="outline" onClick={() => setCurrentStep(index - 1)}>
                       Back
                     </Button>
                   )}
                 </div>
               )}
             </div>
-          )
+          );
         })}
       </div>
 
@@ -171,5 +163,5 @@ await client.traces.create({
         </div>
       )}
     </Card>
-  )
+  );
 }

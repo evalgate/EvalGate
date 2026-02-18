@@ -3,10 +3,11 @@
  * Displays available keyboard shortcuts to users
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from './button';
+import { Keyboard } from "lucide-react";
+import { useState } from "react";
+import { Button } from "./button";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from './dialog';
-import { Keyboard } from 'lucide-react';
+} from "./dialog";
 
 interface ShortcutGroup {
   title: string;
@@ -27,37 +27,37 @@ interface ShortcutGroup {
 
 const shortcutGroups: ShortcutGroup[] = [
   {
-    title: 'Navigation',
+    title: "Navigation",
     shortcuts: [
-      { keys: ['↑', '↓'], description: 'Navigate through lists' },
-      { keys: ['Tab'], description: 'Move to next interactive element' },
-      { keys: ['Shift', 'Tab'], description: 'Move to previous interactive element' },
-      { keys: ['Esc'], description: 'Close dialog or cancel action' },
-      { keys: ['Enter'], description: 'Select or confirm' },
+      { keys: ["↑", "↓"], description: "Navigate through lists" },
+      { keys: ["Tab"], description: "Move to next interactive element" },
+      { keys: ["Shift", "Tab"], description: "Move to previous interactive element" },
+      { keys: ["Esc"], description: "Close dialog or cancel action" },
+      { keys: ["Enter"], description: "Select or confirm" },
     ],
   },
   {
-    title: 'General',
+    title: "General",
     shortcuts: [
-      { keys: ['Ctrl', 'K'], description: 'Open command palette' },
-      { keys: ['Ctrl', 'S'], description: 'Save current form' },
-      { keys: ['Ctrl', '/'], description: 'Show keyboard shortcuts' },
-      { keys: ['?'], description: 'Show help' },
+      { keys: ["Ctrl", "K"], description: "Open command palette" },
+      { keys: ["Ctrl", "S"], description: "Save current form" },
+      { keys: ["Ctrl", "/"], description: "Show keyboard shortcuts" },
+      { keys: ["?"], description: "Show help" },
     ],
   },
   {
-    title: 'Evaluations',
+    title: "Evaluations",
     shortcuts: [
-      { keys: ['Ctrl', 'N'], description: 'New evaluation' },
-      { keys: ['Ctrl', 'R'], description: 'Run evaluation' },
-      { keys: ['Ctrl', 'E'], description: 'Edit evaluation' },
+      { keys: ["Ctrl", "N"], description: "New evaluation" },
+      { keys: ["Ctrl", "R"], description: "Run evaluation" },
+      { keys: ["Ctrl", "E"], description: "Edit evaluation" },
     ],
   },
   {
-    title: 'Traces',
+    title: "Traces",
     shortcuts: [
-      { keys: ['Ctrl', 'T'], description: 'New trace' },
-      { keys: ['Ctrl', 'F'], description: 'Search traces' },
+      { keys: ["Ctrl", "T"], description: "New trace" },
+      { keys: ["Ctrl", "F"], description: "Search traces" },
     ],
   },
 ];
@@ -125,7 +125,7 @@ export function KeyboardShortcutsHelp() {
         </div>
         <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-800">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Press <KeyboardKey>Ctrl</KeyboardKey> + <KeyboardKey>/</KeyboardKey> or{' '}
+            Press <KeyboardKey>Ctrl</KeyboardKey> + <KeyboardKey>/</KeyboardKey> or{" "}
             <KeyboardKey>?</KeyboardKey> to show this dialog anytime
           </p>
         </div>
@@ -133,4 +133,3 @@ export function KeyboardShortcutsHelp() {
     </Dialog>
   );
 }
-

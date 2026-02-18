@@ -1,15 +1,15 @@
 /**
  * Anthropic Integration
  * Tier 1.2: Framework Auto-Instrumentation - Anthropic wrapper
- * 
+ *
  * @example
  * ```typescript
  * import { traceAnthropic } from '@ai-eval-platform/sdk/integrations/anthropic';
  * import Anthropic from '@anthropic-ai/sdk';
- * 
+ *
  * const anthropic = new Anthropic({ apiKey: '...' });
  * const tracedAnthropic = traceAnthropic(anthropic, client);
- * 
+ *
  * // All calls are automatically traced
  * const message = await tracedAnthropic.messages.create({
  *   model: 'claude-3-5-sonnet-20241022',
@@ -19,8 +19,8 @@
  * ```
  */
 
-import type { AIEvalClient } from '../client';
-import { getCurrentContext, mergeWithContext } from '../context';
+import type { AIEvalClient } from "../client";
+import { mergeWithContext } from "../context";
 
 export interface AnthropicTraceOptions {
   /** Whether to capture input (default: true) */
@@ -37,15 +37,15 @@ export interface AnthropicTraceOptions {
 
 /**
  * Wrap Anthropic client with automatic tracing
- * 
+ *
  * @example
  * ```typescript
  * import Anthropic from '@anthropic-ai/sdk';
  * import { traceAnthropic } from '@ai-eval-platform/sdk/integrations/anthropic';
- * 
+ *
  * const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
  * const tracedAnthropic = traceAnthropic(anthropic, evalClient);
- * 
+ *
  * // Automatically traced
  * const message = await tracedAnthropic.messages.create({
  *   model: 'claude-3-5-sonnet-20241022',
@@ -57,14 +57,14 @@ export interface AnthropicTraceOptions {
 export function traceAnthropic(
   anthropic: any,
   evalClient: AIEvalClient,
-  options: AnthropicTraceOptions = {}
+  options: AnthropicTraceOptions = {},
 ): any {
   const {
     captureInput = true,
     captureOutput = true,
     captureMetadata = true,
     organizationId,
-    tracePrefix = 'anthropic'
+    tracePrefix = "anthropic",
   } = options;
 
   // Create proxy for messages.create
@@ -86,19 +86,21 @@ export function traceAnthropic(
         max_tokens: params.max_tokens,
         ...(captureInput ? { input: params.messages } : {}),
         ...(captureOutput ? { output: message.content } : {}),
-        ...(captureMetadata ? {
-          usage: message.usage,
-          stop_reason: message.stop_reason
-        } : {})
+        ...(captureMetadata
+          ? {
+              usage: message.usage,
+              stop_reason: message.stop_reason,
+            }
+          : {}),
       });
 
       await evalClient.traces.create({
         name: `Anthropic: ${params.model}`,
         traceId,
         organizationId: organizationId || evalClient.getOrganizationId(),
-        status: 'success',
+        status: "success",
         durationMs,
-        metadata: traceMetadata
+        metadata: traceMetadata,
       });
 
       return message;
@@ -112,19 +114,21 @@ export function traceAnthropic(
         max_tokens: params.max_tokens,
         ...(captureInput ? { input: params.messages } : {}),
         ...(captureMetadata ? { params } : {}),
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
 
-      await evalClient.traces.create({
-        name: `Anthropic: ${params.model}`,
-        traceId,
-        organizationId: organizationId || evalClient.getOrganizationId(),
-        status: 'error',
-        durationMs,
-        metadata: errorMetadata
-      }).catch(() => {
-        // Ignore errors in trace creation to avoid masking the original error
-      });
+      await evalClient.traces
+        .create({
+          name: `Anthropic: ${params.model}`,
+          traceId,
+          organizationId: organizationId || evalClient.getOrganizationId(),
+          status: "error",
+          durationMs,
+          metadata: errorMetadata,
+        })
+        .catch(() => {
+          // Ignore errors in trace creation to avoid masking the original error
+        });
 
       throw error;
     }
@@ -135,7 +139,7 @@ export function traceAnthropic(
 
 /**
  * Manual trace wrapper for Anthropic calls
- * 
+ *
  * @example
  * ```typescript
  * const message = await traceAnthropicCall(
@@ -155,7 +159,7 @@ export async function traceAnthropicCall<T>(
   evalClient: AIEvalClient,
   name: string,
   fn: () => Promise<T>,
-  options: AnthropicTraceOptions = {}
+  options: AnthropicTraceOptions = {},
 ): Promise<T> {
   const startTime = Date.now();
   const traceId = `anthropic-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -165,8 +169,8 @@ export async function traceAnthropicCall<T>(
       name,
       traceId,
       organizationId: options.organizationId || evalClient.getOrganizationId(),
-      status: 'pending',
-      metadata: mergeWithContext({})
+      status: "pending",
+      metadata: mergeWithContext({}),
     });
 
     const result = await fn();
@@ -176,9 +180,9 @@ export async function traceAnthropicCall<T>(
       name,
       traceId,
       organizationId: options.organizationId || evalClient.getOrganizationId(),
-      status: 'success',
+      status: "success",
       durationMs,
-      metadata: mergeWithContext({})
+      metadata: mergeWithContext({}),
     });
 
     return result;
@@ -189,11 +193,11 @@ export async function traceAnthropicCall<T>(
       name,
       traceId,
       organizationId: options.organizationId || evalClient.getOrganizationId(),
-      status: 'error',
+      status: "error",
       durationMs,
       metadata: mergeWithContext({
-        error: error instanceof Error ? error.message : String(error)
-      })
+        error: error instanceof Error ? error.message : String(error),
+      }),
     });
 
     throw error;

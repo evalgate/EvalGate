@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { logger } from '@/lib/logger';
+import { useEffect, useState } from "react";
+import { logger } from "@/lib/logger";
 
 /**
  * Safe localStorage hook with null checks and error handling
@@ -7,7 +7,7 @@ import { logger } from '@/lib/logger';
  */
 export function useSafeStorage<T = string>(
   key: string,
-  defaultValue?: T
+  defaultValue?: T,
 ): [T | null, (value: T | null) => void, boolean] {
   const [value, setValue] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,13 +35,11 @@ export function useSafeStorage<T = string>(
   const setStorageValue = (newValue: T | null) => {
     try {
       setValue(newValue);
-      
+
       if (newValue === null) {
         localStorage.removeItem(key);
       } else {
-        const stringValue = typeof newValue === 'string' 
-          ? newValue 
-          : JSON.stringify(newValue);
+        const stringValue = typeof newValue === "string" ? newValue : JSON.stringify(newValue);
         localStorage.setItem(key, stringValue);
       }
     } catch (error) {
@@ -56,14 +54,14 @@ export function useSafeStorage<T = string>(
  * Get bearer token safely with null check
  */
 export function getBearerToken(): string | null {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return null;
   }
 
   try {
-    return localStorage.getItem('bearer_token');
+    return localStorage.getItem("bearer_token");
   } catch (error) {
-    logger.error('Failed to get bearer token from localStorage', error);
+    logger.error("Failed to get bearer token from localStorage", error);
     return null;
   }
 }
@@ -72,18 +70,17 @@ export function getBearerToken(): string | null {
  * Set bearer token safely
  */
 export function setBearerToken(token: string | null): void {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return;
   }
 
   try {
     if (token === null) {
-      localStorage.removeItem('bearer_token');
+      localStorage.removeItem("bearer_token");
     } else {
-      localStorage.setItem('bearer_token', token);
+      localStorage.setItem("bearer_token", token);
     }
   } catch (error) {
-    logger.error('Failed to set bearer token in localStorage', error);
+    logger.error("Failed to set bearer token in localStorage", error);
   }
 }
-

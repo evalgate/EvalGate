@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { GET } from '@/app/api/evaluations/route';
-import { NextRequest } from 'next/server';
+import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { GET } from "@/app/api/evaluations/route";
 
 // Create a mock inline to avoid hoisting issues
-vi.mock('@/db', () => {
+vi.mock("@/db", () => {
   const mockChain: any = {
     select: vi.fn(),
     from: vi.fn(),
@@ -23,48 +23,48 @@ vi.mock('@/db', () => {
   return { db: mockChain };
 });
 
-vi.mock('@/lib/api-rate-limit', () => ({
+vi.mock("@/lib/api-rate-limit", () => ({
   withRateLimit: vi.fn((req, handler) => handler(req)),
 }));
 
-vi.mock('@/lib/autumn-server', () => ({
+vi.mock("@/lib/autumn-server", () => ({
   requireFeature: vi.fn(),
   trackFeature: vi.fn(),
   requireAuthWithOrg: vi.fn().mockResolvedValue({
     authenticated: true,
-    userId: 'test-user',
+    userId: "test-user",
     organizationId: 1,
-    role: 'member',
-    scopes: ['eval:read', 'eval:write'],
-    authType: 'session',
+    role: "member",
+    scopes: ["eval:read", "eval:write"],
+    authType: "session",
   }),
 }));
 
-describe('/api/evaluations', () => {
+describe("/api/evaluations", () => {
   const routeContext = { params: Promise.resolve({}) };
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('GET', () => {
-    it('should return evaluations list', async () => {
-      const req = new NextRequest('http://localhost:3000/api/evaluations');
+  describe("GET", () => {
+    it("should return evaluations list", async () => {
+      const req = new NextRequest("http://localhost:3000/api/evaluations");
 
       const response = await GET(req, routeContext as never);
 
       expect(response.status).toBe(200);
     });
 
-    it('should support search parameter', async () => {
-      const req = new NextRequest('http://localhost:3000/api/evaluations?search=test');
+    it("should support search parameter", async () => {
+      const req = new NextRequest("http://localhost:3000/api/evaluations?search=test");
 
       const response = await GET(req, routeContext as never);
 
       expect(response.status).toBe(200);
     });
 
-    it('should support pagination', async () => {
-      const req = new NextRequest('http://localhost:3000/api/evaluations?limit=20&offset=40');
+    it("should support pagination", async () => {
+      const req = new NextRequest("http://localhost:3000/api/evaluations?limit=20&offset=40");
 
       const response = await GET(req, routeContext as never);
 
@@ -72,4 +72,3 @@ describe('/api/evaluations', () => {
     });
   });
 });
-

@@ -5,28 +5,28 @@
  * use parseBody() instead of raw req.json(). Documents remaining routes for future migration.
  */
 
-import { describe, it, expect } from 'vitest';
-import path from 'path';
-import { globSync } from 'glob';
-import { readFileSync } from 'fs';
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { globSync } from "glob";
+import { describe, expect, it } from "vitest";
 
-const API_DIR = path.resolve(__dirname, '../../app/api');
+const API_DIR = path.resolve(__dirname, "../../app/api");
 
 /** Routes that must use parseBody (migrated in T0.2) */
 const MUST_USE_PARSE_BODY = [
-  'evaluations/route',
-  'evaluations/[id]/route',
-  'evaluations/[id]/runs/route',
-  'evaluations/[id]/publish-run/route',
-  'evaluations/[id]/test-cases/route',
-  'traces/route',
-  'traces/[id]/route',
-  'traces/[id]/spans/route',
-  'developer/webhooks/route',
-  'developer/webhooks/[id]/route',
-  'developer/api-keys/route',
-  'developer/api-keys/[id]/route',
-  'quality/route',
+  "evaluations/route",
+  "evaluations/[id]/route",
+  "evaluations/[id]/runs/route",
+  "evaluations/[id]/publish-run/route",
+  "evaluations/[id]/test-cases/route",
+  "traces/route",
+  "traces/[id]/route",
+  "traces/[id]/spans/route",
+  "developer/webhooks/route",
+  "developer/webhooks/[id]/route",
+  "developer/api-keys/route",
+  "developer/api-keys/[id]/route",
+  "quality/route",
 ];
 
 function usesParseBody(content: string): boolean {
@@ -45,22 +45,25 @@ function hasPostPutPatch(content: string): boolean {
   );
 }
 
-describe('parseBody Audit', () => {
-  const routeFiles = globSync('**/route.ts', { cwd: API_DIR });
+describe("parseBody Audit", () => {
+  const routeFiles = globSync("**/route.ts", { cwd: API_DIR });
 
-  it('should find route files', () => {
+  it("should find route files", () => {
     expect(routeFiles.length).toBeGreaterThan(0);
   });
 
-  it('migrated routes must use parseBody for JSON body parsing', () => {
+  it("migrated routes must use parseBody for JSON body parsing", () => {
     const violations: { file: string }[] = [];
 
     for (const routeFile of routeFiles) {
-      const normalized = routeFile.replace(/\\/g, '/');
-      if (!MUST_USE_PARSE_BODY.some((p) => normalized.startsWith(p) || normalized.includes(p + '/'))) continue;
+      const normalized = routeFile.replace(/\\/g, "/");
+      if (
+        !MUST_USE_PARSE_BODY.some((p) => normalized.startsWith(p) || normalized.includes(`${p}/`))
+      )
+        continue;
 
       const fullPath = path.join(API_DIR, routeFile);
-      const content = readFileSync(fullPath, 'utf-8');
+      const content = readFileSync(fullPath, "utf-8");
 
       if (hasPostPutPatch(content) && usesReqJson(content) && !usesParseBody(content)) {
         violations.push({ file: routeFile });
@@ -70,8 +73,8 @@ describe('parseBody Audit', () => {
     expect(
       violations,
       violations.length > 0
-        ? `Migrated routes still using req.json(): ${violations.map((v) => v.file).join(', ')}`
-        : undefined
+        ? `Migrated routes still using req.json(): ${violations.map((v) => v.file).join(", ")}`
+        : undefined,
     ).toHaveLength(0);
   });
 });

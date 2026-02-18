@@ -4,9 +4,9 @@
  * Extracted from src/app/api/traces/route.ts
  */
 
-import { db } from '@/db';
-import { traces } from '@/db/schema';
-import { eq, like, and, desc } from 'drizzle-orm';
+import { and, desc, eq, like } from "drizzle-orm";
+import { db } from "@/db";
+import { traces } from "@/db/schema";
 
 export interface CreateTraceInput {
   name: string;
@@ -48,7 +48,7 @@ export const traceService = {
         name: data.name.trim(),
         traceId: data.traceId.trim(),
         organizationId,
-        status: data.status || 'pending',
+        status: data.status || "pending",
         durationMs: data.durationMs ?? null,
         metadata: data.metadata ?? null,
         createdAt: now,
@@ -60,20 +60,14 @@ export const traceService = {
     const existing = await db
       .select()
       .from(traces)
-      .where(and(
-        eq(traces.id, traceDbId),
-        eq(traces.organizationId, organizationId),
-      ))
+      .where(and(eq(traces.id, traceDbId), eq(traces.organizationId, organizationId)))
       .limit(1);
 
     if (existing.length === 0) return false;
 
     await db
       .delete(traces)
-      .where(and(
-        eq(traces.id, traceDbId),
-        eq(traces.organizationId, organizationId),
-      ));
+      .where(and(eq(traces.id, traceDbId), eq(traces.organizationId, organizationId)));
 
     return true;
   },

@@ -9,7 +9,7 @@ Sentry.init({
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
   // Sample 20% of transactions in production (adjust as needed)
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.2 : 1.0,
 
   // Enable logs to be sent to Sentry
   enableLogs: true,

@@ -1,34 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
-import { validationError, internalError } from '@/lib/api/errors';
-import { regressionService } from '@/lib/services/regression.service';
+import { type NextRequest, NextResponse } from "next/server";
+import { internalError, validationError } from "@/lib/api/errors";
+import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { regressionService } from "@/lib/services/regression.service";
 
-export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
+export const POST = secureRoute(async (_req: NextRequest, ctx: AuthContext, params) => {
   const { id } = params;
-  const evaluationId = parseInt(id);
+  const evaluationId = parseInt(id, 10);
 
   try {
     const result = await regressionService.runQuick(evaluationId, ctx.organizationId);
     return NextResponse.json(result);
   } catch (error: unknown) {
-    return validationError(error instanceof Error ? error.message : 'Regression failed');
+    return validationError(error instanceof Error ? error.message : "Regression failed");
   }
 });
 
 export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
   const { id } = params;
-  const evaluationId = parseInt(id);
+  const evaluationId = parseInt(id, 10);
   const body = await req.json();
 
   if (!body.testCaseIds || !Array.isArray(body.testCaseIds)) {
-    return validationError('testCaseIds array is required');
+    return validationError("testCaseIds array is required");
   }
 
   try {
     const goldenSetId = await regressionService.setGoldenCases(
       evaluationId,
       ctx.organizationId,
-      body.testCaseIds
+      body.testCaseIds,
     );
     return NextResponse.json({ goldenSetId });
   } catch (error: unknown) {

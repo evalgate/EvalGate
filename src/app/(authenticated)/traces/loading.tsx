@@ -1,5 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card } from "@/components/ui/card"
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TracesLoading() {
   return (
@@ -39,6 +39,5 @@ export default function TracesLoading() {
         ))}
       </div>
     </div>
-  )
+  );
 }
-

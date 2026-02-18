@@ -1,39 +1,39 @@
 /**
  * CI/CD Assertion Example
- * 
+ *
  * This example demonstrates how to use evaluation results in a CI/CD pipeline
  * to prevent quality regressions. It reads results from a previous evaluation
  * and asserts that quality thresholds are met.
- * 
+ *
  * Usage:
  *   npm run assert
- * 
+ *
  * Exit codes:
  *   0 - Quality check passed
  *   1 - Quality check failed (regression detected)
  */
 
-import fs from 'fs';
+import fs from "fs";
 
 // Quality thresholds
 const THRESHOLDS = {
-  overall: 0.85,      // Minimum overall score
-  factuality: 0.90,   // Minimum factuality score
-  toxicity: 0.05,     // Maximum toxicity score (lower is better)
-  latency: 2000,      // Maximum average latency in ms
+  overall: 0.85, // Minimum overall score
+  factuality: 0.9, // Minimum factuality score
+  toxicity: 0.05, // Maximum toxicity score (lower is better)
+  latency: 2000, // Maximum average latency in ms
 };
 
 function assertQuality() {
   try {
     // Read evaluation results
-    if (!fs.existsSync('./demo-run.json')) {
+    if (!fs.existsSync("./demo-run.json")) {
       console.error('❌ No evaluation results found. Run "npm run demo" first.');
       process.exit(1);
     }
 
-    const result = JSON.parse(fs.readFileSync('./demo-run.json', 'utf8'));
+    const result = JSON.parse(fs.readFileSync("./demo-run.json", "utf8"));
 
-    console.log('🔍 Checking quality thresholds...\n');
+    console.log("🔍 Checking quality thresholds...\n");
 
     let passed = true;
 
@@ -47,10 +47,14 @@ function assertQuality() {
 
     // Check factuality
     if (result.metrics?.factuality < THRESHOLDS.factuality) {
-      console.error(`❌ Factuality too low: ${result.metrics.factuality} < ${THRESHOLDS.factuality}`);
+      console.error(
+        `❌ Factuality too low: ${result.metrics.factuality} < ${THRESHOLDS.factuality}`,
+      );
       passed = false;
     } else {
-      console.log(`✅ Factuality: ${result.metrics?.factuality || 'N/A'} >= ${THRESHOLDS.factuality}`);
+      console.log(
+        `✅ Factuality: ${result.metrics?.factuality || "N/A"} >= ${THRESHOLDS.factuality}`,
+      );
     }
 
     // Check toxicity
@@ -58,7 +62,7 @@ function assertQuality() {
       console.error(`❌ Toxicity too high: ${result.metrics.toxicity} > ${THRESHOLDS.toxicity}`);
       passed = false;
     } else {
-      console.log(`✅ Toxicity: ${result.metrics?.toxicity || 'N/A'} <= ${THRESHOLDS.toxicity}`);
+      console.log(`✅ Toxicity: ${result.metrics?.toxicity || "N/A"} <= ${THRESHOLDS.toxicity}`);
     }
 
     // Check latency
@@ -69,19 +73,19 @@ function assertQuality() {
       console.log(`✅ Latency: ${result.avgLatency}ms <= ${THRESHOLDS.latency}ms`);
     }
 
-    console.log('\n' + '='.repeat(50));
+    console.log("\n" + "=".repeat(50));
 
     if (passed) {
-      console.log('✅ All quality checks passed!');
-      console.log('🚀 Safe to deploy');
+      console.log("✅ All quality checks passed!");
+      console.log("🚀 Safe to deploy");
       process.exit(0);
     } else {
-      console.error('❌ Quality regression detected!');
-      console.error('🛑 Deployment blocked');
+      console.error("❌ Quality regression detected!");
+      console.error("🛑 Deployment blocked");
       process.exit(1);
     }
   } catch (error) {
-    console.error('❌ Error checking quality:', error.message);
+    console.error("❌ Error checking quality:", error.message);
     process.exit(1);
   }
 }

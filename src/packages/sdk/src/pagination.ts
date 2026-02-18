@@ -35,7 +35,7 @@ export class PaginatedIterator<T> implements AsyncIterableIterator<T[]> {
 
   constructor(
     private fetchFn: (offset: number, limit: number) => Promise<{ data: T[]; hasMore: boolean }>,
-    private limit: number = 50
+    private limit: number = 50,
   ) {}
 
   async next(): Promise<IteratorResult<T[]>> {
@@ -63,7 +63,7 @@ export class PaginatedIterator<T> implements AsyncIterableIterator<T[]> {
    */
   async toArray(): Promise<T[]> {
     const allItems: T[] = [];
-    
+
     for await (const page of this) {
       allItems.push(...page);
     }
@@ -77,7 +77,7 @@ export class PaginatedIterator<T> implements AsyncIterableIterator<T[]> {
  */
 export function createPaginatedIterator<T>(
   fetchFn: (offset: number, limit: number) => Promise<{ data: T[]; hasMore: boolean }>,
-  limit: number = 50
+  limit: number = 50,
 ): PaginatedIterator<T> {
   return new PaginatedIterator(fetchFn, limit);
 }
@@ -87,14 +87,14 @@ export function createPaginatedIterator<T>(
  */
 export async function* autoPaginate<T>(
   fetchFn: (offset: number, limit: number) => Promise<T[]>,
-  limit: number = 50
+  limit: number = 50,
 ): AsyncGenerator<T, void, unknown> {
   let offset = 0;
   let hasMore = true;
 
   while (hasMore) {
     const items = await fetchFn(offset, limit);
-    
+
     if (items.length === 0) {
       break;
     }
@@ -113,11 +113,11 @@ export async function* autoPaginate<T>(
  */
 export function encodeCursor(data: any): string {
   const json = JSON.stringify(data);
-  
-  if (typeof globalThis !== 'undefined' && 'btoa' in globalThis) {
+
+  if (typeof globalThis !== "undefined" && "btoa" in globalThis) {
     return (globalThis as any).btoa(json);
   } else {
-    return Buffer.from(json).toString('base64');
+    return Buffer.from(json).toString("base64");
   }
 }
 
@@ -127,16 +127,16 @@ export function encodeCursor(data: any): string {
 export function decodeCursor(cursor: string): any {
   try {
     let json: string;
-    
-    if (typeof globalThis !== 'undefined' && 'atob' in globalThis) {
+
+    if (typeof globalThis !== "undefined" && "atob" in globalThis) {
       json = (globalThis as any).atob(cursor);
     } else {
-      json = Buffer.from(cursor, 'base64').toString('utf-8');
+      json = Buffer.from(cursor, "base64").toString("utf-8");
     }
-    
+
     return JSON.parse(json);
-  } catch (error) {
-    throw new Error('Invalid cursor format');
+  } catch (_error) {
+    throw new Error("Invalid cursor format");
   }
 }
 
@@ -147,17 +147,18 @@ export function createPaginationMeta<T>(
   items: T[],
   limit: number,
   offset: number,
-  total?: number
-): PaginatedResponse<T>['pagination'] {
+  total?: number,
+): PaginatedResponse<T>["pagination"] {
   const hasMore = items.length === limit;
-  
+
   return {
     hasMore,
     limit,
     offset,
     total,
     nextCursor: hasMore ? encodeCursor({ offset: offset + limit, limit }) : undefined,
-    prevCursor: offset > 0 ? encodeCursor({ offset: Math.max(0, offset - limit), limit }) : undefined,
+    prevCursor:
+      offset > 0 ? encodeCursor({ offset: Math.max(0, offset - limit), limit }) : undefined,
   };
 }
 
@@ -178,4 +179,3 @@ export function parsePaginationParams(params: PaginationParams): { limit: number
     offset: params.offset || 0,
   };
 }
-

@@ -1,7 +1,7 @@
-import React from "react";
+import type React from "react";
 import { interpolate, useCurrentFrame } from "remotion";
-import { colors, card, badge as badgeStyle } from "../styles";
-import { WORKFLOW_RUNS, HANDOFF_STATS } from "../data";
+import { HANDOFF_STATS, WORKFLOW_RUNS } from "../data";
+import { badge as badgeStyle, card, colors } from "../styles";
 
 const statusColors: Record<string, { dot: string; label: string }> = {
   completed: { dot: colors.green, label: "✓ Completed" },
@@ -19,12 +19,28 @@ export const WorkflowRuns: React.FC = () => {
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {WORKFLOW_RUNS.map((run, i) => {
             const delay = i * 12;
-            const opacity = interpolate(frame, [delay, delay + 15], [0, 1], { extrapolateRight: "clamp", extrapolateLeft: "clamp" });
+            const opacity = interpolate(frame, [delay, delay + 15], [0, 1], {
+              extrapolateRight: "clamp",
+              extrapolateLeft: "clamp",
+            });
             const sc = statusColors[run.status];
             return (
-              <div key={run.id} style={{ backgroundColor: colors.bgMuted, borderRadius: 10, padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", opacity }}>
+              <div
+                key={run.id}
+                style={{
+                  backgroundColor: colors.bgMuted,
+                  borderRadius: 10,
+                  padding: "16px 20px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  opacity,
+                }}
+              >
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: sc.dot }} />
+                  <div
+                    style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: sc.dot }}
+                  />
                   <span style={{ fontSize: 16, fontWeight: 600 }}>{sc.label}</span>
                   <div style={{ display: "flex", gap: 16, fontSize: 14, color: colors.textMuted }}>
                     {run.duration && <span>⚡ {run.duration}ms</span>}
@@ -41,13 +57,29 @@ export const WorkflowRuns: React.FC = () => {
       </div>
       <div style={{ ...card, flex: 1, padding: 24 }}>
         <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>Handoff Patterns</div>
-        <div style={{ fontSize: 14, color: colors.textMuted, marginBottom: 20 }}>Agent-to-agent transitions</div>
+        <div style={{ fontSize: 14, color: colors.textMuted, marginBottom: 20 }}>
+          Agent-to-agent transitions
+        </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {HANDOFF_STATS.map((h, i) => {
             const delay = 20 + i * 10;
-            const opacity = interpolate(frame, [delay, delay + 15], [0, 1], { extrapolateRight: "clamp", extrapolateLeft: "clamp" });
+            const opacity = interpolate(frame, [delay, delay + 15], [0, 1], {
+              extrapolateRight: "clamp",
+              extrapolateLeft: "clamp",
+            });
             return (
-              <div key={i} style={{ backgroundColor: colors.bgMuted, borderRadius: 10, padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", opacity }}>
+              <div
+                key={i}
+                style={{
+                  backgroundColor: colors.bgMuted,
+                  borderRadius: 10,
+                  padding: "14px 20px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  opacity,
+                }}
+              >
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <span style={badgeStyle("outline")}>{h.type}</span>
                   <span style={{ fontSize: 15, fontWeight: 500 }}>{h.from}</span>

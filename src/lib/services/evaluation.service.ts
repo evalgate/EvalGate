@@ -3,34 +3,38 @@
  * Handles business logic for evaluation operations
  */
 
-import { db } from '@/db';
-import { evaluations, evaluationRuns, testCases, testResults } from '@/db/schema';
-import { computeAndStoreQualityScore } from '@/lib/services/aggregate-metrics.service';
-import { eq, and, desc } from 'drizzle-orm';
-import { logger } from '@/lib/logger';
-import { z } from 'zod';
-import { createExecutor, type ExecutorType, type ExecutorConfig } from './eval-executor';
-import { runAssertions } from '@/lib/eval/assertion-runners';
-import { validateAssertionsEnvelope } from '@/lib/eval/assertions';
+import { and, desc, eq } from "drizzle-orm";
+import { z } from "zod";
+import { db } from "@/db";
+import { evaluationRuns, evaluations, testCases, testResults } from "@/db/schema";
+import { runAssertions } from "@/lib/eval/assertion-runners";
+import { validateAssertionsEnvelope } from "@/lib/eval/assertions";
+import { logger } from "@/lib/logger";
+import { computeAndStoreQualityScore } from "@/lib/services/aggregate-metrics.service";
+import { createExecutor, type ExecutorConfig, type ExecutorType } from "./eval-executor";
 
 export const createEvaluationSchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().optional(),
-  type: z.string().default('standard'),
+  type: z.string().default("standard"),
   modelConfig: z.record(z.any()).optional(),
-  testCases: z.array(z.object({
-    name: z.string().optional(),
-    input: z.string(),
-    expectedOutput: z.string().optional(),
-    metadata: z.record(z.any()).optional(),
-  })).optional(),
+  testCases: z
+    .array(
+      z.object({
+        name: z.string().optional(),
+        input: z.string(),
+        expectedOutput: z.string().optional(),
+        metadata: z.record(z.any()).optional(),
+      }),
+    )
+    .optional(),
 });
 
 export const updateEvaluationSchema = z.object({
   name: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
   modelConfig: z.record(z.any()).optional(),
-  status: z.enum(['draft', 'active', 'archived']).optional(),
+  status: z.enum(["draft", "active", "archived"]).optional(),
 });
 
 export type CreateEvaluationInput = z.infer<typeof createEvaluationSchema>;
@@ -40,18 +44,21 @@ export class EvaluationService {
   /**
    * List evaluations for an organization with pagination
    */
-  async list(organizationId: number, options?: {
-    limit?: number;
-    offset?: number;
-    status?: 'draft' | 'active' | 'archived';
-  }) {
+  async list(
+    organizationId: number,
+    options?: {
+      limit?: number;
+      offset?: number;
+      status?: "draft" | "active" | "archived";
+    },
+  ) {
     const limit = options?.limit || 50;
     const offset = options?.offset || 0;
 
-    logger.info('Listing evaluations', { organizationId, limit, offset, status: options?.status });
+    logger.info("Listing evaluations", { organizationId, limit, offset, status: options?.status });
 
     const whereConditions = [eq(evaluations.organizationId, organizationId)];
-    
+
     if (options?.status) {
       whereConditions.push(eq(evaluations.status, options.status));
     }
@@ -64,7 +71,7 @@ export class EvaluationService {
       .offset(offset)
       .orderBy(desc(evaluations.createdAt));
 
-    logger.info('Evaluations listed', { count: results.length, organizationId });
+    logger.info("Evaluations listed", { count: results.length, organizationId });
 
     return results;
   }
@@ -73,7 +80,7 @@ export class EvaluationService {
    * Get evaluation by ID
    */
   async getById(id: number, organizationId: number) {
-    logger.info('Getting evaluation by ID', { id, organizationId });
+    logger.info("Getting evaluation by ID", { id, organizationId });
 
     const [evaluation] = await db
       .select()
@@ -82,7 +89,7 @@ export class EvaluationService {
       .limit(1);
 
     if (!evaluation) {
-      logger.warn('Evaluation not found', { id, organizationId });
+      logger.warn("Evaluation not found", { id, organizationId });
       return null;
     }
 
@@ -100,7 +107,7 @@ export class EvaluationService {
       .orderBy(desc(evaluationRuns.createdAt))
       .limit(10);
 
-    logger.info('Evaluation retrieved', { id, organizationId });
+    logger.info("Evaluation retrieved", { id, organizationId });
     return { ...evaluation, testCases: evalTestCases, runs: evalRuns };
   }
 
@@ -108,19 +115,22 @@ export class EvaluationService {
    * Create a new evaluation
    */
   async create(organizationId: number, createdBy: string, data: CreateEvaluationInput) {
-    logger.info('Creating evaluation', { organizationId, name: data.name });
+    logger.info("Creating evaluation", { organizationId, name: data.name });
 
-    const [evaluation] = await db.insert(evaluations).values({
-      organizationId,
-      createdBy,
-      name: data.name,
-      description: data.description || '',
-      type: data.type || 'standard',
-      modelSettings: data.modelConfig ? JSON.stringify(data.modelConfig) : null,
-      status: 'draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }).returning();
+    const [evaluation] = await db
+      .insert(evaluations)
+      .values({
+        organizationId,
+        createdBy,
+        name: data.name,
+        description: data.description || "",
+        type: data.type || "standard",
+        modelSettings: data.modelConfig ? JSON.stringify(data.modelConfig) : null,
+        status: "draft",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+      .returning();
 
     // Create test cases if provided
     if (data.testCases && data.testCases.length > 0) {
@@ -129,14 +139,14 @@ export class EvaluationService {
           evaluationId: evaluation.id,
           name: tc.name || `Test Case ${idx + 1}`,
           input: tc.input,
-          expectedOutput: tc.expectedOutput || '',
+          expectedOutput: tc.expectedOutput || "",
           metadata: JSON.stringify(tc.metadata || {}),
           createdAt: new Date().toISOString(),
-        }))
+        })),
       );
     }
 
-    logger.info('Evaluation created', { id: evaluation.id, organizationId });
+    logger.info("Evaluation created", { id: evaluation.id, organizationId });
 
     return evaluation;
   }
@@ -145,12 +155,12 @@ export class EvaluationService {
    * Update an evaluation
    */
   async update(id: number, organizationId: number, data: UpdateEvaluationInput) {
-    logger.info('Updating evaluation', { id, organizationId });
+    logger.info("Updating evaluation", { id, organizationId });
 
     // Verify ownership
     const existing = await this.getById(id, organizationId);
     if (!existing) {
-      logger.warn('Evaluation not found for update', { id, organizationId });
+      logger.warn("Evaluation not found for update", { id, organizationId });
       return null;
     }
 
@@ -160,13 +170,10 @@ export class EvaluationService {
         ...data,
         updatedAt: new Date().toISOString(),
       })
-      .where(and(
-        eq(evaluations.id, id),
-        eq(evaluations.organizationId, organizationId)
-      ))
+      .where(and(eq(evaluations.id, id), eq(evaluations.organizationId, organizationId)))
       .returning();
 
-    logger.info('Evaluation updated', { id, organizationId });
+    logger.info("Evaluation updated", { id, organizationId });
 
     return updated;
   }
@@ -175,23 +182,20 @@ export class EvaluationService {
    * Delete an evaluation
    */
   async delete(id: number, organizationId: number) {
-    logger.info('Deleting evaluation', { id, organizationId });
+    logger.info("Deleting evaluation", { id, organizationId });
 
     // Verify ownership
     const existing = await this.getById(id, organizationId);
     if (!existing) {
-      logger.warn('Evaluation not found for deletion', { id, organizationId });
+      logger.warn("Evaluation not found for deletion", { id, organizationId });
       return false;
     }
 
     await db
       .delete(evaluations)
-      .where(and(
-        eq(evaluations.id, id),
-        eq(evaluations.organizationId, organizationId)
-      ));
+      .where(and(eq(evaluations.id, id), eq(evaluations.organizationId, organizationId)));
 
-    logger.info('Evaluation deleted', { id, organizationId });
+    logger.info("Evaluation deleted", { id, organizationId });
 
     return true;
   }
@@ -199,52 +203,60 @@ export class EvaluationService {
   /**
    * Run an evaluation — fetches test cases, executes them, writes results, computes metrics
    */
-  async run(id: number, organizationId: number, options?: { environment?: 'dev' | 'staging' | 'prod' }) {
-    logger.info('Running evaluation', { id, organizationId });
+  async run(
+    id: number,
+    organizationId: number,
+    options?: { environment?: "dev" | "staging" | "prod" },
+  ) {
+    logger.info("Running evaluation", { id, organizationId });
 
     const evaluation = await this.getById(id, organizationId);
     if (!evaluation) {
-      logger.warn('Evaluation not found for run', { id, organizationId });
+      logger.warn("Evaluation not found for run", { id, organizationId });
       return null;
     }
 
     // Fetch test cases from the canonical testCases table
-    const cases = await db
-      .select()
-      .from(testCases)
-      .where(eq(testCases.evaluationId, id));
+    const cases = await db.select().from(testCases).where(eq(testCases.evaluationId, id));
 
-    const env = options?.environment ?? 'dev';
-    const [run] = await db.insert(evaluationRuns).values({
+    const env = options?.environment ?? "dev";
+    const [run] = await db
+      .insert(evaluationRuns)
+      .values({
+        evaluationId: id,
+        organizationId,
+        status: "running",
+        startedAt: new Date().toISOString(),
+        totalCases: cases.length,
+        passedCases: 0,
+        failedCases: 0,
+        environment: env,
+        createdAt: new Date().toISOString(),
+      })
+      .returning();
+
+    logger.info("Evaluation run started", {
+      runId: run.id,
       evaluationId: id,
-      organizationId,
-      status: 'running',
-      startedAt: new Date().toISOString(),
       totalCases: cases.length,
-      passedCases: 0,
-      failedCases: 0,
-      environment: env,
-      createdAt: new Date().toISOString(),
-    }).returning();
-
-    logger.info('Evaluation run started', { runId: run.id, evaluationId: id, totalCases: cases.length });
+    });
 
     if (cases.length === 0) {
       // No test cases — mark as completed with zero counts
       await db
         .update(evaluationRuns)
-        .set({ status: 'completed', completedAt: new Date().toISOString() })
+        .set({ status: "completed", completedAt: new Date().toISOString() })
         .where(eq(evaluationRuns.id, run.id));
       return run;
     }
 
     // For human_eval type, create annotation tasks and wait — don't auto-complete
-    if (evaluation.type === 'human_eval') {
+    if (evaluation.type === "human_eval") {
       await db
         .update(evaluationRuns)
-        .set({ status: 'pending_review' })
+        .set({ status: "pending_review" })
         .where(eq(evaluationRuns.id, run.id));
-      logger.info('Human evaluation run awaiting review', { runId: run.id });
+      logger.info("Human evaluation run awaiting review", { runId: run.id });
       return run;
     }
 
@@ -254,7 +266,7 @@ export class EvaluationService {
 
     for (const tc of cases) {
       const startTime = Date.now();
-      let status: 'passed' | 'failed' = 'failed';
+      let status: "passed" | "failed" = "failed";
       let output: string | null = null;
       let score: number | null = null;
       let error: string | null = null;
@@ -262,12 +274,14 @@ export class EvaluationService {
       let hasProvenance: boolean | null = null;
 
       try {
-        if (evaluation.type === 'unit_test' || evaluation.type === 'standard') {
+        if (evaluation.type === "unit_test" || evaluation.type === "standard") {
           // If an executor is configured, use it to generate real output
           const execType = evaluation.executorType as ExecutorType | null;
-          const execConfig = (typeof evaluation.executorConfig === 'string'
-            ? JSON.parse(evaluation.executorConfig)
-            : evaluation.executorConfig) as ExecutorConfig | null;
+          const execConfig = (
+            typeof evaluation.executorConfig === "string"
+              ? JSON.parse(evaluation.executorConfig)
+              : evaluation.executorConfig
+          ) as ExecutorConfig | null;
 
           if (execType && execConfig) {
             const runContext = run.startedAt
@@ -277,67 +291,67 @@ export class EvaluationService {
             const execResult = await executor.run(tc.input, {
               metadata: { evaluationRunId: run.id, testCaseId: tc.id },
             });
-            output = execResult.output ?? '';
-            traceLinkedMatched = execType === 'trace_linked' && execResult.meta?.matched != null
-              ? execResult.meta.matched
-              : null;
-            hasProvenance = execType === 'trace_linked' && execResult.meta?.hasProvenance === true
-              ? true
-              : null;
+            output = execResult.output ?? "";
+            traceLinkedMatched =
+              execType === "trace_linked" && execResult.meta?.matched != null
+                ? execResult.meta.matched
+                : null;
+            hasProvenance =
+              execType === "trace_linked" && execResult.meta?.hasProvenance === true ? true : null;
 
             // Compare executor output against expected
             if (tc.expectedOutput && tc.expectedOutput.trim().length > 0) {
               const expected = tc.expectedOutput.trim().toLowerCase();
               const actual = output.trim().toLowerCase();
 
-              const expectedWords = expected.split(/\s+/).filter(w => w.length > 3);
-              const matchedWords = expectedWords.filter(w => actual.includes(w));
-              const keywordMatchRate = expectedWords.length > 0
-                ? (matchedWords.length / expectedWords.length) * 100
-                : 100;
+              const expectedWords = expected.split(/\s+/).filter((w) => w.length > 3);
+              const matchedWords = expectedWords.filter((w) => actual.includes(w));
+              const keywordMatchRate =
+                expectedWords.length > 0 ? (matchedWords.length / expectedWords.length) * 100 : 100;
 
               const isExactMatch = actual === expected;
               score = isExactMatch ? 100 : Math.round(keywordMatchRate);
-              status = score >= 70 ? 'passed' : 'failed';
+              status = score >= 70 ? "passed" : "failed";
             } else {
               // No expected output — mark as passed with the actual output
-              status = 'passed';
+              status = "passed";
               score = 100;
             }
           } else {
             // Heuristic fallback (no executor configured)
-            logger.warn('No executor configured — using heuristic scoring', { evaluationId: id });
+            logger.warn("No executor configured — using heuristic scoring", { evaluationId: id });
             if (tc.expectedOutput && tc.expectedOutput.trim().length > 0) {
               output = tc.input;
               const expected = tc.expectedOutput.trim().toLowerCase();
-              const actual = (tc.input || '').trim().toLowerCase();
+              const actual = (tc.input || "").trim().toLowerCase();
 
-              const expectedWords = expected.split(/\s+/).filter(w => w.length > 3);
-              const matchedWords = expectedWords.filter(w => actual.includes(w));
-              const keywordMatchRate = expectedWords.length > 0
-                ? (matchedWords.length / expectedWords.length) * 100
-                : 100;
+              const expectedWords = expected.split(/\s+/).filter((w) => w.length > 3);
+              const matchedWords = expectedWords.filter((w) => actual.includes(w));
+              const keywordMatchRate =
+                expectedWords.length > 0 ? (matchedWords.length / expectedWords.length) * 100 : 100;
 
-              const lengthRatio = actual.length > 0 && expected.length > 0
-                ? Math.min(actual.length, expected.length) / Math.max(actual.length, expected.length)
-                : 0;
+              const lengthRatio =
+                actual.length > 0 && expected.length > 0
+                  ? Math.min(actual.length, expected.length) /
+                    Math.max(actual.length, expected.length)
+                  : 0;
 
               const isExactMatch = actual === expected;
               score = isExactMatch
                 ? 100
                 : Math.round(keywordMatchRate * 0.7 + lengthRatio * 100 * 0.3);
-              status = score >= 70 ? 'passed' : 'failed';
+              status = score >= 70 ? "passed" : "failed";
               output = tc.expectedOutput;
             } else {
-              output = 'No expected output defined — skipped assertion';
-              status = 'passed';
+              output = "No expected output defined — skipped assertion";
+              status = "passed";
               score = 100;
             }
           }
-        } else if (evaluation.type === 'model_eval') {
+        } else if (evaluation.type === "model_eval") {
           // Model evaluation: use LLM judge
           try {
-            const { llmJudgeService } = await import('@/lib/services/llm-judge.service');
+            const { llmJudgeService } = await import("@/lib/services/llm-judge.service");
 
             // Find a judge config for this organization
             const configs = await llmJudgeService.listConfigs(organizationId, { limit: 1 });
@@ -345,32 +359,32 @@ export class EvaluationService {
               const judgement = await llmJudgeService.evaluate(organizationId, {
                 configId: configs[0].id,
                 input: tc.input,
-                output: tc.expectedOutput || '',
+                output: tc.expectedOutput || "",
                 metadata: { evaluationRunId: run.id, testCaseId: tc.id },
               });
               score = judgement.score;
               output = judgement.reasoning;
-              status = judgement.passed ? 'passed' : 'failed';
+              status = judgement.passed ? "passed" : "failed";
             } else {
               // No judge config — skip with a note
-              output = 'No LLM judge config found for this organization';
-              status = 'failed';
+              output = "No LLM judge config found for this organization";
+              status = "failed";
               score = 0;
             }
           } catch (judgeError) {
-            error = judgeError instanceof Error ? judgeError.message : 'LLM judge error';
-            status = 'failed';
+            error = judgeError instanceof Error ? judgeError.message : "LLM judge error";
+            status = "failed";
             score = 0;
           }
-        } else if (evaluation.type === 'ab_test') {
+        } else if (evaluation.type === "ab_test") {
           // A/B test: mark as passed (comparison happens externally)
-          output = tc.expectedOutput || '';
-          status = 'passed';
+          output = tc.expectedOutput || "";
+          status = "passed";
           score = 100;
         }
       } catch (execError) {
-        error = execError instanceof Error ? execError.message : 'Execution error';
-        status = 'failed';
+        error = execError instanceof Error ? execError.message : "Execution error";
+        status = "failed";
         score = 0;
       }
 
@@ -378,12 +392,12 @@ export class EvaluationService {
 
       // Run safety assertions when we have output (pii, toxicity)
       let assertionsJson: Record<string, unknown> | null = null;
-      if (output && (evaluation.type === 'unit_test' || evaluation.type === 'standard')) {
-        const envelope = runAssertions(output, ['pii', 'toxicity']);
+      if (output && (evaluation.type === "unit_test" || evaluation.type === "standard")) {
+        const envelope = runAssertions(output, ["pii", "toxicity"]);
         assertionsJson = validateAssertionsEnvelope(envelope) as unknown as Record<string, unknown>;
       }
 
-      if (status === 'passed') passedCount++;
+      if (status === "passed") passedCount++;
       else failedCount++;
 
       // Insert test result
@@ -407,7 +421,7 @@ export class EvaluationService {
     await db
       .update(evaluationRuns)
       .set({
-        status: 'completed',
+        status: "completed",
         totalCases: cases.length,
         passedCases: passedCount,
         failedCases: failedCount,
@@ -415,7 +429,7 @@ export class EvaluationService {
       })
       .where(eq(evaluationRuns.id, run.id));
 
-    logger.info('Evaluation run completed', {
+    logger.info("Evaluation run completed", {
       runId: run.id,
       evaluationId: id,
       totalCases: cases.length,
@@ -425,7 +439,10 @@ export class EvaluationService {
 
     // Compute quality score (fire-and-forget)
     computeAndStoreQualityScore(run.id, id, organizationId).catch((err) => {
-      logger.error('Quality score computation failed', { runId: run.id, error: err instanceof Error ? err.message : String(err) });
+      logger.error("Quality score computation failed", {
+        runId: run.id,
+        error: err instanceof Error ? err.message : String(err),
+      });
     });
 
     return { ...run, totalCases: cases.length, passedCases: passedCount, failedCases: failedCount };
@@ -435,7 +452,7 @@ export class EvaluationService {
    * Get evaluation statistics
    */
   async getStats(id: number, organizationId: number) {
-    logger.info('Getting evaluation stats', { id, organizationId });
+    logger.info("Getting evaluation stats", { id, organizationId });
 
     const evaluation = await this.getById(id, organizationId);
     if (!evaluation) {
@@ -443,15 +460,9 @@ export class EvaluationService {
     }
 
     // Query counts separately to avoid TypeScript issues with relations
-    const runs = await db
-      .select()
-      .from(evaluationRuns)
-      .where(eq(evaluationRuns.evaluationId, id));
+    const runs = await db.select().from(evaluationRuns).where(eq(evaluationRuns.evaluationId, id));
 
-    const cases = await db
-      .select()
-      .from(testCases)
-      .where(eq(testCases.evaluationId, id));
+    const cases = await db.select().from(testCases).where(eq(testCases.evaluationId, id));
 
     return {
       totalRuns: runs.length,
@@ -464,4 +475,3 @@ export class EvaluationService {
 
 // Export singleton instance
 export const evaluationService = new EvaluationService();
-

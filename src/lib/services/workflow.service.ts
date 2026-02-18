@@ -3,9 +3,9 @@
  * Business logic for multi-agent workflow management
  */
 
-import { db } from '@/db';
-import { workflows, workflowRuns, agentHandoffs, traces } from '@/db/schema';
-import { eq, and, desc, like, sql } from 'drizzle-orm';
+import { and, desc, eq, like, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { agentHandoffs, traces, workflowRuns, workflows } from "@/db/schema";
 
 // ============================================================================
 // TYPES
@@ -14,7 +14,7 @@ import { eq, and, desc, like, sql } from 'drizzle-orm';
 export interface WorkflowDefinition {
   nodes: {
     id: string;
-    type: 'agent' | 'tool' | 'decision' | 'parallel' | 'human' | 'llm';
+    type: "agent" | "tool" | "decision" | "parallel" | "human" | "llm";
     name: string;
     config?: Record<string, any>;
   }[];
@@ -34,14 +34,14 @@ export interface CreateWorkflowParams {
   organizationId: number;
   definition: WorkflowDefinition;
   createdBy: string;
-  status?: 'draft' | 'active' | 'archived';
+  status?: "draft" | "active" | "archived";
 }
 
 export interface UpdateWorkflowParams {
   name?: string;
   description?: string;
   definition?: WorkflowDefinition;
-  status?: 'draft' | 'active' | 'archived';
+  status?: "draft" | "active" | "archived";
 }
 
 export interface CreateWorkflowRunParams {
@@ -53,7 +53,7 @@ export interface CreateWorkflowRunParams {
 }
 
 export interface UpdateWorkflowRunParams {
-  status?: 'running' | 'completed' | 'failed' | 'cancelled';
+  status?: "running" | "completed" | "failed" | "cancelled";
   output?: Record<string, any>;
   totalCost?: string;
   totalDurationMs?: number;
@@ -71,21 +71,21 @@ export interface CreateHandoffParams {
   toSpanId: string;
   fromAgent?: string;
   toAgent: string;
-  handoffType: 'delegation' | 'escalation' | 'parallel' | 'fallback';
+  handoffType: "delegation" | "escalation" | "parallel" | "fallback";
   context?: Record<string, any>;
 }
 
 export interface ListWorkflowsParams {
   limit?: number;
   offset?: number;
-  status?: 'draft' | 'active' | 'archived';
+  status?: "draft" | "active" | "archived";
   search?: string;
 }
 
 export interface ListWorkflowRunsParams {
   limit?: number;
   offset?: number;
-  status?: 'running' | 'completed' | 'failed' | 'cancelled';
+  status?: "running" | "completed" | "failed" | "cancelled";
 }
 
 // ============================================================================
@@ -150,7 +150,7 @@ class WorkflowService {
         description: params.description?.trim() || null,
         organizationId: params.organizationId,
         definition: params.definition as any,
-        status: params.status || 'draft',
+        status: params.status || "draft",
         createdBy: params.createdBy,
         createdAt: now,
         updatedAt: now,
@@ -173,7 +173,9 @@ class WorkflowService {
       .update(workflows)
       .set({
         ...(params.name && { name: params.name.trim() }),
-        ...(params.description !== undefined && { description: params.description?.trim() || null }),
+        ...(params.description !== undefined && {
+          description: params.description?.trim() || null,
+        }),
         ...(params.definition && { definition: params.definition as any }),
         ...(params.status && { status: params.status }),
         updatedAt: now,
@@ -218,8 +220,8 @@ class WorkflowService {
       .groupBy(workflowRuns.status);
 
     const totalRuns = runs.reduce((sum, r) => sum + Number(r.count), 0);
-    const completedRuns = runs.find(r => r.status === 'completed');
-    const failedRuns = runs.find(r => r.status === 'failed');
+    const completedRuns = runs.find((r) => r.status === "completed");
+    const failedRuns = runs.find((r) => r.status === "failed");
 
     return {
       workflow,
@@ -227,11 +229,12 @@ class WorkflowService {
         totalRuns,
         completedRuns: Number(completedRuns?.count || 0),
         failedRuns: Number(failedRuns?.count || 0),
-        successRate: totalRuns > 0 
-          ? (Number(completedRuns?.count || 0) / totalRuns * 100).toFixed(1) 
-          : '0.0',
+        successRate:
+          totalRuns > 0
+            ? ((Number(completedRuns?.count || 0) / totalRuns) * 100).toFixed(1)
+            : "0.0",
         avgDuration: completedRuns?.avgDuration || 0,
-        totalCost: runs.reduce((sum, r) => sum + parseFloat(r.totalCost || '0'), 0).toFixed(6),
+        totalCost: runs.reduce((sum, r) => sum + parseFloat(r.totalCost || "0"), 0).toFixed(6),
       },
     };
   }
@@ -267,11 +270,7 @@ class WorkflowService {
    * Get a single workflow run by ID
    */
   async getRunById(runId: number) {
-    const result = await db
-      .select()
-      .from(workflowRuns)
-      .where(eq(workflowRuns.id, runId))
-      .limit(1);
+    const result = await db.select().from(workflowRuns).where(eq(workflowRuns.id, runId)).limit(1);
 
     return result[0] || null;
   }
@@ -288,9 +287,9 @@ class WorkflowService {
         workflowId: params.workflowId || null,
         traceId: params.traceId,
         organizationId: params.organizationId,
-        status: 'running',
-        input: params.input as any || null,
-        metadata: params.metadata as any || null,
+        status: "running",
+        input: (params.input as any) || null,
+        metadata: (params.metadata as any) || null,
         startedAt: now,
       })
       .returning();
@@ -319,7 +318,9 @@ class WorkflowService {
         ...(params.retryCount !== undefined && { retryCount: params.retryCount }),
         ...(params.errorMessage !== undefined && { errorMessage: params.errorMessage }),
         ...(params.metadata && { metadata: params.metadata as any }),
-        ...(params.status === 'completed' || params.status === 'failed' ? { completedAt: now } : {}),
+        ...(params.status === "completed" || params.status === "failed"
+          ? { completedAt: now }
+          : {}),
       })
       .where(eq(workflowRuns.id, runId))
       .returning();
@@ -335,11 +336,7 @@ class WorkflowService {
     if (!run) return null;
 
     // Get associated trace
-    const trace = await db
-      .select()
-      .from(traces)
-      .where(eq(traces.id, run.traceId))
-      .limit(1);
+    const trace = await db.select().from(traces).where(eq(traces.id, run.traceId)).limit(1);
 
     // Get handoffs for this run
     const handoffs = await db
@@ -388,7 +385,7 @@ class WorkflowService {
         fromAgent: params.fromAgent || null,
         toAgent: params.toAgent,
         handoffType: params.handoffType,
-        context: params.context as any || null,
+        context: (params.context as any) || null,
         timestamp: now,
       })
       .returning();

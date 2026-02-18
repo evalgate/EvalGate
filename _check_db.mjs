@@ -14,8 +14,13 @@ if (!url || !token) {
 const client = createClient({ url, authToken: token });
 
 console.log("\nQuerying tables...");
-const result = await client.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name");
-console.log("Tables:", result.rows.map(r => r.name));
+const result = await client.execute(
+  "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
+);
+console.log(
+  "Tables:",
+  result.rows.map((r) => r.name),
+);
 
 if (result.rows.length === 0) {
   console.log("\nNo tables found! Creating them...");
@@ -85,8 +90,13 @@ if (result.rows.length === 0) {
     );
   `);
 
-  const verify = await client.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name");
-  console.log("Tables after creation:", verify.rows.map(r => r.name));
+  const verify = await client.execute(
+    "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
+  );
+  console.log(
+    "Tables after creation:",
+    verify.rows.map((r) => r.name),
+  );
 } else {
   console.log("Tables already exist, nothing to do.");
 }

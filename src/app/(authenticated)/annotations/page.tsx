@@ -1,22 +1,48 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import Link from "next/link"
-import { Plus, Clipboard, Users, Sparkles, ThumbsUp, Star, CheckSquare, MessageCircle, Settings2, Shield, Target, Zap } from "lucide-react"
-import { useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
-import { useCustomer } from "autumn-js/react"
+import { useCustomer } from "autumn-js/react";
+import {
+  CheckSquare,
+  Clipboard,
+  MessageCircle,
+  Plus,
+  Settings2,
+  Shield,
+  Sparkles,
+  Star,
+  Target,
+  ThumbsUp,
+  Users,
+  Zap,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useSession } from "@/lib/auth-client";
 
 // Annotation task templates
 const ANNOTATION_TEMPLATES = [
@@ -37,9 +63,7 @@ Click 👎 if the response is:
 - Inaccurate or unhelpful
 - Inappropriate or unprofessional
 - Doesn't answer the question`,
-    fields: [
-      { name: "rating", label: "Quality", type: "binary", options: ["👍 Good", "👎 Bad"] }
-    ]
+    fields: [{ name: "rating", label: "Quality", type: "binary", options: ["👍 Good", "👎 Bad"] }],
   },
   {
     id: "quality-scale",
@@ -57,8 +81,8 @@ Click 👎 if the response is:
     fields: [
       { name: "quality", label: "Overall Quality", type: "rating", scale: 5 },
       { name: "accuracy", label: "Accuracy", type: "rating", scale: 5 },
-      { name: "helpfulness", label: "Helpfulness", type: "rating", scale: 5 }
-    ]
+      { name: "helpfulness", label: "Helpfulness", type: "rating", scale: 5 },
+    ],
   },
   {
     id: "multi-criteria",
@@ -80,19 +104,25 @@ Flag any issues:
 - ⚠️ Inappropriate content
 - ⚠️ Misses key information`,
     fields: [
-      { name: "criteria", label: "Quality Checks", type: "checklist", options: [
-        "Factually accurate",
-        "Answers the question",
-        "Professional tone",
-        "Well-structured",
-        "Appropriate length"
-      ]},
-      { name: "issues", label: "Flag Issues", type: "checklist", options: [
-        "Contains errors",
-        "Inappropriate content",
-        "Misses key information"
-      ]}
-    ]
+      {
+        name: "criteria",
+        label: "Quality Checks",
+        type: "checklist",
+        options: [
+          "Factually accurate",
+          "Answers the question",
+          "Professional tone",
+          "Well-structured",
+          "Appropriate length",
+        ],
+      },
+      {
+        name: "issues",
+        label: "Flag Issues",
+        type: "checklist",
+        options: ["Contains errors", "Inappropriate content", "Misses key information"],
+      },
+    ],
   },
   {
     id: "detailed-feedback",
@@ -109,209 +139,229 @@ Flag any issues:
 
 Be specific and provide examples where possible.`,
     fields: [
-      { name: "strengths", label: "Strengths", type: "text", placeholder: "What did this response do well?" },
-      { name: "improvements", label: "Improvements", type: "text", placeholder: "What could be better?" },
+      {
+        name: "strengths",
+        label: "Strengths",
+        type: "text",
+        placeholder: "What did this response do well?",
+      },
+      {
+        name: "improvements",
+        label: "Improvements",
+        type: "text",
+        placeholder: "What could be better?",
+      },
       { name: "concerns", label: "Concerns", type: "text", placeholder: "Any errors or issues?" },
-      { name: "rating", label: "Overall Rating", type: "rating", scale: 5 }
-    ]
-  }
-]
+      { name: "rating", label: "Overall Rating", type: "rating", scale: 5 },
+    ],
+  },
+];
 
 // AnnotationTask interface
 interface AnnotationTask {
-  id: string
-  name: string
-  description: string
-  status: "pending" | "completed"
-  completed_items: number
-  total_items: number
+  id: string;
+  name: string;
+  description: string;
+  status: "pending" | "completed";
+  completed_items: number;
+  total_items: number;
 }
 
 // Helper functions
-const fetchTasks = async (session: any) => {
+const fetchTasks = async (_session: any) => {
   try {
     const response = await fetch("/api/annotations/tasks", {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("bearer_token")}`
-      }
-    })
-    const data = await response.json()
-    return data.tasks || []
+        Authorization: `Bearer ${localStorage.getItem("bearer_token")}`,
+      },
+    });
+    const data = await response.json();
+    return data.tasks || [];
   } catch (error) {
-    console.error("Error fetching tasks:", error)
-    return []
+    console.error("Error fetching tasks:", error);
+    return [];
   }
-}
+};
 
 export default function AnnotationsPage() {
-  const { data: session, isPending } = useSession()
-  const { customer, check, track, refetch, isLoading: customerLoading } = useCustomer()
-  const router = useRouter()
-  const [tasks, setTasks] = useState<AnnotationTask[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showCreateDialog, setShowCreateDialog] = useState(false)
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
-  const [taskName, setTaskName] = useState("")
-  const [taskDescription, setTaskDescription] = useState("")
-  const [taskInstructions, setTaskInstructions] = useState("")
-  const [isCreating, setIsCreating] = useState(false)
+  const { data: session, isPending } = useSession();
+  const { customer, check, track, refetch, isLoading: customerLoading } = useCustomer();
+  const router = useRouter();
+  const [tasks, setTasks] = useState<AnnotationTask[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [taskName, setTaskName] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
+  const [taskInstructions, setTaskInstructions] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   // Advanced settings
-  const [requireMultipleAnnotators, setRequireMultipleAnnotators] = useState(false)
-  const [minAnnotators, setMinAnnotators] = useState(2)
-  const [requireConsensus, setRequireConsensus] = useState(false)
-  const [consensusThreshold, setConsensusThreshold] = useState(0.8)
-  const [enableQualityControl, setEnableQualityControl] = useState(false)
-  const [goldStandardPercentage, setGoldStandardPercentage] = useState(10)
-  const [minAccuracyThreshold, setMinAccuracyThreshold] = useState(0.7)
-  const [annotatorAssignment, setAnnotatorAssignment] = useState("open")
-  const [enableReview, setEnableReview] = useState(false)
+  const [requireMultipleAnnotators, setRequireMultipleAnnotators] = useState(false);
+  const [minAnnotators, setMinAnnotators] = useState(2);
+  const [requireConsensus, setRequireConsensus] = useState(false);
+  const [consensusThreshold, setConsensusThreshold] = useState(0.8);
+  const [enableQualityControl, setEnableQualityControl] = useState(false);
+  const [goldStandardPercentage, setGoldStandardPercentage] = useState(10);
+  const [minAccuracyThreshold, setMinAccuracyThreshold] = useState(0.7);
+  const [annotatorAssignment, setAnnotatorAssignment] = useState("open");
+  const [enableReview, setEnableReview] = useState(false);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
-      router.push("/auth/login")
-      return
+      router.push("/auth/login");
+      return;
     }
 
     if (session?.user) {
       fetchTasks(session)
-        .then(tasks => {
-          setTasks(tasks)
-          setLoading(false)
+        .then((tasks) => {
+          setTasks(tasks);
+          setLoading(false);
         })
         .catch(() => {
-          setLoading(false)
-        })
+          setLoading(false);
+        });
     }
-  }, [session, isPending, router])
+  }, [session, isPending, router]);
 
   const handleTemplateSelect = (templateId: string) => {
-    const template = ANNOTATION_TEMPLATES.find(t => t.id === templateId)
+    const template = ANNOTATION_TEMPLATES.find((t) => t.id === templateId);
     if (template) {
-      setSelectedTemplate(templateId)
-      setTaskName(template.name)
-      setTaskDescription(template.description)
-      setTaskInstructions(template.instructions)
+      setSelectedTemplate(templateId);
+      setTaskName(template.name);
+      setTaskDescription(template.description);
+      setTaskInstructions(template.instructions);
     }
-  }
+  };
 
   const handleCreateTask = async () => {
     if (!taskName || !taskInstructions) {
-      toast.error("Please fill in all required fields")
-      return
+      toast.error("Please fill in all required fields");
+      return;
     }
 
     // Check annotation quota before creating
-    const { data: checkResult } = await check({ featureId: "annotations", requiredBalance: 1 })
+    const { data: checkResult } = await check({ featureId: "annotations", requiredBalance: 1 });
     if (!checkResult?.allowed) {
-      toast.error("You've reached your annotation task limit. Please upgrade your plan.")
-      setShowCreateDialog(false)
+      toast.error("You've reached your annotation task limit. Please upgrade your plan.");
+      setShowCreateDialog(false);
       // TODO: Show upgrade modal
-      return
+      return;
     }
 
-    setIsCreating(true)
+    setIsCreating(true);
     try {
-      const token = localStorage.getItem("bearer_token")
-      const template = selectedTemplate ? ANNOTATION_TEMPLATES.find(t => t.id === selectedTemplate) : null
-      
+      const token = localStorage.getItem("bearer_token");
+      const template = selectedTemplate
+        ? ANNOTATION_TEMPLATES.find((t) => t.id === selectedTemplate)
+        : null;
+
       const response = await fetch("/api/annotations/tasks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: taskName,
           description: taskDescription,
           instructions: taskInstructions,
           template: selectedTemplate,
-          config: template ? {
-            taskType: template.taskType,
-            fields: template.fields
-          } : null,
+          config: template
+            ? {
+                taskType: template.taskType,
+                fields: template.fields,
+              }
+            : null,
           annotationSettings: {
-            multipleAnnotators: requireMultipleAnnotators ? {
-              enabled: true,
-              minAnnotators,
-              requireConsensus,
-              consensusThreshold
-            } : null,
-            qualityControl: enableQualityControl ? {
-              enabled: true,
-              goldStandardPercentage,
-              minAccuracyThreshold
-            } : null,
+            multipleAnnotators: requireMultipleAnnotators
+              ? {
+                  enabled: true,
+                  minAnnotators,
+                  requireConsensus,
+                  consensusThreshold,
+                }
+              : null,
+            qualityControl: enableQualityControl
+              ? {
+                  enabled: true,
+                  goldStandardPercentage,
+                  minAccuracyThreshold,
+                }
+              : null,
             assignment: annotatorAssignment,
-            enableReview
-          }
-        })
-      })
+            enableReview,
+          },
+        }),
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json();
         if (response.status === 402) {
-          toast.error("Annotation task limit reached. Please upgrade your plan.")
+          toast.error("Annotation task limit reached. Please upgrade your plan.");
         } else {
-          toast.error(errorData.error || "Failed to create annotation task")
+          toast.error(errorData.error || "Failed to create annotation task");
         }
-        return
+        return;
       }
 
-      const data = await response.json()
-      toast.success(template ? "Task created from template!" : "Annotation task created!")
-      
+      const _data = await response.json();
+      toast.success(template ? "Task created from template!" : "Annotation task created!");
+
       // Refresh customer data to update usage
-      await refetch()
-      
+      await refetch();
+
       // Refresh tasks list
-      const updatedTasks = await fetchTasks(session)
-      setTasks(updatedTasks)
-      
-      setShowCreateDialog(false)
+      const updatedTasks = await fetchTasks(session);
+      setTasks(updatedTasks);
+
+      setShowCreateDialog(false);
       // Reset form
-      setSelectedTemplate(null)
-      setTaskName("")
-      setTaskDescription("")
-      setTaskInstructions("")
-      setRequireMultipleAnnotators(false)
-      setMinAnnotators(2)
-      setRequireConsensus(false)
-      setConsensusThreshold(0.8)
-      setEnableQualityControl(false)
-    } catch (error) {
-      toast.error("Failed to create annotation task")
+      setSelectedTemplate(null);
+      setTaskName("");
+      setTaskDescription("");
+      setTaskInstructions("");
+      setRequireMultipleAnnotators(false);
+      setMinAnnotators(2);
+      setRequireConsensus(false);
+      setConsensusThreshold(0.8);
+      setEnableQualityControl(false);
+    } catch (_error) {
+      toast.error("Failed to create annotation task");
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
+  };
 
   if (isPending || loading || customerLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
-    )
+    );
   }
 
   if (!session?.user) {
-    return null
+    return null;
   }
 
   // Get annotation feature usage
-  const annotationFeature = customer?.features?.["annotations"]
-  const annotationsUsed = annotationFeature?.usage || 0
-  const annotationsLimit = annotationFeature?.included_usage
-  const hasLimit = typeof annotationsLimit === "number"
-  const percentage = hasLimit ? Math.min(100, (annotationsUsed / annotationsLimit) * 100) : 0
-  const isNearLimit = hasLimit && percentage >= 80
+  const annotationFeature = customer?.features?.annotations;
+  const annotationsUsed = annotationFeature?.usage || 0;
+  const annotationsLimit = annotationFeature?.included_usage;
+  const hasLimit = typeof annotationsLimit === "number";
+  const percentage = hasLimit ? Math.min(100, (annotationsUsed / annotationsLimit) * 100) : 0;
+  const isNearLimit = hasLimit && percentage >= 80;
 
   return (
     <div className="flex-1 space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Human Annotations</h2>
-          <p className="text-sm sm:text-base text-muted-foreground">Collect human feedback on model outputs</p>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Collect human feedback on model outputs
+          </p>
         </div>
         <div className="flex items-center gap-3">
           {/* Usage indicator */}
@@ -334,7 +384,8 @@ export default function AnnotationsPage() {
               <DialogHeader>
                 <DialogTitle>Create Annotation Task</DialogTitle>
                 <DialogDescription>
-                  Set up a task for human annotators to review and rate model outputs with advanced quality controls
+                  Set up a task for human annotators to review and rate model outputs with advanced
+                  quality controls
                 </DialogDescription>
               </DialogHeader>
 
@@ -346,7 +397,7 @@ export default function AnnotationsPage() {
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {ANNOTATION_TEMPLATES.map((template) => {
-                      const Icon = template.icon
+                      const Icon = template.icon;
                       return (
                         <Card
                           key={template.id}
@@ -360,12 +411,14 @@ export default function AnnotationsPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <h3 className="font-semibold text-sm mb-1">{template.name}</h3>
-                                <p className="text-xs text-muted-foreground line-clamp-2">{template.description}</p>
+                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                  {template.description}
+                                </p>
                               </div>
                             </div>
                           </CardContent>
                         </Card>
-                      )
+                      );
                     })}
                   </div>
                   <Button
@@ -397,16 +450,17 @@ export default function AnnotationsPage() {
                       <div className="rounded-lg bg-primary/10 p-3 text-sm">
                         <div className="flex items-center gap-2 text-primary font-medium mb-1">
                           <Sparkles className="h-4 w-4" />
-                          Using {ANNOTATION_TEMPLATES.find(t => t.id === selectedTemplate)?.name} template
+                          Using {ANNOTATION_TEMPLATES.find((t) => t.id === selectedTemplate)?.name}{" "}
+                          template
                         </div>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            setSelectedTemplate(null)
-                            setTaskName("")
-                            setTaskDescription("")
-                            setTaskInstructions("")
+                            setSelectedTemplate(null);
+                            setTaskName("");
+                            setTaskDescription("");
+                            setTaskInstructions("");
                           }}
                           className="mt-2 h-7 text-xs"
                         >
@@ -456,7 +510,9 @@ export default function AnnotationsPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-primary" />
-                          <Label htmlFor="multiple-annotators" className="text-sm font-semibold">Multiple Annotators per Item</Label>
+                          <Label htmlFor="multiple-annotators" className="text-sm font-semibold">
+                            Multiple Annotators per Item
+                          </Label>
                         </div>
                         <Switch
                           id="multiple-annotators"
@@ -471,7 +527,9 @@ export default function AnnotationsPage() {
                       {requireMultipleAnnotators && (
                         <div className="space-y-3 pl-6 border-l-2 border-primary/20">
                           <div className="space-y-2">
-                            <Label htmlFor="min-annotators">Minimum Annotators: {minAnnotators}</Label>
+                            <Label htmlFor="min-annotators">
+                              Minimum Annotators: {minAnnotators}
+                            </Label>
                             <Slider
                               id="min-annotators"
                               min={2}
@@ -487,8 +545,12 @@ export default function AnnotationsPage() {
 
                           <div className="flex items-center justify-between">
                             <div>
-                              <Label htmlFor="require-consensus" className="text-sm">Require Consensus</Label>
-                              <p className="text-xs text-muted-foreground">Item marked complete only when annotators agree</p>
+                              <Label htmlFor="require-consensus" className="text-sm">
+                                Require Consensus
+                              </Label>
+                              <p className="text-xs text-muted-foreground">
+                                Item marked complete only when annotators agree
+                              </p>
                             </div>
                             <Switch
                               id="require-consensus"
@@ -499,7 +561,9 @@ export default function AnnotationsPage() {
 
                           {requireConsensus && (
                             <div className="space-y-2 pl-6">
-                              <Label htmlFor="consensus-threshold">Consensus Threshold: {(consensusThreshold * 100).toFixed(0)}%</Label>
+                              <Label htmlFor="consensus-threshold">
+                                Consensus Threshold: {(consensusThreshold * 100).toFixed(0)}%
+                              </Label>
                               <Slider
                                 id="consensus-threshold"
                                 min={0.5}
@@ -530,17 +594,29 @@ export default function AnnotationsPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="open">Open - Any team member can annotate</SelectItem>
-                            <SelectItem value="assigned">Assigned - Specific annotators only</SelectItem>
-                            <SelectItem value="round-robin">Round Robin - Distribute evenly</SelectItem>
-                            <SelectItem value="expertise">Expertise-based - Match to skills</SelectItem>
+                            <SelectItem value="open">
+                              Open - Any team member can annotate
+                            </SelectItem>
+                            <SelectItem value="assigned">
+                              Assigned - Specific annotators only
+                            </SelectItem>
+                            <SelectItem value="round-robin">
+                              Round Robin - Distribute evenly
+                            </SelectItem>
+                            <SelectItem value="expertise">
+                              Expertise-based - Match to skills
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                          {annotatorAssignment === "open" && "All team members can annotate any item"}
-                          {annotatorAssignment === "assigned" && "Only assigned annotators can work on specific items"}
-                          {annotatorAssignment === "round-robin" && "Items distributed evenly among annotators"}
-                          {annotatorAssignment === "expertise" && "Items matched to annotators based on expertise"}
+                          {annotatorAssignment === "open" &&
+                            "All team members can annotate any item"}
+                          {annotatorAssignment === "assigned" &&
+                            "Only assigned annotators can work on specific items"}
+                          {annotatorAssignment === "round-robin" &&
+                            "Items distributed evenly among annotators"}
+                          {annotatorAssignment === "expertise" &&
+                            "Items matched to annotators based on expertise"}
                         </p>
                       </div>
                     </div>
@@ -550,7 +626,9 @@ export default function AnnotationsPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Settings2 className="h-4 w-4 text-primary" />
-                          <Label htmlFor="enable-review" className="text-sm font-semibold">Review Process</Label>
+                          <Label htmlFor="enable-review" className="text-sm font-semibold">
+                            Review Process
+                          </Label>
                         </div>
                         <Switch
                           id="enable-review"
@@ -570,7 +648,9 @@ export default function AnnotationsPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Shield className="h-4 w-4 text-primary" />
-                          <Label htmlFor="quality-control" className="text-sm font-semibold">Quality Control</Label>
+                          <Label htmlFor="quality-control" className="text-sm font-semibold">
+                            Quality Control
+                          </Label>
                         </div>
                         <Switch
                           id="quality-control"
@@ -585,7 +665,9 @@ export default function AnnotationsPage() {
                       {enableQualityControl && (
                         <div className="space-y-3 pl-6 border-l-2 border-primary/20">
                           <div className="space-y-2">
-                            <Label htmlFor="gold-standard">Gold Standard Items: {goldStandardPercentage}%</Label>
+                            <Label htmlFor="gold-standard">
+                              Gold Standard Items: {goldStandardPercentage}%
+                            </Label>
                             <Slider
                               id="gold-standard"
                               min={5}
@@ -600,7 +682,9 @@ export default function AnnotationsPage() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="accuracy-threshold">Minimum Accuracy: {(minAccuracyThreshold * 100).toFixed(0)}%</Label>
+                            <Label htmlFor="accuracy-threshold">
+                              Minimum Accuracy: {(minAccuracyThreshold * 100).toFixed(0)}%
+                            </Label>
                             <Slider
                               id="accuracy-threshold"
                               min={0.5}
@@ -616,7 +700,8 @@ export default function AnnotationsPage() {
 
                           <div className="rounded-lg bg-yellow-500/10 p-3 text-sm">
                             <p className="text-yellow-700 dark:text-yellow-400 text-xs">
-                              <strong>Note:</strong> Annotators below the accuracy threshold will be notified and may need retraining
+                              <strong>Note:</strong> Annotators below the accuracy threshold will be
+                              notified and may need retraining
                             </p>
                           </div>
                         </div>
@@ -655,10 +740,7 @@ export default function AnnotationsPage() {
                     <Button onClick={handleCreateTask} disabled={isCreating} className="flex-1">
                       {isCreating ? "Creating..." : "Create Task"}
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowCreateDialog(false)}
-                    >
+                    <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                       Cancel
                     </Button>
                   </div>
@@ -679,7 +761,8 @@ export default function AnnotationsPage() {
                 Approaching annotation task limit
               </h4>
               <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-1">
-                You've used {annotationsUsed} of {annotationsLimit} annotation tasks this month. Upgrade your plan for more tasks.
+                You've used {annotationsUsed} of {annotationsLimit} annotation tasks this month.
+                Upgrade your plan for more tasks.
               </p>
               <Button size="sm" variant="outline" className="mt-2" asChild>
                 <Link href="/pricing">Upgrade Plan</Link>
@@ -698,7 +781,8 @@ export default function AnnotationsPage() {
               </div>
               <h3 className="text-base sm:text-lg font-semibold mb-2">No annotation tasks yet</h3>
               <p className="text-xs sm:text-sm text-muted-foreground text-center mb-4 sm:mb-6 max-w-sm">
-                Create your first annotation task to start collecting human feedback with quality controls
+                Create your first annotation task to start collecting human feedback with quality
+                controls
               </p>
               <Button className="w-full sm:w-auto" onClick={() => setShowCreateDialog(true)}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -731,5 +815,5 @@ export default function AnnotationsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

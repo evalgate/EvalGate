@@ -29,14 +29,14 @@ export class TemplateEngine {
    */
   compile(template: string, options: TemplateOptions = {}): (context: TemplateContext) => string {
     const cacheKey = `${template}:${JSON.stringify(options)}`;
-    
+
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey)!;
     }
 
     const compiled = this.createCompiledFunction(template, options);
     this.cache.set(cacheKey, compiled);
-    
+
     return compiled;
   }
 
@@ -53,14 +53,17 @@ export class TemplateEngine {
    * Create a compiled function from template string.
    * Uses Function constructor for better performance than regex replacement.
    */
-  private createCompiledFunction(template: string, options: TemplateOptions): (context: TemplateContext) => string {
-    const { strict = false, fallback = '', escapeHtml = false } = options;
-    
+  private createCompiledFunction(
+    template: string,
+    options: TemplateOptions,
+  ): (context: TemplateContext) => string {
+    const { strict = false, fallback = "", escapeHtml = false } = options;
+
     // Find all {{variable}} occurrences
     const variableRegex = /\{\{([^}]+)\}\}/g;
     const variables: string[] = [];
     let match;
-    
+
     while ((match = variableRegex.exec(template)) !== null) {
       variables.push(match[1].trim());
     }
@@ -70,44 +73,49 @@ export class TemplateEngine {
 
     // Build the function body
     let functionBody = 'let result = "";\n';
-    
+
     // Add variable accessors
-    uniqueVariables.forEach(variable => {
+    uniqueVariables.forEach((variable) => {
       const accessor = this.buildAccessor(variable, strict, fallback, escapeHtml);
       functionBody += `const ${this.sanitizeVariableName(variable)} = ${accessor};\n`;
     });
 
     // Replace template with variable references
     let processedTemplate = template;
-    uniqueVariables.forEach(variable => {
+    uniqueVariables.forEach((variable) => {
       const varName = this.sanitizeVariableName(variable);
       processedTemplate = processedTemplate.replace(
-        new RegExp(`\\{\\{${this.escapeRegex(variable)}\\}\\}`, 'g'),
-        `\${${varName}}`
+        new RegExp(`\\{\\{${this.escapeRegex(variable)}\\}\\}`, "g"),
+        `\${${varName}}`,
       );
     });
 
-    functionBody += `result = \`${processedTemplate.replace(/`/g, '\\`')}\`;\n`;
-    functionBody += 'return result;';
+    functionBody += `result = \`${processedTemplate.replace(/`/g, "\\`")}\`;\n`;
+    functionBody += "return result;";
 
     try {
-      return new Function('context', functionBody) as (context: TemplateContext) => string;
+      return new Function("context", functionBody) as (context: TemplateContext) => string;
     } catch (error) {
-      console.error('Template compilation error:', error);
-      return (context: TemplateContext) => template; // Fallback to original template
+      console.error("Template compilation error:", error);
+      return (_context: TemplateContext) => template; // Fallback to original template
     }
   }
 
   /**
    * Build accessor string for nested variable access.
    */
-  private buildAccessor(variable: string, strict: boolean, fallback: string, escapeHtml: boolean): string {
-    const parts = variable.split('.');
-    let accessor = 'context';
-    
+  private buildAccessor(
+    variable: string,
+    strict: boolean,
+    fallback: string,
+    escapeHtml: boolean,
+  ): string {
+    const parts = variable.split(".");
+    let accessor = "context";
+
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
-      
+
       // Handle array access (items.0.name)
       if (/^\d+$/.test(part)) {
         accessor += `[${part}]`;
@@ -117,7 +125,7 @@ export class TemplateEngine {
     }
 
     let result = accessor;
-    
+
     // Add fallback handling
     if (!strict) {
       result = `(${result} ?? ${JSON.stringify(fallback)})`;
@@ -135,31 +143,14 @@ export class TemplateEngine {
    * Sanitize variable name for use in function.
    */
   private sanitizeVariableName(variable: string): string {
-    return variable.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^\d/, '_$&');
+    return variable.replace(/[^a-zA-Z0-9_]/g, "_").replace(/^\d/, "_$&");
   }
 
   /**
    * Escape regex special characters.
    */
   private escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }
-
-  /**
-   * HTML escape function.
-   */
-  private escapeHtml(str: string): string {
-    if (typeof str !== 'string') return str;
-    
-    const htmlEscapes: Record<string, string> = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    };
-    
-    return str.replace(/[&<>"']/g, (match) => htmlEscapes[match]);
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
   /**
@@ -175,7 +166,7 @@ export class TemplateEngine {
   getCacheStats(): { size: number; keys: string[] } {
     return {
       size: this.cache.size,
-      keys: Array.from(this.cache.keys())
+      keys: Array.from(this.cache.keys()),
     };
   }
 }
@@ -186,11 +177,18 @@ export const templateEngine = new TemplateEngine();
 /**
  * Convenience functions for common use cases.
  */
-export const renderTemplate = (template: string, context: TemplateContext, options?: TemplateOptions): string => {
+export const renderTemplate = (
+  template: string,
+  context: TemplateContext,
+  options?: TemplateOptions,
+): string => {
   return templateEngine.render(template, context, options);
 };
 
-export const compileTemplate = (template: string, options?: TemplateOptions): ((context: TemplateContext) => string) => {
+export const compileTemplate = (
+  template: string,
+  options?: TemplateOptions,
+): ((context: TemplateContext) => string) => {
   return templateEngine.compile(template, options);
 };
 
@@ -205,42 +203,45 @@ export class TemplateValidator {
     const variableRegex = /\{\{([^}]+)\}\}/g;
     const variables: string[] = [];
     let match;
-    
+
     while ((match = variableRegex.exec(template)) !== null) {
       variables.push(match[1].trim());
     }
-    
+
     return [...new Set(variables)];
   }
 
   /**
    * Check if all required variables are present in context.
    */
-  static validateContext(template: string, context: TemplateContext): {
+  static validateContext(
+    template: string,
+    context: TemplateContext,
+  ): {
     valid: boolean;
     missing: string[];
     extra: string[];
   } {
-    const required = this.extractVariables(template);
+    const required = TemplateValidator.extractVariables(template);
     const missing: string[] = [];
     const extra: string[] = [];
 
     for (const variable of required) {
-      const value = this.getNestedValue(context, variable);
+      const value = TemplateValidator.getNestedValue(context, variable);
       if (value === undefined || value === null) {
         missing.push(variable);
       }
     }
 
     // Check for extra variables (optional)
-    const contextKeys = this.extractContextKeys(context);
-    const requiredKeys = required.map(v => v.split('.')[0]);
-    extra.push(...contextKeys.filter(key => !requiredKeys.includes(key)));
+    const contextKeys = TemplateValidator.extractContextKeys(context);
+    const requiredKeys = required.map((v) => v.split(".")[0]);
+    extra.push(...contextKeys.filter((key) => !requiredKeys.includes(key)));
 
     return {
       valid: missing.length === 0,
       missing,
-      extra
+      extra,
     };
   }
 
@@ -248,40 +249,44 @@ export class TemplateValidator {
    * Get nested value from context.
    */
   private static getNestedValue(context: TemplateContext, path: string): any {
-    const parts = path.split('.');
+    const parts = path.split(".");
     let value = context;
-    
+
     for (const part of parts) {
       if (value === null || value === undefined) {
         return undefined;
       }
-      
+
       if (/^\d+$/.test(part)) {
-        value = value[parseInt(part)];
+        value = value[parseInt(part, 10)];
       } else {
         value = value[part];
       }
     }
-    
+
     return value;
   }
 
   /**
    * Extract all top-level keys from context.
    */
-  private static extractContextKeys(context: TemplateContext, prefix = ''): string[] {
+  private static extractContextKeys(context: TemplateContext, prefix = ""): string[] {
     const keys: string[] = [];
-    
+
     for (const key in context) {
       const fullKey = prefix ? `${prefix}.${key}` : key;
-      
-      if (typeof context[key] === 'object' && context[key] !== null && !Array.isArray(context[key])) {
-        keys.push(...this.extractContextKeys(context[key], fullKey));
+
+      if (
+        typeof context[key] === "object" &&
+        context[key] !== null &&
+        !Array.isArray(context[key])
+      ) {
+        keys.push(...TemplateValidator.extractContextKeys(context[key], fullKey));
       } else {
         keys.push(fullKey);
       }
     }
-    
+
     return keys;
   }
 }

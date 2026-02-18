@@ -1,13 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { annotationItems, annotationTasks } from '@/db/schema';
-import { eq, isNull, isNotNull, asc, and } from 'drizzle-orm';
-import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
-import { notFound, forbidden, validationError } from '@/lib/api/errors';
+import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { annotationItems, annotationTasks } from "@/db/schema";
+import { forbidden, notFound, validationError } from "@/lib/api/errors";
+import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 
-type VerifyTaskResult =
-  | { error: NextResponse }
-  | { task: typeof annotationTasks.$inferSelect };
+type VerifyTaskResult = { error: NextResponse } | { task: typeof annotationTasks.$inferSelect };
 
 /**
  * Verify the parent annotationTask exists and belongs to the caller's org.
@@ -21,65 +19,67 @@ async function verifyTaskOwnership(taskId: number, ctx: AuthContext): Promise<Ve
     .limit(1);
 
   if (task.length === 0) {
-    return { error: notFound('Task not found') };
+    return { error: notFound("Task not found") };
   }
   if (task[0].organizationId !== ctx.organizationId) {
-    return { error: forbidden('Task does not belong to your organization') };
+    return { error: forbidden("Task does not belong to your organization") };
   }
   return { task: task[0] };
 }
 
-export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params): Promise<NextResponse> => {
-  const taskId = parseInt(params.id ?? '', 10);
+export const GET = secureRoute(
+  async (req: NextRequest, ctx: AuthContext, params): Promise<NextResponse> => {
+    const taskId = parseInt(params.id ?? "", 10);
 
-  if (!taskId || isNaN(taskId)) {
-    return validationError('Valid task ID is required');
-  }
+    if (!taskId || Number.isNaN(taskId)) {
+      return validationError("Valid task ID is required");
+    }
 
-  const ownership = await verifyTaskOwnership(taskId, ctx);
-  if ('error' in ownership) {
-    return ownership.error;
-  }
+    const ownership = await verifyTaskOwnership(taskId, ctx);
+    if ("error" in ownership) {
+      return ownership.error;
+    }
 
-  const { searchParams } = new URL(req.url);
-  const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
-  const offset = parseInt(searchParams.get('offset') || '0');
-  const annotatedParam = searchParams.get('annotated');
+    const { searchParams } = new URL(req.url);
+    const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 100);
+    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const annotatedParam = searchParams.get("annotated");
 
-  const conditions = [eq(annotationItems.taskId, taskId)];
+    const conditions = [eq(annotationItems.taskId, taskId)];
 
-  if (annotatedParam === 'true') {
-    conditions.push(isNotNull(annotationItems.annotatedBy));
-  } else if (annotatedParam === 'false') {
-    conditions.push(isNull(annotationItems.annotatedBy));
-  }
+    if (annotatedParam === "true") {
+      conditions.push(isNotNull(annotationItems.annotatedBy));
+    } else if (annotatedParam === "false") {
+      conditions.push(isNull(annotationItems.annotatedBy));
+    }
 
-  const items = await db
-    .select()
-    .from(annotationItems)
-    .where(and(...conditions))
-    .orderBy(asc(annotationItems.createdAt))
-    .limit(limit)
-    .offset(offset);
+    const items = await db
+      .select()
+      .from(annotationItems)
+      .where(and(...conditions))
+      .orderBy(asc(annotationItems.createdAt))
+      .limit(limit)
+      .offset(offset);
 
-  return NextResponse.json(items);
-})
+    return NextResponse.json(items);
+  },
+);
 
 export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
-  const taskId = parseInt(params.id);
+  const taskId = parseInt(params.id, 10);
 
-  if (!taskId || isNaN(taskId)) {
-    return validationError('Valid task ID is required');
+  if (!taskId || Number.isNaN(taskId)) {
+    return validationError("Valid task ID is required");
   }
 
   const ownership = await verifyTaskOwnership(taskId, ctx);
-  if ('error' in ownership) return ownership.error;
+  if ("error" in ownership) return ownership.error;
 
   const body = await req.json();
   const { content, annotation, annotatedBy, annotatedAt } = body;
 
-  if (!content || typeof content !== 'string' || content.trim() === '') {
-    return validationError('Content is required and must be a non-empty string');
+  if (!content || typeof content !== "string" || content.trim() === "") {
+    return validationError("Content is required and must be a non-empty string");
   }
 
   const now = new Date().toISOString();
@@ -109,35 +109,32 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, param
     insertData.annotatedAt = annotatedAt;
   }
 
-  const newItem = await db
-    .insert(annotationItems)
-    .values(insertData)
-    .returning();
+  const newItem = await db.insert(annotationItems).values(insertData).returning();
 
   return NextResponse.json(newItem[0], { status: 201 });
-})
+});
 
 export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   const { searchParams } = new URL(req.url);
-  const itemId = searchParams.get('itemId');
+  const itemId = searchParams.get("itemId");
 
-  if (!itemId || isNaN(parseInt(itemId))) {
-    return validationError('Valid item ID is required');
+  if (!itemId || Number.isNaN(parseInt(itemId, 10))) {
+    return validationError("Valid item ID is required");
   }
 
   // Look up the item, then verify its parent task belongs to the org
   const existingItem = await db
     .select()
     .from(annotationItems)
-    .where(eq(annotationItems.id, parseInt(itemId)))
+    .where(eq(annotationItems.id, parseInt(itemId, 10)))
     .limit(1);
 
   if (existingItem.length === 0) {
-    return notFound('Item not found');
+    return notFound("Item not found");
   }
 
   const ownership = await verifyTaskOwnership(existingItem[0].taskId, ctx);
-  if ('error' in ownership) return ownership.error;
+  if ("error" in ownership) return ownership.error;
 
   const body = await req.json();
   const { annotation, annotatedBy, annotatedAt } = body;
@@ -161,8 +158,8 @@ export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   const updatedItem = await db
     .update(annotationItems)
     .set(updateData)
-    .where(eq(annotationItems.id, parseInt(itemId)))
+    .where(eq(annotationItems.id, parseInt(itemId, 10)))
     .returning();
 
   return NextResponse.json(updatedItem[0]);
-})
+});

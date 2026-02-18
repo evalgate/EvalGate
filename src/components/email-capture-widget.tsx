@@ -4,14 +4,14 @@
  * High-converting design with clear value proposition
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Mail, CheckCircle2, Sparkles, TrendingUp, BookOpen } from 'lucide-react';
-import { toast } from 'sonner';
+import { BookOpen, CheckCircle2, Mail, Sparkles, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 interface EmailCaptureWidgetProps {
   source?: string;
@@ -19,47 +19,47 @@ interface EmailCaptureWidgetProps {
   onSuccess?: () => void;
 }
 
-export function EmailCaptureWidget({ 
-  source = 'playground', 
+export function EmailCaptureWidget({
+  source = "playground",
   context = {},
-  onSuccess 
+  onSuccess,
 }: EmailCaptureWidgetProps) {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !isValidEmail(email)) {
-      toast.error('Please enter a valid email address');
+      toast.error("Please enter a valid email address");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/subscribers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/subscribers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
           source,
           context,
-          subscribedAt: new Date().toISOString()
-        })
+          subscribedAt: new Date().toISOString(),
+        }),
       });
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to subscribe');
+        throw new Error(data.error || "Failed to subscribe");
       }
 
       setIsSuccess(true);
-      toast.success('Success! Check your email 📧');
+      toast.success("Success! Check your email 📧");
       onSuccess?.();
     } catch (error: any) {
-      toast.error(error.message || 'Something went wrong. Please try again.');
+      toast.error(error.message || "Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -143,12 +143,8 @@ export function EmailCaptureWidget({
                 className="flex-1"
                 required
               />
-              <Button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="min-w-[120px]"
-              >
-                {isSubmitting ? 'Sending...' : 'Get Results'}
+              <Button type="submit" disabled={isSubmitting} className="min-w-[120px]">
+                {isSubmitting ? "Sending..." : "Get Results"}
               </Button>
             </div>
             <p className="text-xs text-center text-muted-foreground">
@@ -168,20 +164,18 @@ export function EmailCaptureWidget({
   );
 }
 
-function BenefitItem({ 
-  icon, 
-  title, 
-  description 
-}: { 
-  icon: React.ReactNode; 
-  title: string; 
+function BenefitItem({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
   description: string;
 }) {
   return (
     <div className="text-center space-y-2">
-      <div className="flex justify-center text-primary">
-        {icon}
-      </div>
+      <div className="flex justify-center text-primary">{icon}</div>
       <div>
         <div className="font-semibold text-sm">{title}</div>
         <div className="text-xs text-muted-foreground">{description}</div>
@@ -203,4 +197,3 @@ function isValidEmail(email: string): boolean {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);
 }
-

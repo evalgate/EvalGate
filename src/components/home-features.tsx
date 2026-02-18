@@ -1,12 +1,13 @@
-import { Beaker, Users, Zap, Sparkles } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { memo } from "react"
+import { Beaker, Sparkles, Users, Zap } from "lucide-react";
+import { memo } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const FEATURES = [
   {
     icon: Beaker,
     title: "Unit Testing",
-    description: "Automated assertions and test suites for LLM outputs with 20+ built-in validators",
+    description:
+      "Automated assertions and test suites for LLM outputs with 20+ built-in validators",
   },
   {
     icon: Users,
@@ -23,7 +24,7 @@ const FEATURES = [
     title: "Observability",
     description: "Real-time tracing and debugging for all your LLM calls",
   },
-]
+];
 
 export const HomeFeatures = memo(function HomeFeatures() {
   return (
@@ -50,6 +51,5 @@ export const HomeFeatures = memo(function HomeFeatures() {
         </div>
       </div>
     </section>
-  )
-})
-
+  );
+});

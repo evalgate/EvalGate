@@ -17,12 +17,35 @@ export default function GlobalError({
   return (
     <html>
       <body>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', padding: '2rem', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>Something went wrong</h1>
-          <p style={{ color: '#666', marginBottom: '1.5rem' }}>An unexpected error occurred. Our team has been notified.</p>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "100vh",
+            fontFamily: "system-ui, sans-serif",
+            padding: "2rem",
+            textAlign: "center",
+          }}
+        >
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "0.5rem" }}>
+            Something went wrong
+          </h1>
+          <p style={{ color: "#666", marginBottom: "1.5rem" }}>
+            An unexpected error occurred. Our team has been notified.
+          </p>
           <button
             onClick={() => reset()}
-            style={{ padding: '0.5rem 1.5rem', borderRadius: '0.375rem', border: '1px solid #ddd', background: '#111', color: '#fff', cursor: 'pointer', fontSize: '0.875rem' }}
+            style={{
+              padding: "0.5rem 1.5rem",
+              borderRadius: "0.375rem",
+              border: "1px solid #ddd",
+              background: "#111",
+              color: "#fff",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+            }}
           >
             Try again
           </button>
@@ -31,5 +54,3 @@ export default function GlobalError({
     </html>
   );
 }
-
-

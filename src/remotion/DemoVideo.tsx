@@ -1,25 +1,22 @@
-import React from "react";
-import { AbsoluteFill, Sequence, useCurrentFrame, interpolate } from "remotion";
-import { colors, fullScreen, contentArea, captionBar, captionText } from "./styles";
-import { SEGMENTS, CAPTIONS, FPS } from "./data";
-
+import type React from "react";
+import { AbsoluteFill, interpolate, Sequence, useCurrentFrame } from "remotion";
+import { CAPTIONS, SEGMENTS } from "./data";
+import { Benchmarks } from "./segments/Benchmarks";
+import { Closing } from "./segments/Closing";
+import { CostsCharts } from "./segments/CostsCharts";
+import { CostsSummary } from "./segments/CostsSummary";
 import { Intro } from "./segments/Intro";
-import { WorkflowsList } from "./segments/WorkflowsList";
-import { WorkflowStats } from "./segments/WorkflowStats";
+import { SDK } from "./segments/SDK";
 import { WorkflowDAG } from "./segments/WorkflowDAG";
 import { WorkflowRuns } from "./segments/WorkflowRuns";
-import { CostsSummary } from "./segments/CostsSummary";
-import { CostsCharts } from "./segments/CostsCharts";
-import { Benchmarks } from "./segments/Benchmarks";
-import { SDK } from "./segments/SDK";
-import { Closing } from "./segments/Closing";
+import { WorkflowStats } from "./segments/WorkflowStats";
+import { WorkflowsList } from "./segments/WorkflowsList";
+import { captionBar, captionText, colors, contentArea, fullScreen } from "./styles";
 
 const CaptionOverlay: React.FC = () => {
   const frame = useCurrentFrame();
 
-  const activeCaption = CAPTIONS.find(
-    (c) => frame >= c.startFrame && frame < c.endFrame
-  );
+  const activeCaption = CAPTIONS.find((c) => frame >= c.startFrame && frame < c.endFrame);
 
   if (!activeCaption) {
     return (
@@ -33,14 +30,12 @@ const CaptionOverlay: React.FC = () => {
     frame,
     [activeCaption.startFrame, activeCaption.startFrame + 8],
     [0, 1],
-    { extrapolateRight: "clamp", extrapolateLeft: "clamp" }
+    { extrapolateRight: "clamp", extrapolateLeft: "clamp" },
   );
-  const fadeOut = interpolate(
-    frame,
-    [activeCaption.endFrame - 8, activeCaption.endFrame],
-    [1, 0],
-    { extrapolateRight: "clamp", extrapolateLeft: "clamp" }
-  );
+  const fadeOut = interpolate(frame, [activeCaption.endFrame - 8, activeCaption.endFrame], [1, 0], {
+    extrapolateRight: "clamp",
+    extrapolateLeft: "clamp",
+  });
   const opacity = Math.min(fadeIn, fadeOut);
 
   return (
@@ -69,8 +64,8 @@ const ProgressIndicator: React.FC = () => {
               backgroundColor: isActive
                 ? colors.primary
                 : isDone
-                ? "rgba(139, 92, 246, 0.4)"
-                : colors.bgMuted,
+                  ? "rgba(139, 92, 246, 0.4)"
+                  : colors.bgMuted,
               width: isActive ? 32 : 16,
             }}
           />
@@ -100,31 +95,52 @@ export const DemoVideo: React.FC = () => {
             <Intro />
           </Sequence>
 
-          <Sequence from={SEGMENTS.workflowsList.start} durationInFrames={SEGMENTS.workflowsList.duration}>
+          <Sequence
+            from={SEGMENTS.workflowsList.start}
+            durationInFrames={SEGMENTS.workflowsList.duration}
+          >
             <WorkflowsList />
           </Sequence>
 
-          <Sequence from={SEGMENTS.workflowStats.start} durationInFrames={SEGMENTS.workflowStats.duration}>
+          <Sequence
+            from={SEGMENTS.workflowStats.start}
+            durationInFrames={SEGMENTS.workflowStats.duration}
+          >
             <WorkflowStats />
           </Sequence>
 
-          <Sequence from={SEGMENTS.workflowDag.start} durationInFrames={SEGMENTS.workflowDag.duration}>
+          <Sequence
+            from={SEGMENTS.workflowDag.start}
+            durationInFrames={SEGMENTS.workflowDag.duration}
+          >
             <WorkflowDAG />
           </Sequence>
 
-          <Sequence from={SEGMENTS.workflowRuns.start} durationInFrames={SEGMENTS.workflowRuns.duration}>
+          <Sequence
+            from={SEGMENTS.workflowRuns.start}
+            durationInFrames={SEGMENTS.workflowRuns.duration}
+          >
             <WorkflowRuns />
           </Sequence>
 
-          <Sequence from={SEGMENTS.costsSummary.start} durationInFrames={SEGMENTS.costsSummary.duration}>
+          <Sequence
+            from={SEGMENTS.costsSummary.start}
+            durationInFrames={SEGMENTS.costsSummary.duration}
+          >
             <CostsSummary />
           </Sequence>
 
-          <Sequence from={SEGMENTS.costsCharts.start} durationInFrames={SEGMENTS.costsCharts.duration}>
+          <Sequence
+            from={SEGMENTS.costsCharts.start}
+            durationInFrames={SEGMENTS.costsCharts.duration}
+          >
             <CostsCharts />
           </Sequence>
 
-          <Sequence from={SEGMENTS.benchmarks.start} durationInFrames={SEGMENTS.benchmarks.duration}>
+          <Sequence
+            from={SEGMENTS.benchmarks.start}
+            durationInFrames={SEGMENTS.benchmarks.duration}
+          >
             <Benchmarks />
           </Sequence>
 

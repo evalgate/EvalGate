@@ -4,35 +4,37 @@
  * Extracted from src/app/api/quality/route.ts
  */
 
-import { db } from '@/db';
-import { qualityScores, evaluations, evaluationRuns } from '@/db/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { evaluationRuns, evaluations, qualityScores } from "@/db/schema";
 
-export type BaselineMode = 'published' | 'previous' | 'production';
+export type BaselineMode = "published" | "previous" | "production";
 
-export type QualityLatestResult = {
-  score: null;
-  message: string;
-} | {
-  id: number;
-  evaluationRunId: number;
-  evaluationId: number;
-  organizationId: number;
-  score: number;
-  total: number | null;
-  traceCoverageRate: string | null;
-  provenanceCoverageRate: string | null;
-  breakdown: unknown;
-  flags: unknown;
-  evidenceLevel: string | null;
-  scoringVersion: string;
-  model: string | null;
-  createdAt: string;
-  baselineScore: number | null;
-  regressionDelta: number | null;
-  regressionDetected: boolean;
-  baselineMissing?: boolean;
-};
+export type QualityLatestResult =
+  | {
+      score: null;
+      message: string;
+    }
+  | {
+      id: number;
+      evaluationRunId: number;
+      evaluationId: number;
+      organizationId: number;
+      score: number;
+      total: number | null;
+      traceCoverageRate: string | null;
+      provenanceCoverageRate: string | null;
+      breakdown: unknown;
+      flags: unknown;
+      evidenceLevel: string | null;
+      scoringVersion: string;
+      model: string | null;
+      createdAt: string;
+      baselineScore: number | null;
+      regressionDelta: number | null;
+      regressionDetected: boolean;
+      baselineMissing?: boolean;
+    };
 
 export type QualityTrendResult = {
   data: Array<{
@@ -64,15 +66,12 @@ export const qualityService = {
     evaluationId: number,
     opts?: { baseline?: BaselineMode },
   ): Promise<QualityLatestResult | null> {
-    const baseline = opts?.baseline ?? 'published';
+    const baseline = opts?.baseline ?? "published";
 
     const [evaluation] = await db
       .select()
       .from(evaluations)
-      .where(and(
-        eq(evaluations.id, evaluationId),
-        eq(evaluations.organizationId, organizationId),
-      ))
+      .where(and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, organizationId)))
       .limit(1);
 
     if (!evaluation) return null;
@@ -80,43 +79,49 @@ export const qualityService = {
     const [latest] = await db
       .select()
       .from(qualityScores)
-      .where(and(
-        eq(qualityScores.evaluationId, evaluationId),
-        eq(qualityScores.organizationId, organizationId),
-      ))
+      .where(
+        and(
+          eq(qualityScores.evaluationId, evaluationId),
+          eq(qualityScores.organizationId, organizationId),
+        ),
+      )
       .orderBy(desc(qualityScores.createdAt), desc(qualityScores.id))
       .limit(1);
 
     if (!latest) {
-      return { score: null, message: 'No quality scores computed yet' };
+      return { score: null, message: "No quality scores computed yet" };
     }
 
     let baselineRunId: number | null = null;
 
-    if (baseline === 'published' && evaluation.publishedRunId) {
+    if (baseline === "published" && evaluation.publishedRunId) {
       baselineRunId = evaluation.publishedRunId;
-    } else if (baseline === 'previous') {
+    } else if (baseline === "previous") {
       const prevRuns = await db
         .select({ id: evaluationRuns.id })
         .from(evaluationRuns)
-        .where(and(
-          eq(evaluationRuns.evaluationId, evaluationId),
-          eq(evaluationRuns.organizationId, organizationId),
-          sql`${evaluationRuns.id} != ${latest.evaluationRunId}`,
-        ))
+        .where(
+          and(
+            eq(evaluationRuns.evaluationId, evaluationId),
+            eq(evaluationRuns.organizationId, organizationId),
+            sql`${evaluationRuns.id} != ${latest.evaluationRunId}`,
+          ),
+        )
         .orderBy(desc(evaluationRuns.createdAt), desc(evaluationRuns.id))
         .limit(1);
       baselineRunId = prevRuns[0]?.id ?? null;
-    } else if (baseline === 'production') {
+    } else if (baseline === "production") {
       const prodRuns = await db
         .select({ id: evaluationRuns.id })
         .from(evaluationRuns)
-        .where(and(
-          eq(evaluationRuns.evaluationId, evaluationId),
-          eq(evaluationRuns.organizationId, organizationId),
-          eq(evaluationRuns.environment, 'prod'),
-          sql`${evaluationRuns.id} != ${latest.evaluationRunId}`,
-        ))
+        .where(
+          and(
+            eq(evaluationRuns.evaluationId, evaluationId),
+            eq(evaluationRuns.organizationId, organizationId),
+            eq(evaluationRuns.environment, "prod"),
+            sql`${evaluationRuns.id} != ${latest.evaluationRunId}`,
+          ),
+        )
         .orderBy(desc(evaluationRuns.createdAt), desc(evaluationRuns.id))
         .limit(1);
       baselineRunId = prodRuns[0]?.id ?? null;
@@ -130,10 +135,12 @@ export const qualityService = {
       const [baselineQs] = await db
         .select()
         .from(qualityScores)
-        .where(and(
-          eq(qualityScores.evaluationRunId, baselineRunId),
-          eq(qualityScores.organizationId, organizationId),
-        ))
+        .where(
+          and(
+            eq(qualityScores.evaluationRunId, baselineRunId),
+            eq(qualityScores.organizationId, organizationId),
+          ),
+        )
         .limit(1);
 
       if (baselineQs) {
@@ -143,8 +150,8 @@ export const qualityService = {
         baselineMissing = true;
       }
     } else {
-      baselineMissing = baseline === 'published' && !evaluation.publishedRunId;
-      if (baseline === 'previous' || baseline === 'production') {
+      baselineMissing = baseline === "published" && !evaluation.publishedRunId;
+      if (baseline === "previous" || baseline === "production") {
         baselineMissing = true;
       }
     }
@@ -170,10 +177,7 @@ export const qualityService = {
     const [evaluation] = await db
       .select()
       .from(evaluations)
-      .where(and(
-        eq(evaluations.id, evaluationId),
-        eq(evaluations.organizationId, organizationId),
-      ))
+      .where(and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, organizationId)))
       .limit(1);
 
     if (!evaluation) return null;

@@ -1,70 +1,69 @@
-import {
-  ClientConfig,
-  Trace,
-  CreateTraceParams,
-  ListTracesParams,
-  Evaluation,
-  CreateEvaluationParams,
-  UpdateEvaluationParams,
-  ListEvaluationsParams,
-  LLMJudgeResult,
-  RunLLMJudgeParams,
-  TestCase,
-  CreateTestCaseParams,
-  EvaluationRun,
-  CreateRunParams,
-  Span,
-  CreateSpanParams,
-  UpdateTraceParams,
-  OrganizationLimits,
+import { RequestBatcher } from "./batch";
+import { getTTL, RequestCache, shouldCache } from "./cache";
+import { mergeWithContext } from "./context";
+import { createErrorFromResponse, EvalAIError } from "./errors";
+import { createLogger, type Logger, RequestLogger } from "./logger";
+import type {
   // Annotations
   Annotation,
-  CreateAnnotationParams,
-  ListAnnotationsParams,
-  AnnotationTask,
-  CreateAnnotationTaskParams,
-  ListAnnotationTasksParams,
   AnnotationItem,
-  CreateAnnotationItemParams,
-  ListAnnotationItemsParams,
+  AnnotationTask,
   // Developer
   APIKey,
-  APIKeyWithSecret,
-  CreateAPIKeyParams,
-  UpdateAPIKeyParams,
-  ListAPIKeysParams,
   APIKeyUsage,
-  Webhook,
-  CreateWebhookParams,
-  UpdateWebhookParams,
-  ListWebhooksParams,
-  WebhookDelivery,
-  ListWebhookDeliveriesParams,
-  UsageStats,
-  GetUsageParams,
-  UsageSummary,
-  // LLM Judge Extended
-  LLMJudgeConfig,
+  APIKeyWithSecret,
+  ClientConfig,
+  CreateAnnotationItemParams,
+  CreateAnnotationParams,
+  CreateAnnotationTaskParams,
+  CreateAPIKeyParams,
+  CreateEvaluationParams,
   CreateLLMJudgeConfigParams,
+  CreateRunParams,
+  CreateSpanParams,
+  CreateTestCaseParams,
+  CreateTraceParams,
+  CreateWebhookParams,
+  Evaluation,
+  EvaluationRun,
+  GetLLMJudgeAlignmentParams,
+  GetUsageParams,
+  ListAnnotationItemsParams,
+  ListAnnotationsParams,
+  ListAnnotationTasksParams,
+  ListAPIKeysParams,
+  ListEvaluationsParams,
   ListLLMJudgeConfigsParams,
   ListLLMJudgeResultsParams,
+  ListTracesParams,
+  ListWebhookDeliveriesParams,
+  ListWebhooksParams,
   LLMJudgeAlignment,
-  GetLLMJudgeAlignmentParams,
+  // LLM Judge Extended
+  LLMJudgeConfig,
+  LLMJudgeResult,
   // Organizations
   Organization,
-} from './types';
-import { EvalAIError, createErrorFromResponse } from './errors';
-import { Logger, createLogger, RequestLogger } from './logger';
-import { mergeWithContext } from './context';
-import { RequestCache, shouldCache, getTTL } from './cache';
-import { RequestBatcher, canBatch } from './batch';
-import { createPaginatedIterator, PaginatedIterator, parsePaginationParams, type PaginationParams } from './pagination';
+  OrganizationLimits,
+  RunLLMJudgeParams,
+  Span,
+  TestCase,
+  Trace,
+  UpdateAPIKeyParams,
+  UpdateEvaluationParams,
+  UpdateTraceParams,
+  UpdateWebhookParams,
+  UsageStats,
+  UsageSummary,
+  Webhook,
+  WebhookDelivery,
+} from "./types";
 
 /**
  * Safe environment variable access (works in both Node.js and browsers)
  */
 function getEnvVar(name: string): string | undefined {
-  if (typeof process !== 'undefined' && process.env) {
+  if (typeof process !== "undefined" && process.env) {
     return process.env[name];
   }
   return undefined;
@@ -72,21 +71,21 @@ function getEnvVar(name: string): string | undefined {
 
 /**
  * AI Evaluation Platform SDK Client
- * 
+ *
  * @example
  * ```typescript
  * import { AIEvalClient } from '@ai-eval-platform/sdk';
- * 
+ *
  * // Zero-config initialization (uses env variables)
  * const client = AIEvalClient.init();
- * 
+ *
  * // Or with explicit config
  * const client = new AIEvalClient({
  *   apiKey: 'your-api-key',
  *   organizationId: 123,
  *   debug: true
  * });
- * 
+ *
  * // Create a trace with automatic context propagation
  * const trace = await client.traces.create({
  *   name: 'User Query',
@@ -105,7 +104,7 @@ export class AIEvalClient {
   private batcher: RequestBatcher | null;
   private retryConfig: {
     maxAttempts: number;
-    backoff: 'exponential' | 'linear' | 'fixed';
+    backoff: "exponential" | "linear" | "fixed";
     retryableErrors: string[];
   };
 
@@ -118,44 +117,47 @@ export class AIEvalClient {
 
   constructor(config: ClientConfig = {}) {
     // Tier 1.1: Zero-config with env variable detection (works in Node.js and browsers)
-    this.apiKey = config.apiKey || getEnvVar('EVALAI_API_KEY') || getEnvVar('AI_EVAL_API_KEY') || '';
-    
+    this.apiKey =
+      config.apiKey || getEnvVar("EVALAI_API_KEY") || getEnvVar("AI_EVAL_API_KEY") || "";
+
     if (!this.apiKey) {
       throw new EvalAIError(
-        'API key is required. Provide via config.apiKey or EVALAI_API_KEY environment variable.',
-        'MISSING_API_KEY',
-        0
+        "API key is required. Provide via config.apiKey or EVALAI_API_KEY environment variable.",
+        "MISSING_API_KEY",
+        0,
       );
     }
 
     // Auto-detect organization ID from env
-    const orgIdFromEnv = getEnvVar('EVALAI_ORGANIZATION_ID') || getEnvVar('AI_EVAL_ORGANIZATION_ID');
-    this.organizationId = config.organizationId || (orgIdFromEnv ? parseInt(orgIdFromEnv, 10) : undefined);
+    const orgIdFromEnv =
+      getEnvVar("EVALAI_ORGANIZATION_ID") || getEnvVar("AI_EVAL_ORGANIZATION_ID");
+    this.organizationId =
+      config.organizationId || (orgIdFromEnv ? parseInt(orgIdFromEnv, 10) : undefined);
 
     // Default to relative URLs for browser, or allow custom baseUrl
-    const isBrowser = typeof (globalThis as any).window !== 'undefined';
-    this.baseUrl = config.baseUrl || (isBrowser ? '' : 'http://localhost:3000');
+    const isBrowser = typeof (globalThis as any).window !== "undefined";
+    this.baseUrl = config.baseUrl || (isBrowser ? "" : "http://localhost:3000");
     this.timeout = config.timeout || 30000;
 
     // Tier 4.17: Debug mode with request logging
-    const logLevel = config.logLevel || (config.debug ? 'debug' : 'info');
+    const logLevel = config.logLevel || (config.debug ? "debug" : "info");
     this.logger = createLogger({
       level: logLevel,
       pretty: config.debug,
-      prefix: 'EvalAI'
+      prefix: "EvalAI",
     });
     this.requestLogger = new RequestLogger(this.logger);
 
     // Retry configuration
     this.retryConfig = {
       maxAttempts: config.retry?.maxAttempts || 3,
-      backoff: config.retry?.backoff || 'exponential',
+      backoff: config.retry?.backoff || "exponential",
       retryableErrors: config.retry?.retryableErrors || [
-        'RATE_LIMIT_EXCEEDED',
-        'TIMEOUT',
-        'NETWORK_ERROR',
-        'INTERNAL_SERVER_ERROR'
-      ]
+        "RATE_LIMIT_EXCEEDED",
+        "TIMEOUT",
+        "NETWORK_ERROR",
+        "INTERNAL_SERVER_ERROR",
+      ],
     };
 
     // Initialize cache for GET requests
@@ -167,7 +169,7 @@ export class AIEvalClient {
 
       this.batcher = new RequestBatcher(
         async (requests) => {
-          const results: import('./batch').BatchResponse[] = [];
+          const results: import("./batch").BatchResponse[] = [];
           const executing: Promise<void>[] = [];
 
           for (const req of requests) {
@@ -184,7 +186,7 @@ export class AIEvalClient {
                   id: req.id,
                   status: err?.statusCode || 500,
                   data: null,
-                  error: err?.message || 'Unknown error',
+                  error: err?.message || "Unknown error",
                 });
               }
             })();
@@ -210,7 +212,7 @@ export class AIEvalClient {
         {
           maxBatchSize: config.batchSize || 10,
           batchDelay: config.batchDelay || 50,
-        }
+        },
       );
     } else {
       this.batcher = null;
@@ -224,30 +226,30 @@ export class AIEvalClient {
     this.developer = new DeveloperAPI(this);
     this.organizations = new OrganizationsAPI(this);
 
-    this.logger.info('SDK initialized', {
+    this.logger.info("SDK initialized", {
       hasOrganizationId: !!this.organizationId,
-      baseUrl: this.baseUrl
+      baseUrl: this.baseUrl,
     });
   }
 
   /**
    * Zero-config initialization using environment variables
-   * 
+   *
    * Works in both Node.js and browsers. In Node.js, reads from environment variables.
    * In browsers, you must provide config explicitly.
-   * 
+   *
    * Environment variables (Node.js only):
    * - EVALAI_API_KEY or AI_EVAL_API_KEY: Your API key
    * - EVALAI_ORGANIZATION_ID or AI_EVAL_ORGANIZATION_ID: Your organization ID
    * - EVALAI_BASE_URL: Custom API base URL (optional)
-   * 
+   *
    * @example
    * ```typescript
    * // Node.js - reads from env vars:
    * // EVALAI_API_KEY=your-key
    * // EVALAI_ORGANIZATION_ID=123
    * const client = AIEvalClient.init();
-   * 
+   *
    * // Browser - must provide config:
    * const client = AIEvalClient.init({
    *   apiKey: 'your-key',
@@ -257,27 +259,23 @@ export class AIEvalClient {
    */
   static init(config: Partial<ClientConfig> = {}): AIEvalClient {
     return new AIEvalClient({
-      baseUrl: getEnvVar('EVALAI_BASE_URL'),
-      ...config
+      baseUrl: getEnvVar("EVALAI_BASE_URL"),
+      ...config,
     });
   }
 
   /**
    * Internal method to make HTTP requests with retry logic and error handling
    */
-  async request<T>(
-    endpoint: string,
-    options: RequestInit = {},
-    attempt: number = 1
-  ): Promise<T> {
-    const method = (options.method || 'GET').toUpperCase();
+  async request<T>(endpoint: string, options: RequestInit = {}, attempt: number = 1): Promise<T> {
+    const method = (options.method || "GET").toUpperCase();
     const url = `${this.baseUrl}${endpoint}`;
 
     // Check cache for GET requests
-    if (method === 'GET' && shouldCache(method, endpoint)) {
+    if (method === "GET" && shouldCache(method, endpoint)) {
       const cached = this.cache.get<T>(method, endpoint, options.body);
       if (cached !== null) {
-        this.logger.debug('Cache hit', { endpoint });
+        this.logger.debug("Cache hit", { endpoint });
         return cached;
       }
     }
@@ -288,18 +286,18 @@ export class AIEvalClient {
 
     // Log request
     this.requestLogger.logRequest({
-      method: options.method || 'GET',
+      method: options.method || "GET",
       url,
       headers: options.headers as Record<string, string>,
-      body: options.body
+      body: options.body,
     });
 
     try {
       const response = await fetch(url, {
         ...options,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.apiKey}`,
           ...options.headers,
         },
         signal: controller.signal,
@@ -311,34 +309,37 @@ export class AIEvalClient {
       let data: any;
       try {
         data = await response.json();
-      } catch (e) {
+      } catch (_e) {
         data = {};
       }
 
       // Log response
       this.requestLogger.logResponse({
-        method: options.method || 'GET',
+        method: options.method || "GET",
         url,
         status: response.status,
         duration,
-        body: data
+        body: data,
       });
 
       if (!response.ok) {
         const error = createErrorFromResponse(response, data);
-        
+
         // Retry logic
         if (
           attempt < this.retryConfig.maxAttempts &&
           this.retryConfig.retryableErrors.includes(error.code)
         ) {
           const delay = this.calculateBackoff(attempt);
-          this.logger.warn(`Retrying request (attempt ${attempt + 1}/${this.retryConfig.maxAttempts}) after ${delay}ms`, {
-            error: error.code,
-            url
-          });
-          
-          await new Promise(resolve => setTimeout(resolve, delay));
+          this.logger.warn(
+            `Retrying request (attempt ${attempt + 1}/${this.retryConfig.maxAttempts}) after ${delay}ms`,
+            {
+              error: error.code,
+              url,
+            },
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, delay));
           return this.request<T>(endpoint, options, attempt + 1);
         }
 
@@ -346,14 +347,14 @@ export class AIEvalClient {
       }
 
       // Cache successful GET responses
-      if (method === 'GET' && shouldCache(method, endpoint)) {
+      if (method === "GET" && shouldCache(method, endpoint)) {
         const ttl = getTTL(endpoint);
         this.cache.set(method, endpoint, data, ttl, options.body);
-        this.logger.debug('Cached response', { endpoint, ttl });
+        this.logger.debug("Cached response", { endpoint, ttl });
       }
 
       // Invalidate cache for mutation operations
-      if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+      if (["POST", "PUT", "DELETE", "PATCH"].includes(method)) {
         // Invalidate related cached entries
         const resourceMatch = endpoint.match(/\/api\/(\w+)/);
         if (resourceMatch) {
@@ -364,24 +365,16 @@ export class AIEvalClient {
       return data as T;
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       if (error instanceof EvalAIError) {
         throw error;
       }
 
       if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          throw new EvalAIError(
-            'Request timeout',
-            'TIMEOUT',
-            408
-          );
+        if (error.name === "AbortError") {
+          throw new EvalAIError("Request timeout", "TIMEOUT", 408);
         }
-        throw new EvalAIError(
-          error.message,
-          'NETWORK_ERROR',
-          0
-        );
+        throw new EvalAIError(error.message, "NETWORK_ERROR", 0);
       }
 
       throw error;
@@ -393,13 +386,12 @@ export class AIEvalClient {
    */
   private calculateBackoff(attempt: number): number {
     const baseDelay = 1000; // 1 second
-    
+
     switch (this.retryConfig.backoff) {
-      case 'exponential':
-        return baseDelay * Math.pow(2, attempt - 1);
-      case 'linear':
+      case "exponential":
+        return baseDelay * 2 ** (attempt - 1);
+      case "linear":
         return baseDelay * attempt;
-      case 'fixed':
       default:
         return baseDelay;
     }
@@ -419,7 +411,7 @@ export class AIEvalClient {
   /**
    * Get organization resource limits and usage
    * Returns feature usage data for per-organization quotas
-   * 
+   *
    * @example
    * ```typescript
    * const limits = await client.getOrganizationLimits();
@@ -430,11 +422,7 @@ export class AIEvalClient {
   async getOrganizationLimits(): Promise<OrganizationLimits> {
     const orgId = this.getOrganizationId();
     if (!orgId) {
-      throw new EvalAIError(
-        'Organization ID is required',
-        'MISSING_ORGANIZATION_ID',
-        0
-      );
+      throw new EvalAIError("Organization ID is required", "MISSING_ORGANIZATION_ID", 0);
     }
 
     return this.request<OrganizationLimits>(`/api/organizations/${orgId}/limits`);
@@ -449,7 +437,7 @@ class TraceAPI {
 
   /**
    * Create a new trace with automatic context propagation
-   * 
+   *
    * @example
    * ```typescript
    * const trace = await client.traces.create({
@@ -460,22 +448,18 @@ class TraceAPI {
    * ```
    */
   async create<TMetadata = Record<string, any>>(
-    params: CreateTraceParams<TMetadata>
+    params: CreateTraceParams<TMetadata>,
   ): Promise<Trace<TMetadata>> {
     const orgId = params.organizationId || this.client.getOrganizationId();
     if (!orgId) {
-      throw new EvalAIError(
-        'Organization ID is required',
-        'MISSING_ORGANIZATION_ID',
-        0
-      );
+      throw new EvalAIError("Organization ID is required", "MISSING_ORGANIZATION_ID", 0);
     }
 
     // Merge with context
     const metadata = mergeWithContext(params.metadata || {});
 
-    return this.client.request<Trace<TMetadata>>('/api/traces', {
-      method: 'POST',
+    return this.client.request<Trace<TMetadata>>("/api/traces", {
+      method: "POST",
       body: JSON.stringify({ ...params, organizationId: orgId, metadata }),
     });
   }
@@ -485,15 +469,15 @@ class TraceAPI {
    */
   async list(params: ListTracesParams = {}): Promise<Trace[]> {
     const searchParams = new URLSearchParams();
-    
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.offset) searchParams.set('offset', params.offset.toString());
-    if (params.organizationId) searchParams.set('organizationId', params.organizationId.toString());
-    if (params.status) searchParams.set('status', params.status);
-    if (params.search) searchParams.set('search', params.search);
+
+    if (params.limit) searchParams.set("limit", params.limit.toString());
+    if (params.offset) searchParams.set("offset", params.offset.toString());
+    if (params.organizationId) searchParams.set("organizationId", params.organizationId.toString());
+    if (params.status) searchParams.set("status", params.status);
+    if (params.search) searchParams.set("search", params.search);
 
     const query = searchParams.toString();
-    const endpoint = query ? `/api/traces?${query}` : '/api/traces';
+    const endpoint = query ? `/api/traces?${query}` : "/api/traces";
 
     return this.client.request<Trace[]>(endpoint);
   }
@@ -503,7 +487,7 @@ class TraceAPI {
    */
   async delete(id: number): Promise<{ message: string }> {
     return this.client.request<{ message: string }>(`/api/traces?id=${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
@@ -528,10 +512,10 @@ class TraceAPI {
    */
   async update<TMetadata = Record<string, any>>(
     id: number,
-    params: UpdateTraceParams<TMetadata>
+    params: UpdateTraceParams<TMetadata>,
   ): Promise<Trace<TMetadata>> {
     return this.client.request<Trace<TMetadata>>(`/api/traces/${id}`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify(params),
     });
   }
@@ -541,7 +525,7 @@ class TraceAPI {
    */
   async createSpan(traceId: number, params: CreateSpanParams): Promise<Span> {
     return this.client.request<Span>(`/api/traces/${traceId}/spans`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(params),
     });
   }
@@ -566,15 +550,11 @@ class EvaluationAPI {
   async create(params: CreateEvaluationParams): Promise<Evaluation> {
     const orgId = params.organizationId || this.client.getOrganizationId();
     if (!orgId) {
-      throw new EvalAIError(
-        'Organization ID is required',
-        'MISSING_ORGANIZATION_ID',
-        0
-      );
+      throw new EvalAIError("Organization ID is required", "MISSING_ORGANIZATION_ID", 0);
     }
 
-    return this.client.request<Evaluation>('/api/evaluations', {
-      method: 'POST',
+    return this.client.request<Evaluation>("/api/evaluations", {
+      method: "POST",
       body: JSON.stringify({ ...params, organizationId: orgId }),
     });
   }
@@ -591,16 +571,16 @@ class EvaluationAPI {
    */
   async list(params: ListEvaluationsParams = {}): Promise<Evaluation[]> {
     const searchParams = new URLSearchParams();
-    
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.offset) searchParams.set('offset', params.offset.toString());
-    if (params.organizationId) searchParams.set('organizationId', params.organizationId.toString());
-    if (params.type) searchParams.set('type', params.type);
-    if (params.status) searchParams.set('status', params.status);
-    if (params.search) searchParams.set('search', params.search);
+
+    if (params.limit) searchParams.set("limit", params.limit.toString());
+    if (params.offset) searchParams.set("offset", params.offset.toString());
+    if (params.organizationId) searchParams.set("organizationId", params.organizationId.toString());
+    if (params.type) searchParams.set("type", params.type);
+    if (params.status) searchParams.set("status", params.status);
+    if (params.search) searchParams.set("search", params.search);
 
     const query = searchParams.toString();
-    const endpoint = query ? `/api/evaluations?${query}` : '/api/evaluations';
+    const endpoint = query ? `/api/evaluations?${query}` : "/api/evaluations";
 
     return this.client.request<Evaluation[]>(endpoint);
   }
@@ -610,7 +590,7 @@ class EvaluationAPI {
    */
   async update(id: number, params: UpdateEvaluationParams): Promise<Evaluation> {
     return this.client.request<Evaluation>(`/api/evaluations?id=${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(params),
     });
   }
@@ -620,7 +600,7 @@ class EvaluationAPI {
    */
   async delete(id: number): Promise<{ message: string }> {
     return this.client.request<{ message: string }>(`/api/evaluations?id=${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
@@ -629,7 +609,7 @@ class EvaluationAPI {
    */
   async createTestCase(evaluationId: number, params: CreateTestCaseParams): Promise<TestCase> {
     return this.client.request<TestCase>(`/api/evaluations/${evaluationId}/test-cases`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(params),
     });
   }
@@ -646,7 +626,7 @@ class EvaluationAPI {
    */
   async createRun(evaluationId: number, params: CreateRunParams): Promise<EvaluationRun> {
     return this.client.request<EvaluationRun>(`/api/evaluations/${evaluationId}/runs`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(params),
     });
   }
@@ -679,21 +659,18 @@ class LLMJudgeAPI {
     result: LLMJudgeResult;
     config: any;
   }> {
-    return this.client.request<{ result: LLMJudgeResult; config: any }>(
-      '/api/llm-judge/evaluate',
-      {
-        method: 'POST',
-        body: JSON.stringify(params),
-      }
-    );
+    return this.client.request<{ result: LLMJudgeResult; config: any }>("/api/llm-judge/evaluate", {
+      method: "POST",
+      body: JSON.stringify(params),
+    });
   }
 
   /**
    * Create an LLM judge configuration
    */
   async createConfig(params: CreateLLMJudgeConfigParams): Promise<LLMJudgeConfig> {
-    return this.client.request<LLMJudgeConfig>('/api/llm-judge/configs', {
-      method: 'POST',
+    return this.client.request<LLMJudgeConfig>("/api/llm-judge/configs", {
+      method: "POST",
       body: JSON.stringify(params),
     });
   }
@@ -703,12 +680,12 @@ class LLMJudgeAPI {
    */
   async listConfigs(params: ListLLMJudgeConfigsParams = {}): Promise<LLMJudgeConfig[]> {
     const searchParams = new URLSearchParams();
-    if (params.organizationId) searchParams.set('organizationId', params.organizationId.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.offset) searchParams.set('offset', params.offset.toString());
+    if (params.organizationId) searchParams.set("organizationId", params.organizationId.toString());
+    if (params.limit) searchParams.set("limit", params.limit.toString());
+    if (params.offset) searchParams.set("offset", params.offset.toString());
 
     const query = searchParams.toString();
-    const endpoint = query ? `/api/llm-judge/configs?${query}` : '/api/llm-judge/configs';
+    const endpoint = query ? `/api/llm-judge/configs?${query}` : "/api/llm-judge/configs";
 
     return this.client.request<LLMJudgeConfig[]>(endpoint);
   }
@@ -718,13 +695,13 @@ class LLMJudgeAPI {
    */
   async listResults(params: ListLLMJudgeResultsParams = {}): Promise<LLMJudgeResult[]> {
     const searchParams = new URLSearchParams();
-    if (params.configId) searchParams.set('configId', params.configId.toString());
-    if (params.evaluationId) searchParams.set('evaluationId', params.evaluationId.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.offset) searchParams.set('offset', params.offset.toString());
+    if (params.configId) searchParams.set("configId", params.configId.toString());
+    if (params.evaluationId) searchParams.set("evaluationId", params.evaluationId.toString());
+    if (params.limit) searchParams.set("limit", params.limit.toString());
+    if (params.offset) searchParams.set("offset", params.offset.toString());
 
     const query = searchParams.toString();
-    const endpoint = query ? `/api/llm-judge/results?${query}` : '/api/llm-judge/results';
+    const endpoint = query ? `/api/llm-judge/results?${query}` : "/api/llm-judge/results";
 
     return this.client.request<LLMJudgeResult[]>(endpoint);
   }
@@ -734,9 +711,9 @@ class LLMJudgeAPI {
    */
   async getAlignment(params: GetLLMJudgeAlignmentParams): Promise<LLMJudgeAlignment> {
     const searchParams = new URLSearchParams();
-    searchParams.set('configId', params.configId.toString());
-    if (params.startDate) searchParams.set('startDate', params.startDate);
-    if (params.endDate) searchParams.set('endDate', params.endDate);
+    searchParams.set("configId", params.configId.toString());
+    if (params.startDate) searchParams.set("startDate", params.startDate);
+    if (params.endDate) searchParams.set("endDate", params.endDate);
 
     const query = searchParams.toString();
     return this.client.request<LLMJudgeAlignment>(`/api/llm-judge/alignment?${query}`);
@@ -757,10 +734,12 @@ class AnnotationsAPI {
    * Create an annotation
    */
   async create(params: CreateAnnotationParams): Promise<Annotation> {
-    return this.client.request<{ annotation: Annotation }>('/api/annotations', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    }).then(res => res.annotation);
+    return this.client
+      .request<{ annotation: Annotation }>("/api/annotations", {
+        method: "POST",
+        body: JSON.stringify(params),
+      })
+      .then((res) => res.annotation);
   }
 
   /**
@@ -768,15 +747,18 @@ class AnnotationsAPI {
    */
   async list(params: ListAnnotationsParams = {}): Promise<Annotation[]> {
     const searchParams = new URLSearchParams();
-    if (params.evaluationRunId) searchParams.set('evaluationRunId', params.evaluationRunId.toString());
-    if (params.testCaseId) searchParams.set('testCaseId', params.testCaseId.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.offset) searchParams.set('offset', params.offset.toString());
+    if (params.evaluationRunId)
+      searchParams.set("evaluationRunId", params.evaluationRunId.toString());
+    if (params.testCaseId) searchParams.set("testCaseId", params.testCaseId.toString());
+    if (params.limit) searchParams.set("limit", params.limit.toString());
+    if (params.offset) searchParams.set("offset", params.offset.toString());
 
     const query = searchParams.toString();
-    const endpoint = query ? `/api/annotations?${query}` : '/api/annotations';
+    const endpoint = query ? `/api/annotations?${query}` : "/api/annotations";
 
-    return this.client.request<{ annotations: Annotation[] }>(endpoint).then(res => res.annotations);
+    return this.client
+      .request<{ annotations: Annotation[] }>(endpoint)
+      .then((res) => res.annotations);
   }
 }
 
@@ -794,8 +776,8 @@ class AnnotationTasksAPI {
    * Create an annotation task
    */
   async create(params: CreateAnnotationTaskParams): Promise<AnnotationTask> {
-    return this.client.request<AnnotationTask>('/api/annotations/tasks', {
-      method: 'POST',
+    return this.client.request<AnnotationTask>("/api/annotations/tasks", {
+      method: "POST",
       body: JSON.stringify(params),
     });
   }
@@ -805,13 +787,13 @@ class AnnotationTasksAPI {
    */
   async list(params: ListAnnotationTasksParams = {}): Promise<AnnotationTask[]> {
     const searchParams = new URLSearchParams();
-    if (params.organizationId) searchParams.set('organizationId', params.organizationId.toString());
-    if (params.status) searchParams.set('status', params.status);
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.offset) searchParams.set('offset', params.offset.toString());
+    if (params.organizationId) searchParams.set("organizationId", params.organizationId.toString());
+    if (params.status) searchParams.set("status", params.status);
+    if (params.limit) searchParams.set("limit", params.limit.toString());
+    if (params.offset) searchParams.set("offset", params.offset.toString());
 
     const query = searchParams.toString();
-    const endpoint = query ? `/api/annotations/tasks?${query}` : '/api/annotations/tasks';
+    const endpoint = query ? `/api/annotations/tasks?${query}` : "/api/annotations/tasks";
 
     return this.client.request<AnnotationTask[]>(endpoint);
   }
@@ -835,7 +817,7 @@ class AnnotationTaskItemsAPI {
    */
   async create(taskId: number, params: CreateAnnotationItemParams): Promise<AnnotationItem> {
     return this.client.request<AnnotationItem>(`/api/annotations/tasks/${taskId}/items`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(params),
     });
   }
@@ -845,11 +827,13 @@ class AnnotationTaskItemsAPI {
    */
   async list(taskId: number, params: ListAnnotationItemsParams = {}): Promise<AnnotationItem[]> {
     const searchParams = new URLSearchParams();
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.offset) searchParams.set('offset', params.offset.toString());
+    if (params.limit) searchParams.set("limit", params.limit.toString());
+    if (params.offset) searchParams.set("offset", params.offset.toString());
 
     const query = searchParams.toString();
-    const endpoint = query ? `/api/annotations/tasks/${taskId}/items?${query}` : `/api/annotations/tasks/${taskId}/items`;
+    const endpoint = query
+      ? `/api/annotations/tasks/${taskId}/items?${query}`
+      : `/api/annotations/tasks/${taskId}/items`;
 
     return this.client.request<AnnotationItem[]>(endpoint);
   }
@@ -872,9 +856,9 @@ class DeveloperAPI {
    */
   async getUsage(params: GetUsageParams): Promise<UsageStats> {
     const searchParams = new URLSearchParams();
-    searchParams.set('organizationId', params.organizationId.toString());
-    if (params.startDate) searchParams.set('startDate', params.startDate);
-    if (params.endDate) searchParams.set('endDate', params.endDate);
+    searchParams.set("organizationId", params.organizationId.toString());
+    if (params.startDate) searchParams.set("startDate", params.startDate);
+    if (params.endDate) searchParams.set("endDate", params.endDate);
 
     const query = searchParams.toString();
     return this.client.request<UsageStats>(`/api/developer/usage?${query}`);
@@ -884,7 +868,9 @@ class DeveloperAPI {
    * Get usage summary
    */
   async getUsageSummary(organizationId: number): Promise<UsageSummary> {
-    return this.client.request<UsageSummary>(`/api/developer/usage/summary?organizationId=${organizationId}`);
+    return this.client.request<UsageSummary>(
+      `/api/developer/usage/summary?organizationId=${organizationId}`,
+    );
   }
 }
 
@@ -898,8 +884,8 @@ class APIKeysAPI {
    * Create an API key
    */
   async create(params: CreateAPIKeyParams): Promise<APIKeyWithSecret> {
-    return this.client.request<APIKeyWithSecret>('/api/developer/api-keys', {
-      method: 'POST',
+    return this.client.request<APIKeyWithSecret>("/api/developer/api-keys", {
+      method: "POST",
       body: JSON.stringify(params),
     });
   }
@@ -909,12 +895,12 @@ class APIKeysAPI {
    */
   async list(params: ListAPIKeysParams = {}): Promise<APIKey[]> {
     const searchParams = new URLSearchParams();
-    if (params.organizationId) searchParams.set('organizationId', params.organizationId.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.offset) searchParams.set('offset', params.offset.toString());
+    if (params.organizationId) searchParams.set("organizationId", params.organizationId.toString());
+    if (params.limit) searchParams.set("limit", params.limit.toString());
+    if (params.offset) searchParams.set("offset", params.offset.toString());
 
     const query = searchParams.toString();
-    const endpoint = query ? `/api/developer/api-keys?${query}` : '/api/developer/api-keys';
+    const endpoint = query ? `/api/developer/api-keys?${query}` : "/api/developer/api-keys";
 
     return this.client.request<APIKey[]>(endpoint);
   }
@@ -924,7 +910,7 @@ class APIKeysAPI {
    */
   async update(keyId: number, params: UpdateAPIKeyParams): Promise<APIKey> {
     return this.client.request<APIKey>(`/api/developer/api-keys/${keyId}`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify(params),
     });
   }
@@ -934,7 +920,7 @@ class APIKeysAPI {
    */
   async revoke(keyId: number): Promise<{ message: string }> {
     return this.client.request<{ message: string }>(`/api/developer/api-keys/${keyId}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
@@ -956,8 +942,8 @@ class WebhooksAPI {
    * Create a webhook
    */
   async create(params: CreateWebhookParams): Promise<Webhook> {
-    return this.client.request<Webhook>('/api/developer/webhooks', {
-      method: 'POST',
+    return this.client.request<Webhook>("/api/developer/webhooks", {
+      method: "POST",
       body: JSON.stringify(params),
     });
   }
@@ -967,10 +953,10 @@ class WebhooksAPI {
    */
   async list(params: ListWebhooksParams): Promise<Webhook[]> {
     const searchParams = new URLSearchParams();
-    searchParams.set('organizationId', params.organizationId.toString());
-    if (params.status) searchParams.set('status', params.status);
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.offset) searchParams.set('offset', params.offset.toString());
+    searchParams.set("organizationId", params.organizationId.toString());
+    if (params.status) searchParams.set("status", params.status);
+    if (params.limit) searchParams.set("limit", params.limit.toString());
+    if (params.offset) searchParams.set("offset", params.offset.toString());
 
     const query = searchParams.toString();
     return this.client.request<Webhook[]>(`/api/developer/webhooks?${query}`);
@@ -988,7 +974,7 @@ class WebhooksAPI {
    */
   async update(webhookId: number, params: UpdateWebhookParams): Promise<Webhook> {
     return this.client.request<Webhook>(`/api/developer/webhooks/${webhookId}`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify(params),
     });
   }
@@ -998,21 +984,26 @@ class WebhooksAPI {
    */
   async delete(webhookId: number): Promise<{ message: string }> {
     return this.client.request<{ message: string }>(`/api/developer/webhooks/${webhookId}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   /**
    * Get webhook deliveries
    */
-  async getDeliveries(webhookId: number, params: ListWebhookDeliveriesParams = {}): Promise<WebhookDelivery[]> {
+  async getDeliveries(
+    webhookId: number,
+    params: ListWebhookDeliveriesParams = {},
+  ): Promise<WebhookDelivery[]> {
     const searchParams = new URLSearchParams();
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.offset) searchParams.set('offset', params.offset.toString());
-    if (params.success !== undefined) searchParams.set('success', params.success.toString());
+    if (params.limit) searchParams.set("limit", params.limit.toString());
+    if (params.offset) searchParams.set("offset", params.offset.toString());
+    if (params.success !== undefined) searchParams.set("success", params.success.toString());
 
     const query = searchParams.toString();
-    const endpoint = query ? `/api/developer/webhooks/${webhookId}/deliveries?${query}` : `/api/developer/webhooks/${webhookId}/deliveries`;
+    const endpoint = query
+      ? `/api/developer/webhooks/${webhookId}/deliveries?${query}`
+      : `/api/developer/webhooks/${webhookId}/deliveries`;
 
     return this.client.request<WebhookDelivery[]>(endpoint);
   }
@@ -1028,6 +1019,6 @@ class OrganizationsAPI {
    * Get current organization
    */
   async getCurrent(): Promise<Organization> {
-    return this.client.request<Organization>('/api/organizations/current');
+    return this.client.request<Organization>("/api/organizations/current");
   }
 }

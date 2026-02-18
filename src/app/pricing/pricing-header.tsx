@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { useSession } from "@/lib/auth-client"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { useSession } from "@/lib/auth-client";
 
 export function PricingHeader() {
-  const { data: session, isPending } = useSession()
+  const { data: session, isPending } = useSession();
 
   return (
     <header className="border-b border-border">
@@ -44,5 +44,5 @@ export function PricingHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }

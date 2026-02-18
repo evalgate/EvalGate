@@ -3,42 +3,42 @@
  * Uses the same quality endpoint as check — if doctor passes, check works.
  */
 
-import { findConfigPath, loadConfig, mergeConfigWithArgs } from './config';
-import { fetchQualityLatest } from './api';
+import { fetchQualityLatest } from "./api";
+import { findConfigPath, loadConfig, mergeConfigWithArgs } from "./config";
 
 export type DoctorArgs = {
   baseUrl: string;
   apiKey: string;
   evaluationId: string;
-  baseline: 'published' | 'previous' | 'production';
+  baseline: "published" | "previous" | "production";
 };
 
 function parseDoctorArgs(argv: string[]): DoctorArgs | { ok: false; message: string } {
   const args: Record<string, string> = {};
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (arg.startsWith('--')) {
+    if (arg.startsWith("--")) {
       const key = arg.slice(2);
       const next = argv[i + 1];
-      if (next !== undefined && !next.startsWith('--')) {
+      if (next !== undefined && !next.startsWith("--")) {
         args[key] = next;
         i++;
       } else {
-        args[key] = 'true';
+        args[key] = "true";
       }
     }
   }
 
-  const baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || 'http://localhost:3000';
-  const apiKey = args.apiKey || process.env.EVALAI_API_KEY || '';
-  let evaluationId = args.evaluationId || '';
+  const baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || "http://localhost:3000";
+  const apiKey = args.apiKey || process.env.EVALAI_API_KEY || "";
+  let evaluationId = args.evaluationId || "";
   const baseline = (
-    args.baseline === 'previous'
-      ? 'previous'
-      : args.baseline === 'production'
-        ? 'production'
-        : 'published'
-  ) as DoctorArgs['baseline'];
+    args.baseline === "previous"
+      ? "previous"
+      : args.baseline === "production"
+        ? "production"
+        : "published"
+  ) as DoctorArgs["baseline"];
 
   if (!evaluationId) {
     const config = loadConfig(process.cwd());
@@ -51,15 +51,15 @@ function parseDoctorArgs(argv: string[]): DoctorArgs | { ok: false; message: str
   }
 
   if (!apiKey) {
-    return { ok: false, message: 'Set EVALAI_API_KEY' };
+    return { ok: false, message: "Set EVALAI_API_KEY" };
   }
 
   if (!evaluationId) {
     const configPath = findConfigPath(process.cwd());
     if (!configPath) {
-      return { ok: false, message: 'Run npx evalai init' };
+      return { ok: false, message: "Run npx evalai init" };
     }
-    return { ok: false, message: 'Set evaluationId in evalai.config.json' };
+    return { ok: false, message: "Set evaluationId in evalai.config.json" };
   }
 
   return { baseUrl, apiKey, evaluationId, baseline };
@@ -67,7 +67,7 @@ function parseDoctorArgs(argv: string[]): DoctorArgs | { ok: false; message: str
 
 export async function runDoctor(argv: string[]): Promise<number> {
   const parsed = parseDoctorArgs(argv);
-  if (!('baseUrl' in parsed)) {
+  if (!("baseUrl" in parsed)) {
     console.error(parsed.message);
     return 1;
   }
@@ -79,7 +79,7 @@ export async function runDoctor(argv: string[]): Promise<number> {
     args.baseUrl,
     args.apiKey,
     args.evaluationId,
-    args.baseline
+    args.baseline,
   );
 
   if (!result.ok) {
@@ -95,10 +95,10 @@ export async function runDoctor(argv: string[]): Promise<number> {
 
   // Baseline: if quality returns baselineMissing, suggest fix
   if (data.baselineMissing === true) {
-    console.error('Publish a run or use --baseline previous');
+    console.error("Publish a run or use --baseline previous");
     return 1;
   }
 
-  console.log('✓ EvalAI doctor: OK');
+  console.log("✓ EvalAI doctor: OK");
   return 0;
 }

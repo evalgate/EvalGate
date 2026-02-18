@@ -31,17 +31,17 @@ export async function fetchQualityLatest(
   baseUrl: string,
   apiKey: string,
   evaluationId: string,
-  baseline: string
+  baseline: string,
 ): Promise<
   | { ok: true; data: QualityLatestData; requestId?: string }
   | { ok: false; status: number; body: string; requestId?: string }
 > {
   const headers = { Authorization: `Bearer ${apiKey}` };
-  const url = `${baseUrl.replace(/\/$/, '')}/api/quality?evaluationId=${evaluationId}&action=latest&baseline=${baseline}`;
+  const url = `${baseUrl.replace(/\/$/, "")}/api/quality?evaluationId=${evaluationId}&action=latest&baseline=${baseline}`;
 
   try {
     const res = await fetch(url, { headers });
-    const requestId = res.headers.get('x-request-id') ?? undefined;
+    const requestId = res.headers.get("x-request-id") ?? undefined;
     const body = await res.text();
 
     if (!res.ok) {
@@ -60,10 +60,10 @@ export async function fetchRunDetails(
   baseUrl: string,
   apiKey: string,
   evaluationId: string,
-  runId: number
+  runId: number,
 ): Promise<{ ok: true; data: RunDetailsData } | { ok: false }> {
   const headers = { Authorization: `Bearer ${apiKey}` };
-  const url = `${baseUrl.replace(/\/$/, '')}/api/evaluations/${evaluationId}/runs/${runId}`;
+  const url = `${baseUrl.replace(/\/$/, "")}/api/evaluations/${evaluationId}/runs/${runId}`;
 
   try {
     const res = await fetch(url, { headers });
@@ -76,7 +76,7 @@ export async function fetchRunDetails(
 }
 
 export type CiContext = {
-  provider?: 'github' | 'gitlab' | 'circle' | 'unknown';
+  provider?: "github" | "gitlab" | "circle" | "unknown";
   repo?: string;
   sha?: string;
   branch?: string;
@@ -87,7 +87,7 @@ export type CiContext = {
 
 export type ImportResult = {
   testCaseId: number;
-  status: 'passed' | 'failed';
+  status: "passed" | "failed";
   output: string;
   latencyMs?: number;
   costUsd?: number;
@@ -103,28 +103,28 @@ export async function importRunOnFail(
     idempotencyKey?: string;
     ci?: CiContext;
     importClientVersion?: string;
-  }
+  },
 ): Promise<{ ok: true; runId: number } | { ok: false; status: number; body: string }> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${apiKey}`,
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   };
   if (options.idempotencyKey) {
-    headers['Idempotency-Key'] = options.idempotencyKey;
+    headers["Idempotency-Key"] = options.idempotencyKey;
   }
 
   const body = {
-    environment: 'dev' as const,
+    environment: "dev" as const,
     results,
-    importClientVersion: options.importClientVersion ?? 'evalai-cli',
+    importClientVersion: options.importClientVersion ?? "evalai-cli",
     ci: options.ci,
   };
 
-  const url = `${baseUrl.replace(/\/$/, '')}/api/evaluations/${evaluationId}/runs/import`;
+  const url = `${baseUrl.replace(/\/$/, "")}/api/evaluations/${evaluationId}/runs/import`;
 
   try {
     const res = await fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers,
       body: JSON.stringify(body),
     });

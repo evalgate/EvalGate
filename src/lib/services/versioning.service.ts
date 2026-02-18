@@ -5,19 +5,21 @@
  * computing diff summaries, and version history.
  */
 
-import { db } from '@/db';
-import { evaluations, evaluationVersions, testCases } from '@/db/schema';
-import { eq, and, desc, asc } from 'drizzle-orm';
-import { logger } from '@/lib/logger';
+import { and, asc, desc, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { evaluations, evaluationVersions, testCases } from "@/db/schema";
+import { logger } from "@/lib/logger";
 
 /** JSON.stringify with sorted keys for deterministic output. */
 function stableStringify(obj: unknown): string {
   return JSON.stringify(obj, (_key, value) => {
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      return Object.keys(value).sort().reduce<Record<string, unknown>>((sorted, k) => {
-        sorted[k] = (value as Record<string, unknown>)[k];
-        return sorted;
-      }, {});
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      return Object.keys(value)
+        .sort()
+        .reduce<Record<string, unknown>>((sorted, k) => {
+          sorted[k] = (value as Record<string, unknown>)[k];
+          return sorted;
+        }, {});
     }
     return value;
   });
@@ -55,7 +57,7 @@ export class VersioningService {
     organizationId: number,
     createdBy: string,
   ): Promise<{ version: number; diffSummary: string | null }> {
-    logger.info('Creating evaluation version', { evaluationId, organizationId });
+    logger.info("Creating evaluation version", { evaluationId, organizationId });
 
     // Fetch the evaluation
     const [evaluation] = await db
@@ -65,7 +67,7 @@ export class VersioningService {
       .limit(1);
 
     if (!evaluation) {
-      throw new Error('Evaluation not found');
+      throw new Error("Evaluation not found");
     }
 
     // Fetch test cases from canonical table, sorted by id for deterministic snapshots
@@ -134,12 +136,12 @@ export class VersioningService {
       .update(evaluations)
       .set({
         publishedVersion: newVersion,
-        status: 'published',
+        status: "published",
         updatedAt: new Date().toISOString(),
       })
       .where(eq(evaluations.id, evaluationId));
 
-    logger.info('Evaluation version created', { evaluationId, version: newVersion });
+    logger.info("Evaluation version created", { evaluationId, version: newVersion });
 
     return { version: newVersion, diffSummary };
   }
@@ -189,7 +191,9 @@ export class VersioningService {
 
     if (prevCaseCount !== currCaseCount) {
       const delta = currCaseCount - prevCaseCount;
-      parts.push(`${delta > 0 ? '+' : ''}${delta} test cases (${prevCaseCount} -> ${currCaseCount})`);
+      parts.push(
+        `${delta > 0 ? "+" : ""}${delta} test cases (${prevCaseCount} -> ${currCaseCount})`,
+      );
     }
 
     // Count changed cases (by ID match)
@@ -212,14 +216,16 @@ export class VersioningService {
     }
 
     if (previous.evaluation.executorType !== current.evaluation.executorType) {
-      parts.push(`executor changed: ${previous.evaluation.executorType || 'none'} -> ${current.evaluation.executorType || 'none'}`);
+      parts.push(
+        `executor changed: ${previous.evaluation.executorType || "none"} -> ${current.evaluation.executorType || "none"}`,
+      );
     }
 
     if (parts.length === 0) {
       return `No changes from v${previousVersion}`;
     }
 
-    return `Changes from v${previousVersion}: ${parts.join('; ')}`;
+    return `Changes from v${previousVersion}: ${parts.join("; ")}`;
   }
 }
 

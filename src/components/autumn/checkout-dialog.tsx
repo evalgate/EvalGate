@@ -1,30 +1,17 @@
-
 "use client";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
-import React, { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { getCheckoutContent } from "@/lib/autumn/checkout-content";
+import type { CheckoutResult, ProductItem } from "autumn-js";
 import { useCustomer } from "autumn-js/react";
 import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
-import type { CheckoutResult, ProductItem } from "autumn-js";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-} from "@/components/ui/accordion";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { getCheckoutContent } from "@/lib/autumn/checkout-content";
+import { cn } from "@/lib/utils";
 
 export interface CheckoutDialogProps {
   open: boolean;
@@ -32,13 +19,7 @@ export interface CheckoutDialogProps {
   checkoutResult: CheckoutResult;
 }
 
-const formatCurrency = ({
-  amount,
-  currency,
-}: {
-  amount: number;
-  currency: string;
-}) => {
+const formatCurrency = ({ amount, currency }: { amount: number; currency: string }) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency,
@@ -47,9 +28,9 @@ const formatCurrency = ({
 
 export default function CheckoutDialog(params: CheckoutDialogProps) {
   const { attach } = useCustomer();
-  const [checkoutResult, setCheckoutResult] = useState<
-    CheckoutResult | undefined
-  >(params?.checkoutResult);
+  const [checkoutResult, setCheckoutResult] = useState<CheckoutResult | undefined>(
+    params?.checkoutResult,
+  );
 
   useEffect(() => {
     if (params.checkoutResult) {
@@ -73,15 +54,10 @@ export default function CheckoutDialog(params: CheckoutDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm">
         <DialogTitle className="px-6 mb-1">{title}</DialogTitle>
-        <div className="px-6 mt-1 mb-4 text-muted-foreground">
-          {message}
-        </div>
+        <div className="px-6 mt-1 mb-4 text-muted-foreground">{message}</div>
 
         {isPaid && checkoutResult && (
-          <PriceInformation
-            checkoutResult={checkoutResult}
-            setCheckoutResult={setCheckoutResult}
-          />
+          <PriceInformation checkoutResult={checkoutResult} setCheckoutResult={setCheckoutResult} />
         )}
 
         <DialogFooter className="flex flex-col sm:flex-row justify-between gap-x-4 py-2 pl-6 pr-3 bg-secondary border-t shadow-inner">
@@ -110,11 +86,7 @@ export default function CheckoutDialog(params: CheckoutDialogProps) {
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <>
-                <span className="whitespace-nowrap flex gap-1">
-                  Confirm
-                </span>
-              </>
+              <span className="whitespace-nowrap flex gap-1">Confirm</span>
             )}
           </Button>
         </DialogFooter>
@@ -132,10 +104,7 @@ function PriceInformation({
 }) {
   return (
     <div className="px-6 mb-4 flex flex-col gap-4">
-      <ProductItems
-        checkoutResult={checkoutResult}
-        setCheckoutResult={setCheckoutResult}
-      />
+      <ProductItems checkoutResult={checkoutResult} setCheckoutResult={setCheckoutResult} />
 
       <div className="flex flex-col gap-2">
         {checkoutResult?.has_prorations && checkoutResult.lines.length > 0 && (
@@ -153,9 +122,7 @@ function DueAmounts({ checkoutResult }: { checkoutResult: CheckoutResult }) {
     ? new Date(next_cycle.starts_at).toLocaleDateString()
     : undefined;
 
-  const hasUsagePrice = product.items.some(
-    (item) => item.usage_model === "pay_per_use"
-  );
+  const hasUsagePrice = product.items.some((item) => item.usage_model === "pay_per_use");
 
   const showNextCycle = next_cycle && next_cycle.total !== checkoutResult.total;
 
@@ -199,15 +166,14 @@ function ProductItems({
   setCheckoutResult: (checkoutResult: CheckoutResult) => void;
 }) {
   const isUpdateQuantity =
-    checkoutResult?.product.scenario === "active" &&
-    checkoutResult.product.properties.updateable;
+    checkoutResult?.product.scenario === "active" && checkoutResult.product.properties.updateable;
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm font-medium">Price</p>
       {checkoutResult?.product.items
         .filter((item) => item.type !== "feature")
         .map((item, index) => {
-          if (item.usage_model == "prepaid") {
+          if (item.usage_model === "prepaid") {
             return (
               <PrepaidItem
                 key={index}
@@ -243,9 +209,7 @@ function CheckoutLines({ checkoutResult }: { checkoutResult: CheckoutResult }) {
       <AccordionItem value="total" className="border-b-0">
         <CustomAccordionTrigger className="justify-between w-full my-0 py-0 border-none">
           <div className="cursor-pointer flex items-center gap-1 w-full justify-end">
-            <p className="font-light text-muted-foreground">
-              View details
-            </p>
+            <p className="font-light text-muted-foreground">View details</p>
             <ChevronDown
               className="text-muted-foreground mt-0.5 rotate-90 transition-transform duration-200 ease-in-out"
               size={14}
@@ -254,7 +218,7 @@ function CheckoutLines({ checkoutResult }: { checkoutResult: CheckoutResult }) {
         </CustomAccordionTrigger>
         <AccordionContent className="mt-2 mb-0 pb-2 flex flex-col gap-2">
           {checkoutResult?.lines
-            .filter((line) => line.amount != 0)
+            .filter((line) => line.amount !== 0)
             .map((line, index) => {
               return (
                 <div key={index} className="flex justify-between">
@@ -285,7 +249,7 @@ function CustomAccordionTrigger({
         data-slot="accordion-trigger"
         className={cn(
           "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]_svg]:rotate-0",
-          className
+          className,
         )}
         {...props}
       >
@@ -305,9 +269,7 @@ const PrepaidItem = ({
   setCheckoutResult: (checkoutResult: CheckoutResult) => void;
 }) => {
   const { quantity = 0, billing_units: billingUnits = 1 } = item;
-  const [quantityInput, setQuantityInput] = useState<string>(
-    (quantity / billingUnits).toString()
-  );
+  const [quantityInput, setQuantityInput] = useState<string>((quantity / billingUnits).toString());
   const { checkout } = useCustomer();
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -358,18 +320,14 @@ const PrepaidItem = ({
           <PopoverTrigger
             className={cn(
               "text-muted-foreground text-xs px-1 py-0.5 rounded-md flex items-center gap-1 bg-accent/80",
-              disableSelection !== true &&
-                "hover:bg-accent hover:text-foreground"
+              disableSelection !== true && "hover:bg-accent hover:text-foreground",
             )}
             disabled={disableSelection}
           >
             Qty: {quantity}
             <ChevronDown size={12} />
           </PopoverTrigger>
-          <PopoverContent
-            align="start"
-            className="w-80 text-sm p-4 pt-3 flex flex-col gap-4"
-          >
+          <PopoverContent align="start" className="w-80 text-sm p-4 pt-3 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium">{item.feature?.name}</p>
               <p className="text-muted-foreground">
@@ -424,7 +382,7 @@ export const PriceItem = ({
     <div
       className={cn(
         "flex flex-col pb-4 sm:pb-0 gap-1 sm:flex-row justify-between sm:h-7 sm:gap-2 sm:items-center",
-        className
+        className,
       )}
       {...props}
     >

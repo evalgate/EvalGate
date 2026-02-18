@@ -3,15 +3,16 @@
  * Used by TraceLinkedExecutor to match test case inputs to spans.
  */
 
-import crypto from 'crypto';
+import crypto from "node:crypto";
 
 function sortKeys(obj: Record<string, unknown>): Record<string, unknown> {
   const sorted: Record<string, unknown> = {};
   for (const k of Object.keys(obj).sort()) {
     const v = obj[k];
-    sorted[k] = v != null && typeof v === 'object' && !Array.isArray(v)
-      ? sortKeys(v as Record<string, unknown>)
-      : v;
+    sorted[k] =
+      v != null && typeof v === "object" && !Array.isArray(v)
+        ? sortKeys(v as Record<string, unknown>)
+        : v;
   }
   return sorted;
 }
@@ -25,7 +26,7 @@ export function normalizeInput(input: string): string {
     const obj = JSON.parse(s);
     return JSON.stringify(sortKeys(obj as Record<string, unknown>));
   } catch {
-    return s.replace(/\s+/g, ' ');
+    return s.replace(/\s+/g, " ");
   }
 }
 
@@ -33,5 +34,5 @@ export function normalizeInput(input: string): string {
  * SHA-256 hash of normalized input for deterministic span lookup.
  */
 export function sha256Input(s: string): string {
-  return crypto.createHash('sha256').update(normalizeInput(s)).digest('hex');
+  return crypto.createHash("sha256").update(normalizeInput(s)).digest("hex");
 }

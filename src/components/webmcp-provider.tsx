@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 // Extend Navigator interface for WebMCP
 declare global {
@@ -22,7 +22,7 @@ interface WebMCPTool {
 async function safeFetch(url: string, init?: RequestInit): Promise<any> {
   const response = await fetch(url, init);
   if (!response.ok) {
-    const text = await response.text().catch(() => '');
+    const text = await response.text().catch(() => "");
     throw new Error(`API error ${response.status}: ${text.slice(0, 200)}`);
   }
   return response.json();
@@ -42,94 +42,105 @@ export function WebMCPProvider() {
 
     const tools: WebMCPTool[] = [
       {
-        name: 'list_evaluation_templates',
-        description: 'EvalAI: List evaluation templates for testing AI models. Returns templates from the quick-start library (6) and full catalog (50+ across 17 categories: unit_tests, adversarial, human_eval, llm_judge, chatbot, rag, code-gen, etc.) with configurations and test cases.',
+        name: "list_evaluation_templates",
+        description:
+          "EvalAI: List evaluation templates for testing AI models. Returns templates from the quick-start library (6) and full catalog (50+ across 17 categories: unit_tests, adversarial, human_eval, llm_judge, chatbot, rag, code-gen, etc.) with configurations and test cases.",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {
             category: {
-              type: 'string',
-              description: 'Filter by template category (e.g., unit_tests, adversarial, human_eval, llm_judge, agent_eval, chatbot, rag, code-gen)',
+              type: "string",
+              description:
+                "Filter by template category (e.g., unit_tests, adversarial, human_eval, llm_judge, agent_eval, chatbot, rag, code-gen)",
             },
             limit: {
-              type: 'number',
-              description: 'Maximum number of templates to return (default: all)',
+              type: "number",
+              description: "Maximum number of templates to return (default: all)",
             },
           },
         },
         execute: async (params: { category?: string; limit?: number }) => {
           const searchParams = new URLSearchParams();
-          if (params.category) searchParams.set('category', params.category);
-          if (params.limit) searchParams.set('limit', params.limit.toString());
+          if (params.category) searchParams.set("category", params.category);
+          if (params.limit) searchParams.set("limit", params.limit.toString());
           const query = searchParams.toString();
-          const url = query ? `/api/evaluation-templates?${query}` : '/api/evaluation-templates';
+          const url = query ? `/api/evaluation-templates?${query}` : "/api/evaluation-templates";
           return safeFetch(url);
         },
       },
       {
-        name: 'create_evaluation',
-        description: 'EvalAI: Create an evaluation for testing an AI model. Types: unit_test (assertions), human_eval (expert annotation), model_eval (LLM-as-judge), ab_test. Provide name, type, optional description and test cases. Requires user to be signed in.',
+        name: "create_evaluation",
+        description:
+          "EvalAI: Create an evaluation for testing an AI model. Types: unit_test (assertions), human_eval (expert annotation), model_eval (LLM-as-judge), ab_test. Provide name, type, optional description and test cases. Requires user to be signed in.",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {
-            name: { type: 'string', description: 'Name of the evaluation' },
+            name: { type: "string", description: "Name of the evaluation" },
             type: {
-              type: 'string',
-              enum: ['unit_test', 'human_eval', 'model_eval', 'ab_test'],
-              description: 'Type of evaluation to create',
+              type: "string",
+              enum: ["unit_test", "human_eval", "model_eval", "ab_test"],
+              description: "Type of evaluation to create",
             },
-            description: { type: 'string', description: 'Description of what this evaluation tests' },
+            description: {
+              type: "string",
+              description: "Description of what this evaluation tests",
+            },
             testCases: {
-              type: 'array',
+              type: "array",
               items: {
-                type: 'object',
+                type: "object",
                 properties: {
-                  name: { type: 'string' },
-                  input: { type: 'string' },
-                  expectedOutput: { type: 'string' },
+                  name: { type: "string" },
+                  input: { type: "string" },
+                  expectedOutput: { type: "string" },
                 },
               },
-              description: 'Optional test cases to include',
+              description: "Optional test cases to include",
             },
           },
-          required: ['name', 'type'],
+          required: ["name", "type"],
         },
         execute: async (params: any) => {
-          return safeFetch('/api/evaluations', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          return safeFetch("/api/evaluations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(params),
           });
         },
       },
       {
-        name: 'run_evaluation',
-        description: 'EvalAI: Execute an evaluation run. Fetches test cases, runs them (unit assertions, LLM judge, or marks for human review), and computes pass/fail and scores. Requires user to be signed in.',
+        name: "run_evaluation",
+        description:
+          "EvalAI: Execute an evaluation run. Fetches test cases, runs them (unit assertions, LLM judge, or marks for human review), and computes pass/fail and scores. Requires user to be signed in.",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {
-            evaluationId: { type: 'number', description: 'ID of the evaluation to run' },
+            evaluationId: { type: "number", description: "ID of the evaluation to run" },
           },
-          required: ['evaluationId'],
+          required: ["evaluationId"],
         },
         execute: async (params: { evaluationId: number }) => {
           return safeFetch(`/api/evaluations/${params.evaluationId}/runs`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({}),
           });
         },
       },
       {
-        name: 'get_evaluation_results',
-        description: 'EvalAI: Get evaluation run results—pass/fail counts, per-test-case results, scores, and run status. Requires user to be signed in.',
+        name: "get_evaluation_results",
+        description:
+          "EvalAI: Get evaluation run results—pass/fail counts, per-test-case results, scores, and run status. Requires user to be signed in.",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {
-            evaluationId: { type: 'number', description: 'ID of the evaluation' },
-            limit: { type: 'number', description: 'Maximum number of runs to return (default: 10)' },
+            evaluationId: { type: "number", description: "ID of the evaluation" },
+            limit: {
+              type: "number",
+              description: "Maximum number of runs to return (default: 10)",
+            },
           },
-          required: ['evaluationId'],
+          required: ["evaluationId"],
         },
         execute: async (params: { evaluationId: number; limit?: number }) => {
           const limit = params.limit || 10;
@@ -137,14 +148,15 @@ export function WebMCPProvider() {
         },
       },
       {
-        name: 'get_quality_score',
-        description: 'EvalAI: Get quality score from the latest evaluation run—evaluation name, run status, total/passed/failed counts, pass rate. Returns a message to run the evaluation first if no runs exist. Requires user to be signed in.',
+        name: "get_quality_score",
+        description:
+          "EvalAI: Get quality score from the latest evaluation run—evaluation name, run status, total/passed/failed counts, pass rate. Returns a message to run the evaluation first if no runs exist. Requires user to be signed in.",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {
-            evaluationId: { type: 'number', description: 'ID of the evaluation' },
+            evaluationId: { type: "number", description: "ID of the evaluation" },
           },
-          required: ['evaluationId'],
+          required: ["evaluationId"],
         },
         execute: async (params: { evaluationId: number }) => {
           // Fetch the evaluation details — route returns { evaluation: {...} }
@@ -157,9 +169,9 @@ export function WebMCPProvider() {
           if (!Array.isArray(runs) || runs.length === 0) {
             return {
               evaluationId: params.evaluationId,
-              evaluationName: evaluation?.name || 'Unknown',
+              evaluationName: evaluation?.name || "Unknown",
               score: null,
-              message: 'No runs found. Run the evaluation first.',
+              message: "No runs found. Run the evaluation first.",
             };
           }
 
@@ -170,7 +182,7 @@ export function WebMCPProvider() {
 
           return {
             evaluationId: params.evaluationId,
-            evaluationName: evaluation?.name || 'Unknown',
+            evaluationName: evaluation?.name || "Unknown",
             latestRun: {
               id: latestRun.id,
               status: latestRun.status,

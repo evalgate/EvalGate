@@ -5,9 +5,9 @@
  * Enforces tenant boundary via evaluation ownership.
  */
 
-import { db } from '@/db';
-import { testCases, evaluations } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { and, desc, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { evaluations, testCases } from "@/db/schema";
 
 export interface CreateTestCaseInput {
   name?: string;
@@ -29,10 +29,7 @@ export const testCaseService = {
     const [evaluation] = await db
       .select()
       .from(evaluations)
-      .where(and(
-        eq(evaluations.id, evaluationId),
-        eq(evaluations.organizationId, organizationId),
-      ))
+      .where(and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, organizationId)))
       .limit(1);
 
     if (!evaluation) return null;
@@ -50,18 +47,11 @@ export const testCaseService = {
    * Create a test case. Enforces evaluation exists and belongs to org.
    * Returns null if evaluation not found or not in org.
    */
-  async create(
-    organizationId: number,
-    evaluationId: number,
-    data: CreateTestCaseInput,
-  ) {
+  async create(organizationId: number, evaluationId: number, data: CreateTestCaseInput) {
     const [evaluation] = await db
       .select()
       .from(evaluations)
-      .where(and(
-        eq(evaluations.id, evaluationId),
-        eq(evaluations.organizationId, organizationId),
-      ))
+      .where(and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, organizationId)))
       .limit(1);
 
     if (!evaluation) return null;
@@ -87,18 +77,11 @@ export const testCaseService = {
    * and test case belongs to that evaluation (tenant-safe delete).
    * Returns false if evaluation, test case not found, or test case not in evaluation.
    */
-  async remove(
-    organizationId: number,
-    evaluationId: number,
-    testCaseId: number,
-  ): Promise<boolean> {
+  async remove(organizationId: number, evaluationId: number, testCaseId: number): Promise<boolean> {
     const [evaluation] = await db
       .select()
       .from(evaluations)
-      .where(and(
-        eq(evaluations.id, evaluationId),
-        eq(evaluations.organizationId, organizationId),
-      ))
+      .where(and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, organizationId)))
       .limit(1);
 
     if (!evaluation) return false;
@@ -106,20 +89,14 @@ export const testCaseService = {
     const [existing] = await db
       .select()
       .from(testCases)
-      .where(and(
-        eq(testCases.id, testCaseId),
-        eq(testCases.evaluationId, evaluationId),
-      ))
+      .where(and(eq(testCases.id, testCaseId), eq(testCases.evaluationId, evaluationId)))
       .limit(1);
 
     if (!existing) return false;
 
     await db
       .delete(testCases)
-      .where(and(
-        eq(testCases.id, testCaseId),
-        eq(testCases.evaluationId, evaluationId),
-      ));
+      .where(and(eq(testCases.id, testCaseId), eq(testCases.evaluationId, evaluationId)));
 
     return true;
   },

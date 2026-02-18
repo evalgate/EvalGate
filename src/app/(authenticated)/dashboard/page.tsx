@@ -1,48 +1,52 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import Link from "next/link"
-import { Plus, Activity, FileText } from "lucide-react"
-import { PlanUsageIndicator } from "@/components/plan-usage-indicator"
-import { auth } from "@/lib/auth"
-import { db } from "@/db"
-import { evaluations, traces, evaluationRuns } from "@/db/schema"
-import { eq, desc, gte, sql } from "drizzle-orm"
-import { Suspense } from "react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { headers } from "next/headers"
-import { redirect } from "next/navigation"
+import { desc, eq, gte, sql } from "drizzle-orm";
+import { Activity, FileText, Plus } from "lucide-react";
+import { headers } from "next/headers";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { PlanUsageIndicator } from "@/components/plan-usage-indicator";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { db } from "@/db";
+import { evaluationRuns, evaluations, traces } from "@/db/schema";
+import { auth } from "@/lib/auth";
 
 async function getDashboardStats(organizationId: number) {
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
   const [evalCount, traceCount, recentRuns] = await Promise.all([
-    db.select({ count: sql<number>`count(*)` })
+    db
+      .select({ count: sql<number>`count(*)` })
       .from(evaluations)
       .where(eq(evaluations.organizationId, organizationId)),
-    db.select({ count: sql<number>`count(*)` })
+    db
+      .select({ count: sql<number>`count(*)` })
       .from(traces)
       .where(eq(traces.organizationId, organizationId)),
-    db.select({ count: sql<number>`count(*)` })
+    db
+      .select({ count: sql<number>`count(*)` })
       .from(evaluationRuns)
-      .where(gte(evaluationRuns.createdAt, sevenDaysAgo))
-  ])
+      .where(gte(evaluationRuns.createdAt, sevenDaysAgo)),
+  ]);
 
   return {
     totalEvaluations: evalCount[0]?.count || 0,
     totalTraces: traceCount[0]?.count || 0,
-    recentRuns: recentRuns[0]?.count || 0
-  }
+    recentRuns: recentRuns[0]?.count || 0,
+  };
 }
 
 async function getRecentEvaluationRuns(organizationId: number) {
-  return db.select()
+  return db
+    .select()
     .from(evaluationRuns)
     .innerJoin(evaluations, eq(evaluationRuns.evaluationId, evaluations.id))
     .where(eq(evaluations.organizationId, organizationId))
     .orderBy(desc(evaluationRuns.createdAt))
-    .limit(2)
+    .limit(2);
 }
 
-function DashboardSkeleton() {
+function _DashboardSkeleton() {
   return (
     <div className="space-y-6 sm:space-y-8">
       <div>
@@ -55,20 +59,22 @@ function DashboardSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 export default async function DashboardPage() {
-  const headersList = await headers()
-  const session = await auth.api.getSession({ headers: headersList })
-  
+  const headersList = await headers();
+  const session = await auth.api.getSession({ headers: headersList });
+
   if (!session?.user) {
-    redirect("/auth/login?redirect=/dashboard")
+    redirect("/auth/login?redirect=/dashboard");
   }
-  
-  const organizationId = (session.user as any).organizationId || parseInt(process.env.DEFAULT_ORGANIZATION_ID || '1')
-  const stats = await getDashboardStats(organizationId)
-  const recentRuns = await getRecentEvaluationRuns(organizationId)
+
+  const organizationId =
+    (session.user as any).organizationId ||
+    parseInt(process.env.DEFAULT_ORGANIZATION_ID || "1", 10);
+  const stats = await getDashboardStats(organizationId);
+  const recentRuns = await getRecentEvaluationRuns(organizationId);
   return (
     <div className="space-y-6 sm:space-y-8 w-full max-w-full min-w-full">
       {/* Header */}
@@ -158,32 +164,36 @@ export default async function DashboardPage() {
             {recentRuns.length > 0 ? (
               <div className="divide-y divide-border">
                 {recentRuns.map((row) => {
-                  const { evaluation_runs: run } = row
+                  const { evaluation_runs: run } = row;
                   return (
                     <div key={run.id} className="p-3 sm:p-4 space-y-2">
                       <p className="font-medium text-sm sm:text-base">Evaluation Run #{run.id}</p>
                       <p className="text-xs sm:text-sm text-muted-foreground">
-                        {run.totalCases} cases • {run.passedCases || 0} passed • {run.failedCases || 0} failed
+                        {run.totalCases} cases • {run.passedCases || 0} passed •{" "}
+                        {run.failedCases || 0} failed
                       </p>
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          run.status === 'completed' 
-                            ? 'bg-primary/10 text-primary'
-                            : run.status === 'running'
-                            ? 'bg-blue-500/10 text-blue-500'
-                            : 'bg-yellow-500/10 text-yellow-500'
+                          run.status === "completed"
+                            ? "bg-primary/10 text-primary"
+                            : run.status === "running"
+                              ? "bg-blue-500/10 text-blue-500"
+                              : "bg-yellow-500/10 text-yellow-500"
                         }`}
                       >
                         {run.status}
                       </span>
                     </div>
-                  )
+                  );
                 })}
               </div>
             ) : (
               <div className="p-8 text-center text-muted-foreground">
                 <p className="text-sm">No recent evaluation runs</p>
-                <Link href="/evaluations/new" className="text-sm text-primary hover:underline mt-2 inline-block">
+                <Link
+                  href="/evaluations/new"
+                  className="text-sm text-primary hover:underline mt-2 inline-block"
+                >
                   Create your first evaluation
                 </Link>
               </div>
@@ -192,5 +202,5 @@ export default async function DashboardPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

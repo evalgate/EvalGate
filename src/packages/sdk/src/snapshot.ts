@@ -1,16 +1,16 @@
 /**
  * Snapshot Testing System
  * Tier 4.16: Visual regression detection for LLM outputs
- * 
+ *
  * ⚠️ NOTE: This module requires Node.js and will not work in browsers.
- * 
+ *
  * @example
  * ```typescript
  * import { snapshot, loadSnapshot } from '@ai-eval-platform/sdk';
- * 
+ *
  * const output = await generateText('Write a haiku about coding');
  * await snapshot(output, 'haiku-test');
- * 
+ *
  * // Later, compare with snapshot
  * const saved = await loadSnapshot('haiku-test');
  * const matches = compareSnapshots(saved, output);
@@ -18,17 +18,17 @@
  */
 
 // Environment check
-const isNode = typeof process !== 'undefined' && process.versions?.node;
+const isNode = typeof process !== "undefined" && process.versions?.node;
 if (!isNode) {
   throw new Error(
-    'Snapshot testing requires Node.js and cannot run in browsers. ' +
-    'This feature uses the filesystem for storing snapshots.'
+    "Snapshot testing requires Node.js and cannot run in browsers. " +
+      "This feature uses the filesystem for storing snapshots.",
   );
 }
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as crypto from 'crypto';
+import * as crypto from "node:crypto";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 export interface SnapshotMetadata {
   /** Snapshot name/ID */
@@ -69,7 +69,7 @@ export interface SnapshotComparison {
 export class SnapshotManager {
   private snapshotDir: string;
 
-  constructor(snapshotDir: string = './.snapshots') {
+  constructor(snapshotDir: string = "./.snapshots") {
     this.snapshotDir = snapshotDir;
     this.ensureSnapshotDir();
   }
@@ -89,29 +89,29 @@ export class SnapshotManager {
   private getSnapshotPath(name: string): string {
     // Security: prevent empty names
     if (!name || name.trim().length === 0) {
-      throw new Error('Snapshot name cannot be empty');
+      throw new Error("Snapshot name cannot be empty");
     }
 
     // Security: prevent path traversal
-    if (name.includes('..') || name.includes('/') || name.includes('\\')) {
+    if (name.includes("..") || name.includes("/") || name.includes("\\")) {
       throw new Error('Snapshot name cannot contain path separators or ".."');
     }
 
     // Sanitize to alphanumeric, hyphens, and underscores
-    const sanitized = name.replace(/[^a-zA-Z0-9-_]/g, '-');
-    
+    const sanitized = name.replace(/[^a-zA-Z0-9-_]/g, "-");
+
     // Security: ensure sanitized name is not empty
     if (sanitized.length === 0) {
-      throw new Error('Snapshot name must contain at least one alphanumeric character');
+      throw new Error("Snapshot name must contain at least one alphanumeric character");
     }
 
     // Security: prevent absolute paths
     const filePath = path.join(this.snapshotDir, `${sanitized}.json`);
     const resolvedPath = path.resolve(filePath);
     const resolvedDir = path.resolve(this.snapshotDir);
-    
+
     if (!resolvedPath.startsWith(resolvedDir)) {
-      throw new Error('Invalid snapshot path: path traversal detected');
+      throw new Error("Invalid snapshot path: path traversal detected");
     }
 
     return filePath;
@@ -121,12 +121,12 @@ export class SnapshotManager {
    * Generate content hash
    */
   private generateHash(content: string): string {
-    return crypto.createHash('sha256').update(content).digest('hex');
+    return crypto.createHash("sha256").update(content).digest("hex");
   }
 
   /**
    * Save a snapshot
-   * 
+   *
    * @example
    * ```typescript
    * const manager = new SnapshotManager();
@@ -140,10 +140,10 @@ export class SnapshotManager {
       tags?: string[];
       metadata?: Record<string, any>;
       overwrite?: boolean;
-    }
+    },
   ): Promise<SnapshotData> {
     const filePath = this.getSnapshotPath(name);
-    
+
     // Check if snapshot exists
     if (!options?.overwrite && fs.existsSync(filePath)) {
       throw new Error(`Snapshot '${name}' already exists. Use overwrite: true to update.`);
@@ -156,8 +156,8 @@ export class SnapshotManager {
         createdAt: new Date().toISOString(),
         hash: this.generateHash(output),
         tags: options?.tags,
-        metadata: options?.metadata
-      }
+        metadata: options?.metadata,
+      },
     };
 
     fs.writeFileSync(filePath, JSON.stringify(snapshotData, null, 2));
@@ -166,7 +166,7 @@ export class SnapshotManager {
 
   /**
    * Load a snapshot
-   * 
+   *
    * @example
    * ```typescript
    * const snapshot = await manager.load('haiku-test');
@@ -175,18 +175,18 @@ export class SnapshotManager {
    */
   async load(name: string): Promise<SnapshotData> {
     const filePath = this.getSnapshotPath(name);
-    
+
     if (!fs.existsSync(filePath)) {
       throw new Error(`Snapshot '${name}' not found`);
     }
 
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, "utf-8");
     return JSON.parse(content) as SnapshotData;
   }
 
   /**
    * Compare current output with saved snapshot
-   * 
+   *
    * @example
    * ```typescript
    * const comparison = await manager.compare('haiku-test', currentOutput);
@@ -203,17 +203,17 @@ export class SnapshotManager {
     const exactMatch = original === currentOutput;
 
     // Calculate similarity (simple line-based diff)
-    const originalLines = original.split('\n');
-    const currentLines = currentOutput.split('\n');
-    
+    const originalLines = original.split("\n");
+    const currentLines = currentOutput.split("\n");
+
     const differences: string[] = [];
     const maxLines = Math.max(originalLines.length, currentLines.length);
     let matchingLines = 0;
 
     for (let i = 0; i < maxLines; i++) {
-      const origLine = originalLines[i] || '';
-      const currLine = currentLines[i] || '';
-      
+      const origLine = originalLines[i] || "";
+      const currLine = currentLines[i] || "";
+
       if (origLine === currLine) {
         matchingLines++;
       } else {
@@ -228,13 +228,13 @@ export class SnapshotManager {
       similarity,
       differences,
       original,
-      current: currentOutput
+      current: currentOutput,
     };
   }
 
   /**
    * List all snapshots
-   * 
+   *
    * @example
    * ```typescript
    * const snapshots = await manager.list();
@@ -246,8 +246,8 @@ export class SnapshotManager {
     const snapshots: SnapshotData[] = [];
 
     for (const file of files) {
-      if (file.endsWith('.json')) {
-        const content = fs.readFileSync(path.join(this.snapshotDir, file), 'utf-8');
+      if (file.endsWith(".json")) {
+        const content = fs.readFileSync(path.join(this.snapshotDir, file), "utf-8");
         snapshots.push(JSON.parse(content));
       }
     }
@@ -257,7 +257,7 @@ export class SnapshotManager {
 
   /**
    * Delete a snapshot
-   * 
+   *
    * @example
    * ```typescript
    * await manager.delete('old-test');
@@ -265,7 +265,7 @@ export class SnapshotManager {
    */
   async delete(name: string): Promise<void> {
     const filePath = this.getSnapshotPath(name);
-    
+
     if (!fs.existsSync(filePath)) {
       throw new Error(`Snapshot '${name}' not found`);
     }
@@ -275,7 +275,7 @@ export class SnapshotManager {
 
   /**
    * Update a snapshot with new output
-   * 
+   *
    * @example
    * ```typescript
    * await manager.update('haiku-test', newOutput);
@@ -286,7 +286,7 @@ export class SnapshotManager {
     return this.save(name, output, {
       tags: existing.metadata.tags,
       metadata: existing.metadata.metadata,
-      overwrite: true
+      overwrite: true,
     });
   }
 }
@@ -306,7 +306,7 @@ function getSnapshotManager(dir?: string): SnapshotManager {
 
 /**
  * Save a snapshot (convenience function)
- * 
+ *
  * @example
  * ```typescript
  * const output = await generateText('Write a haiku');
@@ -321,7 +321,7 @@ export async function snapshot(
     metadata?: Record<string, any>;
     overwrite?: boolean;
     dir?: string;
-  }
+  },
 ): Promise<SnapshotData> {
   const manager = getSnapshotManager(options?.dir);
   return manager.save(name, output, options);
@@ -329,7 +329,7 @@ export async function snapshot(
 
 /**
  * Load a snapshot (convenience function)
- * 
+ *
  * @example
  * ```typescript
  * const saved = await loadSnapshot('haiku-test');
@@ -343,7 +343,7 @@ export async function loadSnapshot(name: string, dir?: string): Promise<Snapshot
 
 /**
  * Compare with snapshot (convenience function)
- * 
+ *
  * @example
  * ```typescript
  * const comparison = await compareWithSnapshot('haiku-test', currentOutput);
@@ -355,7 +355,7 @@ export async function loadSnapshot(name: string, dir?: string): Promise<Snapshot
 export async function compareWithSnapshot(
   name: string,
   currentOutput: string,
-  dir?: string
+  dir?: string,
 ): Promise<SnapshotComparison> {
   const manager = getSnapshotManager(dir);
   return manager.compare(name, currentOutput);

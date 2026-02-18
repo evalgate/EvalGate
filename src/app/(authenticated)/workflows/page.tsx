@@ -1,35 +1,26 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import Link from "next/link"
-import { 
-  Search, 
-  Workflow, 
-  Clock, 
-  Plus, 
-  Code, 
-  Sparkles, 
-  Copy, 
-  Check,
-  Bot,
-  DollarSign,
-  Activity,
-  ArrowRight,
-  ChevronRight,
-  Wrench,
-  GitBranch
-} from "lucide-react"
-import { useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
-import { WorkflowDAGMini } from "@/components/workflow-dag"
+import { Activity, Check, Clock, Code, Copy, Plus, Search, Sparkles, Workflow } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WorkflowDAGMini } from "@/components/workflow-dag";
+import { useSession } from "@/lib/auth-client";
 
 // SDK Integration examples
 const WORKFLOW_EXAMPLES = {
@@ -55,7 +46,7 @@ await tracer.recordHandoff('RouterAgent', 'TechnicalAgent', { context });
 await tracer.endAgentSpan(span, { result: 'delegated' });
 
 // End workflow
-await tracer.endWorkflow({ resolution: 'resolved' });`
+await tracer.endWorkflow({ resolution: 'resolved' });`,
   },
   langchain: {
     name: "LangChain Agent",
@@ -77,7 +68,7 @@ const result = await tracedExecutor.invoke({
   input: "What are the latest trends in AI?"
 });
 
-await tracer.endWorkflow({ result });`
+await tracer.endWorkflow({ result });`,
   },
   multiagent: {
     name: "Multi-Agent",
@@ -106,35 +97,35 @@ for (const agent of ['CodeReviewer', 'SecurityScanner', 'PRMerger']) {
   await tracer.recordHandoff(agent, nextAgent);
 }
 
-await tracer.endWorkflow();`
-  }
-}
+await tracer.endWorkflow();`,
+  },
+};
 
 interface Workflow {
-  id: number
-  name: string
-  description: string | null
-  status: 'draft' | 'active' | 'archived'
-  definition: any
-  createdAt: string
-  updatedAt: string
+  id: number;
+  name: string;
+  description: string | null;
+  status: "draft" | "active" | "archived";
+  definition: any;
+  createdAt: string;
+  updatedAt: string;
   _count?: {
-    runs: number
-    completedRuns: number
-    failedRuns: number
-  }
+    runs: number;
+    completedRuns: number;
+    failedRuns: number;
+  };
 }
 
 export default function WorkflowsPage() {
-  const { data: session, isPending } = useSession()
-  const router = useRouter()
-  const [workflows, setWorkflows] = useState<Workflow[]>([])
-  const [filteredWorkflows, setFilteredWorkflows] = useState<Workflow[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [showGuide, setShowGuide] = useState(false)
-  const [copiedExample, setCopiedExample] = useState<string | null>(null)
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [filteredWorkflows, setFilteredWorkflows] = useState<Workflow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showGuide, setShowGuide] = useState(false);
+  const [copiedExample, setCopiedExample] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -182,63 +173,64 @@ export default function WorkflowsPage() {
           updatedAt: new Date().toISOString(),
           _count: { runs: 89, completedRuns: 85, failedRuns: 4 },
         },
-      ])
-      setFilteredWorkflows([])
-      setIsLoading(false)
-      return
+      ]);
+      setFilteredWorkflows([]);
+      setIsLoading(false);
+      return;
     }
 
     if (session?.user) {
-      const token = localStorage.getItem("bearer_token")
+      const token = localStorage.getItem("bearer_token");
       fetch("/api/workflows?limit=50", {
         headers: { Authorization: `Bearer ${token}` },
       })
-        .then(res => res.json().then(data => ({ res, data })))
+        .then((res) => res.json().then((data) => ({ res, data })))
         .then(({ res, data }) => {
           if (res.status === 403 && data?.code === "NO_ORG_MEMBERSHIP") {
-            router.push("/onboarding")
-            return
+            router.push("/onboarding");
+            return;
           }
-          setWorkflows(Array.isArray(data) ? data : [])
-          setFilteredWorkflows(Array.isArray(data) ? data : [])
-          setIsLoading(false)
+          setWorkflows(Array.isArray(data) ? data : []);
+          setFilteredWorkflows(Array.isArray(data) ? data : []);
+          setIsLoading(false);
         })
         .catch(() => {
-          setIsLoading(false)
-        })
+          setIsLoading(false);
+        });
     }
-  }, [session, isPending, router])
+  }, [session, isPending, router]);
 
   // Filter workflows
   useEffect(() => {
-    let filtered = workflows
+    let filtered = workflows;
 
     if (searchQuery) {
-      filtered = filtered.filter(w =>
-        w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        w.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      filtered = filtered.filter(
+        (w) =>
+          w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          w.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
     }
 
     if (statusFilter !== "all") {
-      filtered = filtered.filter(w => w.status === statusFilter)
+      filtered = filtered.filter((w) => w.status === statusFilter);
     }
 
-    setFilteredWorkflows(filtered)
-  }, [searchQuery, statusFilter, workflows])
+    setFilteredWorkflows(filtered);
+  }, [searchQuery, statusFilter, workflows]);
 
   const copyToClipboard = (code: string, exampleName: string) => {
-    navigator.clipboard.writeText(code)
-    setCopiedExample(exampleName)
-    toast.success("Code copied to clipboard!")
-    setTimeout(() => setCopiedExample(null), 2000)
-  }
+    navigator.clipboard.writeText(code);
+    setCopiedExample(exampleName);
+    toast.success("Code copied to clipboard!");
+    setTimeout(() => setCopiedExample(null), 2000);
+  };
 
   if (isPending) {
-    return null
+    return null;
   }
 
-  const isDemo = !session?.user
+  const isDemo = !session?.user;
 
   return (
     <div className="space-y-4 sm:space-y-6 w-full">
@@ -388,8 +380,8 @@ export default function WorkflowsPage() {
                         workflow.status === "active"
                           ? "default"
                           : workflow.status === "draft"
-                          ? "secondary"
-                          : "outline"
+                            ? "secondary"
+                            : "outline"
                       }
                     >
                       {workflow.status}
@@ -420,7 +412,7 @@ export default function WorkflowsPage() {
                           <span>
                             {workflow._count.runs > 0
                               ? Math.round(
-                                  (workflow._count.completedRuns / workflow._count.runs) * 100
+                                  (workflow._count.completedRuns / workflow._count.runs) * 100,
                                 )
                               : 0}
                             %
@@ -450,8 +442,8 @@ export default function WorkflowsPage() {
               variant="outline"
               size="sm"
               onClick={() => {
-                setSearchQuery("")
-                setStatusFilter("all")
+                setSearchQuery("");
+                setStatusFilter("all");
               }}
             >
               Clear filters
@@ -466,7 +458,8 @@ export default function WorkflowsPage() {
             </div>
             <h3 className="text-lg font-semibold mb-2">No workflows yet</h3>
             <p className="text-sm text-muted-foreground text-center mb-6 max-w-md">
-              Create multi-agent workflows to track agent handoffs, decisions, and costs across complex AI pipelines.
+              Create multi-agent workflows to track agent handoffs, decisions, and costs across
+              complex AI pipelines.
             </p>
             <div className="flex gap-3">
               <Button onClick={() => setShowGuide(true)} variant="outline">
@@ -486,5 +479,5 @@ export default function WorkflowsPage() {
         </Card>
       )}
     </div>
-  )
+  );
 }

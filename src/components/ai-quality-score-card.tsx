@@ -3,14 +3,14 @@
  * Displays AI model quality metrics in a visual dashboard
  */
 
-'use client';
+"use client";
 
-import { QualityScore } from '@/lib/ai-quality-score';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Share2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AlertCircle, CheckCircle2, Share2, TrendingDown, TrendingUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import type { QualityScore } from "@/lib/ai-quality-score";
 
 interface AIQualityScoreCardProps {
   score: QualityScore;
@@ -20,23 +20,23 @@ interface AIQualityScoreCardProps {
 
 export function AIQualityScoreCard({ score, showShare = false, onShare }: AIQualityScoreCardProps) {
   const getGradeColor = (grade: string) => {
-    if (grade.startsWith('A')) return 'text-green-600 dark:text-green-400';
-    if (grade.startsWith('B')) return 'text-blue-600 dark:text-blue-400';
-    if (grade.startsWith('C')) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
+    if (grade.startsWith("A")) return "text-green-600 dark:text-green-400";
+    if (grade.startsWith("B")) return "text-blue-600 dark:text-blue-400";
+    if (grade.startsWith("C")) return "text-yellow-600 dark:text-yellow-400";
+    return "text-red-600 dark:text-red-400";
   };
 
-  const getScoreColor = (value: number) => {
-    if (value >= 90) return 'bg-green-500';
-    if (value >= 70) return 'bg-blue-500';
-    if (value >= 50) return 'bg-yellow-500';
-    return 'bg-red-500';
+  const _getScoreColor = (value: number) => {
+    if (value >= 90) return "bg-green-500";
+    if (value >= 70) return "bg-blue-500";
+    if (value >= 50) return "bg-yellow-500";
+    return "bg-red-500";
   };
 
   const getTrendColor = (trend: number) => {
-    if (trend > 0) return 'text-green-600 dark:text-green-400';
-    if (trend < 0) return 'text-red-600 dark:text-red-400';
-    return 'text-gray-600 dark:text-gray-400';
+    if (trend > 0) return "text-green-600 dark:text-green-400";
+    if (trend < 0) return "text-red-600 dark:text-red-400";
+    return "text-gray-600 dark:text-gray-400";
   };
 
   return (
@@ -60,9 +60,7 @@ export function AIQualityScoreCard({ score, showShare = false, onShare }: AIQual
         <div className="flex items-center justify-between p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg">
           <div>
             <div className="text-6xl font-bold">{score.overall}</div>
-            <div className={`text-3xl font-bold ${getGradeColor(score.grade)}`}>
-              {score.grade}
-            </div>
+            <div className={`text-3xl font-bold ${getGradeColor(score.grade)}`}>{score.grade}</div>
           </div>
           {score.trend !== 0 && (
             <div className={`flex items-center gap-2 ${getTrendColor(score.trend)}`}>
@@ -72,7 +70,8 @@ export function AIQualityScoreCard({ score, showShare = false, onShare }: AIQual
                 <TrendingDown className="h-8 w-8" />
               )}
               <span className="text-2xl font-semibold">
-                {score.trend > 0 ? '+' : ''}{score.trend}%
+                {score.trend > 0 ? "+" : ""}
+                {score.trend}%
               </span>
             </div>
           )}
@@ -81,7 +80,7 @@ export function AIQualityScoreCard({ score, showShare = false, onShare }: AIQual
         {/* Metric Breakdown */}
         <div className="space-y-4">
           <h3 className="font-semibold text-lg">Performance Metrics</h3>
-          
+
           <div className="space-y-3">
             <MetricRow
               label="Accuracy"
@@ -126,8 +125,10 @@ export function AIQualityScoreCard({ score, showShare = false, onShare }: AIQual
             <div className="space-y-2">
               {score.insights.map((insight, i) => (
                 <div key={i} className="flex items-start gap-2 text-sm">
-                  <span className="text-lg">{insight.split(' ')[0]}</span>
-                  <span className="text-muted-foreground">{insight.split(' ').slice(1).join(' ')}</span>
+                  <span className="text-lg">{insight.split(" ")[0]}</span>
+                  <span className="text-muted-foreground">
+                    {insight.split(" ").slice(1).join(" ")}
+                  </span>
                 </div>
               ))}
             </div>
@@ -156,22 +157,22 @@ export function AIQualityScoreCard({ score, showShare = false, onShare }: AIQual
   );
 }
 
-function MetricRow({ 
-  label, 
-  value, 
-  icon, 
-  description 
-}: { 
-  label: string; 
-  value: number; 
+function MetricRow({
+  label,
+  value,
+  icon,
+  description,
+}: {
+  label: string;
+  value: number;
   icon: string;
   description: string;
 }) {
   const getColor = (val: number) => {
-    if (val >= 90) return 'bg-green-500';
-    if (val >= 70) return 'bg-blue-500';
-    if (val >= 50) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (val >= 90) return "bg-green-500";
+    if (val >= 70) return "bg-blue-500";
+    if (val >= 50) return "bg-yellow-500";
+    return "bg-red-500";
   };
 
   return (
@@ -192,4 +193,3 @@ function MetricRow({
     </div>
   );
 }
-

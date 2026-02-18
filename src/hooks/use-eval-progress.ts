@@ -1,7 +1,7 @@
 // src/hooks/use-eval-progress.ts
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
 interface ProgressData {
   runId: number;
@@ -38,7 +38,7 @@ interface UseEvalProgressOptions {
 export function useEvalProgress(
   evaluationId: number,
   runId: number,
-  options: UseEvalProgressOptions = {}
+  options: UseEvalProgressOptions = {},
 ) {
   const { refreshInterval = 1000, onError, onSuccess } = options;
   const [data, setData] = useState<ProgressData | null>(null);
@@ -48,15 +48,15 @@ export function useEvalProgress(
   const fetchProgress = useCallback(async () => {
     try {
       const response = await fetch(`/api/evaluations/${evaluationId}/runs/${runId}/progress`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch progress');
+        throw new Error(errorData.error || "Failed to fetch progress");
       }
 
       const progressData = await response.json();
@@ -90,17 +90,17 @@ export function useEvalProgress(
   /**
    * Check if evaluation is complete
    */
-  const isComplete = data?.status === 'completed' || data?.status === 'completed_with_failures';
+  const isComplete = data?.status === "completed" || data?.status === "completed_with_failures";
 
   /**
    * Check if evaluation is running
    */
-  const isRunning = data?.status === 'running';
+  const isRunning = data?.status === "running";
 
   /**
    * Check if evaluation failed
    */
-  const hasFailed = data?.status === 'failed' || data?.status === 'cancelled';
+  const hasFailed = data?.status === "failed" || data?.status === "cancelled";
 
   /**
    * Get progress percentage
@@ -111,8 +111,8 @@ export function useEvalProgress(
    * Get formatted status text
    */
   const statusText = data?.status
-    ? data.status.replace(/_/g, ' ').replace(/\b\w/g, (char: string) => char.toUpperCase())
-    : 'Unknown';
+    ? data.status.replace(/_/g, " ").replace(/\b\w/g, (char: string) => char.toUpperCase())
+    : "Unknown";
 
   /**
    * Get formatted time remaining
@@ -134,7 +134,7 @@ export function useEvalProgress(
     progress,
     statusText,
     timeRemaining,
-    lastMessage: data?.heartbeat?.lastMessage || '',
+    lastMessage: data?.heartbeat?.lastMessage || "",
     heartbeatCount: data?.heartbeat?.count || 0,
   };
 }
@@ -145,7 +145,7 @@ export function useEvalProgress(
  */
 export function useMultiEvalProgress(
   evaluationRuns: Array<{ evaluationId: number; runId: number }>,
-  options: UseEvalProgressOptions = {}
+  options: UseEvalProgressOptions = {},
 ) {
   const { refreshInterval = 1000, onError, onSuccess } = options;
   const [data, setData] = useState<ProgressData[]>([]);
@@ -157,19 +157,19 @@ export function useMultiEvalProgress(
       const responses = await Promise.all(
         evaluationRuns.map(async ({ evaluationId, runId }) => {
           const response = await fetch(`/api/evaluations/${evaluationId}/runs/${runId}/progress`, {
-            method: 'GET',
+            method: "GET",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
           });
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to fetch progress');
+            throw new Error(errorData.error || "Failed to fetch progress");
           }
 
           return response.json();
-        })
+        }),
       );
 
       setData(responses as ProgressData[]);
@@ -208,9 +208,9 @@ export function useMultiEvalProgress(
       ...progress,
       evaluationId: evaluationRuns[index].evaluationId,
       runId: evaluationRuns[index].runId,
-      isComplete: progress.status === 'completed' || progress.status === 'completed_with_failures',
-      isRunning: progress.status === 'running',
-      hasFailed: progress.status === 'failed' || progress.status === 'cancelled',
+      isComplete: progress.status === "completed" || progress.status === "completed_with_failures",
+      isRunning: progress.status === "running",
+      hasFailed: progress.status === "failed" || progress.status === "cancelled",
       progress: progress.percentage || 0,
     })),
   };
@@ -223,30 +223,34 @@ export function useMultiEvalProgress(
 export function useEvalCompletion(
   evaluationId: number,
   runId: number,
-  options: UseEvalProgressOptions = {}
+  _options: UseEvalProgressOptions = {},
 ): Promise<ProgressData> {
   return new Promise((resolve, reject) => {
     const checkCompletion = async () => {
       try {
         const response = await fetch(`/api/evaluations/${evaluationId}/runs/${runId}/progress`, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          reject(new Error(errorData.error || 'Failed to fetch progress'));
+          reject(new Error(errorData.error || "Failed to fetch progress"));
           return;
         }
 
         const newData: ProgressData = await response.json();
 
-        if (newData.status === 'completed' || newData.status === 'completed_with_failures') {
+        if (newData.status === "completed" || newData.status === "completed_with_failures") {
           resolve(newData);
-        } else if (newData.status === 'failed' || newData.status === 'cancelled') {
-          reject(new Error(`Evaluation failed: ${newData.status.replace(/_/g, ' ').replace(/\b\w/g, (char: string) => char.toUpperCase())}`));
+        } else if (newData.status === "failed" || newData.status === "cancelled") {
+          reject(
+            new Error(
+              `Evaluation failed: ${newData.status.replace(/_/g, " ").replace(/\b\w/g, (char: string) => char.toUpperCase())}`,
+            ),
+          );
         } else {
           // Continue polling
           setTimeout(checkCompletion, 1000);

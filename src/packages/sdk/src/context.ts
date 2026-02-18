@@ -1,16 +1,16 @@
 /**
  * Context Propagation System
  * Tier 2.9: Automatic metadata injection
- * 
+ *
  * NOTE: In Node.js, uses AsyncLocalStorage for true async context propagation.
  * In browsers, uses a simpler stack-based approach (not safe across async boundaries).
- * 
+ *
  * @example
  * ```typescript
  * import { createContext } from '@ai-eval-platform/sdk';
- * 
+ *
  * const context = createContext({ userId: '123', sessionId: 'abc' });
- * 
+ *
  * await context.run(async () => {
  *   // All SDK calls inherit the context
  *   await client.traces.create({ name: 'test' });
@@ -27,9 +27,8 @@ export interface ContextMetadata {
 }
 
 // Detect environment
-const isNode = typeof process !== 'undefined' && 
-               process.versions?.node && 
-               typeof require !== 'undefined';
+const isNode =
+  typeof process !== "undefined" && process.versions?.node && typeof require !== "undefined";
 
 // Browser fallback: simple context stack
 class BrowserContextStorage {
@@ -58,10 +57,10 @@ let contextStorage: any;
 if (isNode) {
   try {
     // Dynamic import for Node.js only
-    const { AsyncLocalStorage } = require('async_hooks');
+    const { AsyncLocalStorage } = require("node:async_hooks");
     // Create without type argument due to require() being untyped
     contextStorage = new AsyncLocalStorage();
-  } catch (error) {
+  } catch (_error) {
     // Fallback if async_hooks is not available
     contextStorage = new BrowserContextStorage();
   }
@@ -78,11 +77,11 @@ export class EvalContext {
 
   /**
    * Run a function with this context
-   * 
+   *
    * @example
    * ```typescript
    * const context = new EvalContext({ userId: '123' });
-   * 
+   *
    * await context.run(async () => {
    *   // All operations inherit context
    *   await client.traces.create({ name: 'test' });
@@ -117,15 +116,15 @@ export class EvalContext {
 
 /**
  * Create a new context with metadata
- * 
+ *
  * @example
  * ```typescript
- * const context = createContext({ 
- *   userId: '123', 
+ * const context = createContext({
+ *   userId: '123',
  *   sessionId: 'abc',
  *   environment: 'production'
  * });
- * 
+ *
  * await context.run(async () => {
  *   // All SDK operations inherit context
  * });
@@ -137,7 +136,7 @@ export function createContext(metadata: ContextMetadata): EvalContext {
 
 /**
  * Get the current context metadata (if any)
- * 
+ *
  * @example
  * ```typescript
  * const metadata = getCurrentContext();
@@ -153,7 +152,7 @@ export function getCurrentContext(): ContextMetadata | undefined {
 /**
  * Merge current context with additional metadata
  * Returns combined metadata for use in API calls
- * 
+ *
  * @example
  * ```typescript
  * const params = {
@@ -170,7 +169,7 @@ export function mergeWithContext(metadata?: Record<string, any>): Record<string,
 
 /**
  * Run with nested context (merges parent context)
- * 
+ *
  * @example
  * ```typescript
  * await withContext({ userId: '123' }, async () => {
@@ -182,10 +181,7 @@ export function mergeWithContext(metadata?: Record<string, any>): Record<string,
  * });
  * ```
  */
-export async function withContext<T>(
-  metadata: ContextMetadata,
-  fn: () => Promise<T>
-): Promise<T> {
+export async function withContext<T>(metadata: ContextMetadata, fn: () => Promise<T>): Promise<T> {
   const current = getCurrentContext() || {};
   const merged = { ...current, ...metadata };
   return contextStorage.run(merged, fn);
@@ -194,10 +190,7 @@ export async function withContext<T>(
 /**
  * Run with nested context (synchronous)
  */
-export function withContextSync<T>(
-  metadata: ContextMetadata,
-  fn: () => T
-): T {
+export function withContextSync<T>(metadata: ContextMetadata, fn: () => T): T {
   const current = getCurrentContext() || {};
   const merged = { ...current, ...metadata };
   return contextStorage.run(merged, fn);
@@ -205,7 +198,7 @@ export function withContextSync<T>(
 
 /**
  * Decorator for automatic context injection (for class methods)
- * 
+ *
  * @example
  * ```typescript
  * class MyService {
@@ -217,11 +210,7 @@ export function withContextSync<T>(
  * ```
  */
 export function WithContext(metadata: ContextMetadata) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+  return (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {

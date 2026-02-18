@@ -1,7 +1,7 @@
+import { Autumn as autumn } from "autumn-js";
 import { NextResponse } from "next/server";
+import { internalError, unauthorized } from "@/lib/api/errors";
 import { auth } from "@/lib/auth";
-import { unauthorized, internalError } from "@/lib/api/errors";
-import { Autumn as autumn, type AutumnError } from "autumn-js";
 
 type BillingPortalResult = {
   url: string;
@@ -26,16 +26,16 @@ export async function POST(request: Request) {
       return_url: returnUrl || undefined,
     });
 
-    if ('error' in result) {
-      console.error('Billing portal error:', result.error?.message || 'Unknown error');
-      return internalError('Failed to generate billing portal URL');
+    if ("error" in result) {
+      console.error("Billing portal error:", result.error?.message || "Unknown error");
+      return internalError("Failed to generate billing portal URL");
     }
 
     const { url } = result;
 
     return NextResponse.json({ url }, { status: 200 });
   } catch (err: unknown) {
-    console.error('Billing portal error:', err);
-    return internalError('Failed to generate billing portal URL');
+    console.error("Billing portal error:", err);
+    return internalError("Failed to generate billing portal URL");
   }
 }

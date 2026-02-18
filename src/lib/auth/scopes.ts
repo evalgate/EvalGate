@@ -7,15 +7,15 @@
  */
 
 export const SCOPES = {
-  EVAL_READ: 'eval:read',
-  EVAL_WRITE: 'eval:write',
-  RUNS_READ: 'runs:read',
-  RUNS_WRITE: 'runs:write',
-  TRACES_READ: 'traces:read',
-  TRACES_WRITE: 'traces:write',
-  REPORTS_WRITE: 'reports:write',
-  ADMIN_KEYS: 'admin:keys',
-  ADMIN_ORG: 'admin:org',
+  EVAL_READ: "eval:read",
+  EVAL_WRITE: "eval:write",
+  RUNS_READ: "runs:read",
+  RUNS_WRITE: "runs:write",
+  TRACES_READ: "traces:read",
+  TRACES_WRITE: "traces:write",
+  REPORTS_WRITE: "reports:write",
+  ADMIN_KEYS: "admin:keys",
+  ADMIN_ORG: "admin:org",
 } as const;
 
 export type Scope = (typeof SCOPES)[keyof typeof SCOPES];
@@ -25,7 +25,7 @@ export const ALL_SCOPES: readonly string[] = Object.values(SCOPES);
 
 // Re-export the Role type from secure-route to keep a single source of truth.
 // The actual Role type + ranking live in secure-route.ts (P0.4b).
-import type { Role } from '@/lib/api/secure-route';
+import type { Role } from "@/lib/api/secure-route";
 
 /**
  * Derive the set of scopes a session user holds based on their org role.
@@ -34,7 +34,7 @@ import type { Role } from '@/lib/api/secure-route';
  */
 export function scopesForRole(role: Role): string[] {
   switch (role) {
-    case 'owner':
+    case "owner":
       return [
         SCOPES.EVAL_READ,
         SCOPES.EVAL_WRITE,
@@ -46,7 +46,7 @@ export function scopesForRole(role: Role): string[] {
         SCOPES.ADMIN_KEYS,
         SCOPES.ADMIN_ORG,
       ];
-    case 'admin':
+    case "admin":
       return [
         SCOPES.EVAL_READ,
         SCOPES.EVAL_WRITE,
@@ -57,7 +57,7 @@ export function scopesForRole(role: Role): string[] {
         SCOPES.REPORTS_WRITE,
         SCOPES.ADMIN_KEYS,
       ];
-    case 'member':
+    case "member":
       return [
         SCOPES.EVAL_READ,
         SCOPES.EVAL_WRITE,
@@ -67,12 +67,7 @@ export function scopesForRole(role: Role): string[] {
         SCOPES.TRACES_WRITE,
         SCOPES.REPORTS_WRITE,
       ];
-    case 'viewer':
     default:
-      return [
-        SCOPES.EVAL_READ,
-        SCOPES.RUNS_READ,
-        SCOPES.TRACES_READ,
-      ];
+      return [SCOPES.EVAL_READ, SCOPES.RUNS_READ, SCOPES.TRACES_READ];
   }
 }

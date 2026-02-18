@@ -1,65 +1,56 @@
-"use client"
+"use client";
 
-import * as React from 'react'
-import { cn } from '@/lib/utils'
 import {
-  ChevronRight,
-  ChevronDown,
-  Bot,
-  GitBranch,
-  Check,
-  X,
   AlertTriangle,
+  Bot,
+  Check,
+  ChevronDown,
+  ChevronRight,
   Clock,
+  GitBranch,
   Lightbulb,
-  Target
-} from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+  Target,
+  X,
+} from "lucide-react";
+import * as React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
 export interface DecisionAlternative {
-  action: string
-  confidence: number
-  reasoning?: string
-  rejectedReason?: string
+  action: string;
+  confidence: number;
+  reasoning?: string;
+  rejectedReason?: string;
 }
 
 export interface Decision {
-  id: number
-  agentName: string
-  decisionType: 'action' | 'tool' | 'delegate' | 'respond' | 'route'
-  chosen: string
-  alternatives: DecisionAlternative[]
-  reasoning?: string
-  confidence?: number
-  inputContext?: Record<string, any>
-  timestamp?: string
-  spanName?: string
+  id: number;
+  agentName: string;
+  decisionType: "action" | "tool" | "delegate" | "respond" | "route";
+  chosen: string;
+  alternatives: DecisionAlternative[];
+  reasoning?: string;
+  confidence?: number;
+  inputContext?: Record<string, any>;
+  timestamp?: string;
+  spanName?: string;
 }
 
 export interface DecisionTreeProps {
-  decisions: Decision[]
-  className?: string
-  onDecisionClick?: (decision: Decision) => void
-  selectedDecisionId?: number
-  showAlternatives?: boolean
-  expandAll?: boolean
+  decisions: Decision[];
+  className?: string;
+  onDecisionClick?: (decision: Decision) => void;
+  selectedDecisionId?: number;
+  showAlternatives?: boolean;
+  expandAll?: boolean;
 }
 
 // ============================================================================
@@ -67,29 +58,29 @@ export interface DecisionTreeProps {
 // ============================================================================
 
 function getConfidenceColor(confidence: number): string {
-  if (confidence >= 80) return 'text-green-500'
-  if (confidence >= 50) return 'text-amber-500'
-  return 'text-red-500'
+  if (confidence >= 80) return "text-green-500";
+  if (confidence >= 50) return "text-amber-500";
+  return "text-red-500";
 }
 
 function getConfidenceBgColor(confidence: number): string {
-  if (confidence >= 80) return 'bg-green-500/10'
-  if (confidence >= 50) return 'bg-amber-500/10'
-  return 'bg-red-500/10'
+  if (confidence >= 80) return "bg-green-500/10";
+  if (confidence >= 50) return "bg-amber-500/10";
+  return "bg-red-500/10";
 }
 
-function getDecisionTypeIcon(type: Decision['decisionType']) {
+function getDecisionTypeIcon(type: Decision["decisionType"]) {
   switch (type) {
-    case 'tool':
-      return <Target className="h-4 w-4" />
-    case 'delegate':
-      return <Bot className="h-4 w-4" />
-    case 'route':
-      return <GitBranch className="h-4 w-4" />
-    case 'respond':
-      return <Lightbulb className="h-4 w-4" />
+    case "tool":
+      return <Target className="h-4 w-4" />;
+    case "delegate":
+      return <Bot className="h-4 w-4" />;
+    case "route":
+      return <GitBranch className="h-4 w-4" />;
+    case "respond":
+      return <Lightbulb className="h-4 w-4" />;
     default:
-      return <Check className="h-4 w-4" />
+      return <Check className="h-4 w-4" />;
   }
 }
 
@@ -104,21 +95,21 @@ function DecisionNode({
   showAlternatives = true,
   defaultExpanded = false,
 }: {
-  decision: Decision
-  isSelected?: boolean
-  onClick?: () => void
-  showAlternatives?: boolean
-  defaultExpanded?: boolean
+  decision: Decision;
+  isSelected?: boolean;
+  onClick?: () => void;
+  showAlternatives?: boolean;
+  defaultExpanded?: boolean;
 }) {
-  const [isOpen, setIsOpen] = React.useState(defaultExpanded)
-  const hasAlternatives = decision.alternatives && decision.alternatives.length > 0
+  const [isOpen, setIsOpen] = React.useState(defaultExpanded);
+  const hasAlternatives = decision.alternatives && decision.alternatives.length > 0;
 
   return (
     <div
       className={cn(
-        'border rounded-lg transition-all',
-        isSelected && 'border-primary ring-2 ring-primary/20',
-        onClick && 'cursor-pointer hover:border-primary/50'
+        "border rounded-lg transition-all",
+        isSelected && "border-primary ring-2 ring-primary/20",
+        onClick && "cursor-pointer hover:border-primary/50",
       )}
       onClick={onClick}
     >
@@ -127,10 +118,7 @@ function DecisionNode({
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className={cn(
-                'p-2 rounded-lg',
-                getConfidenceBgColor(decision.confidence || 0)
-              )}>
+              <div className={cn("p-2 rounded-lg", getConfidenceBgColor(decision.confidence || 0))}>
                 {getDecisionTypeIcon(decision.decisionType)}
               </div>
               <div>
@@ -154,10 +142,12 @@ function DecisionNode({
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className={cn(
-                        'flex items-center gap-1 text-sm font-medium',
-                        getConfidenceColor(decision.confidence)
-                      )}>
+                      <div
+                        className={cn(
+                          "flex items-center gap-1 text-sm font-medium",
+                          getConfidenceColor(decision.confidence),
+                        )}
+                      >
                         {decision.confidence}%
                       </div>
                     </TooltipTrigger>
@@ -167,7 +157,7 @@ function DecisionNode({
                   </Tooltip>
                 </TooltipProvider>
               )}
-              
+
               {hasAlternatives && showAlternatives && (
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -230,10 +220,9 @@ function DecisionNode({
                           </Tooltip>
                         </TooltipProvider>
                       )}
-                      <span className={cn(
-                        'text-sm font-medium',
-                        getConfidenceColor(alt.confidence)
-                      )}>
+                      <span
+                        className={cn("text-sm font-medium", getConfidenceColor(alt.confidence))}
+                      >
                         {alt.confidence}%
                       </span>
                     </div>
@@ -245,7 +234,7 @@ function DecisionNode({
         )}
       </Collapsible>
     </div>
-  )
+  );
 }
 
 // ============================================================================
@@ -262,22 +251,27 @@ export function DecisionTree({
 }: DecisionTreeProps) {
   if (!decisions || decisions.length === 0) {
     return (
-      <div className={cn('flex flex-col items-center justify-center p-8 text-muted-foreground', className)}>
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center p-8 text-muted-foreground",
+          className,
+        )}
+      >
         <GitBranch className="h-8 w-8 mb-3" />
         <p>No decisions recorded</p>
       </div>
-    )
+    );
   }
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className={cn("space-y-3", className)}>
       {decisions.map((decision, index) => (
         <div key={decision.id} className="relative">
           {/* Connector line */}
           {index < decisions.length - 1 && (
             <div className="absolute left-6 top-full h-3 w-px bg-border" />
           )}
-          
+
           <DecisionNode
             decision={decision}
             isSelected={selectedDecisionId === decision.id}
@@ -288,7 +282,7 @@ export function DecisionTree({
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 // ============================================================================
@@ -296,14 +290,11 @@ export function DecisionTree({
 // ============================================================================
 
 export interface DecisionComparisonProps {
-  decision: Decision
-  className?: string
+  decision: Decision;
+  className?: string;
 }
 
-export function DecisionComparison({
-  decision,
-  className,
-}: DecisionComparisonProps) {
+export function DecisionComparison({ decision, className }: DecisionComparisonProps) {
   const allOptions = [
     {
       action: decision.chosen,
@@ -311,16 +302,16 @@ export function DecisionComparison({
       reasoning: decision.reasoning,
       isChosen: true,
     },
-    ...(decision.alternatives || []).map(alt => ({
+    ...(decision.alternatives || []).map((alt) => ({
       ...alt,
       isChosen: false,
     })),
-  ].sort((a, b) => b.confidence - a.confidence)
+  ].sort((a, b) => b.confidence - a.confidence);
 
-  const maxConfidence = Math.max(...allOptions.map(o => o.confidence))
+  const _maxConfidence = Math.max(...allOptions.map((o) => o.confidence));
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       <div className="flex items-center gap-2 mb-4">
         <Bot className="h-5 w-5 text-primary" />
         <span className="font-medium">{decision.agentName}</span>
@@ -332,8 +323,8 @@ export function DecisionComparison({
           <div
             key={i}
             className={cn(
-              'p-4 rounded-lg border transition-all',
-              option.isChosen && 'border-primary bg-primary/5'
+              "p-4 rounded-lg border transition-all",
+              option.isChosen && "border-primary bg-primary/5",
             )}
           >
             <div className="flex items-center justify-between mb-2">
@@ -343,10 +334,7 @@ export function DecisionComparison({
                 ) : (
                   <X className="h-4 w-4 text-muted-foreground" />
                 )}
-                <span className={cn(
-                  'font-medium',
-                  option.isChosen && 'text-primary'
-                )}>
+                <span className={cn("font-medium", option.isChosen && "text-primary")}>
                   {option.action}
                 </span>
                 {option.isChosen && (
@@ -355,32 +343,22 @@ export function DecisionComparison({
                   </Badge>
                 )}
               </div>
-              <span className={cn(
-                'font-medium',
-                getConfidenceColor(option.confidence)
-              )}>
+              <span className={cn("font-medium", getConfidenceColor(option.confidence))}>
                 {option.confidence}%
               </span>
             </div>
 
             <Progress
               value={option.confidence}
-              className={cn(
-                'h-2',
-                option.isChosen && '[&>div]:bg-primary'
-              )}
+              className={cn("h-2", option.isChosen && "[&>div]:bg-primary")}
             />
 
             {option.reasoning && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                {option.reasoning}
-              </p>
+              <p className="mt-2 text-sm text-muted-foreground">{option.reasoning}</p>
             )}
 
-            {'rejectedReason' in option && option.rejectedReason && (
-              <p className="mt-2 text-sm text-amber-600">
-                Rejected: {option.rejectedReason}
-              </p>
+            {"rejectedReason" in option && option.rejectedReason && (
+              <p className="mt-2 text-sm text-amber-600">Rejected: {option.rejectedReason}</p>
             )}
           </div>
         ))}
@@ -390,17 +368,18 @@ export function DecisionComparison({
       <div className="p-4 bg-muted rounded-lg">
         <p className="text-sm">
           <span className="font-medium">Decision Summary: </span>
-          {decision.agentName} chose <strong>{decision.chosen}</strong> with{' '}
+          {decision.agentName} chose <strong>{decision.chosen}</strong> with{" "}
           <span className={getConfidenceColor(decision.confidence || 0)}>
             {decision.confidence}% confidence
           </span>
           {decision.alternatives && decision.alternatives.length > 0 && (
             <>, considering {decision.alternatives.length} alternative(s)</>
-          )}.
+          )}
+          .
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 // ============================================================================
@@ -409,18 +388,18 @@ export function DecisionComparison({
 
 export interface DecisionStatsProps {
   stats: {
-    totalDecisions: number
-    byAgent: Record<string, number>
-    byType: Record<string, number>
-    avgConfidence: number
-    lowConfidenceDecisions: number
-  }
-  className?: string
+    totalDecisions: number;
+    byAgent: Record<string, number>;
+    byType: Record<string, number>;
+    avgConfidence: number;
+    lowConfidenceDecisions: number;
+  };
+  className?: string;
 }
 
 export function DecisionStats({ stats, className }: DecisionStatsProps) {
   return (
-    <div className={cn('grid gap-4 md:grid-cols-4', className)}>
+    <div className={cn("grid gap-4 md:grid-cols-4", className)}>
       <div className="p-4 bg-muted rounded-lg">
         <p className="text-sm text-muted-foreground">Total Decisions</p>
         <p className="text-2xl font-bold">{stats.totalDecisions}</p>
@@ -428,29 +407,22 @@ export function DecisionStats({ stats, className }: DecisionStatsProps) {
 
       <div className="p-4 bg-muted rounded-lg">
         <p className="text-sm text-muted-foreground">Avg Confidence</p>
-        <p className={cn(
-          'text-2xl font-bold',
-          getConfidenceColor(stats.avgConfidence)
-        )}>
+        <p className={cn("text-2xl font-bold", getConfidenceColor(stats.avgConfidence))}>
           {stats.avgConfidence}%
         </p>
       </div>
 
       <div className="p-4 bg-muted rounded-lg">
         <p className="text-sm text-muted-foreground">Low Confidence</p>
-        <p className="text-2xl font-bold text-amber-500">
-          {stats.lowConfidenceDecisions}
-        </p>
+        <p className="text-2xl font-bold text-amber-500">{stats.lowConfidenceDecisions}</p>
       </div>
 
       <div className="p-4 bg-muted rounded-lg">
         <p className="text-sm text-muted-foreground">Agents Involved</p>
-        <p className="text-2xl font-bold">
-          {Object.keys(stats.byAgent).length}
-        </p>
+        <p className="text-2xl font-bold">{Object.keys(stats.byAgent).length}</p>
       </div>
     </div>
-  )
+  );
 }
 
-export default DecisionTree
+export default DecisionTree;

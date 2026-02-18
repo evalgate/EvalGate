@@ -1,126 +1,150 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { apiKeys } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
-import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
-import { validationError, forbidden, internalError, conflict } from '@/lib/api/errors';
-import { parseBody } from '@/lib/api/parse';
-import { createAPIKeyBodySchema } from '@/lib/validation';
-import { logger } from '@/lib/logger';
-import { scopesForRole, ALL_SCOPES } from '@/lib/auth/scopes';
-import crypto from 'crypto';
+import crypto from "node:crypto";
+import { and, desc, eq } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { apiKeys } from "@/db/schema";
+import { conflict, forbidden, internalError, validationError } from "@/lib/api/errors";
+import { parseBody } from "@/lib/api/parse";
+import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { ALL_SCOPES, scopesForRole } from "@/lib/auth/scopes";
+import { logger } from "@/lib/logger";
+import { createAPIKeyBodySchema } from "@/lib/validation";
 
-export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
-  const parsed = await parseBody(req, createAPIKeyBodySchema);
-  if (!parsed.ok) return parsed.response;
+export const POST = secureRoute(
+  async (req: NextRequest, ctx: AuthContext) => {
+    const parsed = await parseBody(req, createAPIKeyBodySchema);
+    if (!parsed.ok) return parsed.response;
 
-  const { name, scopes, expiresAt } = parsed.data;
-  const organizationId = ctx.organizationId;
+    const { name, scopes, expiresAt } = parsed.data;
+    const organizationId = ctx.organizationId;
 
-  if (!organizationId) {
-    return forbidden('No organization membership found');
-  }
-
-  try {
-    const requestedScopes = scopes;
-    if (requestedScopes.includes('*')) {
-      return validationError("Wildcard scope '*' is not allowed");
-    }
-    const invalidScopes = requestedScopes.filter(s => !ALL_SCOPES.includes(s));
-    if (invalidScopes.length > 0) {
-      return validationError(`Invalid scopes: ${invalidScopes.join(', ')}`);
+    if (!organizationId) {
+      return forbidden("No organization membership found");
     }
 
-    const creatorScopes = new Set(scopesForRole(ctx.role));
-    const excessScopes = requestedScopes.filter(s => !creatorScopes.has(s));
-    if (excessScopes.length > 0) {
-      return forbidden(`Cannot grant scopes beyond your role: ${excessScopes.join(', ')}`);
+    try {
+      const requestedScopes = scopes;
+      if (requestedScopes.includes("*")) {
+        return validationError("Wildcard scope '*' is not allowed");
+      }
+      const invalidScopes = requestedScopes.filter((s) => !ALL_SCOPES.includes(s));
+      if (invalidScopes.length > 0) {
+        return validationError(`Invalid scopes: ${invalidScopes.join(", ")}`);
+      }
+
+      const creatorScopes = new Set(scopesForRole(ctx.role));
+      const excessScopes = requestedScopes.filter((s) => !creatorScopes.has(s));
+      if (excessScopes.length > 0) {
+        return forbidden(`Cannot grant scopes beyond your role: ${excessScopes.join(", ")}`);
+      }
+
+      const randomBytes = crypto.randomBytes(24);
+      const randomString = randomBytes
+        .toString("base64")
+        .replace(/\+/g, "")
+        .replace(/\//g, "")
+        .replace(/=/g, "")
+        .substring(0, 32);
+
+      const fullApiKey = `sk_test_${randomString}`;
+      const keyHash = crypto.createHash("sha256").update(fullApiKey).digest("hex");
+      const keyPrefix = fullApiKey.substring(0, 8);
+
+      const newApiKey = await db
+        .insert(apiKeys)
+        .values({
+          userId: ctx.userId,
+          organizationId,
+          keyHash,
+          keyPrefix,
+          name: name.trim(),
+          scopes: scopes,
+          expiresAt: expiresAt || null,
+          lastUsedAt: null,
+          revokedAt: null,
+          createdAt: new Date().toISOString(),
+        })
+        .returning();
+
+      if (newApiKey.length === 0) {
+        return internalError("Failed to create API key");
+      }
+
+      return NextResponse.json(
+        {
+          apiKey: fullApiKey,
+          id: newApiKey[0].id,
+          name: newApiKey[0].name,
+          keyPrefix: newApiKey[0].keyPrefix,
+        },
+        { status: 201 },
+      );
+    } catch (error: unknown) {
+      if (
+        error instanceof Error &&
+        (error.message.includes("UNIQUE constraint failed") ||
+          (error as { code?: string }).code === "SQLITE_CONSTRAINT_UNIQUE")
+      ) {
+        return conflict("API key prefix collision — please retry");
+      }
+      logger.error(
+        { error, route: "/api/developer/api-keys", method: "POST" },
+        "Error creating API key",
+      );
+      return internalError();
     }
+  },
+  { minRole: "admin" },
+);
 
-    const randomBytes = crypto.randomBytes(24);
-    const randomString = randomBytes.toString('base64')
-      .replace(/\+/g, '')
-      .replace(/\//g, '')
-      .replace(/=/g, '')
-      .substring(0, 32);
+export const GET = secureRoute(
+  async (req: NextRequest, ctx: AuthContext) => {
+    try {
+      const { searchParams } = new URL(req.url);
 
-    const fullApiKey = `sk_test_${randomString}`;
-    const keyHash = crypto.createHash('sha256').update(fullApiKey).digest('hex');
-    const keyPrefix = fullApiKey.substring(0, 8);
+      const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100);
+      const offset = parseInt(searchParams.get("offset") || "0", 10);
 
-    const newApiKey = await db.insert(apiKeys).values({
-      userId: ctx.userId,
-      organizationId,
-      keyHash,
-      keyPrefix,
-      name: name.trim(),
-      scopes: scopes,
-      expiresAt: expiresAt || null,
-      lastUsedAt: null,
-      revokedAt: null,
-      createdAt: new Date().toISOString()
-    }).returning();
+      if (Number.isNaN(limit) || limit < 1) {
+        return validationError("Limit must be a positive number");
+      }
 
-    if (newApiKey.length === 0) {
-      return internalError('Failed to create API key');
+      if (Number.isNaN(offset) || offset < 0) {
+        return validationError("Offset must be a non-negative number");
+      }
+
+      const whereConditions = [
+        eq(apiKeys.userId, ctx.userId),
+        eq(apiKeys.organizationId, ctx.organizationId),
+      ];
+
+      const results = await db
+        .select({
+          id: apiKeys.id,
+          userId: apiKeys.userId,
+          organizationId: apiKeys.organizationId,
+          keyPrefix: apiKeys.keyPrefix,
+          name: apiKeys.name,
+          scopes: apiKeys.scopes,
+          lastUsedAt: apiKeys.lastUsedAt,
+          expiresAt: apiKeys.expiresAt,
+          revokedAt: apiKeys.revokedAt,
+          createdAt: apiKeys.createdAt,
+        })
+        .from(apiKeys)
+        .where(and(...whereConditions))
+        .orderBy(desc(apiKeys.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      return NextResponse.json(results, { status: 200 });
+    } catch (error: unknown) {
+      logger.error(
+        { error, route: "/api/developer/api-keys", method: "GET" },
+        "Error fetching API keys",
+      );
+      return internalError();
     }
-
-    return NextResponse.json({
-      apiKey: fullApiKey,
-      id: newApiKey[0].id,
-      name: newApiKey[0].name,
-      keyPrefix: newApiKey[0].keyPrefix
-    }, { status: 201 });
-  } catch (error: unknown) {
-    if (error instanceof Error && (error.message.includes('UNIQUE constraint failed') || (error as { code?: string }).code === 'SQLITE_CONSTRAINT_UNIQUE')) {
-      return conflict('API key prefix collision — please retry');
-    }
-    logger.error({ error, route: '/api/developer/api-keys', method: 'POST' }, 'Error creating API key');
-    return internalError();
-  }
-}, { minRole: 'admin' });
-
-export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
-  try {
-    const { searchParams } = new URL(req.url);
-
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
-    const offset = parseInt(searchParams.get('offset') || '0');
-
-    if (isNaN(limit) || limit < 1) {
-      return validationError('Limit must be a positive number');
-    }
-
-    if (isNaN(offset) || offset < 0) {
-      return validationError('Offset must be a non-negative number');
-    }
-
-    const whereConditions = [
-      eq(apiKeys.userId, ctx.userId),
-      eq(apiKeys.organizationId, ctx.organizationId),
-    ];
-
-    const results = await db.select({
-      id: apiKeys.id,
-      userId: apiKeys.userId,
-      organizationId: apiKeys.organizationId,
-      keyPrefix: apiKeys.keyPrefix,
-      name: apiKeys.name,
-      scopes: apiKeys.scopes,
-      lastUsedAt: apiKeys.lastUsedAt,
-      expiresAt: apiKeys.expiresAt,
-      revokedAt: apiKeys.revokedAt,
-      createdAt: apiKeys.createdAt
-    })
-      .from(apiKeys)
-      .where(and(...whereConditions))
-      .orderBy(desc(apiKeys.createdAt))
-      .limit(limit)
-      .offset(offset);
-
-    return NextResponse.json(results, { status: 200 });
-  } catch (error: unknown) {
-    logger.error({ error, route: '/api/developer/api-keys', method: 'GET' }, 'Error fetching API keys');
-    return internalError();
-  }
-}, { rateLimit: 'free' });
+  },
+  { rateLimit: "free" },
+);

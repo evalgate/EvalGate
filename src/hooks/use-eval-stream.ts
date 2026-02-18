@@ -1,7 +1,7 @@
 // src/hooks/use-eval-stream.ts
-'use client';
+"use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface StreamEvent {
   type: string;
@@ -66,10 +66,17 @@ export function useEvalStream({
 
     // Listen to typed events
     const eventTypes = [
-      'evaluation_started', 'evaluation_progress', 'evaluation_completed', 'evaluation_failed',
-      'test_case_started', 'test_case_completed', 'test_case_failed',
-      'arena_match_started', 'arena_match_completed', 'model_response',
-      'ping',
+      "evaluation_started",
+      "evaluation_progress",
+      "evaluation_completed",
+      "evaluation_failed",
+      "test_case_started",
+      "test_case_completed",
+      "test_case_failed",
+      "arena_match_started",
+      "arena_match_completed",
+      "model_response",
+      "ping",
     ];
 
     for (const type of eventTypes) {
@@ -91,7 +98,7 @@ export function useEvalStream({
 
     es.onerror = () => {
       setConnected(false);
-      const err = new Error('SSE connection lost');
+      const err = new Error("SSE connection lost");
       setError(err);
       onError?.(err);
       // EventSource auto-reconnects by default

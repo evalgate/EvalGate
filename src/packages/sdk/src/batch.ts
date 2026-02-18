@@ -40,7 +40,7 @@ export class RequestBatcher {
     options: {
       maxBatchSize?: number;
       batchDelay?: number;
-    } = {}
+    } = {},
   ) {
     this.maxBatchSize = options.maxBatchSize || 10;
     this.batchDelay = options.batchDelay || 50; // 50ms
@@ -53,11 +53,11 @@ export class RequestBatcher {
     method: string,
     endpoint: string,
     body?: any,
-    headers?: Record<string, string>
+    headers?: Record<string, string>,
   ): Promise<any> {
     return new Promise((resolve, reject) => {
       const id = `req_${this.requestCounter++}_${Date.now()}`;
-      
+
       this.queue.push({
         id,
         resolve,
@@ -93,7 +93,7 @@ export class RequestBatcher {
    */
   private async processBatch(): Promise<void> {
     if (this.batchTimer) {
-      if (typeof this.batchTimer === 'number') {
+      if (typeof this.batchTimer === "number") {
         clearTimeout(this.batchTimer);
       } else {
         clearTimeout(this.batchTimer as NodeJS.Timeout);
@@ -107,28 +107,30 @@ export class RequestBatcher {
 
     // Take items from queue
     const batch = this.queue.splice(0, this.maxBatchSize);
-    const requests = batch.map(item => item.request);
+    const requests = batch.map((item) => item.request);
 
     try {
       const responses = await this.executeBatch(requests);
-      
+
       // Match responses to requests and resolve/reject
       for (const response of responses) {
-        const pendingRequest = batch.find(item => item.id === response.id);
-        
+        const pendingRequest = batch.find((item) => item.id === response.id);
+
         if (pendingRequest) {
           if (response.status >= 200 && response.status < 300) {
             pendingRequest.resolve(response.data);
           } else {
-            pendingRequest.reject(new Error(response.error || `Request failed with status ${response.status}`));
+            pendingRequest.reject(
+              new Error(response.error || `Request failed with status ${response.status}`),
+            );
           }
         }
       }
 
       // Handle any requests that didn't get a response
       for (const item of batch) {
-        if (!responses.find(r => r.id === item.id)) {
-          item.reject(new Error('No response received for request'));
+        if (!responses.find((r) => r.id === item.id)) {
+          item.reject(new Error("No response received for request"));
         }
       }
     } catch (error) {
@@ -158,7 +160,7 @@ export class RequestBatcher {
    */
   clear(): void {
     if (this.batchTimer) {
-      if (typeof this.batchTimer === 'number') {
+      if (typeof this.batchTimer === "number") {
         clearTimeout(this.batchTimer);
       } else {
         clearTimeout(this.batchTimer as NodeJS.Timeout);
@@ -168,7 +170,7 @@ export class RequestBatcher {
 
     // Reject all pending requests
     for (const item of this.queue) {
-      item.reject(new Error('Batch queue cleared'));
+      item.reject(new Error("Batch queue cleared"));
     }
 
     this.queue = [];
@@ -190,18 +192,13 @@ export class RequestBatcher {
  * Check if requests can be batched together
  */
 export function canBatch(method: string, endpoint: string): boolean {
-  if (method !== 'GET') {
+  if (method !== "GET") {
     return false;
   }
 
-  const batchableEndpoints = [
-    '/traces',
-    '/evaluations',
-    '/annotations',
-    '/results',
-  ];
+  const batchableEndpoints = ["/traces", "/evaluations", "/annotations", "/results"];
 
-  return batchableEndpoints.some(pattern => endpoint.includes(pattern));
+  return batchableEndpoints.some((pattern) => endpoint.includes(pattern));
 }
 
 /**
@@ -210,13 +207,13 @@ export function canBatch(method: string, endpoint: string): boolean {
 export async function batchProcess<T, R>(
   items: T[],
   processor: (item: T) => Promise<R>,
-  concurrency: number = 5
+  concurrency: number = 5,
 ): Promise<R[]> {
   const results: R[] = [];
   const executing: Promise<void>[] = [];
 
   for (const item of items) {
-    const promise = processor(item).then(result => {
+    const promise = processor(item).then((result) => {
       results.push(result);
     });
 
@@ -224,14 +221,10 @@ export async function batchProcess<T, R>(
 
     if (executing.length >= concurrency) {
       await Promise.race(executing);
-      executing.splice(
-        executing.findIndex(p => p === promise),
-        1
-      );
+      executing.splice(executing.indexOf(promise), 1);
     }
   }
 
   await Promise.all(executing);
   return results;
 }
-

@@ -1,10 +1,10 @@
-export const dynamic = 'force-static'
-export const revalidate = 3600
+export const dynamic = "force-static";
+export const revalidate = 3600;
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Footer } from "@/components/footer"
-import { Github, MessageSquare, Bug, GitPullRequest } from "lucide-react"
+import { Bug, Github, GitPullRequest, MessageSquare } from "lucide-react";
+import Link from "next/link";
+import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
 
 export default function ContactPage() {
   return (
@@ -13,7 +13,9 @@ export default function ContactPage() {
       <header className="border-b border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-3">
-            <Link href="/" className="text-base sm:text-xl font-bold truncate">AI Evaluation Platform</Link>
+            <Link href="/" className="text-base sm:text-xl font-bold truncate">
+              AI Evaluation Platform
+            </Link>
             <Button asChild size="sm" className="h-9 flex-shrink-0">
               <Link href="/dashboard">Dashboard</Link>
             </Button>
@@ -26,8 +28,8 @@ export default function ContactPage() {
         <div className="mb-8 sm:mb-12 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">Get in Touch</h1>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
-            Have a question, found a bug, or want to contribute? 
-            The best way to reach us is through GitHub.
+            Have a question, found a bug, or want to contribute? The best way to reach us is through
+            GitHub.
           </p>
         </div>
 
@@ -95,19 +97,22 @@ export default function ContactPage() {
           <div className="rounded-lg border border-border bg-card p-6 sm:p-8 text-center">
             <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">Open Source</h2>
             <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 max-w-2xl mx-auto px-2">
-              AI Evaluation Platform is open source. Star the repo, open issues, submit PRs — all contributions are welcome.
+              AI Evaluation Platform is open source. Star the repo, open issues, submit PRs — all
+              contributions are welcome.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
               <Button variant="outline" asChild className="w-full sm:w-auto">
-                <a href="https://github.com/pauly7610/ai-evaluation-platform" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://github.com/pauly7610/ai-evaluation-platform"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <Github className="mr-2 h-4 w-4" />
                   View on GitHub
                 </a>
               </Button>
               <Button variant="outline" asChild className="w-full sm:w-auto">
-                <Link href="/documentation">
-                  View Documentation
-                </Link>
+                <Link href="/documentation">View Documentation</Link>
               </Button>
             </div>
           </div>
@@ -116,5 +121,5 @@ export default function ContactPage() {
 
       <Footer />
     </div>
-  )
+  );
 }

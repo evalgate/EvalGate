@@ -4,8 +4,8 @@
  * No authentication required - public endpoint
  */
 
-import { NextResponse } from 'next/server';
-import chatbotData from '../../../../../public/demo/chatbot.json';
+import { NextResponse } from "next/server";
+import chatbotData from "../../../../../public/demo/chatbot.json";
 
 /**
  * GET /api/demo/chatbot

@@ -1,38 +1,44 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { apiUsageLogs, apiKeys } from '@/db/schema';
-import { eq, and, gte, desc } from 'drizzle-orm';
-import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
-import { validationError, notFound, internalError } from '@/lib/api/errors';
+import { and, desc, eq, gte } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { apiKeys, apiUsageLogs } from "@/db/schema";
+import { internalError, notFound, validationError } from "@/lib/api/errors";
+import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 
 export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
   try {
     const { id } = params;
-    if (!id || isNaN(parseInt(id))) {
-      return validationError('Valid API key ID is required');
+    if (!id || Number.isNaN(parseInt(id, 10))) {
+      return validationError("Valid API key ID is required");
     }
 
-    const apiKeyId = parseInt(id);
+    const apiKeyId = parseInt(id, 10);
 
     const apiKey = await db
       .select()
       .from(apiKeys)
-      .where(and(eq(apiKeys.id, apiKeyId), eq(apiKeys.userId, ctx.userId), eq(apiKeys.organizationId, ctx.organizationId)))
+      .where(
+        and(
+          eq(apiKeys.id, apiKeyId),
+          eq(apiKeys.userId, ctx.userId),
+          eq(apiKeys.organizationId, ctx.organizationId),
+        ),
+      )
       .limit(1);
 
     if (apiKey.length === 0) {
-      return notFound('API key not found');
+      return notFound("API key not found");
     }
 
     const searchParams = req.nextUrl.searchParams;
-    const period = searchParams.get('period') || '7d';
-    const limit = Math.min(parseInt(searchParams.get('limit') || '100'), 1000);
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const period = searchParams.get("period") || "7d";
+    const limit = Math.min(parseInt(searchParams.get("limit") || "100", 10), 1000);
+    const offset = parseInt(searchParams.get("offset") || "0", 10);
 
     const periodMap: Record<string, number> = {
-      '7d': 7,
-      '30d': 30,
-      '90d': 90,
+      "7d": 7,
+      "30d": 30,
+      "90d": 90,
     };
 
     const days = periodMap[period] || 7;
@@ -43,24 +49,16 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params
     const allLogs = await db
       .select()
       .from(apiUsageLogs)
-      .where(
-        and(
-          eq(apiUsageLogs.apiKeyId, apiKeyId),
-          gte(apiUsageLogs.createdAt, startDateStr)
-        )
-      );
+      .where(and(eq(apiUsageLogs.apiKeyId, apiKeyId), gte(apiUsageLogs.createdAt, startDateStr)));
 
     const totalRequests = allLogs.length;
 
     const avgResponseTime =
       totalRequests > 0
-        ? allLogs.reduce((sum, log) => sum + (log.responseTimeMs || 0), 0) /
-          totalRequests
+        ? allLogs.reduce((sum, log) => sum + (log.responseTimeMs || 0), 0) / totalRequests
         : 0;
 
-    const errorCount = allLogs.filter(
-      (log) => log.statusCode >= 400
-    ).length;
+    const errorCount = allLogs.filter((log) => log.statusCode >= 400).length;
     const errorRate = totalRequests > 0 ? (errorCount / totalRequests) * 100 : 0;
 
     const endpointMap = new Map<string, number>();
@@ -75,7 +73,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params
 
     const dateMap = new Map<string, number>();
     allLogs.forEach((log) => {
-      const date = log.createdAt.split('T')[0];
+      const date = log.createdAt.split("T")[0];
       const count = dateMap.get(date) || 0;
       dateMap.set(date, count + 1);
     });
@@ -87,12 +85,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params
     const recentLogs = await db
       .select()
       .from(apiUsageLogs)
-      .where(
-        and(
-          eq(apiUsageLogs.apiKeyId, apiKeyId),
-          gte(apiUsageLogs.createdAt, startDateStr)
-        )
-      )
+      .where(and(eq(apiUsageLogs.apiKeyId, apiKeyId), gte(apiUsageLogs.createdAt, startDateStr)))
       .orderBy(desc(apiUsageLogs.createdAt))
       .limit(limit)
       .offset(offset);
@@ -107,7 +100,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params
       },
       logs: recentLogs,
     });
-  } catch (error: unknown) {
+  } catch (_error: unknown) {
     return internalError();
   }
 });

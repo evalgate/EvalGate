@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { Progress } from "@/components/ui/progress"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { useCustomer } from "autumn-js/react"
+import { useCustomer } from "autumn-js/react";
+import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
 export function PlanUsageIndicator() {
-  const { customer, isLoading } = useCustomer()
+  const { customer, isLoading } = useCustomer();
 
   if (isLoading) {
     return (
@@ -23,7 +23,7 @@ export function PlanUsageIndicator() {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (!customer) {
@@ -39,12 +39,12 @@ export function PlanUsageIndicator() {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
-  const currentPlan = customer.products?.[0]?.name ?? "Developer"
-  const tracesFeature = customer.features?.traces
-  const projectsFeature = customer.features?.projects
+  const currentPlan = customer.products?.[0]?.name ?? "Developer";
+  const tracesFeature = customer.features?.traces;
+  const projectsFeature = customer.features?.projects;
 
   return (
     <Card className="w-full">
@@ -65,7 +65,8 @@ export function PlanUsageIndicator() {
                   "Unlimited"
                 ) : (
                   <>
-                    {(tracesFeature.usage || 0).toLocaleString()} / {(tracesFeature.included_usage || 0).toLocaleString()}
+                    {(tracesFeature.usage || 0).toLocaleString()} /{" "}
+                    {(tracesFeature.included_usage || 0).toLocaleString()}
                   </>
                 )}
               </span>
@@ -94,7 +95,8 @@ export function PlanUsageIndicator() {
                   "Unlimited"
                 ) : (
                   <>
-                    {(projectsFeature.usage || 0).toLocaleString()} / {(projectsFeature.included_usage || 0).toLocaleString()}
+                    {(projectsFeature.usage || 0).toLocaleString()} /{" "}
+                    {(projectsFeature.included_usage || 0).toLocaleString()}
                   </>
                 )}
               </span>
@@ -102,11 +104,14 @@ export function PlanUsageIndicator() {
             {!projectsFeature.unlimited && (
               <>
                 <Progress
-                  value={((projectsFeature.usage || 0) / (projectsFeature.included_usage || 1)) * 100}
+                  value={
+                    ((projectsFeature.usage || 0) / (projectsFeature.included_usage || 1)) * 100
+                  }
                   className="h-2"
                 />
                 <p className="text-xs text-muted-foreground">
-                  {projectsFeature.balance} {projectsFeature.balance === 1 ? "project" : "projects"} available
+                  {projectsFeature.balance} {projectsFeature.balance === 1 ? "project" : "projects"}{" "}
+                  available
                 </p>
               </>
             )}
@@ -123,5 +128,5 @@ export function PlanUsageIndicator() {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

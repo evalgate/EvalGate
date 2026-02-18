@@ -1,4 +1,3 @@
-
 import { autumnHandler } from "autumn-js/next";
 import { auth } from "@/lib/auth";
 export const { GET, POST } = autumnHandler({

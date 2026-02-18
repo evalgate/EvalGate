@@ -3,8 +3,8 @@
  * Discovery: evalai.config.json → evalai.config.js → evalai.config.cjs → package.json evalai
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 export interface EvalAIConfig {
   evaluationId?: string;
@@ -12,14 +12,10 @@ export interface EvalAIConfig {
   minScore?: number;
   minN?: number;
   allowWeakEvidence?: boolean;
-  baseline?: 'published' | 'previous' | 'production';
+  baseline?: "published" | "previous" | "production";
 }
 
-const CONFIG_FILES = [
-  'evalai.config.json',
-  'evalai.config.js',
-  'evalai.config.cjs',
-];
+const CONFIG_FILES = ["evalai.config.json", "evalai.config.js", "evalai.config.cjs"];
 
 /**
  * Find config file path in directory, walking up to root
@@ -36,10 +32,10 @@ export function findConfigPath(cwd: string = process.cwd()): string | null {
       }
     }
     // Check package.json for evalai field
-    const pkgPath = path.join(dir, 'package.json');
+    const pkgPath = path.join(dir, "package.json");
     if (fs.existsSync(pkgPath)) {
       try {
-        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
         if (pkg.evalai != null) {
           return pkgPath;
         }
@@ -61,19 +57,19 @@ export function loadConfig(cwd: string = process.cwd()): EvalAIConfig | null {
   if (!configPath) return null;
 
   try {
-    if (configPath.endsWith('package.json')) {
-      const pkg = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    if (configPath.endsWith("package.json")) {
+      const pkg = JSON.parse(fs.readFileSync(configPath, "utf-8"));
       return (pkg.evalai as EvalAIConfig) ?? null;
     }
 
-    const content = fs.readFileSync(configPath, 'utf-8');
+    const content = fs.readFileSync(configPath, "utf-8");
 
-    if (configPath.endsWith('.json')) {
+    if (configPath.endsWith(".json")) {
       return JSON.parse(content) as EvalAIConfig;
     }
 
     // .js or .cjs - would need to require/import; for v1 we only support JSON
-    if (configPath.endsWith('.js') || configPath.endsWith('.cjs')) {
+    if (configPath.endsWith(".js") || configPath.endsWith(".cjs")) {
       // Try to parse as JSON first (some projects use .js with JSON content)
       try {
         return JSON.parse(content) as EvalAIConfig;
@@ -94,7 +90,7 @@ export function loadConfig(cwd: string = process.cwd()): EvalAIConfig | null {
  */
 export function mergeConfigWithArgs(
   config: EvalAIConfig | null,
-  args: Partial<Record<string, string | number | boolean>>
+  args: Partial<Record<string, string | number | boolean>>,
 ): Partial<EvalAIConfig> {
   const merged: Partial<EvalAIConfig> = {};
 
@@ -108,27 +104,31 @@ export function mergeConfigWithArgs(
   }
 
   // Args override
-  if (args.evaluationId !== undefined && args.evaluationId !== '') {
+  if (args.evaluationId !== undefined && args.evaluationId !== "") {
     merged.evaluationId = String(args.evaluationId);
   }
-  if (args.baseUrl !== undefined && args.baseUrl !== '') {
+  if (args.baseUrl !== undefined && args.baseUrl !== "") {
     merged.baseUrl = String(args.baseUrl);
   }
   if (args.minScore !== undefined) {
-    merged.minScore = typeof args.minScore === 'number' ? args.minScore : parseInt(String(args.minScore), 10);
+    merged.minScore =
+      typeof args.minScore === "number" ? args.minScore : parseInt(String(args.minScore), 10);
   }
   if (args.minN !== undefined) {
-    merged.minN = typeof args.minN === 'number' ? args.minN : parseInt(String(args.minN), 10);
+    merged.minN = typeof args.minN === "number" ? args.minN : parseInt(String(args.minN), 10);
   }
   if (args.allowWeakEvidence !== undefined) {
-    merged.allowWeakEvidence = args.allowWeakEvidence === true || args.allowWeakEvidence === 'true' || args.allowWeakEvidence === '1';
+    merged.allowWeakEvidence =
+      args.allowWeakEvidence === true ||
+      args.allowWeakEvidence === "true" ||
+      args.allowWeakEvidence === "1";
   }
-  if (args.baseline !== undefined && args.baseline !== '') {
+  if (args.baseline !== undefined && args.baseline !== "") {
     const b = String(args.baseline);
-    if (b === 'previous' || b === 'production') {
+    if (b === "previous" || b === "production") {
       merged.baseline = b;
     } else {
-      merged.baseline = 'published';
+      merged.baseline = "published";
     }
   }
 

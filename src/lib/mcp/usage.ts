@@ -3,8 +3,8 @@
  * Logs to api_usage_logs for per-API-key tool execution counts.
  */
 
-import { db } from '@/db';
-import { apiUsageLogs } from '@/db/schema';
+import { db } from "@/db";
+import { apiUsageLogs } from "@/db/schema";
 
 export async function trackMcpToolExecution(params: {
   toolName: string;
@@ -17,7 +17,7 @@ export async function trackMcpToolExecution(params: {
   try {
     await db.insert(apiUsageLogs).values({
       endpoint: `mcp:${params.toolName}`,
-      method: 'POST',
+      method: "POST",
       statusCode: params.statusCode,
       responseTimeMs: params.durationMs,
       organizationId: params.organizationId,
@@ -27,6 +27,6 @@ export async function trackMcpToolExecution(params: {
     });
   } catch (err) {
     // Fire-and-forget; don't block the response
-    console.error('MCP usage tracking failed', err);
+    console.error("MCP usage tracking failed", err);
   }
 }

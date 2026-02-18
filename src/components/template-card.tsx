@@ -3,16 +3,23 @@
  * Displays an evaluation template with copy functionality
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { EvaluationTemplate } from '@/lib/evaluation-templates-library';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Copy, CheckCircle2, Clock, BarChart3 } from 'lucide-react';
-import { toast } from 'sonner';
+import { BarChart3, CheckCircle2, Clock, Copy } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import type { EvaluationTemplate } from "@/lib/evaluation-templates-library";
 
 export function TemplateCard({ template }: { template: EvaluationTemplate }) {
   const [copied, setCopied] = useState(false);
@@ -20,27 +27,37 @@ export function TemplateCard({ template }: { template: EvaluationTemplate }) {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(template.code);
     setCopied(true);
-    toast.success('Code copied to clipboard!');
+    toast.success("Code copied to clipboard!");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner': return 'bg-green-500/10 text-green-700 dark:text-green-400';
-      case 'intermediate': return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400';
-      case 'advanced': return 'bg-red-500/10 text-red-700 dark:text-red-400';
-      default: return '';
+      case "beginner":
+        return "bg-green-500/10 text-green-700 dark:text-green-400";
+      case "intermediate":
+        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
+      case "advanced":
+        return "bg-red-500/10 text-red-700 dark:text-red-400";
+      default:
+        return "";
     }
   };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'chatbot': return '💬';
-      case 'rag': return '🔍';
-      case 'code-gen': return '💻';
-      case 'content': return '📝';
-      case 'classification': return '🎯';
-      default: return '📊';
+      case "chatbot":
+        return "💬";
+      case "rag":
+        return "🔍";
+      case "code-gen":
+        return "💻";
+      case "content":
+        return "📝";
+      case "classification":
+        return "🎯";
+      default:
+        return "📊";
     }
   };
 
@@ -60,9 +77,7 @@ export function TemplateCard({ template }: { template: EvaluationTemplate }) {
             <CardTitle className="group-hover:text-primary transition-colors">
               {template.name}
             </CardTitle>
-            <CardDescription className="line-clamp-2">
-              {template.description}
-            </CardDescription>
+            <CardDescription className="line-clamp-2">{template.description}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -84,13 +99,9 @@ export function TemplateCard({ template }: { template: EvaluationTemplate }) {
           <div className="flex items-start justify-between">
             <div>
               <DialogTitle className="text-2xl">{template.name}</DialogTitle>
-              <DialogDescription className="mt-2">
-                {template.description}
-              </DialogDescription>
+              <DialogDescription className="mt-2">{template.description}</DialogDescription>
             </div>
-            <Badge className={getDifficultyColor(template.difficulty)}>
-              {template.difficulty}
-            </Badge>
+            <Badge className={getDifficultyColor(template.difficulty)}>{template.difficulty}</Badge>
           </div>
         </DialogHeader>
 
@@ -111,12 +122,7 @@ export function TemplateCard({ template }: { template: EvaluationTemplate }) {
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold">Code</h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopy}
-                className="gap-2"
-              >
+              <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2">
                 {copied ? (
                   <>
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -191,4 +197,3 @@ export function TemplateCard({ template }: { template: EvaluationTemplate }) {
     </Dialog>
   );
 }
-

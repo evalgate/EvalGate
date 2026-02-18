@@ -1,5 +1,5 @@
 // src/lib/streaming/sse-server.ts
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 export interface SSEMessage {
   type: string;
@@ -41,7 +41,7 @@ export class SSEServer {
     organizationId: number,
     userId?: string,
     channels: string[] = [],
-    controller?: ReadableStreamDefaultController
+    controller?: ReadableStreamDefaultController,
   ): void {
     const client: SSEClient = {
       id: clientId,
@@ -63,7 +63,7 @@ export class SSEServer {
       this.channels.get(channel)!.add(clientId);
     }
 
-    logger.info('SSE client connected', { clientId, organizationId, channels });
+    logger.info("SSE client connected", { clientId, organizationId, channels });
   }
 
   /**
@@ -85,7 +85,7 @@ export class SSEServer {
     }
 
     this.clients.delete(clientId);
-    logger.info('SSE client disconnected', { clientId });
+    logger.info("SSE client disconnected", { clientId });
   }
 
   /**
@@ -104,7 +104,7 @@ export class SSEServer {
     }
     this.channels.get(channel)!.add(clientId);
 
-    logger.info('Client subscribed to channel', { clientId, channel });
+    logger.info("Client subscribed to channel", { clientId, channel });
   }
 
   /**
@@ -114,7 +114,7 @@ export class SSEServer {
     const client = this.clients.get(clientId);
     if (!client) return;
 
-    client.channels = client.channels.filter(c => c !== channel);
+    client.channels = client.channels.filter((c) => c !== channel);
 
     const channelClients = this.channels.get(channel);
     if (channelClients) {
@@ -124,7 +124,7 @@ export class SSEServer {
       }
     }
 
-    logger.info('Client unsubscribed from channel', { clientId, channel });
+    logger.info("Client unsubscribed from channel", { clientId, channel });
   }
 
   /**
@@ -139,7 +139,7 @@ export class SSEServer {
       this.writeToResponse(client.response, data);
       return true;
     } catch (error) {
-      logger.error('Failed to send message to client', { clientId, error });
+      logger.error("Failed to send message to client", { clientId, error });
       this.removeClient(clientId);
       return false;
     }
@@ -233,7 +233,7 @@ export class SSEServer {
    */
   getOrganizationClients(organizationId: number): SSEClient[] {
     return Array.from(this.clients.values()).filter(
-      client => client.organizationId === organizationId
+      (client) => client.organizationId === organizationId,
     );
   }
 
@@ -258,7 +258,8 @@ export class SSEServer {
   } {
     const organizationStats: Record<number, number> = {};
     for (const client of this.clients.values()) {
-      organizationStats[client.organizationId] = (organizationStats[client.organizationId] || 0) + 1;
+      organizationStats[client.organizationId] =
+        (organizationStats[client.organizationId] || 0) + 1;
     }
 
     return {
@@ -277,10 +278,10 @@ export class SSEServer {
       `event: ${message.type}`,
       `data: ${JSON.stringify(message.data)}`,
       `timestamp: ${message.timestamp}`,
-      '',
-      '',
+      "",
+      "",
     ];
-    return lines.join('\n');
+    return lines.join("\n");
   }
 
   /**
@@ -300,7 +301,7 @@ export class SSEServer {
         return;
       }
     }
-    logger.debug('SSE message (no active controller)', { data: data.substring(0, 100) });
+    logger.debug("SSE message (no active controller)", { data: data.substring(0, 100) });
   }
 
   /**
@@ -313,12 +314,13 @@ export class SSEServer {
 
       for (const [clientId, client] of this.clients) {
         // Remove clients that haven't responded to pings
-        if (now - client.lastPing > 30000) { // 30 seconds timeout
+        if (now - client.lastPing > 30000) {
+          // 30 seconds timeout
           clientsToRemove.push(clientId);
         } else {
           // Send ping
           this.sendToClient(clientId, {
-            type: 'ping',
+            type: "ping",
             data: { timestamp: now },
             timestamp: new Date(now).toISOString(),
           });
@@ -349,7 +351,7 @@ export class SSEServer {
     this.stopPingInterval();
     this.clients.clear();
     this.channels.clear();
-    logger.info('SSE server cleaned up');
+    logger.info("SSE server cleaned up");
   }
 }
 
@@ -361,40 +363,36 @@ export const sseServer = new SSEServer();
  */
 export const SSE_MESSAGE_TYPES = {
   // Evaluation events
-  EVALUATION_STARTED: 'evaluation_started',
-  EVALUATION_PROGRESS: 'evaluation_progress',
-  EVALUATION_COMPLETED: 'evaluation_completed',
-  EVALUATION_FAILED: 'evaluation_failed',
-  TEST_CASE_STARTED: 'test_case_started',
-  TEST_CASE_COMPLETED: 'test_case_completed',
-  TEST_CASE_FAILED: 'test_case_failed',
-  
+  EVALUATION_STARTED: "evaluation_started",
+  EVALUATION_PROGRESS: "evaluation_progress",
+  EVALUATION_COMPLETED: "evaluation_completed",
+  EVALUATION_FAILED: "evaluation_failed",
+  TEST_CASE_STARTED: "test_case_started",
+  TEST_CASE_COMPLETED: "test_case_completed",
+  TEST_CASE_FAILED: "test_case_failed",
+
   // Arena events
-  ARENA_MATCH_STARTED: 'arena_match_started',
-  ARENA_MATCH_PROGRESS: 'arena_match_progress',
-  ARENA_MATCH_COMPLETED: 'arena_match_completed',
-  MODEL_RESPONSE: 'model_response',
-  
+  ARENA_MATCH_STARTED: "arena_match_started",
+  ARENA_MATCH_PROGRESS: "arena_match_progress",
+  ARENA_MATCH_COMPLETED: "arena_match_completed",
+  MODEL_RESPONSE: "model_response",
+
   // System events
-  PING: 'ping',
-  CONNECTION_ESTABLISHED: 'connection_established',
-  ERROR: 'error',
-  NOTIFICATION: 'notification',
-  
+  PING: "ping",
+  CONNECTION_ESTABLISHED: "connection_established",
+  ERROR: "error",
+  NOTIFICATION: "notification",
+
   // Real-time updates
-  LEADERBOARD_UPDATE: 'leaderboard_update',
-  REPORT_CARD_UPDATE: 'report_card_update',
-  SHADOW_EVAL_UPDATE: 'shadow_eval_update',
+  LEADERBOARD_UPDATE: "leaderboard_update",
+  REPORT_CARD_UPDATE: "report_card_update",
+  SHADOW_EVAL_UPDATE: "shadow_eval_update",
 } as const;
 
 /**
  * Create SSE message helpers
  */
-export const createSSEMessage = (
-  type: string,
-  data: any,
-  id?: string
-): SSEMessage => ({
+export const createSSEMessage = (type: string, data: any, id?: string): SSEMessage => ({
   type,
   data,
   timestamp: new Date().toISOString(),
@@ -406,86 +404,88 @@ export const createSSEMessage = (
  */
 export const createEvaluationStartedMessage = (
   evaluationId: number,
-  evaluationName: string
-): SSEMessage => createSSEMessage(SSE_MESSAGE_TYPES.EVALUATION_STARTED, {
-  evaluationId,
-  evaluationName,
-});
+  evaluationName: string,
+): SSEMessage =>
+  createSSEMessage(SSE_MESSAGE_TYPES.EVALUATION_STARTED, {
+    evaluationId,
+    evaluationName,
+  });
 
 export const createEvaluationProgressMessage = (
   evaluationId: number,
   progress: number,
   currentTest: string,
-  totalTests: number
-): SSEMessage => createSSEMessage(SSE_MESSAGE_TYPES.EVALUATION_PROGRESS, {
-  evaluationId,
-  progress,
-  currentTest,
-  totalTests,
-});
+  totalTests: number,
+): SSEMessage =>
+  createSSEMessage(SSE_MESSAGE_TYPES.EVALUATION_PROGRESS, {
+    evaluationId,
+    progress,
+    currentTest,
+    totalTests,
+  });
 
-export const createEvaluationCompletedMessage = (
-  evaluationId: number,
-  results: any
-): SSEMessage => createSSEMessage(SSE_MESSAGE_TYPES.EVALUATION_COMPLETED, {
-  evaluationId,
-  results,
-});
+export const createEvaluationCompletedMessage = (evaluationId: number, results: any): SSEMessage =>
+  createSSEMessage(SSE_MESSAGE_TYPES.EVALUATION_COMPLETED, {
+    evaluationId,
+    results,
+  });
 
 export const createTestCaseStartedMessage = (
   evaluationId: number,
   testCaseId: number,
-  testCaseName: string
-): SSEMessage => createSSEMessage(SSE_MESSAGE_TYPES.TEST_CASE_STARTED, {
-  evaluationId,
-  testCaseId,
-  testCaseName,
-});
+  testCaseName: string,
+): SSEMessage =>
+  createSSEMessage(SSE_MESSAGE_TYPES.TEST_CASE_STARTED, {
+    evaluationId,
+    testCaseId,
+    testCaseName,
+  });
 
 export const createTestCaseCompletedMessage = (
   evaluationId: number,
   testCaseId: number,
   score: number,
-  passed: boolean
-): SSEMessage => createSSEMessage(SSE_MESSAGE_TYPES.TEST_CASE_COMPLETED, {
-  evaluationId,
-  testCaseId,
-  score,
-  passed,
-});
+  passed: boolean,
+): SSEMessage =>
+  createSSEMessage(SSE_MESSAGE_TYPES.TEST_CASE_COMPLETED, {
+    evaluationId,
+    testCaseId,
+    score,
+    passed,
+  });
 
 export const createTestCaseFailedMessage = (
   evaluationId: number,
   testCaseId: number,
-  error: string
-): SSEMessage => createSSEMessage(SSE_MESSAGE_TYPES.TEST_CASE_FAILED, {
-  evaluationId,
-  testCaseId,
-  error,
-});
+  error: string,
+): SSEMessage =>
+  createSSEMessage(SSE_MESSAGE_TYPES.TEST_CASE_FAILED, {
+    evaluationId,
+    testCaseId,
+    error,
+  });
 
 /**
  * Arena-specific message creators
  */
-export const createArenaMatchStartedMessage = (
-  matchId: number,
-  models: string[]
-): SSEMessage => createSSEMessage(SSE_MESSAGE_TYPES.ARENA_MATCH_STARTED, {
-  matchId,
-  models,
-});
+export const createArenaMatchStartedMessage = (matchId: number, models: string[]): SSEMessage =>
+  createSSEMessage(SSE_MESSAGE_TYPES.ARENA_MATCH_STARTED, {
+    matchId,
+    models,
+  });
 
 export const createModelResponseMessage = (
   matchId: number,
   modelId: string,
   response: string,
-  score: number
-): SSEMessage => createSSEMessage(SSE_MESSAGE_TYPES.MODEL_RESPONSE, {
-  matchId,
-  modelId,
-  response,
-  score,
-});
+  score: number,
+): SSEMessage =>
+  createSSEMessage(SSE_MESSAGE_TYPES.MODEL_RESPONSE, {
+    matchId,
+    modelId,
+    response,
+    score,
+  });
 
 /**
  * System message creators
@@ -493,17 +493,16 @@ export const createModelResponseMessage = (
 export const createNotificationMessage = (
   title: string,
   message: string,
-  type: 'info' | 'success' | 'warning' | 'error' = 'info'
-): SSEMessage => createSSEMessage(SSE_MESSAGE_TYPES.NOTIFICATION, {
-  title,
-  message,
-  type,
-});
+  type: "info" | "success" | "warning" | "error" = "info",
+): SSEMessage =>
+  createSSEMessage(SSE_MESSAGE_TYPES.NOTIFICATION, {
+    title,
+    message,
+    type,
+  });
 
-export const createErrorMessage = (
-  error: string,
-  context?: any
-): SSEMessage => createSSEMessage(SSE_MESSAGE_TYPES.ERROR, {
-  error,
-  context,
-});
+export const createErrorMessage = (error: string, context?: any): SSEMessage =>
+  createSSEMessage(SSE_MESSAGE_TYPES.ERROR, {
+    error,
+    context,
+  });

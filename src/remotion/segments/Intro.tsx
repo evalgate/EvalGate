@@ -1,6 +1,6 @@
-import React from "react";
+import type React from "react";
 import { interpolate, useCurrentFrame } from "remotion";
-import { colors, badge as badgeStyle } from "../styles";
+import { badge as badgeStyle, colors } from "../styles";
 
 export const Intro: React.FC = () => {
   const frame = useCurrentFrame();

@@ -3,8 +3,8 @@
  * Provides helpers for pagination, N+1 prevention, and query optimization
  */
 
-import { logger } from '@/lib/logger';
-import { cache, CacheTTL } from '@/lib/redis-cache';
+import { logger } from "@/lib/logger";
+import { CacheTTL, cache } from "@/lib/redis-cache";
 
 export interface PaginationParams {
   limit?: number;
@@ -58,7 +58,7 @@ export function normalizePagination(params: PaginationParams): {
 export function buildPaginatedResult<T>(
   data: T[],
   total: number,
-  params: PaginationParams
+  params: PaginationParams,
 ): PaginatedResult<T> {
   const { limit, offset } = normalizePagination(params);
   const page = Math.floor(offset / limit) + 1;
@@ -81,7 +81,7 @@ export function buildPaginatedResult<T>(
  * Encode cursor for cursor-based pagination
  */
 export function encodeCursor(data: any): string {
-  return Buffer.from(JSON.stringify(data)).toString('base64');
+  return Buffer.from(JSON.stringify(data)).toString("base64");
 }
 
 /**
@@ -89,9 +89,9 @@ export function encodeCursor(data: any): string {
  */
 export function decodeCursor(cursor: string): any {
   try {
-    return JSON.parse(Buffer.from(cursor, 'base64').toString('utf-8'));
-  } catch (error) {
-    throw new Error('Invalid cursor');
+    return JSON.parse(Buffer.from(cursor, "base64").toString("utf-8"));
+  } catch (_error) {
+    throw new Error("Invalid cursor");
   }
 }
 
@@ -101,14 +101,13 @@ export function decodeCursor(cursor: string): any {
 export function buildCursorPaginatedResult<T>(
   data: T[],
   limit: number,
-  getCursor: (item: T) => any
+  getCursor: (item: T) => any,
 ): CursorPaginatedResult<T> {
   const hasMore = data.length > limit;
   const items = hasMore ? data.slice(0, limit) : data;
-  
-  const nextCursor = hasMore && items.length > 0
-    ? encodeCursor(getCursor(items[items.length - 1]))
-    : null;
+
+  const nextCursor =
+    hasMore && items.length > 0 ? encodeCursor(getCursor(items[items.length - 1])) : null;
 
   return {
     data: items,
@@ -130,16 +129,16 @@ export async function cachedQuery<T>(
     ttl?: number;
     organizationId?: number;
     resource?: string;
-  } = {}
+  } = {},
 ): Promise<T> {
   const { ttl = CacheTTL.MEDIUM, organizationId, resource } = options;
 
   // Generate full cache key
   const fullKey = organizationId
-    ? `${resource || 'query'}:org:${organizationId}:${cacheKey}`
-    : `${resource || 'query'}:${cacheKey}`;
+    ? `${resource || "query"}:org:${organizationId}:${cacheKey}`
+    : `${resource || "query"}:${cacheKey}`;
 
-  logger.debug('Cached query', { key: fullKey, ttl });
+  logger.debug("Cached query", { key: fullKey, ttl });
 
   return await cache.wrap(fullKey, queryFn, { ttl });
 }
@@ -150,22 +149,22 @@ export async function cachedQuery<T>(
 export async function batchLoad<T, K extends keyof T>(
   items: T[],
   foreignKey: K,
-  loadFn: (ids: Array<T[K]>) => Promise<Record<string, any>>
+  loadFn: (ids: Array<T[K]>) => Promise<Record<string, any>>,
 ): Promise<(T & { _loaded?: any })[]> {
   if (items.length === 0) {
     return [] as (T & { _loaded?: any })[];
   }
 
   // Extract unique foreign key values
-  const ids = [...new Set(items.map(item => item[foreignKey]))];
+  const ids = [...new Set(items.map((item) => item[foreignKey]))];
 
-  logger.debug('Batch loading related data', { count: ids.length });
+  logger.debug("Batch loading related data", { count: ids.length });
 
   // Load all related data in one query
   const relatedData = await loadFn(ids);
 
   // Attach related data to items
-  return items.map(item => ({
+  return items.map((item) => ({
     ...item,
     _loaded: relatedData[String(item[foreignKey])],
   }));
@@ -174,10 +173,7 @@ export async function batchLoad<T, K extends keyof T>(
 /**
  * Measure query performance
  */
-export async function measureQuery<T>(
-  name: string,
-  queryFn: () => Promise<T>
-): Promise<T> {
+export async function measureQuery<T>(name: string, queryFn: () => Promise<T>): Promise<T> {
   const startTime = Date.now();
 
   try {
@@ -185,15 +181,15 @@ export async function measureQuery<T>(
     const duration = Date.now() - startTime;
 
     if (duration > 1000) {
-      logger.warn('Slow query detected', { name, duration });
+      logger.warn("Slow query detected", { name, duration });
     } else {
-      logger.debug('Query executed', { name, duration });
+      logger.debug("Query executed", { name, duration });
     }
 
     return result;
   } catch (error: any) {
     const duration = Date.now() - startTime;
-    logger.error('Query failed', { name, duration, error: error.message });
+    logger.error("Query failed", { name, duration, error: error.message });
     throw error;
   }
 }
@@ -203,9 +199,9 @@ export async function measureQuery<T>(
  */
 export async function invalidateCacheForMutation(
   resource: string,
-  organizationId: number
+  organizationId: number,
 ): Promise<void> {
-  logger.info('Invalidating cache for mutation', { resource, organizationId });
+  logger.info("Invalidating cache for mutation", { resource, organizationId });
   await cache.invalidateResource(resource, organizationId);
 }
 
@@ -215,7 +211,8 @@ export async function invalidateCacheForMutation(
  */
 export class QueryOptimizer {
   private slowQueryThreshold = 1000; // 1 second
-  private queryStats: Map<string, { count: number; totalTime: number; maxTime: number }> = new Map();
+  private queryStats: Map<string, { count: number; totalTime: number; maxTime: number }> =
+    new Map();
 
   async trackQuery<T>(name: string, queryFn: () => Promise<T>): Promise<T> {
     const startTime = Date.now();
@@ -227,24 +224,24 @@ export class QueryOptimizer {
       this.recordQuery(name, duration);
 
       if (duration > this.slowQueryThreshold) {
-        logger.warn('Slow query detected', { 
-          query: name, 
+        logger.warn("Slow query detected", {
+          query: name,
           duration,
-          threshold: this.slowQueryThreshold 
+          threshold: this.slowQueryThreshold,
         });
       }
 
       return result;
     } catch (error: any) {
       const duration = Date.now() - startTime;
-      logger.error('Query error', { query: name, duration, error: error.message });
+      logger.error("Query error", { query: name, duration, error: error.message });
       throw error;
     }
   }
 
   private recordQuery(name: string, duration: number): void {
     const stats = this.queryStats.get(name) || { count: 0, totalTime: 0, maxTime: 0 };
-    
+
     stats.count++;
     stats.totalTime += duration;
     stats.maxTime = Math.max(stats.maxTime, duration);
@@ -273,4 +270,3 @@ export class QueryOptimizer {
 
 // Export singleton
 export const queryOptimizer = new QueryOptimizer();
-

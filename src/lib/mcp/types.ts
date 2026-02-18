@@ -3,7 +3,7 @@
  */
 
 export interface McpToolInputSchema {
-  type: 'object';
+  type: "object";
   properties: Record<string, { type: string; description?: string; enum?: string[] }>;
   required?: string[];
 }
@@ -20,6 +20,6 @@ export interface McpToolDefinition {
 }
 
 export interface McpToolCallResult {
-  content: Array<{ type: 'text'; text: string }>;
+  content: Array<{ type: "text"; text: string }>;
   isError?: boolean;
 }

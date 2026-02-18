@@ -1,20 +1,19 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Copy, Check, Sparkles, Zap, Shield } from "lucide-react"
-import { useState } from "react"
-import Link from "next/link"
+import { Check, Copy, Plus, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function PromptsPage() {
-  const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null)
+  const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
 
   const copyPrompt = (prompt: string, id: string) => {
-    navigator.clipboard.writeText(prompt)
-    setCopiedPrompt(id)
-    setTimeout(() => setCopiedPrompt(null), 2000)
-  }
+    navigator.clipboard.writeText(prompt);
+    setCopiedPrompt(id);
+    setTimeout(() => setCopiedPrompt(null), 2000);
+  };
 
   const prompts = [
     {
@@ -34,7 +33,7 @@ Rate the response on:
 3. Tone (0-100): Is it professional and empathetic?
 
 Provide scores and brief explanations for each criterion.`,
-      tags: ["customer-support", "chatbot", "quality"]
+      tags: ["customer-support", "chatbot", "quality"],
     },
     {
       id: "rag-hallucination",
@@ -52,7 +51,7 @@ Analyze the response and identify:
 3. Overall hallucination score (0-100, where 0 = no hallucinations)
 
 List specific examples of any hallucinations found.`,
-      tags: ["rag", "hallucination", "accuracy"]
+      tags: ["rag", "hallucination", "accuracy"],
     },
     {
       id: "code-quality",
@@ -74,7 +73,7 @@ Evaluate on:
 4. Security (0-100): Are there security concerns?
 
 Provide scores and specific feedback for improvements.`,
-      tags: ["code", "quality", "best-practices"]
+      tags: ["code", "quality", "best-practices"],
     },
     {
       id: "content-quality",
@@ -97,7 +96,7 @@ Rate on:
 4. Grammar (0-100): Is it grammatically correct?
 
 Provide scores and suggestions for improvement.`,
-      tags: ["content", "quality", "brand"]
+      tags: ["content", "quality", "brand"],
     },
     {
       id: "sentiment-analysis",
@@ -116,7 +115,7 @@ Provide:
 4. Appropriateness (0-100): Is the tone appropriate for the context?
 
 Explain your reasoning.`,
-      tags: ["sentiment", "tone", "analysis"]
+      tags: ["sentiment", "tone", "analysis"],
     },
     {
       id: "bias-detection",
@@ -138,11 +137,11 @@ For each category, provide:
 - Bias Score (0-100, where 0 = no bias detected)
 - Specific examples if found
 - Suggestions for improvement`,
-      tags: ["bias", "safety", "ethics"]
-    }
-  ]
+      tags: ["bias", "safety", "ethics"],
+    },
+  ];
 
-  const categories = [...new Set(prompts.map(p => p.category))]
+  const categories = [...new Set(prompts.map((p) => p.category))];
 
   return (
     <div className="space-y-6 sm:space-y-8 w-full">
@@ -193,25 +192,23 @@ For each category, provide:
 
       {/* Prompts Grid */}
       <div className="space-y-4">
-        {categories.map(category => (
+        {categories.map((category) => (
           <div key={category}>
             <h2 className="text-xl font-semibold mb-4">{category}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               {prompts
-                .filter(p => p.category === category)
-                .map(prompt => (
+                .filter((p) => p.category === category)
+                .map((prompt) => (
                   <Card key={prompt.id} className="hover:border-primary/50 transition-colors">
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <CardTitle className="text-lg">{prompt.name}</CardTitle>
-                          <CardDescription className="mt-1">
-                            {prompt.description}
-                          </CardDescription>
+                          <CardDescription className="mt-1">{prompt.description}</CardDescription>
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2 mt-3">
-                        {prompt.tags.map(tag => (
+                        {prompt.tags.map((tag) => (
                           <Badge key={tag} variant="secondary" className="text-xs">
                             {tag}
                           </Badge>
@@ -269,5 +266,5 @@ For each category, provide:
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

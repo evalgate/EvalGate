@@ -3,9 +3,9 @@
  * Use x-request-id header if provided, otherwise generate a UUID.
  */
 
-import { AsyncLocalStorage } from 'async_hooks';
+import { AsyncLocalStorage } from "node:async_hooks";
 
-const REQUEST_ID_HEADER = 'x-request-id';
+const REQUEST_ID_HEADER = "x-request-id";
 
 const storage = new AsyncLocalStorage<string>();
 
@@ -27,7 +27,7 @@ export function getRequestId(): string {
 
 export function extractOrGenerateRequestId(req: Request): string {
   const header = req.headers.get(REQUEST_ID_HEADER);
-  if (header && header.trim()) return header.trim();
+  if (header?.trim()) return header.trim();
   return generateRequestId();
 }
 
@@ -44,6 +44,9 @@ export function runWithRequestId<T>(requestId: string, fn: () => T): T {
   return storage.run(requestId, fn);
 }
 
-export async function runWithRequestIdAsync<T>(requestId: string, fn: () => Promise<T>): Promise<T> {
+export async function runWithRequestIdAsync<T>(
+  requestId: string,
+  fn: () => Promise<T>,
+): Promise<T> {
   return storage.run(requestId, fn);
 }

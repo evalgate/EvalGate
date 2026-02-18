@@ -1,9 +1,9 @@
 // src/app/actions/run-eval.ts
-'use server';
+"use server";
 
-import { protectedAction } from '@/lib/actions/protected';
-import { z } from 'zod';
-import { evalGateway } from '@/lib/gateway/eval-gateway';
+import { z } from "zod";
+import { protectedAction } from "@/lib/actions/protected";
+import { evalGateway } from "@/lib/gateway/eval-gateway";
 
 // Input validation schema
 const StartEvalSchema = z.object({
@@ -21,17 +21,12 @@ export const startEval = protectedAction(async (ctx, input: z.infer<typeof Start
   const parsed = StartEvalSchema.parse(input);
 
   // Gateway creates PENDING run and returns immediately
-  const run = await evalGateway.startRun(
-    parsed.evaluationId,
-    ctx.organizationId,
-    ctx.userId,
-    {
-      testCases: parsed.testCases,
-      settings: parsed.settings,
-    }
-  );
+  const run = await evalGateway.startRun(parsed.evaluationId, ctx.organizationId, ctx.userId, {
+    testCases: parsed.testCases,
+    settings: parsed.settings,
+  });
 
-  return { runId: run.id, status: 'pending' };
+  return { runId: run.id, status: "pending" };
 });
 
 /**

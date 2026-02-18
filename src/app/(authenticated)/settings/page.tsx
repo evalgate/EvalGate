@@ -1,17 +1,13 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card } from "@/components/ui/card"
-import { useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { useOrganizationId } from "@/hooks/use-organization"
-import { getBearerToken } from "@/hooks/use-safe-storage"
-import { Badge } from "@/components/ui/badge"
-import { Copy, Plus, Trash2, Eye, EyeOff, CheckCircle2, Webhook } from "lucide-react"
-import { toast } from "sonner"
+import { CheckCircle2, Copy, Eye, EyeOff, Plus, Trash2, Webhook } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -19,151 +15,154 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useOrganizationId } from "@/hooks/use-organization";
+import { getBearerToken } from "@/hooks/use-safe-storage";
+import { useSession } from "@/lib/auth-client";
 
 interface ApiKey {
-  id: number
-  name: string
-  keyPrefix: string
-  scopes: string[]
-  lastUsedAt: string | null
-  expiresAt: string | null
-  revokedAt: string | null
-  createdAt: string
+  id: number;
+  name: string;
+  keyPrefix: string;
+  scopes: string[];
+  lastUsedAt: string | null;
+  expiresAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
 }
 
 interface Webhook {
-  id: number
-  url: string
-  events: string[]
-  status: string
-  lastDeliveredAt: string | null
-  createdAt: string
+  id: number;
+  url: string;
+  events: string[];
+  status: string;
+  lastDeliveredAt: string | null;
+  createdAt: string;
 }
 
 const AVAILABLE_SCOPES = [
-  { id: 'traces:read', label: 'Traces Read' },
-  { id: 'traces:write', label: 'Traces Write' },
-  { id: 'evaluations:read', label: 'Evaluations Read' },
-  { id: 'evaluations:write', label: 'Evaluations Write' },
-  { id: 'annotations:read', label: 'Annotations Read' },
-  { id: 'annotations:write', label: 'Annotations Write' },
-]
+  { id: "traces:read", label: "Traces Read" },
+  { id: "traces:write", label: "Traces Write" },
+  { id: "evaluations:read", label: "Evaluations Read" },
+  { id: "evaluations:write", label: "Evaluations Write" },
+  { id: "annotations:read", label: "Annotations Read" },
+  { id: "annotations:write", label: "Annotations Write" },
+];
 
 const AVAILABLE_EVENTS = [
-  { id: 'trace.created', label: 'Trace Created' },
-  { id: 'trace.completed', label: 'Trace Completed' },
-  { id: 'trace.failed', label: 'Trace Failed' },
-  { id: 'evaluation.started', label: 'Evaluation Started' },
-  { id: 'evaluation.completed', label: 'Evaluation Completed' },
-  { id: 'evaluation.failed', label: 'Evaluation Failed' },
-  { id: 'span.created', label: 'Span Created' },
-]
+  { id: "trace.created", label: "Trace Created" },
+  { id: "trace.completed", label: "Trace Completed" },
+  { id: "trace.failed", label: "Trace Failed" },
+  { id: "evaluation.started", label: "Evaluation Started" },
+  { id: "evaluation.completed", label: "Evaluation Completed" },
+  { id: "evaluation.failed", label: "Evaluation Failed" },
+  { id: "span.created", label: "Span Created" },
+];
 
 export default function SettingsPage() {
-  const { data: session, isPending } = useSession()
-  const router = useRouter()
-  const organizationId = useOrganizationId()
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
-  const [webhooks, setWebhooks] = useState<Webhook[]>([])
-  const [loading, setLoading] = useState(true)
-  const [webhooksLoading, setWebhooksLoading] = useState(true)
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [createWebhookDialogOpen, setCreateWebhookDialogOpen] = useState(false)
-  const [newKeyName, setNewKeyName] = useState("")
-  const [selectedScopes, setSelectedScopes] = useState<string[]>([])
-  const [createdKey, setCreatedKey] = useState<string | null>(null)
-  const [showCreatedKey, setShowCreatedKey] = useState(false)
-  const [webhookUrl, setWebhookUrl] = useState("")
-  const [selectedEvents, setSelectedEvents] = useState<string[]>([])
-  const [createdWebhookSecret, setCreatedWebhookSecret] = useState<string | null>(null)
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const organizationId = useOrganizationId();
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+  const [webhooks, setWebhooks] = useState<Webhook[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [webhooksLoading, setWebhooksLoading] = useState(true);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createWebhookDialogOpen, setCreateWebhookDialogOpen] = useState(false);
+  const [newKeyName, setNewKeyName] = useState("");
+  const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
+  const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [showCreatedKey, setShowCreatedKey] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
+  const [createdWebhookSecret, setCreatedWebhookSecret] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
-      router.push("/auth/login")
+      router.push("/auth/login");
     }
-  }, [session, isPending, router])
+  }, [session, isPending, router]);
 
-  useEffect(() => {
-    if (session?.user) {
-      fetchApiKeys()
-      fetchWebhooks()
-    }
-  }, [session])
-
-  const fetchApiKeys = async () => {
+  const fetchApiKeys = useCallback(async () => {
     if (!organizationId) return;
-    
+
     try {
       const token = getBearerToken();
       if (!token) {
         toast.error("Authentication required");
         return;
       }
-      
-      const response = await fetch(`/api/developer/api-keys?organizationId=${organizationId}&limit=50`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+
+      const response = await fetch(
+        `/api/developer/api-keys?organizationId=${organizationId}&limit=50`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      })
+      );
 
       if (response.ok) {
-        const data = await response.json()
-        setApiKeys(data)
+        const data = await response.json();
+        setApiKeys(data);
       } else {
         toast.error("Failed to fetch API keys");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to fetch API keys");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  }, [organizationId]);
 
-  const fetchWebhooks = async () => {
+  const fetchWebhooks = useCallback(async () => {
     if (!organizationId) return;
-    
+
     try {
       const token = getBearerToken();
       if (!token) {
         toast.error("Authentication required");
         return;
       }
-      
-      const response = await fetch(`/api/developer/webhooks?organizationId=${organizationId}&limit=50`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+
+      const response = await fetch(
+        `/api/developer/webhooks?organizationId=${organizationId}&limit=50`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      })
+      );
 
       if (response.ok) {
-        const data = await response.json()
-        setWebhooks(data)
+        const data = await response.json();
+        setWebhooks(data);
       } else {
         toast.error("Failed to fetch webhooks");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to fetch webhooks");
     } finally {
-      setWebhooksLoading(false)
+      setWebhooksLoading(false);
     }
-  }
+  }, [organizationId]);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchApiKeys();
+      fetchWebhooks();
+    }
+  }, [session, fetchApiKeys, fetchWebhooks]);
 
   const handleCreateKey = async () => {
     if (!newKeyName.trim() || selectedScopes.length === 0) {
-      toast.error("Please provide a name and select at least one scope")
-      return
+      toast.error("Please provide a name and select at least one scope");
+      return;
     }
-    
+
     if (!organizationId) {
       toast.error("Organization not found");
       return;
@@ -175,7 +174,7 @@ export default function SettingsPage() {
         toast.error("Authentication required");
         return;
       }
-      
+
       const response = await fetch("/api/developer/api-keys", {
         method: "POST",
         headers: {
@@ -187,33 +186,33 @@ export default function SettingsPage() {
           organizationId,
           scopes: selectedScopes,
         }),
-      })
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        setCreatedKey(data.apiKey)
-        setShowCreatedKey(true)
-        toast.success("API key created successfully")
-        fetchApiKeys()
-        setNewKeyName("")
-        setSelectedScopes([])
+        const data = await response.json();
+        setCreatedKey(data.apiKey);
+        setShowCreatedKey(true);
+        toast.success("API key created successfully");
+        fetchApiKeys();
+        setNewKeyName("");
+        setSelectedScopes([]);
       } else {
-        const error = await response.json()
-        toast.error(error.error || "Failed to create API key")
+        const error = await response.json();
+        toast.error(error.error || "Failed to create API key");
       }
-    } catch (error) {
-      toast.error("Failed to create API key")
+    } catch (_error) {
+      toast.error("Failed to create API key");
     }
-  }
+  };
 
   const handleCreateWebhook = async () => {
     if (!webhookUrl.trim() || selectedEvents.length === 0) {
-      toast.error("Please provide a URL and select at least one event")
-      return
+      toast.error("Please provide a URL and select at least one event");
+      return;
     }
 
     try {
-      const token = localStorage.getItem("bearer_token")
+      const token = localStorage.getItem("bearer_token");
       const response = await fetch("/api/developer/webhooks", {
         method: "POST",
         headers: {
@@ -225,98 +224,98 @@ export default function SettingsPage() {
           url: webhookUrl,
           events: selectedEvents,
         }),
-      })
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        setCreatedWebhookSecret(data.secret)
-        toast.success("Webhook created successfully")
-        fetchWebhooks()
-        setWebhookUrl("")
-        setSelectedEvents([])
+        const data = await response.json();
+        setCreatedWebhookSecret(data.secret);
+        toast.success("Webhook created successfully");
+        fetchWebhooks();
+        setWebhookUrl("");
+        setSelectedEvents([]);
       } else {
-        const error = await response.json()
-        toast.error(error.error || "Failed to create webhook")
+        const error = await response.json();
+        toast.error(error.error || "Failed to create webhook");
       }
-    } catch (error) {
-      toast.error("Failed to create webhook")
+    } catch (_error) {
+      toast.error("Failed to create webhook");
     }
-  }
+  };
 
   const handleRevokeKey = async (id: number) => {
     if (!confirm("Are you sure you want to revoke this API key? This action cannot be undone.")) {
-      return
+      return;
     }
 
     try {
-      const token = localStorage.getItem("bearer_token")
+      const token = localStorage.getItem("bearer_token");
       const response = await fetch(`/api/developer/api-keys/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
+      });
 
       if (response.ok) {
-        toast.success("API key revoked successfully")
-        fetchApiKeys()
+        toast.success("API key revoked successfully");
+        fetchApiKeys();
       } else {
-        toast.error("Failed to revoke API key")
+        toast.error("Failed to revoke API key");
       }
-    } catch (error) {
-      toast.error("Failed to revoke API key")
+    } catch (_error) {
+      toast.error("Failed to revoke API key");
     }
-  }
+  };
 
   const handleDeleteWebhook = async (id: number) => {
     if (!confirm("Are you sure you want to delete this webhook?")) {
-      return
+      return;
     }
 
     try {
-      const token = localStorage.getItem("bearer_token")
+      const token = localStorage.getItem("bearer_token");
       const response = await fetch(`/api/developer/webhooks/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
+      });
 
       if (response.ok) {
-        toast.success("Webhook deleted successfully")
-        fetchWebhooks()
+        toast.success("Webhook deleted successfully");
+        fetchWebhooks();
       } else {
-        toast.error("Failed to delete webhook")
+        toast.error("Failed to delete webhook");
       }
-    } catch (error) {
-      toast.error("Failed to delete webhook")
+    } catch (_error) {
+      toast.error("Failed to delete webhook");
     }
-  }
+  };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success("Copied to clipboard")
-  }
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard");
+  };
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return "Never"
+    if (!dateString) return "Never";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   if (isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
-    )
+    );
   }
 
   if (!session?.user) {
-    return null
+    return null;
   }
 
   return (
@@ -324,7 +323,9 @@ export default function SettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h2>
-          <p className="text-sm sm:text-base text-muted-foreground">Manage your account settings and preferences.</p>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Manage your account settings and preferences.
+          </p>
         </div>
       </div>
 
@@ -340,16 +341,34 @@ export default function SettingsPage() {
             <div className="space-y-4 sm:space-y-6">
               <div>
                 <h3 className="text-base sm:text-lg font-semibold">Profile</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Update your personal information</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Update your personal information
+                </p>
               </div>
               <div className="grid gap-3 sm:gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-sm">Name</Label>
-                  <Input id="name" placeholder="Your name" defaultValue={session.user.name} className="h-9 sm:h-10" />
+                  <Label htmlFor="name" className="text-sm">
+                    Name
+                  </Label>
+                  <Input
+                    id="name"
+                    placeholder="Your name"
+                    defaultValue={session.user.name}
+                    className="h-9 sm:h-10"
+                  />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="email" className="text-sm">Email</Label>
-                  <Input id="email" type="email" placeholder="Your email" defaultValue={session.user.email} disabled className="h-9 sm:h-10" />
+                  <Label htmlFor="email" className="text-sm">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Your email"
+                    defaultValue={session.user.email}
+                    disabled
+                    className="h-9 sm:h-10"
+                  />
                 </div>
               </div>
               <Button className="w-full sm:w-auto">Save changes</Button>
@@ -363,7 +382,9 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold">API Keys</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Manage your API keys for programmatic access</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Manage your API keys for programmatic access
+                  </p>
                 </div>
                 <Button onClick={() => setCreateDialogOpen(true)} size="sm">
                   <Plus className="h-4 w-4 mr-2" />
@@ -389,11 +410,11 @@ export default function SettingsPage() {
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
                           <p className="font-medium">{key.name}</p>
-                          {key.revokedAt && (
-                            <Badge variant="destructive">Revoked</Badge>
-                          )}
+                          {key.revokedAt && <Badge variant="destructive">Revoked</Badge>}
                         </div>
-                        <p className="text-sm text-muted-foreground font-mono">{key.keyPrefix}...</p>
+                        <p className="text-sm text-muted-foreground font-mono">
+                          {key.keyPrefix}...
+                        </p>
                         <div className="flex flex-wrap gap-1 mt-2">
                           {key.scopes.map((scope) => (
                             <Badge key={scope} variant="secondary" className="text-xs">
@@ -402,7 +423,8 @@ export default function SettingsPage() {
                           ))}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Last used: {formatDate(key.lastUsedAt)} • Created: {formatDate(key.createdAt)}
+                          Last used: {formatDate(key.lastUsedAt)} • Created:{" "}
+                          {formatDate(key.createdAt)}
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -430,7 +452,9 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold">Webhooks</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Configure webhooks for real-time event notifications</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Configure webhooks for real-time event notifications
+                  </p>
                 </div>
                 <Button onClick={() => setCreateWebhookDialogOpen(true)} size="sm">
                   <Plus className="h-4 w-4 mr-2" />
@@ -457,7 +481,7 @@ export default function SettingsPage() {
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
                           <p className="font-medium font-mono text-sm">{webhook.url}</p>
-                          <Badge variant={webhook.status === 'active' ? 'default' : 'secondary'}>
+                          <Badge variant={webhook.status === "active" ? "default" : "secondary"}>
                             {webhook.status}
                           </Badge>
                         </div>
@@ -469,7 +493,8 @@ export default function SettingsPage() {
                           ))}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Last delivered: {formatDate(webhook.lastDeliveredAt)} • Created: {formatDate(webhook.createdAt)}
+                          Last delivered: {formatDate(webhook.lastDeliveredAt)} • Created:{" "}
+                          {formatDate(webhook.createdAt)}
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -522,11 +547,7 @@ export default function SettingsPage() {
                   >
                     {showCreatedKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => copyToClipboard(createdKey)}
-                  >
+                  <Button variant="outline" size="icon" onClick={() => copyToClipboard(createdKey)}>
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
@@ -537,9 +558,9 @@ export default function SettingsPage() {
               <DialogFooter>
                 <Button
                   onClick={() => {
-                    setCreatedKey(null)
-                    setShowCreatedKey(false)
-                    setCreateDialogOpen(false)
+                    setCreatedKey(null);
+                    setShowCreatedKey(false);
+                    setCreateDialogOpen(false);
                   }}
                 >
                   Done
@@ -568,9 +589,9 @@ export default function SettingsPage() {
                         checked={selectedScopes.includes(scope.id)}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            setSelectedScopes([...selectedScopes, scope.id])
+                            setSelectedScopes([...selectedScopes, scope.id]);
                           } else {
-                            setSelectedScopes(selectedScopes.filter((s) => s !== scope.id))
+                            setSelectedScopes(selectedScopes.filter((s) => s !== scope.id));
                           }
                         }}
                       />
@@ -630,14 +651,15 @@ export default function SettingsPage() {
                   </Button>
                 </div>
                 <p className="text-xs text-amber-600">
-                  ⚠️ Save this secret for webhook signature verification. You won't be able to see it again!
+                  ⚠️ Save this secret for webhook signature verification. You won't be able to see it
+                  again!
                 </p>
               </div>
               <DialogFooter>
                 <Button
                   onClick={() => {
-                    setCreatedWebhookSecret(null)
-                    setCreateWebhookDialogOpen(false)
+                    setCreatedWebhookSecret(null);
+                    setCreateWebhookDialogOpen(false);
                   }}
                 >
                   Done
@@ -666,9 +688,9 @@ export default function SettingsPage() {
                         checked={selectedEvents.includes(event.id)}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            setSelectedEvents([...selectedEvents, event.id])
+                            setSelectedEvents([...selectedEvents, event.id]);
                           } else {
-                            setSelectedEvents(selectedEvents.filter((e) => e !== event.id))
+                            setSelectedEvents(selectedEvents.filter((e) => e !== event.id));
                           }
                         }}
                       />
@@ -694,5 +716,5 @@ export default function SettingsPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

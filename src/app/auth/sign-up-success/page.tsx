@@ -1,5 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle2 } from "lucide-react"
+import { CheckCircle2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function SignUpSuccessPage() {
   return (
@@ -15,7 +15,9 @@ export default function SignUpSuccessPage() {
               <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
             </div>
             <CardTitle className="text-xl sm:text-2xl">Check your email</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">We've sent you a confirmation link to verify your account</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
+              We've sent you a confirmation link to verify your account
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
             <div className="rounded-md bg-gray-900 p-3 sm:p-4 text-xs sm:text-sm text-gray-400">
@@ -32,5 +34,5 @@ export default function SignUpSuccessPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

@@ -5,14 +5,14 @@
  * quality score trends and triggering alerts.
  */
 
-import { db } from '@/db';
-import { qualityScores, evaluations, driftAlerts } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
-import { logger } from '@/lib/logger';
-import { zScore, meanAndStd } from '@/lib/drift/zscore';
+import { and, desc, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { driftAlerts, evaluations, qualityScores } from "@/db/schema";
+import { meanAndStd, zScore } from "@/lib/drift/zscore";
+import { logger } from "@/lib/logger";
 
-export type AlertType = 'quality_drop' | 'safety_spike' | 'cost_spike' | 'judge_shift';
-export type Severity = 'info' | 'warning' | 'critical';
+export type AlertType = "quality_drop" | "safety_spike" | "cost_spike" | "judge_shift";
+export type Severity = "info" | "warning" | "critical";
 
 interface DetectionResult {
   alertsCreated: number;
@@ -34,7 +34,7 @@ export class DriftService {
    * Run drift detection for all evaluations in an organization.
    */
   async detectDrift(organizationId: number): Promise<DetectionResult> {
-    logger.info('Running drift detection', { organizationId });
+    logger.info("Running drift detection", { organizationId });
 
     const orgEvals = await db
       .select()
@@ -51,10 +51,12 @@ export class DriftService {
       const scores = await db
         .select()
         .from(qualityScores)
-        .where(and(
-          eq(qualityScores.evaluationId, evaluation.id),
-          eq(qualityScores.organizationId, organizationId),
-        ))
+        .where(
+          and(
+            eq(qualityScores.evaluationId, evaluation.id),
+            eq(qualityScores.organizationId, organizationId),
+          ),
+        )
         .orderBy(desc(qualityScores.createdAt))
         .limit(50);
 
@@ -72,8 +74,8 @@ export class DriftService {
       if (z <= this.Z_THRESHOLD_CRITICAL) {
         const alert = {
           evaluationId: evaluation.id,
-          alertType: 'quality_drop' as AlertType,
-          severity: 'critical' as Severity,
+          alertType: "quality_drop" as AlertType,
+          severity: "critical" as Severity,
           explanation: `Quality score dropped to ${latest.score} (mean: ${mean.toFixed(1)}, z-score: ${z.toFixed(2)}). This is a significant regression.`,
         };
         await this.createAlert(organizationId, alert, latest, mean, z);
@@ -82,8 +84,8 @@ export class DriftService {
       } else if (z <= this.Z_THRESHOLD_WARNING) {
         const alert = {
           evaluationId: evaluation.id,
-          alertType: 'quality_drop' as AlertType,
-          severity: 'warning' as Severity,
+          alertType: "quality_drop" as AlertType,
+          severity: "warning" as Severity,
           explanation: `Quality score dipped to ${latest.score} (mean: ${mean.toFixed(1)}, z-score: ${z.toFixed(2)}). Monitor for continued decline.`,
         };
         await this.createAlert(organizationId, alert, latest, mean, z);
@@ -92,13 +94,12 @@ export class DriftService {
       }
 
       // Safety drift (check breakdown)
-      const latestBreakdown = typeof latest.breakdown === 'string'
-        ? JSON.parse(latest.breakdown)
-        : latest.breakdown;
+      const latestBreakdown =
+        typeof latest.breakdown === "string" ? JSON.parse(latest.breakdown) : latest.breakdown;
 
       if (latestBreakdown?.safety !== undefined) {
         const safetyValues = historical.map((s) => {
-          const bd = typeof s.breakdown === 'string' ? JSON.parse(s.breakdown) : s.breakdown;
+          const bd = typeof s.breakdown === "string" ? JSON.parse(s.breakdown) : s.breakdown;
           return (bd as any)?.safety ?? 1;
         });
         const safetyStats = meanAndStd(safetyValues);
@@ -107,8 +108,8 @@ export class DriftService {
         if (safetyZ <= this.Z_THRESHOLD_CRITICAL) {
           const alert = {
             evaluationId: evaluation.id,
-            alertType: 'safety_spike' as AlertType,
-            severity: 'critical' as Severity,
+            alertType: "safety_spike" as AlertType,
+            severity: "critical" as Severity,
             explanation: `Safety score dropped to ${(latestBreakdown.safety * 100).toFixed(0)}% (mean: ${(safetyStats.mean * 100).toFixed(0)}%). Immediate attention required.`,
           };
           await this.createAlert(organizationId, alert, latest, safetyStats.mean, safetyZ);
@@ -120,7 +121,7 @@ export class DriftService {
       // Cost drift (check breakdown)
       if (latestBreakdown?.cost !== undefined) {
         const costValues = historical.map((s) => {
-          const bd = typeof s.breakdown === 'string' ? JSON.parse(s.breakdown) : s.breakdown;
+          const bd = typeof s.breakdown === "string" ? JSON.parse(s.breakdown) : s.breakdown;
           return (bd as any)?.cost ?? 1;
         });
         const costStats = meanAndStd(costValues);
@@ -129,8 +130,8 @@ export class DriftService {
         if (costZ <= this.Z_THRESHOLD_CRITICAL) {
           const alert = {
             evaluationId: evaluation.id,
-            alertType: 'cost_spike' as AlertType,
-            severity: 'warning' as Severity,
+            alertType: "cost_spike" as AlertType,
+            severity: "warning" as Severity,
             explanation: `Cost score dropped to ${(latestBreakdown.cost * 100).toFixed(0)}% (mean: ${(costStats.mean * 100).toFixed(0)}%). Costs may be spiking.`,
           };
           await this.createAlert(organizationId, alert, latest, costStats.mean, costZ);
@@ -140,7 +141,7 @@ export class DriftService {
       }
     }
 
-    logger.info('Drift detection complete', {
+    logger.info("Drift detection complete", {
       organizationId,
       evaluationsChecked: result.evaluationsChecked,
       alertsCreated: result.alertsCreated,
@@ -152,11 +153,14 @@ export class DriftService {
   /**
    * List drift alerts for an organization.
    */
-  async listAlerts(organizationId: number, options?: {
-    evaluationId?: number;
-    limit?: number;
-    offset?: number;
-  }) {
+  async listAlerts(
+    organizationId: number,
+    options?: {
+      evaluationId?: number;
+      limit?: number;
+      offset?: number;
+    },
+  ) {
     const limit = Math.min(options?.limit ?? 50, 100);
     const offset = options?.offset ?? 0;
 

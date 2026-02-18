@@ -1,5 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card } from "@/components/ui/card"
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function EvaluationsLoading() {
   return (
@@ -34,6 +34,5 @@ export default function EvaluationsLoading() {
         ))}
       </div>
     </div>
-  )
+  );
 }
-

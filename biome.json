@@ -1,0 +1,92 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": false,
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/build",
+      "!**/dist",
+      "!**/drizzle",
+      "!**/public",
+      "!**/*.tgz",
+      "!**/*.mjs",
+      "!**/component-tagger-loader.cjs",
+      "!**/examples",
+      "!**/visual-edits"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "a11y": "off",
+      "correctness": {
+        "noUnusedImports": "warn",
+        "noUnusedVariables": "off",
+        "noUnusedFunctionParameters": "off",
+        "useHookAtTopLevel": "warn",
+        "noInvalidUseBeforeDeclaration": "off",
+        "useExhaustiveDependencies": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noArrayIndexKey": "off",
+        "noRedeclare": "off",
+        "noCommentText": "off",
+        "noDocumentCookie": "off",
+        "noTemplateCurlyInString": "off",
+        "useIterableCallbackReturn": "off",
+        "noImplicitAnyLet": "off",
+        "noAssignInExpressions": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "useTemplate": "warn",
+        "useNodejsImportProtocol": "warn"
+      },
+      "complexity": {
+        "useLiteralKeys": "warn",
+        "noUselessFragments": "off",
+        "noStaticOnlyClass": "off"
+      },
+      "performance": {
+        "noImgElement": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  }
+}

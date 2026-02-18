@@ -1,81 +1,85 @@
-"use client"
+"use client";
 
-import { use } from 'react'  // Add this import
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
-import { ArrowLeft, Play, Plus, FileText, Download, Copy } from "lucide-react"
-import { useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { AIQualityScoreCard } from "@/components/ai-quality-score-card"
-import { calculateQualityScore, type EvaluationStats } from "@/lib/ai-quality-score"
-import { toast } from "sonner"
-import { formatExportData, generateExportFilename, getExportDescription, validateExportData, type EvaluationType } from "@/lib/export-templates"
-import { ExportModal, type ExportOptions } from "@/components/export-modal"
+import { ArrowLeft, Copy, Download, FileText, Play, Plus } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useState } from "react"; // Add this import
+import { toast } from "sonner";
+import { AIQualityScoreCard } from "@/components/ai-quality-score-card";
+import { ExportModal, type ExportOptions } from "@/components/export-modal";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { calculateQualityScore, type EvaluationStats } from "@/lib/ai-quality-score";
+import { useSession } from "@/lib/auth-client";
+import {
+  type EvaluationType,
+  formatExportData,
+  generateExportFilename,
+  validateExportData,
+} from "@/lib/export-templates";
 
 // Update type
 type PageProps = {
-  params: Promise<{ id: string }>
-}
+  params: Promise<{ id: string }>;
+};
 
 export default function EvaluationDetailPage({ params }: PageProps) {
-  const { id } = use(params)  // Unwrap Promise with use()
-  const { data: session, isPending } = useSession()
-  const router = useRouter()
-  const [evaluation, setEvaluation] = useState<any>(null)
-  const [testCases, setTestCases] = useState<any[]>([])
-  const [runs, setRuns] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [qualityScore, setQualityScore] = useState<any>(null)
-  const [exportModalOpen, setExportModalOpen] = useState(false)
+  const { id } = use(params); // Unwrap Promise with use()
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const [evaluation, setEvaluation] = useState<any>(null);
+  const [testCases, setTestCases] = useState<any[]>([]);
+  const [runs, setRuns] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [qualityScore, setQualityScore] = useState<any>(null);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
-      router.push("/auth/login")
-      return
+      router.push("/auth/login");
+      return;
     }
 
     if (session?.user) {
-      const token = localStorage.getItem("bearer_token")
-      
+      const token = localStorage.getItem("bearer_token");
+
       // Fetch evaluation
       fetch(`/api/evaluations/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       })
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (data.error) {
-            router.push("/evaluations")
+            router.push("/evaluations");
           } else {
-            setEvaluation(data.evaluation)
+            setEvaluation(data.evaluation);
           }
-        })
+        });
 
       // Fetch test cases
       fetch(`/api/evaluations/${id}/test-cases`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       })
-        .then(res => res.json())
-        .then(data => setTestCases(data.testCases || []))
+        .then((res) => res.json())
+        .then((data) => setTestCases(data.testCases || []));
 
       // Fetch runs
       fetch(`/api/evaluations/${id}/runs`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       })
-        .then(res => res.json())
-        .then(data => {
-          const fetchedRuns = data.runs || []
-          setRuns(fetchedRuns)
-          
+        .then((res) => res.json())
+        .then((data) => {
+          const fetchedRuns = data.runs || [];
+          setRuns(fetchedRuns);
+
           // Calculate quality score from runs
           if (fetchedRuns.length > 0) {
-            const latestRun = fetchedRuns[0]
+            const latestRun = fetchedRuns[0];
             // Use correct Drizzle camelCase field names from schema
-            const totalCases = latestRun.totalCases || latestRun.total_cases || 0
-            const passedCases = latestRun.passedCases || latestRun.passed_cases || 0
-            const failedCases = latestRun.failedCases || latestRun.failed_cases || 0
+            const totalCases = latestRun.totalCases || latestRun.total_cases || 0;
+            const passedCases = latestRun.passedCases || latestRun.passed_cases || 0;
+            const failedCases = latestRun.failedCases || latestRun.failed_cases || 0;
             const stats: EvaluationStats = {
               totalEvaluations: totalCases,
               passedEvaluations: passedCases,
@@ -83,23 +87,23 @@ export default function EvaluationDetailPage({ params }: PageProps) {
               averageLatency: 500, // Default — computed from testResults if available
               averageCost: 0.01, // Default — computed from cost records if available
               averageScore: totalCases > 0 ? (passedCases / totalCases) * 100 : 0,
-              consistencyScore: 85 // Default — computed from multiple runs if available
-            }
-            const score = calculateQualityScore(stats)
-            setQualityScore(score)
+              consistencyScore: 85, // Default — computed from multiple runs if available
+            };
+            const score = calculateQualityScore(stats);
+            setQualityScore(score);
           }
-          
-          setIsLoading(false)
-        })
+
+          setIsLoading(false);
+        });
     }
-  }, [session, isPending, router, id])  // Changed from params.id to id
-  
+  }, [session, isPending, router, id]); // Changed from params.id to id
+
   const handleCopyResults = () => {
-    if (!qualityScore || !evaluation) return
-    
-    const latestRun = runs[0]
-    const runTotal = latestRun?.totalCases || latestRun?.total_cases || 0
-    const runPassed = latestRun?.passedCases || latestRun?.passed_cases || 0
+    if (!qualityScore || !evaluation) return;
+
+    const latestRun = runs[0];
+    const runTotal = latestRun?.totalCases || latestRun?.total_cases || 0;
+    const runPassed = latestRun?.passedCases || latestRun?.passed_cases || 0;
     const summary = `
 Evaluation Results: ${evaluation.name}
 Grade: ${qualityScore.grade} (${qualityScore.overall}/100)
@@ -118,50 +122,50 @@ Quality Metrics:
 - Consistency: ${qualityScore.metrics.consistency}/100
 
 Key Insights:
-${qualityScore.insights.map((i: string) => `- ${i}`).join('\n')}
+${qualityScore.insights.map((i: string) => `- ${i}`).join("\n")}
 
 Recommendations:
-${qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
-    `.trim()
+${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
+    `.trim();
 
-    navigator.clipboard.writeText(summary)
-    toast.success('Results copied to clipboard!')
-  }
+    navigator.clipboard.writeText(summary);
+    toast.success("Results copied to clipboard!");
+  };
 
   const handleExportWithOptions = async (options: ExportOptions): Promise<string | null> => {
-    if (!qualityScore || !evaluation) return null
-    
-    const latestRun = runs[0]
-    const runId = latestRun?.id ?? latestRun?.runId
+    if (!qualityScore || !evaluation) return null;
+
+    const latestRun = runs[0];
+    const runId = latestRun?.id ?? latestRun?.runId;
 
     // Prefer server-side export when we have a run (includes IAA for human_eval)
     if (runId) {
       try {
-        const token = localStorage.getItem('bearer_token')
+        const token = localStorage.getItem("bearer_token");
         const res = await fetch(`/api/evaluations/${id}/runs/${runId}/export`, {
           headers: { Authorization: `Bearer ${token}` },
-        })
+        });
         if (res.ok) {
-          const exportData = await res.json()
+          const exportData = await res.json();
           if (options.publishAsDemo) {
             const publishRes = await fetch(`/api/evaluations/${id}/publish`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ exportData, customShareId: options.customShareId }),
-            })
+            });
             if (!publishRes.ok) {
-              const err = await publishRes.json()
-              throw new Error(err.error || 'Failed to publish')
+              const err = await publishRes.json();
+              throw new Error(err.error || "Failed to publish");
             }
-            const result = await publishRes.json()
-            downloadExportFile(exportData, evaluation)
-            return result.shareId
+            const result = await publishRes.json();
+            downloadExportFile(exportData, evaluation);
+            return result.shareId;
           }
-          downloadExportFile(exportData, evaluation)
-          return null
+          downloadExportFile(exportData, evaluation);
+          return null;
         }
       } catch (e) {
-        console.warn('Server export failed, falling back to client:', e)
+        console.warn("Server export failed, falling back to client:", e);
       }
     }
 
@@ -173,90 +177,93 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
         description: evaluation.description,
         type: evaluation.type as EvaluationType,
         category: evaluation.category,
-        created_at: evaluation.created_at
+        created_at: evaluation.created_at,
       },
       timestamp: new Date().toISOString(),
       summary: {
         totalTests: latestRun?.totalCases || latestRun?.total_cases || 0,
         passed: latestRun?.passedCases || latestRun?.passed_cases || 0,
-        failed: (latestRun?.totalCases || latestRun?.total_cases || 0) - (latestRun?.passedCases || latestRun?.passed_cases || 0),
-        passRate: (latestRun?.totalCases || latestRun?.total_cases)
-          ? `${Math.round(((latestRun?.passedCases || latestRun?.passed_cases || 0) / (latestRun?.totalCases || latestRun?.total_cases)) * 100)}%` 
-          : '0%'
+        failed:
+          (latestRun?.totalCases || latestRun?.total_cases || 0) -
+          (latestRun?.passedCases || latestRun?.passed_cases || 0),
+        passRate:
+          latestRun?.totalCases || latestRun?.total_cases
+            ? `${Math.round(((latestRun?.passedCases || latestRun?.passed_cases || 0) / (latestRun?.totalCases || latestRun?.total_cases)) * 100)}%`
+            : "0%",
       },
-      qualityScore: qualityScore
-    }
-    
+      qualityScore: qualityScore,
+    };
+
     // Type-specific additional data
-    const additionalData = getAdditionalExportData(evaluation.type, testCases, runs, latestRun)
-    
+    const additionalData = getAdditionalExportData(evaluation.type, testCases, runs, latestRun);
+
     // Format based on template type
-    const exportData = formatExportData(baseData, additionalData)
-    
+    const exportData = formatExportData(baseData, additionalData);
+
     // Validate export data
-    const validation = validateExportData(exportData)
+    const validation = validateExportData(exportData);
     if (!validation.valid) {
-      console.warn('Export data incomplete:', validation.missingFields)
+      console.warn("Export data incomplete:", validation.missingFields);
     }
-    
+
     // If publishing as demo, call API
     if (options.publishAsDemo) {
       try {
         const response = await fetch(`/api/evaluations/${id}/publish`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             exportData,
             customShareId: options.customShareId,
           }),
-        })
-        
+        });
+
         if (!response.ok) {
-          const error = await response.json()
-          throw new Error(error.error || 'Failed to publish')
+          const error = await response.json();
+          throw new Error(error.error || "Failed to publish");
         }
-        
-        const result = await response.json()
-        
+
+        const result = await response.json();
+
         // Also download the file
-        downloadExportFile(exportData, evaluation)
-        
-        return result.shareId
+        downloadExportFile(exportData, evaluation);
+
+        return result.shareId;
       } catch (error) {
-        console.error('Publish error:', error)
-        throw error
+        console.error("Publish error:", error);
+        throw error;
       }
     } else {
       // Just download the file
-      downloadExportFile(exportData, evaluation)
-      return null
+      downloadExportFile(exportData, evaluation);
+      return null;
     }
-  }
-  
+  };
+
   const downloadExportFile = (exportData: any, evaluation: any) => {
     const filename = generateExportFilename(
       evaluation.name,
       evaluation.type as EvaluationType,
-      evaluation.category
-    )
-    
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
-  
+      evaluation.category,
+    );
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // Helper function to get type-specific export data
   const getAdditionalExportData = (type: string, testCases: any[], runs: any[], latestRun: any) => {
     switch (type) {
-      case 'unit_test':
+      case "unit_test":
         return {
           testResults: testCases.map((tc: any) => ({
             id: tc.id,
@@ -266,27 +273,27 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
             actual_output: tc.actual_output,
             passed: tc.passed || false,
             execution_time_ms: tc.execution_time_ms,
-            error_message: tc.error_message
+            error_message: tc.error_message,
           })),
-          codeValidation: latestRun?.code_validation
-        }
-      
-      case 'human_eval':
+          codeValidation: latestRun?.code_validation,
+        };
+
+      case "human_eval":
         return {
           evaluations: latestRun?.human_evaluations || [],
           criteria: evaluation?.human_eval_criteria || [],
-          interRaterReliability: latestRun?.inter_rater_reliability
-        }
-      
-      case 'model_eval':
+          interRaterReliability: latestRun?.inter_rater_reliability,
+        };
+
+      case "model_eval":
         return {
           judgeEvaluations: latestRun?.judge_evaluations || [],
-          judgePrompt: evaluation?.judge_prompt || '',
-          judgeModel: evaluation?.judge_model || 'gpt-4',
-          aggregateMetrics: latestRun?.aggregate_metrics
-        }
-      
-      case 'ab_test':
+          judgePrompt: evaluation?.judge_prompt || "",
+          judgeModel: evaluation?.judge_model || "gpt-4",
+          aggregateMetrics: latestRun?.aggregate_metrics,
+        };
+
+      case "ab_test":
         return {
           variants: evaluation?.variants || [],
           results: runs.map((run: any) => ({
@@ -296,22 +303,22 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
             success_rate: run.passed_tests / run.total_tests,
             average_latency: run.average_latency,
             average_cost: run.average_cost,
-            quality_score: run.quality_score
+            quality_score: run.quality_score,
           })),
           statisticalSignificance: latestRun?.statistical_significance,
-          comparison: latestRun?.comparison
-        }
-      
+          comparison: latestRun?.comparison,
+        };
+
       default:
         return {
           testResults: testCases,
-          recentRuns: runs.slice(0, 5)
-        }
+          recentRuns: runs.slice(0, 5),
+        };
     }
-  }
+  };
 
   if (isPending || !session?.user || isLoading || !evaluation) {
-    return null
+    return null;
   }
 
   return (
@@ -347,16 +354,28 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
                 {evaluation.type.replace("_", " ")}
               </Badge>
             </div>
-            <p className="text-sm sm:text-base text-muted-foreground">{evaluation.description || "No description provided"}</p>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              {evaluation.description || "No description provided"}
+            </p>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
             {qualityScore && (
               <>
-                <Button variant="outline" size="sm" onClick={handleCopyResults} className="flex-1 sm:flex-none">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyResults}
+                  className="flex-1 sm:flex-none"
+                >
                   <Copy className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   Copy
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => setExportModalOpen(true)} className="flex-1 sm:flex-none">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setExportModalOpen(true)}
+                  className="flex-1 sm:flex-none"
+                >
                   <Download className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   Export
                 </Button>
@@ -396,16 +415,18 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
           </CardHeader>
           <CardContent>
             <div className="text-xs sm:text-sm">
-              {runs.length > 0 ? new Date(runs[0].startedAt || runs[0].started_at || runs[0].createdAt).toLocaleDateString() : "Never"}
+              {runs.length > 0
+                ? new Date(
+                    runs[0].startedAt || runs[0].started_at || runs[0].createdAt,
+                  ).toLocaleDateString()
+                : "Never"}
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Quality Score Card */}
-      {qualityScore && (
-        <AIQualityScoreCard score={qualityScore} />
-      )}
+      {qualityScore && <AIQualityScoreCard score={qualityScore} />}
 
       {/* Test Cases */}
       <div>
@@ -452,7 +473,9 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
             <CardContent className="py-12 text-center">
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No test cases yet</h3>
-              <p className="text-muted-foreground mb-4">Add test cases to start evaluating your AI models</p>
+              <p className="text-muted-foreground mb-4">
+                Add test cases to start evaluating your AI models
+              </p>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Test Case
@@ -487,11 +510,16 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
                         >
                           {run.status}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">{new Date(run.startedAt || run.started_at || run.createdAt).toLocaleString()}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(
+                            run.startedAt || run.started_at || run.createdAt,
+                          ).toLocaleString()}
+                        </span>
                       </div>
                       {run.status === "completed" && (
                         <p className="text-sm">
-                          {run.passedCases || run.passed_cases || 0} / {run.totalCases || run.total_cases || 0} tests passed
+                          {run.passedCases || run.passed_cases || 0} /{" "}
+                          {run.totalCases || run.total_cases || 0} tests passed
                         </p>
                       )}
                     </div>
@@ -516,9 +544,9 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
       <ExportModal
         open={exportModalOpen}
         onOpenChange={setExportModalOpen}
-        evaluationName={evaluation?.name || 'Evaluation'}
+        evaluationName={evaluation?.name || "Evaluation"}
         onExport={handleExportWithOptions}
       />
     </div>
-  )
+  );
 }

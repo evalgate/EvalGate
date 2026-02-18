@@ -22,7 +22,7 @@ export class RequestCache {
    * Generate cache key from request parameters
    */
   private generateKey(method: string, url: string, params?: any): string {
-    const paramString = params ? JSON.stringify(params) : '';
+    const paramString = params ? JSON.stringify(params) : "";
     return `${method}:${url}:${paramString}`;
   }
 
@@ -114,10 +114,10 @@ export class RequestCache {
  * @internal - Used by SDK internally, exposed for advanced customization only
  */
 export const CacheTTL = {
-  SHORT: 30 * 1000,      
-  MEDIUM: 5 * 60 * 1000, 
-  LONG: 30 * 60 * 1000,  
-  HOUR: 60 * 60 * 1000,  
+  SHORT: 30 * 1000,
+  MEDIUM: 5 * 60 * 1000,
+  LONG: 30 * 60 * 1000,
+  HOUR: 60 * 60 * 1000,
 } as const;
 
 /**
@@ -125,17 +125,13 @@ export const CacheTTL = {
  * Determine if a request should be cached based on method and endpoint
  */
 export function shouldCache(method: string, endpoint: string): boolean {
-  if (method !== 'GET') {
+  if (method !== "GET") {
     return false;
   }
 
-  const noCacheEndpoints = [
-    '/health',
-    '/usage',
-    '/deliveries',
-  ];
+  const noCacheEndpoints = ["/health", "/usage", "/deliveries"];
 
-  return !noCacheEndpoints.some(pattern => endpoint.includes(pattern));
+  return !noCacheEndpoints.some((pattern) => endpoint.includes(pattern));
 }
 
 /**
@@ -143,18 +139,17 @@ export function shouldCache(method: string, endpoint: string): boolean {
  * Get appropriate TTL for an endpoint
  */
 export function getTTL(endpoint: string): number {
-  if (endpoint.includes('/api-keys') || endpoint.includes('/webhooks')) {
+  if (endpoint.includes("/api-keys") || endpoint.includes("/webhooks")) {
     return CacheTTL.LONG;
   }
 
-  if (endpoint.includes('/evaluations') || endpoint.includes('/configs')) {
+  if (endpoint.includes("/evaluations") || endpoint.includes("/configs")) {
     return CacheTTL.MEDIUM;
   }
 
-  if (endpoint.includes('/traces') || endpoint.includes('/results')) {
+  if (endpoint.includes("/traces") || endpoint.includes("/results")) {
     return CacheTTL.SHORT;
   }
 
   return CacheTTL.MEDIUM;
 }
-

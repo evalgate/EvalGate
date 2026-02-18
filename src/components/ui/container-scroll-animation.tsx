@@ -1,6 +1,7 @@
 "use client";
-import React, { useRef, useState, useEffect } from "react";
-import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
+import { type MotionValue, motion, useScroll, useTransform } from "framer-motion";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ContainerScrollProps {
   titleComponent: string | React.ReactNode;
@@ -19,10 +20,7 @@ interface CardProps {
   children: React.ReactNode;
 }
 
-export const ContainerScroll: React.FC<ContainerScrollProps> = ({
-  titleComponent,
-  children,
-}) => {
+export const ContainerScroll: React.FC<ContainerScrollProps> = ({ titleComponent, children }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -81,12 +79,7 @@ export const Header: React.FC<HeaderProps> = ({ translate, titleComponent }) => 
   );
 };
 
-export const Card: React.FC<CardProps> = ({
-  rotate,
-  scale,
-  translate,
-  children,
-}) => {
+export const Card: React.FC<CardProps> = ({ rotate, scale, translate, children }) => {
   return (
     <motion.div
       style={{

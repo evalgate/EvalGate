@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { logger } from '@/lib/logger';
+import { useEffect, useState } from "react";
+import { logger } from "@/lib/logger";
 
 interface Organization {
   id: number;
@@ -20,13 +20,13 @@ export function useOrganization() {
   useEffect(() => {
     const fetchOrganization = async () => {
       try {
-        const token = localStorage.getItem('bearer_token');
-        
+        const token = localStorage.getItem("bearer_token");
+
         if (!token) {
-          throw new Error('No authentication token found');
+          throw new Error("No authentication token found");
         }
 
-        const response = await fetch('/api/organizations/current', {
+        const response = await fetch("/api/organizations/current", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -41,7 +41,7 @@ export function useOrganization() {
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
         setError(error);
-        logger.error('Failed to fetch organization', error);
+        logger.error("Failed to fetch organization", error);
       } finally {
         setIsLoading(false);
       }
@@ -59,11 +59,10 @@ export function useOrganization() {
  */
 export function useOrganizationId(): number | null {
   const { organization, isLoading } = useOrganization();
-  
+
   if (isLoading) {
     return null;
   }
-  
+
   return organization?.id ?? null;
 }
-

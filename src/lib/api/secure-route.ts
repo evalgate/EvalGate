@@ -12,30 +12,27 @@
  *  5. Structured logging of failures
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest, NextResponse } from "next/server";
+import { ZodError } from "zod";
+import { type ApiErrorCode, apiError, internalError, zodValidationError } from "@/lib/api/errors";
 import {
-  requireAuth,
-  requireAuthWithOrg,
-} from '@/lib/autumn-server';
-import { withRateLimit } from '@/lib/api-rate-limit';
-import {
-  apiError,
-  internalError,
-  zodValidationError,
-  type ApiErrorCode,
-} from '@/lib/api/errors';
-import { extractOrGenerateRequestId, runWithRequestIdAsync, setRequestContext, getRequestContext } from '@/lib/api/request-id';
-import { logger } from '@/lib/logger';
-import { ZodError } from 'zod';
+  extractOrGenerateRequestId,
+  getRequestContext,
+  runWithRequestIdAsync,
+  setRequestContext,
+} from "@/lib/api/request-id";
+import { withRateLimit } from "@/lib/api-rate-limit";
+import { requireAuth, requireAuthWithOrg } from "@/lib/autumn-server";
+import { logger } from "@/lib/logger";
 
-const REQUEST_ID_HEADER = 'x-request-id';
+const REQUEST_ID_HEADER = "x-request-id";
 
 // ── Types ──
 
-export type RateLimitTier = 'anonymous' | 'free' | 'pro' | 'enterprise' | 'mcp';
+export type RateLimitTier = "anonymous" | "free" | "pro" | "enterprise" | "mcp";
 
-export type Role = 'viewer' | 'member' | 'admin' | 'owner';
-export type AuthType = 'session' | 'apiKey' | 'anonymous';
+export type Role = "viewer" | "member" | "admin" | "owner";
+export type AuthType = "session" | "apiKey" | "anonymous";
 
 export interface AuthContext {
   userId: string;
@@ -50,14 +47,14 @@ export interface AuthContext {
 export interface AuthOnlyContext {
   userId: string;
   scopes: string[];
-  authType: Exclude<AuthType, 'anonymous'>;
+  authType: Exclude<AuthType, "anonymous">;
 }
 
 /** Explicit context for anonymous or authed handlers — never return empty {} */
 export type AnyAuthContext =
-  | { authType: 'anonymous' }
+  | { authType: "anonymous" }
   | {
-      authType: 'session' | 'apiKey';
+      authType: "session" | "apiKey";
       userId: string;
       organizationId?: number;
       role?: Role;
@@ -90,10 +87,10 @@ export const ROLE_RANK: Record<Role, number> = {
 
 export function normalizeRole(role: string): Role {
   const r = role.toLowerCase();
-  if (r === 'owner') return 'owner';
-  if (r === 'admin') return 'admin';
-  if (r === 'member') return 'member';
-  return 'viewer';
+  if (r === "owner") return "owner";
+  if (r === "admin") return "admin";
+  if (r === "member") return "member";
+  return "viewer";
 }
 
 export function hasMinRole(role: Role, minRole: Role): boolean {
@@ -109,19 +106,31 @@ export function hasScopes(granted: string[], required: string[]): boolean {
 
 /** Authenticated + org-scoped handler (default) */
 export function secureRoute(
-  handler: (req: NextRequest, ctx: AuthContext, params: Record<string, string>) => Promise<NextResponse>,
+  handler: (
+    req: NextRequest,
+    ctx: AuthContext,
+    params: Record<string, string>,
+  ) => Promise<NextResponse>,
   options?: SecureRouteOptions & { requireOrg?: true; allowAnonymous?: false | undefined },
 ): (req: NextRequest, props: { params: Promise<Record<string, string>> }) => Promise<NextResponse>;
 
 /** Authenticated but user-only (no org) */
 export function secureRoute(
-  handler: (req: NextRequest, ctx: AuthOnlyContext, params: Record<string, string>) => Promise<NextResponse>,
+  handler: (
+    req: NextRequest,
+    ctx: AuthOnlyContext,
+    params: Record<string, string>,
+  ) => Promise<NextResponse>,
   options: SecureRouteOptions & { requireOrg: false; allowAnonymous?: false | undefined },
 ): (req: NextRequest, props: { params: Promise<Record<string, string>> }) => Promise<NextResponse>;
 
 /** Anonymous / public handler — ctx always has authType ('anonymous' or full auth) */
 export function secureRoute(
-  handler: (req: NextRequest, ctx: AnyAuthContext, params: Record<string, string>) => Promise<NextResponse>,
+  handler: (
+    req: NextRequest,
+    ctx: AnyAuthContext,
+    params: Record<string, string>,
+  ) => Promise<NextResponse>,
   options: SecureRouteOptions & { allowAnonymous: true },
 ): (req: NextRequest, props: { params: Promise<Record<string, string>> }) => Promise<NextResponse>;
 
@@ -149,13 +158,13 @@ export function secureRoute(
 
     // ── Anonymous path: check first, before auth; always apply rate limit ──
     if (allowAnonymous) {
-      const hasAuth = !!req.headers.get('authorization');
+      const hasAuth = !!req.headers.get("authorization");
       if (!hasAuth) {
         return runWithRequestIdAsync(requestId, async () => {
           const res = await withRateLimit(
             req,
-            async () => handler(req, { authType: 'anonymous' }, resolvedParams),
-            { customTier: tier ?? 'anonymous' },
+            async () => handler(req, { authType: "anonymous" }, resolvedParams),
+            { customTier: tier ?? "anonymous" },
           );
           return addRequestIdHeader(res);
         });
@@ -167,7 +176,7 @@ export function secureRoute(
     const coreHandler = async (request: NextRequest): Promise<NextResponse> => {
       try {
         // ── Auth path (required auth, or optional auth when allowAnonymous + header present) ──
-        const hasAuthHeader = !!request.headers.get('authorization');
+        const hasAuthHeader = !!request.headers.get("authorization");
         if (needsAuth || (allowAnonymous && hasAuthHeader)) {
           if (needsOrg) {
             const authResult = await requireAuthWithOrg(request);
@@ -175,10 +184,10 @@ export function secureRoute(
               // Parse the error from the auth response
               try {
                 const errBody = await authResult.response.json();
-                const code = (errBody.code ?? 'UNAUTHORIZED') as ApiErrorCode;
-                return apiError(code, errBody.error ?? 'Unauthorized');
+                const code = (errBody.code ?? "UNAUTHORIZED") as ApiErrorCode;
+                return apiError(code, errBody.error ?? "Unauthorized");
               } catch {
-                return apiError('UNAUTHORIZED', 'Unauthorized');
+                return apiError("UNAUTHORIZED", "Unauthorized");
               }
             }
             const ctx: AuthContext = {
@@ -193,18 +202,18 @@ export function secureRoute(
 
             // ── Role gate ──
             if (options.minRole && !hasMinRole(ctx.role, options.minRole)) {
-              return apiError('FORBIDDEN', `Requires at least ${options.minRole} role`);
+              return apiError("FORBIDDEN", `Requires at least ${options.minRole} role`);
             }
             // ── Scope gate ──
             if (options.requiredScopes?.length && !hasScopes(ctx.scopes, options.requiredScopes)) {
-              return apiError('FORBIDDEN', 'Insufficient scope');
+              return apiError("FORBIDDEN", "Insufficient scope");
             }
 
             return await handler(request, ctx, resolvedParams);
           } else {
             const authResult = await requireAuth(request);
             if (!authResult.authenticated) {
-              return apiError('UNAUTHORIZED', 'Unauthorized');
+              return apiError("UNAUTHORIZED", "Unauthorized");
             }
             const ctx: AuthOnlyContext = {
               userId: authResult.userId,
@@ -215,7 +224,7 @@ export function secureRoute(
 
             // ── Scope gate (no role check for user-only routes) ──
             if (options.requiredScopes?.length && !hasScopes(ctx.scopes, options.requiredScopes)) {
-              return apiError('FORBIDDEN', 'Insufficient scope');
+              return apiError("FORBIDDEN", "Insufficient scope");
             }
 
             return await handler(request, ctx, resolvedParams);
@@ -223,13 +232,13 @@ export function secureRoute(
         }
 
         // fallback: no auth required (requireAuth: false, no allowAnonymous) — use anonymous ctx for consistency
-        return await handler(request, { authType: 'anonymous' }, resolvedParams);
+        return await handler(request, { authType: "anonymous" }, resolvedParams);
       } catch (err) {
         if (err instanceof ZodError) {
           return zodValidationError(err);
         }
-        const message = err instanceof Error ? err.message : 'Internal server error';
-        logger.error('Unhandled route error', { error: message, path: request.nextUrl.pathname });
+        const message = err instanceof Error ? err.message : "Internal server error";
+        logger.error("Unhandled route error", { error: message, path: request.nextUrl.pathname });
         return internalError(message);
       }
     };
@@ -242,7 +251,7 @@ export function secureRoute(
         : await coreHandler(req);
       const durationMs = Math.round(performance.now() - start);
       const reqCtx = getRequestContext();
-      logger.info('Request completed', {
+      logger.info("Request completed", {
         requestId,
         route: req.nextUrl.pathname,
         method: req.method,

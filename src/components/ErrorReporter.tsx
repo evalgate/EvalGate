@@ -47,9 +47,7 @@ export default function ErrorReporter({ error, reset }: ReporterProps) {
     const pollOverlay = () => {
       const overlay = document.querySelector("[data-nextjs-dialog-overlay]");
       const node =
-        overlay?.querySelector(
-          "h1, h2, .error-message, [data-nextjs-dialog-body]"
-        ) ?? null;
+        overlay?.querySelector("h1, h2, .error-message, [data-nextjs-dialog-body]") ?? null;
       const txt = node?.textContent ?? node?.innerHTML ?? "";
       if (txt && txt !== lastOverlayMsg.current) {
         lastOverlayMsg.current = txt;
@@ -87,7 +85,7 @@ export default function ErrorReporter({ error, reset }: ReporterProps) {
         timestamp: Date.now(),
         userAgent: navigator.userAgent,
       },
-      "*"
+      "*",
     );
   }, [error]);
 
@@ -100,9 +98,7 @@ export default function ErrorReporter({ error, reset }: ReporterProps) {
       <body className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-6">
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-destructive">
-              Something went wrong!
-            </h1>
+            <h1 className="text-2xl font-bold text-destructive">Something went wrong!</h1>
             <p className="text-muted-foreground">
               An unexpected error occurred. Please try again fixing with Orchids
             </p>
@@ -115,15 +111,9 @@ export default function ErrorReporter({ error, reset }: ReporterProps) {
                 </summary>
                 <pre className="mt-2 text-xs bg-muted p-2 rounded overflow-auto">
                   {error.message}
-                  {error.stack && (
-                    <div className="mt-2 text-muted-foreground">
-                      {error.stack}
-                    </div>
-                  )}
+                  {error.stack && <div className="mt-2 text-muted-foreground">{error.stack}</div>}
                   {error.digest && (
-                    <div className="mt-2 text-muted-foreground">
-                      Digest: {error.digest}
-                    </div>
+                    <div className="mt-2 text-muted-foreground">Digest: {error.digest}</div>
                   )}
                 </pre>
               </details>

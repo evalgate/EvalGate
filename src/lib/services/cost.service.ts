@@ -3,9 +3,9 @@
  * Business logic for LLM cost tracking and calculation
  */
 
-import { db } from '@/db';
-import { costRecords, providerPricing, workflowRuns, spans } from '@/db/schema';
-import { eq, and, desc, sql, gte, lte, inArray } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { costRecords, providerPricing, spans } from "@/db/schema";
 
 // ============================================================================
 // TYPES
@@ -19,7 +19,7 @@ export interface CreateCostRecordParams {
   model: string;
   inputTokens: number;
   outputTokens: number;
-  category?: 'llm' | 'tool' | 'embedding' | 'other';
+  category?: "llm" | "tool" | "embedding" | "other";
   isRetry?: boolean;
   retryNumber?: number;
 }
@@ -56,7 +56,10 @@ class CostService {
   /**
    * Get pricing for a model from database or cache
    */
-  async getPricing(provider: string, model: string): Promise<{ inputPrice: number; outputPrice: number }> {
+  async getPricing(
+    provider: string,
+    model: string,
+  ): Promise<{ inputPrice: number; outputPrice: number }> {
     const now = Date.now();
     const cacheKey = `${provider}/${model}`;
 
@@ -76,7 +79,7 @@ class CostService {
     }
 
     // Default pricing if not found
-    return { inputPrice: 1.00, outputPrice: 3.00 };
+    return { inputPrice: 1.0, outputPrice: 3.0 };
   }
 
   /**
@@ -89,7 +92,7 @@ class CostService {
       .where(eq(providerPricing.isActive, true));
 
     this.pricingCache.clear();
-    
+
     for (const p of pricing) {
       const key = `${p.provider}/${p.model}`;
       this.pricingCache.set(key, {
@@ -108,7 +111,7 @@ class CostService {
     provider: string,
     model: string,
     inputTokens: number,
-    outputTokens: number
+    outputTokens: number,
   ): Promise<{ inputCost: number; outputCost: number; totalCost: number }> {
     const pricing = await this.getPricing(provider, model);
 
@@ -135,7 +138,7 @@ class CostService {
       params.provider,
       params.model,
       params.inputTokens,
-      params.outputTokens
+      params.outputTokens,
     );
 
     const result = await db
@@ -154,7 +157,7 @@ class CostService {
         totalCost: costs.totalCost.toFixed(8),
         isRetry: params.isRetry || false,
         retryNumber: params.retryNumber || 0,
-        costCategory: params.category || 'llm',
+        costCategory: params.category || "llm",
         createdAt: now,
       })
       .returning();
@@ -166,11 +169,7 @@ class CostService {
    * Get cost record by ID
    */
   async getById(id: number) {
-    const result = await db
-      .select()
-      .from(costRecords)
-      .where(eq(costRecords.id, id))
-      .limit(1);
+    const result = await db.select().from(costRecords).where(eq(costRecords.id, id)).limit(1);
 
     return result[0] || null;
   }
@@ -209,7 +208,7 @@ class CostService {
 
     for (const record of records) {
       const cost = parseFloat(record.totalCost);
-      
+
       breakdown.totalCost += cost;
       breakdown.totalTokens += record.totalTokens;
       breakdown.inputTokens += record.inputTokens;
@@ -223,7 +222,8 @@ class CostService {
       breakdown.byModel[modelKey] = (breakdown.byModel[modelKey] || 0) + cost;
 
       // By category
-      breakdown.byCategory[record.costCategory] = (breakdown.byCategory[record.costCategory] || 0) + cost;
+      breakdown.byCategory[record.costCategory] =
+        (breakdown.byCategory[record.costCategory] || 0) + cost;
 
       // Retry stats
       if (record.isRetry) {
@@ -259,12 +259,9 @@ class CostService {
       };
     }
 
-    const spanIds = traceSpans.map(s => s.id);
+    const spanIds = traceSpans.map((s) => s.id);
 
-    const records = await db
-      .select()
-      .from(costRecords)
-      .where(inArray(costRecords.spanId, spanIds));
+    const records = await db.select().from(costRecords).where(inArray(costRecords.spanId, spanIds));
 
     const breakdown: CostBreakdown = {
       totalCost: 0,
@@ -280,18 +277,19 @@ class CostService {
 
     for (const record of records) {
       const cost = parseFloat(record.totalCost);
-      
+
       breakdown.totalCost += cost;
       breakdown.totalTokens += record.totalTokens;
       breakdown.inputTokens += record.inputTokens;
       breakdown.outputTokens += record.outputTokens;
 
       breakdown.byProvider[record.provider] = (breakdown.byProvider[record.provider] || 0) + cost;
-      
+
       const modelKey = `${record.provider}/${record.model}`;
       breakdown.byModel[modelKey] = (breakdown.byModel[modelKey] || 0) + cost;
-      
-      breakdown.byCategory[record.costCategory] = (breakdown.byCategory[record.costCategory] || 0) + cost;
+
+      breakdown.byCategory[record.costCategory] =
+        (breakdown.byCategory[record.costCategory] || 0) + cost;
 
       if (record.isRetry) {
         breakdown.retryCount++;
@@ -306,9 +304,9 @@ class CostService {
    * Get cost trends over time for an organization
    */
   async getCostTrends(
-    organizationId: number,
+    _organizationId: number,
     startDate: string,
-    endDate: string
+    endDate: string,
   ): Promise<CostTrend[]> {
     // This would need to join with traces to filter by organization
     // For now, aggregate by date from all cost records
@@ -320,18 +318,13 @@ class CostService {
         requestCount: sql<number>`count(*)`,
       })
       .from(costRecords)
-      .where(
-        and(
-          gte(costRecords.createdAt, startDate),
-          lte(costRecords.createdAt, endDate)
-        )
-      )
+      .where(and(gte(costRecords.createdAt, startDate), lte(costRecords.createdAt, endDate)))
       .groupBy(sql`date(${costRecords.createdAt})`)
       .orderBy(sql`date(${costRecords.createdAt})`);
 
-    return results.map(r => ({
+    return results.map((r) => ({
       date: r.date,
-      totalCost: parseFloat(r.totalCost || '0'),
+      totalCost: parseFloat(r.totalCost || "0"),
       tokenCount: r.tokenCount,
       requestCount: r.requestCount,
     }));
@@ -340,7 +333,7 @@ class CostService {
   /**
    * Get cost summary for an organization
    */
-  async getOrganizationCostSummary(organizationId: number) {
+  async getOrganizationCostSummary(_organizationId: number) {
     // Get all workflow runs for the organization's workflows
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -382,19 +375,19 @@ class CostService {
 
     return {
       last30Days: {
-        totalCost: parseFloat(last30Days[0]?.totalCost || '0'),
+        totalCost: parseFloat(last30Days[0]?.totalCost || "0"),
         totalTokens: last30Days[0]?.totalTokens || 0,
         requestCount: last30Days[0]?.requestCount || 0,
       },
       last7Days: {
-        totalCost: parseFloat(last7Days[0]?.totalCost || '0'),
+        totalCost: parseFloat(last7Days[0]?.totalCost || "0"),
         totalTokens: last7Days[0]?.totalTokens || 0,
         requestCount: last7Days[0]?.requestCount || 0,
       },
-      topModels: topModels.map(m => ({
+      topModels: topModels.map((m) => ({
         provider: m.provider,
         model: m.model,
-        totalCost: parseFloat(m.totalCost || '0'),
+        totalCost: parseFloat(m.totalCost || "0"),
         requestCount: m.requestCount,
       })),
     };
@@ -420,7 +413,7 @@ class CostService {
     provider: string,
     model: string,
     inputPricePerMillion: string,
-    outputPricePerMillion: string
+    outputPricePerMillion: string,
   ) {
     const now = new Date().toISOString();
 
@@ -428,12 +421,7 @@ class CostService {
     await db
       .update(providerPricing)
       .set({ isActive: false })
-      .where(
-        and(
-          eq(providerPricing.provider, provider),
-          eq(providerPricing.model, model)
-        )
-      );
+      .where(and(eq(providerPricing.provider, provider), eq(providerPricing.model, model)));
 
     // Insert new pricing
     const result = await db
@@ -443,7 +431,7 @@ class CostService {
         model,
         inputPricePerMillion,
         outputPricePerMillion,
-        effectiveDate: now.split('T')[0],
+        effectiveDate: now.split("T")[0],
         isActive: true,
         createdAt: now,
       })

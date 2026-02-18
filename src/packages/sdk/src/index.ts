@@ -1,244 +1,220 @@
 /**
  * AI Evaluation Platform SDK
- * 
+ *
  * Official TypeScript/JavaScript SDK for the AI Evaluation Platform.
  * Build confidence in your AI systems with comprehensive evaluation tools.
- * 
+ *
  * @packageDocumentation
  */
 
 // Main SDK exports
-export { AIEvalClient } from './client'
+export { AIEvalClient } from "./client";
 
 // Enhanced error handling (Tier 1.5)
-import { EvalAIError, RateLimitError, AuthenticationError, NetworkError, SDKError } from './errors';
+import { AuthenticationError, EvalAIError, NetworkError, RateLimitError, SDKError } from "./errors";
 
-export { 
-  EvalAIError, 
-  RateLimitError, 
-  AuthenticationError, 
+export {
+  EvalAIError,
+  RateLimitError,
+  AuthenticationError,
   SDKError as ValidationError, // Using SDKError as ValidationError for backward compatibility
-  NetworkError 
-}
+  NetworkError,
+};
 
 // Enhanced assertions (Tier 1.3)
-export { 
-  expect, 
-  containsKeywords, 
-  matchesPattern, 
-  hasLength, 
-  containsJSON, 
-  notContainsPII, 
-  hasSentiment, 
-  similarTo, 
-  withinRange, 
-  isValidEmail, 
-  isValidURL, 
-  hasNoHallucinations, 
-  matchesSchema,
-  hasReadabilityScore,
-  containsLanguage,
-  hasFactualAccuracy,
-  respondedWithinTime,
-  hasNoToxicity,
-  followsInstructions,
+export {
   containsAllRequiredFields,
-  hasValidCodeSyntax
-} from './assertions'
+  containsJSON,
+  containsKeywords,
+  containsLanguage,
+  expect,
+  followsInstructions,
+  hasFactualAccuracy,
+  hasLength,
+  hasNoHallucinations,
+  hasNoToxicity,
+  hasReadabilityScore,
+  hasSentiment,
+  hasValidCodeSyntax,
+  isValidEmail,
+  isValidURL,
+  matchesPattern,
+  matchesSchema,
+  notContainsPII,
+  respondedWithinTime,
+  similarTo,
+  withinRange,
+} from "./assertions";
 
 // Context propagation (Tier 2.9)
-import { createContext, getCurrentContext, withContext, EvalContext } from './context';
+import { createContext, EvalContext, getCurrentContext, withContext } from "./context";
 
 export {
   createContext,
   getCurrentContext as getContext,
   withContext,
-  EvalContext as ContextManager
+  EvalContext as ContextManager,
 };
 
 // Test suite builder (Tier 2.7)
-export { 
-  createTestSuite, 
-  TestSuite,
-  TestSuiteCase,
-  TestSuiteCaseResult,
-  TestSuiteResult,
-  TestSuiteConfig,
+export {
+  createTestSuite,
   // Note: TestCase and TestCaseResult are not exported here to avoid collision
   // with the API TestCase type from './types'. Use TestSuiteCase instead.
   // Legacy alias: type TestCase = TestSuiteCase (available in './testing' module directly)
-  type TestCaseResult
-} from './testing'
+  type TestCaseResult,
+  TestSuite,
+  TestSuiteCase,
+  TestSuiteCaseResult,
+  TestSuiteConfig,
+  TestSuiteResult,
+} from "./testing";
 
 // Snapshot testing (Tier 2.8)
-import { snapshot, compareWithSnapshot } from './snapshot';
+import { compareWithSnapshot, snapshot } from "./snapshot";
 
-export { 
-  snapshot, 
+export {
+  snapshot,
   compareWithSnapshot,
   // Aliases for backward compatibility
   snapshot as saveSnapshot,
-  compareWithSnapshot as compareSnapshots
-}
+  compareWithSnapshot as compareSnapshots,
+};
 
+import type { ExportFormat } from "./export";
 // Export/Import utilities (Tier 4.18)
-import { exportData, importData } from './export';
-import type { ExportFormat } from './export';
+import { exportData, importData } from "./export";
 
 export { exportData, importData };
 
 // Re-export types for backward compatibility
 export type { ExportFormat, ExportFormat as ExportType };
 
-// Streaming and batch processing (Tier 3.3)
-// Use functions from ./streaming module instead of these deprecated exports
-export { batchProcess, streamEvaluation, batchRead, RateLimiter } from './streaming';
+// Note: RequestBatcher is for advanced users only
+// Most users don't need this - batching is automatic
+export { RequestBatcher } from "./batch";
 
 // Performance optimization utilities (v1.3.0)
 // Note: RequestCache and CacheTTL are for advanced users only
 // Most users don't need these - caching is automatic
-export { RequestCache, CacheTTL } from './cache';
-export { 
-  PaginatedIterator, 
-  createPaginatedIterator, 
-  autoPaginate,
-  encodeCursor,
-  decodeCursor,
-  type PaginatedResponse,
-  type PaginationParams
-} from './pagination';
-// Note: RequestBatcher is for advanced users only
-// Most users don't need this - batching is automatic
-export { RequestBatcher } from './batch';
-
-// Debug logger (Tier 4.17)
-export { Logger } from './logger'
-
+export { CacheTTL, RequestCache } from "./cache";
+// CLI (programmatic use)
+export { type CheckArgs, EXIT, parseArgs, runCheck } from "./cli/check";
+export { traceAnthropic } from "./integrations/anthropic";
 // Framework integrations (Tier 1.2)
-export { traceOpenAI } from './integrations/openai'
-export { traceAnthropic } from './integrations/anthropic'
-
+export { traceOpenAI } from "./integrations/openai";
 // OpenAI regression eval (local-first, no account required)
 export {
-  openAIChatEval,
+  type OpenAIChatEvalCase,
   type OpenAIChatEvalOptions,
   type OpenAIChatEvalResult,
-  type OpenAIChatEvalCase,
-} from './integrations/openai-eval'
-
-// Workflow tracing (Orchestration Layer)
+  openAIChatEval,
+} from "./integrations/openai-eval";
+// Debug logger (Tier 4.17)
+export { Logger } from "./logger";
 export {
-  WorkflowTracer,
-  createWorkflowTracer,
-  traceWorkflowStep,
-  // Framework integrations
-  traceLangChainAgent,
-  traceCrewAI,
-  traceAutoGen,
-  // Types
-  type WorkflowNode,
-  type WorkflowEdge,
-  type WorkflowDefinition,
-  type WorkflowContext,
-  type WorkflowStatus,
-  type HandoffType,
-  type AgentHandoff,
-  type DecisionAlternative,
-  type DecisionType,
-  type RecordDecisionParams,
-  type LLMProvider,
-  type CostCategory,
-  type RecordCostParams,
-  type CostRecord,
-  type WorkflowTracerOptions,
-  type AgentSpanContext,
-} from './workflows'
-
-// Types (Tier 1.4)
-import type {
-  ClientConfig,
-  Trace,
-  Span,
-  Evaluation,
-  LLMJudgeResult,
-  RetryConfig,
-  GenericMetadata,
-  TracedResponse,
-  TestResult,
-  SnapshotData
-} from './types';
-
+  autoPaginate,
+  createPaginatedIterator,
+  decodeCursor,
+  encodeCursor,
+  PaginatedIterator,
+  type PaginatedResponse,
+  type PaginationParams,
+} from "./pagination";
+// Streaming and batch processing (Tier 3.3)
+// Use functions from ./streaming module instead of these deprecated exports
+export { batchProcess, batchRead, RateLimiter, streamEvaluation } from "./streaming";
 // Re-export types with backward compatibility
-export type {
-  ClientConfig as AIEvalConfig,
-  Trace as TraceData,
-  Span as SpanData,
-  Evaluation as EvaluationData,
-  LLMJudgeResult as LLMJudgeData,
-  RetryConfig,
-  GenericMetadata as AnnotationData,
-  TracedResponse,
-  TestCase,
-  TestResult,
-  SnapshotData,
-  ExportOptions,
-  ImportOptions,
-  StreamOptions,
-  BatchOptions
-} from './types'
-
-// New exports for v1.1.0
-export { 
-  EvaluationTemplates,
-  type EvaluationTemplateType,
-  type FeatureUsage,
-  type OrganizationLimits
-} from './types'
-
 // New exports for v1.2.0
 export type {
   // Annotations
   Annotation,
-  CreateAnnotationParams,
-  ListAnnotationsParams,
-  AnnotationTask,
-  CreateAnnotationTaskParams,
-  ListAnnotationTasksParams,
   AnnotationItem,
-  CreateAnnotationItemParams,
-  ListAnnotationItemsParams,
+  AnnotationTask,
   // Developer - API Keys
   APIKey,
-  APIKeyWithSecret,
-  CreateAPIKeyParams,
-  UpdateAPIKeyParams,
-  ListAPIKeysParams,
   APIKeyUsage,
-  // Developer - Webhooks
-  Webhook,
-  CreateWebhookParams,
-  UpdateWebhookParams,
-  ListWebhooksParams,
-  WebhookDelivery,
-  ListWebhookDeliveriesParams,
-  // Developer - Usage
-  UsageStats,
-  GetUsageParams,
-  UsageSummary,
-  // LLM Judge Extended
-  LLMJudgeConfig,
+  APIKeyWithSecret,
+  BatchOptions,
+  ClientConfig as AIEvalConfig,
+  CreateAnnotationItemParams,
+  CreateAnnotationParams,
+  CreateAnnotationTaskParams,
+  CreateAPIKeyParams,
   CreateLLMJudgeConfigParams,
+  CreateWebhookParams,
+  Evaluation as EvaluationData,
+  ExportOptions,
+  GenericMetadata as AnnotationData,
+  GetLLMJudgeAlignmentParams,
+  GetUsageParams,
+  ImportOptions,
+  ListAnnotationItemsParams,
+  ListAnnotationsParams,
+  ListAnnotationTasksParams,
+  ListAPIKeysParams,
   ListLLMJudgeConfigsParams,
   ListLLMJudgeResultsParams,
+  ListWebhookDeliveriesParams,
+  ListWebhooksParams,
   LLMJudgeAlignment,
-  GetLLMJudgeAlignmentParams,
+  // LLM Judge Extended
+  LLMJudgeConfig,
+  LLMJudgeResult as LLMJudgeData,
   // Organizations
   Organization,
-} from './types'
-
-// CLI (programmatic use)
-export { parseArgs, runCheck, EXIT, type CheckArgs } from './cli/check';
+  RetryConfig,
+  SnapshotData,
+  Span as SpanData,
+  StreamOptions,
+  TestCase,
+  TestResult,
+  Trace as TraceData,
+  TracedResponse,
+  UpdateAPIKeyParams,
+  UpdateWebhookParams,
+  // Developer - Usage
+  UsageStats,
+  UsageSummary,
+  // Developer - Webhooks
+  Webhook,
+  WebhookDelivery,
+} from "./types";
+// New exports for v1.1.0
+export {
+  EvaluationTemplates,
+  type EvaluationTemplateType,
+  type FeatureUsage,
+  type OrganizationLimits,
+} from "./types";
+// Workflow tracing (Orchestration Layer)
+export {
+  type AgentHandoff,
+  type AgentSpanContext,
+  type CostCategory,
+  type CostRecord,
+  createWorkflowTracer,
+  type DecisionAlternative,
+  type DecisionType,
+  type HandoffType,
+  type LLMProvider,
+  type RecordCostParams,
+  type RecordDecisionParams,
+  traceAutoGen,
+  traceCrewAI,
+  // Framework integrations
+  traceLangChainAgent,
+  traceWorkflowStep,
+  type WorkflowContext,
+  type WorkflowDefinition,
+  type WorkflowEdge,
+  // Types
+  type WorkflowNode,
+  type WorkflowStatus,
+  WorkflowTracer,
+  type WorkflowTracerOptions,
+} from "./workflows";
 
 // Default export for convenience
-import { AIEvalClient } from './client';
+import { AIEvalClient } from "./client";
 export default AIEvalClient;

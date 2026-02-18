@@ -1,8 +1,9 @@
 // src/lib/services/debug-agent.service.ts
-import { db } from '@/db';
-import { evaluationRuns, testResults, llmJudgeResults } from '@/db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
-import { logger } from '@/lib/logger';
+
+import { and, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { evaluationRuns, llmJudgeResults, testResults } from "@/db/schema";
+import { logger } from "@/lib/logger";
 
 export interface DebugAnalysis {
   runId: number;
@@ -10,18 +11,18 @@ export interface DebugAnalysis {
   failurePatterns: FailurePattern[];
   suggestedFixes: SuggestedFix[];
   rootCauses: string[];
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
 }
 
 export interface FailurePattern {
   pattern: string;
   occurrences: number;
   affectedTestIds: number[];
-  category: 'hallucination' | 'refusal' | 'off_topic' | 'formatting' | 'incomplete' | 'other';
+  category: "hallucination" | "refusal" | "off_topic" | "formatting" | "incomplete" | "other";
 }
 
 export interface SuggestedFix {
-  type: 'prompt_edit' | 'parameter_change' | 'model_switch' | 'data_fix';
+  type: "prompt_edit" | "parameter_change" | "model_switch" | "data_fix";
   description: string;
   confidence: number;
   diff?: { before: string; after: string };
@@ -36,8 +37,12 @@ class DebugAgentService {
   /**
    * Analyze a failed evaluation run and produce debugging insights.
    */
-  async analyze(evaluationId: number, runId: number, organizationId: number): Promise<DebugAnalysis> {
-    logger.info('Debug agent analyzing run', { evaluationId, runId });
+  async analyze(
+    evaluationId: number,
+    runId: number,
+    _organizationId: number,
+  ): Promise<DebugAnalysis> {
+    logger.info("Debug agent analyzing run", { evaluationId, runId });
 
     // 1. Fetch the run
     const [run] = await db
@@ -46,7 +51,7 @@ class DebugAgentService {
       .where(and(eq(evaluationRuns.id, runId), eq(evaluationRuns.evaluationId, evaluationId)))
       .limit(1);
 
-    if (!run) throw new Error('Evaluation run not found');
+    if (!run) throw new Error("Evaluation run not found");
 
     // 2. Fetch all test results for this run
     const results = await db
@@ -61,7 +66,9 @@ class DebugAgentService {
       .where(eq(llmJudgeResults.evaluationRunId, runId));
 
     // 4. Identify failure patterns
-    const failedResults = results.filter((r) => r.status === 'failed' || (r.score !== null && r.score < 50));
+    const failedResults = results.filter(
+      (r) => r.status === "failed" || (r.score !== null && r.score < 50),
+    );
     const failurePatterns = this.identifyPatterns(failedResults, judgeResults);
 
     // 5. Determine root causes
@@ -72,10 +79,22 @@ class DebugAgentService {
 
     // 7. Calculate severity
     const failureRate = results.length > 0 ? failedResults.length / results.length : 0;
-    const severity = failureRate > 0.5 ? 'critical' : failureRate > 0.3 ? 'high' : failureRate > 0.1 ? 'medium' : 'low';
+    const severity =
+      failureRate > 0.5
+        ? "critical"
+        : failureRate > 0.3
+          ? "high"
+          : failureRate > 0.1
+            ? "medium"
+            : "low";
 
     // 8. Build summary
-    const summary = this.buildSummary(results.length, failedResults.length, failurePatterns, severity);
+    const summary = this.buildSummary(
+      results.length,
+      failedResults.length,
+      failurePatterns,
+      severity,
+    );
 
     return { runId, summary, failurePatterns, suggestedFixes, rootCauses, severity };
   }
@@ -110,30 +129,30 @@ class DebugAgentService {
   /**
    * Categorize a failure based on result content.
    */
-  private categorizeFailure(
-    result: any,
-    judgeResults: any[]
-  ): FailurePattern['category'] {
-    const output = (result.actualOutput || result.output || '').toLowerCase();
+  private categorizeFailure(result: any, judgeResults: any[]): FailurePattern["category"] {
+    const output = (result.actualOutput || result.output || "").toLowerCase();
     const judgeResult = judgeResults.find((jr) => jr.testResultId === result.id);
-    const reasoning = (judgeResult?.reasoning || '').toLowerCase();
+    const reasoning = (judgeResult?.reasoning || "").toLowerCase();
 
-    if (reasoning.includes('hallucin') || output.includes('i cannot verify')) return 'hallucination';
-    if (reasoning.includes('refus') || output.includes("i can't") || output.includes('i cannot')) return 'refusal';
-    if (reasoning.includes('off.topic') || reasoning.includes('irrelevant')) return 'off_topic';
-    if (reasoning.includes('format') || reasoning.includes('structure')) return 'formatting';
-    if (reasoning.includes('incomplete') || reasoning.includes('truncat') || output.length < 20) return 'incomplete';
-    return 'other';
+    if (reasoning.includes("hallucin") || output.includes("i cannot verify"))
+      return "hallucination";
+    if (reasoning.includes("refus") || output.includes("i can't") || output.includes("i cannot"))
+      return "refusal";
+    if (reasoning.includes("off.topic") || reasoning.includes("irrelevant")) return "off_topic";
+    if (reasoning.includes("format") || reasoning.includes("structure")) return "formatting";
+    if (reasoning.includes("incomplete") || reasoning.includes("truncat") || output.length < 20)
+      return "incomplete";
+    return "other";
   }
 
-  private getPatternDescription(category: FailurePattern['category']): string {
+  private getPatternDescription(category: FailurePattern["category"]): string {
     const descriptions: Record<string, string> = {
-      hallucination: 'Model generated factually incorrect or unverifiable information',
-      refusal: 'Model refused to answer or expressed inability to complete the task',
-      off_topic: 'Model response was not relevant to the input prompt',
-      formatting: 'Response did not follow the expected output format',
-      incomplete: 'Response was truncated or missing required information',
-      other: 'Failure did not match a known pattern',
+      hallucination: "Model generated factually incorrect or unverifiable information",
+      refusal: "Model refused to answer or expressed inability to complete the task",
+      off_topic: "Model response was not relevant to the input prompt",
+      formatting: "Response did not follow the expected output format",
+      incomplete: "Response was truncated or missing required information",
+      other: "Failure did not match a known pattern",
     };
     return descriptions[category] || descriptions.other;
   }
@@ -145,31 +164,31 @@ class DebugAgentService {
     const causes: string[] = [];
 
     const dominant = patterns[0];
-    if (!dominant) return ['No failures detected'];
+    if (!dominant) return ["No failures detected"];
 
-    if (dominant.category === 'hallucination') {
-      causes.push('Prompt may lack grounding context or source material');
+    if (dominant.category === "hallucination") {
+      causes.push("Prompt may lack grounding context or source material");
       causes.push('Consider adding "Only use the provided context" instruction');
     }
-    if (dominant.category === 'refusal') {
-      causes.push('Prompt may trigger safety filters');
-      causes.push('Try rephrasing sensitive topics or adding context');
+    if (dominant.category === "refusal") {
+      causes.push("Prompt may trigger safety filters");
+      causes.push("Try rephrasing sensitive topics or adding context");
     }
-    if (dominant.category === 'off_topic') {
-      causes.push('Prompt instructions may be ambiguous');
-      causes.push('Add explicit task description and output expectations');
+    if (dominant.category === "off_topic") {
+      causes.push("Prompt instructions may be ambiguous");
+      causes.push("Add explicit task description and output expectations");
     }
-    if (dominant.category === 'formatting') {
-      causes.push('Output format specification may be unclear');
-      causes.push('Add few-shot examples of the expected format');
+    if (dominant.category === "formatting") {
+      causes.push("Output format specification may be unclear");
+      causes.push("Add few-shot examples of the expected format");
     }
-    if (dominant.category === 'incomplete') {
-      causes.push('Max token limit may be too low');
-      causes.push('Task may be too complex for a single prompt');
+    if (dominant.category === "incomplete") {
+      causes.push("Max token limit may be too low");
+      causes.push("Task may be too complex for a single prompt");
     }
 
     if (failedResults.length > 10) {
-      causes.push('High failure count suggests a systemic prompt issue rather than edge cases');
+      causes.push("High failure count suggests a systemic prompt issue rather than edge cases");
     }
 
     return causes;
@@ -178,39 +197,42 @@ class DebugAgentService {
   /**
    * Generate suggested fixes based on analysis.
    */
-  private generateFixes(patterns: FailurePattern[], rootCauses: string[]): SuggestedFix[] {
+  private generateFixes(patterns: FailurePattern[], _rootCauses: string[]): SuggestedFix[] {
     const fixes: SuggestedFix[] = [];
 
     for (const pattern of patterns.slice(0, 3)) {
-      if (pattern.category === 'hallucination') {
+      if (pattern.category === "hallucination") {
         fixes.push({
-          type: 'prompt_edit',
-          description: 'Add grounding instruction: "Only use information from the provided context. If unsure, say so."',
+          type: "prompt_edit",
+          description:
+            'Add grounding instruction: "Only use information from the provided context. If unsure, say so."',
           confidence: 0.8,
           diff: {
-            before: '{{system_prompt}}',
-            after: '{{system_prompt}}\n\nIMPORTANT: Only use information from the provided context. If you are unsure, explicitly state that.',
+            before: "{{system_prompt}}",
+            after:
+              "{{system_prompt}}\n\nIMPORTANT: Only use information from the provided context. If you are unsure, explicitly state that.",
           },
         });
       }
-      if (pattern.category === 'formatting') {
+      if (pattern.category === "formatting") {
         fixes.push({
-          type: 'prompt_edit',
-          description: 'Add explicit output format with an example',
+          type: "prompt_edit",
+          description: "Add explicit output format with an example",
           confidence: 0.75,
         });
       }
-      if (pattern.category === 'incomplete') {
+      if (pattern.category === "incomplete") {
         fixes.push({
-          type: 'parameter_change',
-          description: 'Increase max_tokens from 1024 to 2048',
+          type: "parameter_change",
+          description: "Increase max_tokens from 1024 to 2048",
           confidence: 0.7,
         });
       }
-      if (pattern.category === 'refusal') {
+      if (pattern.category === "refusal") {
         fixes.push({
-          type: 'prompt_edit',
-          description: 'Add context framing: "This is for evaluation purposes in a controlled environment."',
+          type: "prompt_edit",
+          description:
+            'Add context framing: "This is for evaluation purposes in a controlled environment."',
           confidence: 0.6,
         });
       }
@@ -218,8 +240,8 @@ class DebugAgentService {
 
     if (fixes.length === 0) {
       fixes.push({
-        type: 'model_switch',
-        description: 'Try a more capable model (e.g., GPT-4o or Claude 3.5 Sonnet)',
+        type: "model_switch",
+        description: "Try a more capable model (e.g., GPT-4o or Claude 3.5 Sonnet)",
         confidence: 0.5,
       });
     }
@@ -234,7 +256,7 @@ class DebugAgentService {
     totalTests: number,
     failedTests: number,
     patterns: FailurePattern[],
-    severity: string
+    severity: string,
   ): string {
     const pct = totalTests > 0 ? Math.round((failedTests / totalTests) * 100) : 0;
     const topPattern = patterns[0];

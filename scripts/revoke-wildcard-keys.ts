@@ -8,16 +8,16 @@
  * Requires TURSO_CONNECTION_URL and TURSO_AUTH_TOKEN in .env.local or .env.
  */
 
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 async function loadEnv() {
-  for (const f of ['.env.local', '.env']) {
+  for (const f of [".env.local", ".env"]) {
     try {
-      const content = await readFile(join(process.cwd(), f), 'utf-8');
-      for (const line of content.split('\n')) {
+      const content = await readFile(join(process.cwd(), f), "utf-8");
+      for (const line of content.split("\n")) {
         const m = line.match(/^([^#=]+)=(.*)$/);
-        if (m) process.env[m[1].trim()] = m[2].trim().replace(/^["']|["']$/g, '');
+        if (m) process.env[m[1].trim()] = m[2].trim().replace(/^["']|["']$/g, "");
       }
       break;
     } catch {
@@ -26,9 +26,9 @@ async function loadEnv() {
   }
 }
 
-import { db } from '@/db';
-import { apiKeys } from '@/db/schema';
-import { eq, and, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { apiKeys } from "@/db/schema";
 
 async function main() {
   await loadEnv();
@@ -37,15 +37,10 @@ async function main() {
   const badKeys = await db
     .select({ id: apiKeys.id, keyPrefix: apiKeys.keyPrefix, scopes: apiKeys.scopes })
     .from(apiKeys)
-    .where(
-      and(
-        sql`${apiKeys.scopes} LIKE '%"*"%'`,
-        isNull(apiKeys.revokedAt),
-      ),
-    );
+    .where(and(sql`${apiKeys.scopes} LIKE '%"*"%'`, isNull(apiKeys.revokedAt)));
 
   if (badKeys.length === 0) {
-    console.log('No wildcard-scope API keys found. Nothing to revoke.');
+    console.log("No wildcard-scope API keys found. Nothing to revoke.");
     return;
   }
 
@@ -59,7 +54,7 @@ async function main() {
     console.log(`  Revoked: ${k.keyPrefix} (id=${k.id})`);
   }
 
-  console.log('Done.');
+  console.log("Done.");
 }
 
 main().catch((err) => {

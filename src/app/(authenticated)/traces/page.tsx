@@ -1,17 +1,24 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import Link from "next/link"
-import { Search, Activity, Clock, Tag, X, Code, Sparkles, Copy, Check } from "lucide-react"
-import { useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { Activity, Check, Clock, Code, Copy, Search, Sparkles, Tag, X } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSession } from "@/lib/auth-client";
 
 // Integration examples
 const INTEGRATION_EXAMPLES = {
@@ -35,7 +42,7 @@ export async function generateResponse(prompt: string) {
     
     return response.choices[0].message.content
   })
-}`
+}`,
   },
   langchain: {
     name: "LangChain",
@@ -62,7 +69,7 @@ export async function ragQuery(query: string) {
     
     return response
   })
-}`
+}`,
   },
   custom: {
     name: "Custom API",
@@ -91,101 +98,100 @@ export async function customWorkflow(input: string) {
       return result.data.map(formatOutput)
     })
   })
-}`
-  }
-}
+}`,
+  },
+};
 
 export default function TracesPage() {
-  const { data: session, isPending } = useSession()
-  const router = useRouter()
-  const [traces, setTraces] = useState<any[]>([])
-  const [filteredTraces, setFilteredTraces] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [showIntegrationGuide, setShowIntegrationGuide] = useState(false)
-  const [copiedExample, setCopiedExample] = useState<string | null>(null)
+  const { data: session, isPending } = useSession();
+  const _router = useRouter();
+  const [traces, setTraces] = useState<any[]>([]);
+  const [filteredTraces, setFilteredTraces] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showIntegrationGuide, setShowIntegrationGuide] = useState(false);
+  const [copiedExample, setCopiedExample] = useState<string | null>(null);
 
   useEffect(() => {
     // If not authenticated, load demo data
     if (!isPending && !session?.user) {
       fetch("/api/demo/traces")
-        .then(res => res.json())
-        .then(data => {
-          setTraces(data.traces || [])
-          setFilteredTraces(data.traces || [])
-          setIsLoading(false)
+        .then((res) => res.json())
+        .then((data) => {
+          setTraces(data.traces || []);
+          setFilteredTraces(data.traces || []);
+          setIsLoading(false);
         })
         .catch(() => {
-          setIsLoading(false)
-        })
-      return
+          setIsLoading(false);
+        });
+      return;
     }
 
     if (session?.user) {
       // Add pagination limit
       fetch("/api/traces?limit=20&offset=0", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("bearer_token")}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("bearer_token")}`,
+        },
       })
-        .then(res => res.json())
-        .then(data => {
-          setTraces(data.traces || [])
-          setFilteredTraces(data.traces || [])
-          setIsLoading(false)
+        .then((res) => res.json())
+        .then((data) => {
+          setTraces(data.traces || []);
+          setFilteredTraces(data.traces || []);
+          setIsLoading(false);
         })
         .catch(() => {
-          setIsLoading(false)
-        })
+          setIsLoading(false);
+        });
     }
-  }, [session, isPending, router])
+  }, [session, isPending]);
 
   // Get all unique tags from traces
-  const allTags = Array.from(
-    new Set(traces.flatMap((trace: any) => trace.tags || []))
-  )
+  const allTags = Array.from(new Set(traces.flatMap((trace: any) => trace.tags || [])));
 
   // Filter traces based on search and tags
   useEffect(() => {
-    let filtered = traces
+    let filtered = traces;
 
     // Apply search filter
     if (searchQuery) {
-      filtered = filtered.filter((trace: any) =>
-        trace.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        trace.session_id?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      filtered = filtered.filter(
+        (trace: any) =>
+          trace.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          trace.session_id?.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
     }
 
     // Apply tag filter
     if (selectedTags.length > 0) {
       filtered = filtered.filter((trace: any) =>
-        selectedTags.every((tag) => trace.tags?.includes(tag))
-      )
+        selectedTags.every((tag) => trace.tags?.includes(tag)),
+      );
     }
 
-    setFilteredTraces(filtered)
-  }, [searchQuery, selectedTags, traces])
+    setFilteredTraces(filtered);
+  }, [searchQuery, selectedTags, traces]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    )
-  }
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
+  };
 
   const copyToClipboard = (code: string, exampleName: string) => {
-    navigator.clipboard.writeText(code)
-    setCopiedExample(exampleName)
-    toast.success("Code copied to clipboard!")
-    setTimeout(() => setCopiedExample(null), 2000)
-  }
+    navigator.clipboard.writeText(code);
+    setCopiedExample(exampleName);
+    toast.success("Code copied to clipboard!");
+    setTimeout(() => setCopiedExample(null), 2000);
+  };
 
   if (isPending) {
-    return null
+    return null;
   }
 
-  const isDemo = !session?.user
+  const isDemo = !session?.user;
 
   return (
     <div className="space-y-4 sm:space-y-6 w-full">
@@ -203,7 +209,9 @@ export default function TracesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Traces</h1>
-          <p className="text-muted-foreground text-sm sm:text-base">Monitor and debug your LLM calls</p>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Monitor and debug your LLM calls
+          </p>
         </div>
         <Dialog open={showIntegrationGuide} onOpenChange={setShowIntegrationGuide}>
           <DialogTrigger asChild>
@@ -266,25 +274,35 @@ export default function TracesPage() {
                         <div className="rounded-full bg-primary/20 p-1 mt-0.5 flex-shrink-0">
                           <Check className="h-3 w-3 text-primary" />
                         </div>
-                        <p><strong>Use descriptive names:</strong> "chat-completion" instead of "call1"</p>
+                        <p>
+                          <strong>Use descriptive names:</strong> "chat-completion" instead of
+                          "call1"
+                        </p>
                       </div>
                       <div className="flex items-start gap-2">
                         <div className="rounded-full bg-primary/20 p-1 mt-0.5 flex-shrink-0">
                           <Check className="h-3 w-3 text-primary" />
                         </div>
-                        <p><strong>Add relevant tags:</strong> Environment, model, feature area</p>
+                        <p>
+                          <strong>Add relevant tags:</strong> Environment, model, feature area
+                        </p>
                       </div>
                       <div className="flex items-start gap-2">
                         <div className="rounded-full bg-primary/20 p-1 mt-0.5 flex-shrink-0">
                           <Check className="h-3 w-3 text-primary" />
                         </div>
-                        <p><strong>Track important metadata:</strong> User ID, session, input length</p>
+                        <p>
+                          <strong>Track important metadata:</strong> User ID, session, input length
+                        </p>
                       </div>
                       <div className="flex items-start gap-2">
                         <div className="rounded-full bg-primary/20 p-1 mt-0.5 flex-shrink-0">
                           <Check className="h-3 w-3 text-primary" />
                         </div>
-                        <p><strong>Use spans for sub-operations:</strong> Break complex flows into steps</p>
+                        <p>
+                          <strong>Use spans for sub-operations:</strong> Break complex flows into
+                          steps
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -331,9 +349,7 @@ export default function TracesPage() {
                 >
                   <Tag className="mr-1 h-3 w-3" />
                   {tag}
-                  {selectedTags.includes(tag) && (
-                    <X className="ml-1 h-3 w-3" />
-                  )}
+                  {selectedTags.includes(tag) && <X className="ml-1 h-3 w-3" />}
                 </Button>
               ))}
               {selectedTags.length > 0 && (
@@ -384,7 +400,9 @@ export default function TracesPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
                         <Activity className="h-4 w-4 text-primary flex-shrink-0" />
-                        <h3 className="font-semibold text-sm sm:text-base truncate">{trace.name}</h3>
+                        <h3 className="font-semibold text-sm sm:text-base truncate">
+                          {trace.name}
+                        </h3>
                         {trace.session_id && (
                           <span className="text-xs text-muted-foreground font-mono truncate">
                             Session: {trace.session_id.slice(0, 8)}
@@ -394,8 +412,12 @@ export default function TracesPage() {
                       <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground flex-wrap">
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          <span className="hidden sm:inline">{new Date(trace.created_at).toLocaleString()}</span>
-                          <span className="sm:hidden">{new Date(trace.created_at).toLocaleDateString()}</span>
+                          <span className="hidden sm:inline">
+                            {new Date(trace.created_at).toLocaleString()}
+                          </span>
+                          <span className="sm:hidden">
+                            {new Date(trace.created_at).toLocaleDateString()}
+                          </span>
                         </div>
                         {trace.tags && trace.tags.length > 0 && (
                           <div className="flex items-center gap-1 flex-wrap">
@@ -430,8 +452,8 @@ export default function TracesPage() {
               variant="outline"
               size="sm"
               onClick={() => {
-                setSearchQuery("")
-                setSelectedTags([])
+                setSearchQuery("");
+                setSelectedTags([]);
               }}
             >
               Clear filters
@@ -446,7 +468,8 @@ export default function TracesPage() {
             </div>
             <h3 className="text-base sm:text-lg font-semibold mb-2">No traces yet</h3>
             <p className="text-xs sm:text-sm text-muted-foreground text-center mb-4 sm:mb-6 max-w-sm">
-              Start capturing traces from your LLM applications to monitor performance, debug issues, and analyze behavior.
+              Start capturing traces from your LLM applications to monitor performance, debug
+              issues, and analyze behavior.
             </p>
             <Button onClick={() => setShowIntegrationGuide(true)} className="mb-4">
               <Code className="mr-2 h-4 w-4" />
@@ -454,11 +477,14 @@ export default function TracesPage() {
             </Button>
             <div className="text-xs sm:text-sm text-muted-foreground bg-muted px-3 sm:px-4 py-2 sm:py-3 rounded-lg w-full max-w-md">
               <p className="font-medium mb-1">Quick Start:</p>
-              <p>Add our tracing SDK to automatically capture LLM calls, track performance, and debug issues in real-time.</p>
+              <p>
+                Add our tracing SDK to automatically capture LLM calls, track performance, and debug
+                issues in real-time.
+              </p>
             </div>
           </CardContent>
         </Card>
       )}
     </div>
-  )
+  );
 }

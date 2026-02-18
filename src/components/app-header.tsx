@@ -1,7 +1,13 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { useCustomer } from "autumn-js/react";
+import { Building2, LogOut, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,48 +15,45 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { User, LogOut, Building2, Sparkles } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { authClient } from "@/lib/auth-client"
-import { toast } from "sonner"
-import { useCustomer } from "autumn-js/react"
-import Link from "next/link"
+} from "@/components/ui/dropdown-menu";
+import { authClient } from "@/lib/auth-client";
 
 interface AppHeaderProps {
   user: {
-    email?: string
-    name?: string
-  }
+    email?: string;
+    name?: string;
+  };
   organization?: {
-    name: string
-  }
+    name: string;
+  };
 }
 
 export function AppHeader({ user, organization }: AppHeaderProps) {
-  const router = useRouter()
-  const { customer, isLoading } = useCustomer()
+  const router = useRouter();
+  const { customer, isLoading } = useCustomer();
 
   const handleSignOut = async () => {
-    const { error } = await authClient.signOut()
+    const { error } = await authClient.signOut();
     if (error?.code) {
-      toast.error("Failed to sign out")
+      toast.error("Failed to sign out");
     } else {
-      localStorage.removeItem("bearer_token")
-      router.push("/")
-      router.refresh()
+      localStorage.removeItem("bearer_token");
+      router.push("/");
+      router.refresh();
     }
-  }
+  };
 
-  const initials = user.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase() || user.email?.[0]?.toUpperCase() || "U"
+  const initials =
+    user.name
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase() ||
+    user.email?.[0]?.toUpperCase() ||
+    "U";
 
-  const currentPlan = customer?.products?.[0]
-  const planName = currentPlan?.name || "Developer"
+  const currentPlan = customer?.products?.[0];
+  const planName = currentPlan?.name || "Developer";
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
@@ -72,9 +75,9 @@ export function AppHeader({ user, organization }: AppHeaderProps) {
             </Button>
           </Link>
         )}
-        
+
         <ThemeToggle />
-        
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
@@ -99,5 +102,5 @@ export function AppHeader({ user, organization }: AppHeaderProps) {
         </DropdownMenu>
       </div>
     </header>
-  )
+  );
 }

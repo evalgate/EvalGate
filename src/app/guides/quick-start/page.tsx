@@ -1,9 +1,9 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { PublicPageHeader } from "@/components/public-page-header"
-import { Footer } from "@/components/footer"
-import Link from "next/link"
-import { ArrowRight, Copy, CheckCircle2, Terminal, Key, Code2, Rocket } from "lucide-react"
+import { CheckCircle2, Copy, Rocket } from "lucide-react";
+import Link from "next/link";
+import { Footer } from "@/components/footer";
+import { PublicPageHeader } from "@/components/public-page-header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function QuickStartPage() {
   return (
@@ -55,13 +55,21 @@ export default function QuickStartPage() {
             <Card>
               <CardContent className="pt-6">
                 <ol className="space-y-3 text-muted-foreground">
-                  <li>1. Navigate to the <Link href="/developer" className="text-primary hover:underline">Developer Dashboard</Link></li>
+                  <li>
+                    1. Navigate to the{" "}
+                    <Link href="/developer" className="text-primary hover:underline">
+                      Developer Dashboard
+                    </Link>
+                  </li>
                   <li>2. Scroll down to the "API Keys" section</li>
                   <li>3. Click "Create API Key"</li>
                   <li>4. Enter a name (e.g., "Development Key")</li>
                   <li>5. Select the scopes you need (start with all for testing)</li>
                   <li>6. Click "Create Key"</li>
-                  <li>7. <strong>Copy and save your API key immediately</strong> - you won&apos;t see it again!</li>
+                  <li>
+                    7. <strong>Copy and save your API key immediately</strong> - you won&apos;t see
+                    it again!
+                  </li>
                 </ol>
                 <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                   <p className="text-sm text-yellow-600 dark:text-yellow-500">
@@ -126,22 +134,34 @@ export default function QuickStartPage() {
             <Card>
               <CardContent className="pt-6">
                 <p className="text-muted-foreground mb-4">
-                  Create a <code className="bg-muted px-2 py-1 rounded">.env</code> file in your project root:
+                  Create a <code className="bg-muted px-2 py-1 rounded">.env</code> file in your
+                  project root:
                 </p>
                 <div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
                   <pre>{`EVALAI_API_KEY=sk_test_your_api_key_here
 EVALAI_ORGANIZATION_ID=your_org_id_here`}</pre>
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
-                  <p><strong>Where to find these values:</strong></p>
+                  <p>
+                    <strong>Where to find these values:</strong>
+                  </p>
                   <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li><code className="bg-muted px-1 rounded">EVALAI_API_KEY</code> - From the API key creation dialog</li>
-                    <li><code className="bg-muted px-1 rounded">EVALAI_ORGANIZATION_ID</code> - Shown in the API key creation dialog</li>
+                    <li>
+                      <code className="bg-muted px-1 rounded">EVALAI_API_KEY</code> - From the API
+                      key creation dialog
+                    </li>
+                    <li>
+                      <code className="bg-muted px-1 rounded">EVALAI_ORGANIZATION_ID</code> - Shown
+                      in the API key creation dialog
+                    </li>
                   </ul>
                 </div>
                 <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                   <p className="text-sm text-blue-600 dark:text-blue-400">
-                    <strong>Security Tip:</strong> Add <code className="bg-muted px-1 rounded">.env</code> to your <code className="bg-muted px-1 rounded">.gitignore</code> file to prevent committing secrets!
+                    <strong>Security Tip:</strong> Add{" "}
+                    <code className="bg-muted px-1 rounded">.env</code> to your{" "}
+                    <code className="bg-muted px-1 rounded">.gitignore</code> file to prevent
+                    committing secrets!
                   </p>
                 </div>
               </CardContent>
@@ -188,9 +208,7 @@ const client = new AIEvalClient({
             </div>
             <Card>
               <CardContent className="pt-6">
-                <p className="text-muted-foreground mb-4">
-                  Track your first LLM call:
-                </p>
+                <p className="text-muted-foreground mb-4">Track your first LLM call:</p>
                 <div className="bg-muted p-4 rounded-lg font-mono text-sm">
                   <pre>{`// Create a trace
 const trace = await client.traces.create({
@@ -236,7 +254,8 @@ console.log('Span created:', span.id)`}</pre>
             <Card>
               <CardContent className="pt-6">
                 <p className="text-muted-foreground mb-4">
-                  Now that you can trace, let&apos;s evaluate. The SDK includes a test suite runner with 20+ built-in assertions designed for LLM outputs.
+                  Now that you can trace, let&apos;s evaluate. The SDK includes a test suite runner
+                  with 20+ built-in assertions designed for LLM outputs.
                 </p>
                 <div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
                   <pre>{`import { createTestSuite, expect } from '@pauly4010/evalai-sdk';
@@ -258,7 +277,8 @@ console.log(\`Results: \${passed}/\${total} passed\`);`}</pre>
                 </div>
                 <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                   <p className="text-sm text-blue-600 dark:text-blue-400">
-                    <strong>Explore all 20+ assertions</strong> including hallucination detection, JSON validation, and profanity checks.{' '}
+                    <strong>Explore all 20+ assertions</strong> including hallucination detection,
+                    JSON validation, and profanity checks.{" "}
                     <Link href="/sdk#assertions" className="underline hover:no-underline">
                       View the full assertion library &rarr;
                     </Link>
@@ -305,9 +325,7 @@ console.log(\`Results: \${passed}/\${total} passed\`);`}</pre>
                   <Card className="h-full hover:bg-accent transition-colors cursor-pointer">
                     <CardContent className="pt-6">
                       <h3 className="font-semibold mb-2">LLM Judge</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Use AI to evaluate AI outputs
-                      </p>
+                      <p className="text-sm text-muted-foreground">Use AI to evaluate AI outputs</p>
                     </CardContent>
                   </Card>
                 </Link>
@@ -315,9 +333,7 @@ console.log(\`Results: \${passed}/\${total} passed\`);`}</pre>
                   <Card className="h-full hover:bg-accent transition-colors cursor-pointer">
                     <CardContent className="pt-6">
                       <h3 className="font-semibold mb-2">API Reference</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Complete API documentation
-                      </p>
+                      <p className="text-sm text-muted-foreground">Complete API documentation</p>
                     </CardContent>
                   </Card>
                 </Link>
@@ -330,14 +346,10 @@ console.log(\`Results: \${passed}/\${total} passed\`);`}</pre>
             <h3 className="text-xl font-semibold mb-4">Need Help?</h3>
             <div className="flex gap-4 justify-center">
               <Button variant="outline" asChild>
-                <Link href="/documentation">
-                  View Documentation
-                </Link>
+                <Link href="/documentation">View Documentation</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/contact">
-                  Contact Support
-                </Link>
+                <Link href="/contact">Contact Support</Link>
               </Button>
             </div>
           </div>
@@ -347,5 +359,5 @@ console.log(\`Results: \${passed}/\${total} passed\`);`}</pre>
       {/* Footer */}
       <Footer />
     </div>
-  )
+  );
 }

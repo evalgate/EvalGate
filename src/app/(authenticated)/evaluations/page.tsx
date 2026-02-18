@@ -1,91 +1,92 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Input } from "@/components/ui/input"
+import { Beaker, Clock, Filter, Plus, Search } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import Link from "next/link"
-import { Plus, Beaker, Clock, Search, Filter } from "lucide-react"
-import { useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useSession } from "@/lib/auth-client";
 
 export default function EvaluationsPage() {
-  const { data: session, isPending } = useSession()
-  const router = useRouter()
-  const [evaluations, setEvaluations] = useState<any[]>([])
-  const [filteredEvaluations, setFilteredEvaluations] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [typeFilter, setTypeFilter] = useState("all")
+  const { data: session, isPending } = useSession();
+  const _router = useRouter();
+  const [evaluations, setEvaluations] = useState<any[]>([]);
+  const [filteredEvaluations, setFilteredEvaluations] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
 
   useEffect(() => {
     // If not authenticated, load demo data
     if (!isPending && !session?.user) {
       fetch("/api/demo/evaluations")
-        .then(res => res.json())
-        .then(data => {
-          setEvaluations(data.evaluations || [])
-          setFilteredEvaluations(data.evaluations || [])
-          setIsLoading(false)
+        .then((res) => res.json())
+        .then((data) => {
+          setEvaluations(data.evaluations || []);
+          setFilteredEvaluations(data.evaluations || []);
+          setIsLoading(false);
         })
         .catch(() => {
-          setIsLoading(false)
-        })
-      return
+          setIsLoading(false);
+        });
+      return;
     }
 
     if (session?.user) {
       // Add pagination limit
       fetch("/api/evaluations?limit=20&offset=0", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("bearer_token")}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("bearer_token")}`,
+        },
       })
-        .then(res => res.json())
-        .then(data => {
-          setEvaluations(data.evaluations || [])
-          setFilteredEvaluations(data.evaluations || [])
-          setIsLoading(false)
+        .then((res) => res.json())
+        .then((data) => {
+          setEvaluations(data.evaluations || []);
+          setFilteredEvaluations(data.evaluations || []);
+          setIsLoading(false);
         })
         .catch(() => {
-          setIsLoading(false)
-        })
+          setIsLoading(false);
+        });
     }
-  }, [session, isPending, router])
+  }, [session, isPending]);
 
   // Filter evaluations based on search and type
   useEffect(() => {
-    let filtered = evaluations
+    let filtered = evaluations;
 
     // Apply search filter
     if (searchQuery) {
-      filtered = filtered.filter((evaluation: any) =>
-        evaluation.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        evaluation.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      filtered = filtered.filter(
+        (evaluation: any) =>
+          evaluation.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          evaluation.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
     }
 
     // Apply type filter
     if (typeFilter !== "all") {
-      filtered = filtered.filter((evaluation: any) => evaluation.type === typeFilter)
+      filtered = filtered.filter((evaluation: any) => evaluation.type === typeFilter);
     }
 
-    setFilteredEvaluations(filtered)
-  }, [searchQuery, typeFilter, evaluations])
+    setFilteredEvaluations(filtered);
+  }, [searchQuery, typeFilter, evaluations]);
 
   if (isPending) {
-    return null
+    return null;
   }
 
-  const isDemo = !session?.user
+  const isDemo = !session?.user;
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -103,7 +104,9 @@ export default function EvaluationsPage() {
       <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Evaluations</h2>
-          <p className="text-muted-foreground text-sm sm:text-base">Create and manage evaluation test suites</p>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Create and manage evaluation test suites
+          </p>
         </div>
         <Button asChild size="sm" className="w-full sm:w-auto h-9">
           <Link href="/evaluations/new">
@@ -213,8 +216,8 @@ export default function EvaluationsPage() {
               variant="outline"
               size="sm"
               onClick={() => {
-                setSearchQuery("")
-                setTypeFilter("all")
+                setSearchQuery("");
+                setTypeFilter("all");
               }}
             >
               Clear filters
@@ -229,7 +232,8 @@ export default function EvaluationsPage() {
             </div>
             <h3 className="text-base sm:text-lg font-semibold mb-2">No evaluations yet</h3>
             <p className="text-muted-foreground text-center mb-4 sm:mb-6 max-w-sm text-sm sm:text-base px-2">
-              Create your first evaluation to start testing your AI models with unit tests, human feedback, or model judges.
+              Create your first evaluation to start testing your AI models with unit tests, human
+              feedback, or model judges.
             </p>
             <Button asChild size="lg">
               <Link href="/evaluations/new">
@@ -241,5 +245,5 @@ export default function EvaluationsPage() {
         </Card>
       )}
     </div>
-  )
+  );
 }

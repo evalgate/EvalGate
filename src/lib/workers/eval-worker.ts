@@ -1,23 +1,22 @@
 // src/lib/workers/eval-worker.ts
-import { db } from '@/db';
-import { evaluationRuns, testResults, testCases, evaluations } from '@/db/schema';
-import { eq, and, sql, inArray } from 'drizzle-orm';
-import { logger } from '@/lib/logger';
+
+import { and, eq, inArray } from "drizzle-orm";
+import { db } from "@/db";
+import { evaluationRuns, evaluations, testCases, testResults } from "@/db/schema";
+import { logger } from "@/lib/logger";
+import { computeAndStoreQualityScore } from "@/lib/services/aggregate-metrics.service";
 // import { validateSDKTestResult, validateSDKEvaluationResult } from '@/lib/sdk/mapper';
 // import { transformTestResultToDB, transformEvaluationResultToDB } from '@/lib/sdk/transformer';
-import { llmJudgeService } from '@/lib/services/llm-judge.service';
-import { 
-  sseServer, 
-  createEvaluationStartedMessage,
-  createEvaluationProgressMessage,
+import { llmJudgeService } from "@/lib/services/llm-judge.service";
+import { providerKeysService } from "@/lib/services/provider-keys.service";
+import {
   createEvaluationCompletedMessage,
-  createTestCaseStartedMessage,
+  createEvaluationProgressMessage,
+  createSSEMessage,
   createTestCaseCompletedMessage,
   createTestCaseFailedMessage,
-  createSSEMessage
-} from '@/lib/streaming/sse-server';
-import { providerKeysService } from '@/lib/services/provider-keys.service';
-import { computeAndStoreQualityScore } from '@/lib/services/aggregate-metrics.service';
+  sseServer,
+} from "@/lib/streaming/sse-server";
 
 interface WorkerOptions {
   testCases?: string[];
@@ -37,22 +36,28 @@ class EvalWorker {
     runId: number,
     evaluationId: number,
     organizationId: number,
-    userId: string,
+    _userId: string,
     testCaseIds: number[],
-    options: WorkerOptions = {}
+    options: WorkerOptions = {},
   ): Promise<void> {
-    logger.info('Worker: Starting evaluation run processing', { runId, evaluationId, testCaseIds: testCaseIds.length });
+    logger.info("Worker: Starting evaluation run processing", {
+      runId,
+      evaluationId,
+      testCaseIds: testCaseIds.length,
+    });
 
     try {
       // 1. Fetch evaluation configuration
       const [evaluation] = await db
         .select()
         .from(evaluations)
-        .where(and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, organizationId)))
+        .where(
+          and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, organizationId)),
+        )
         .limit(1);
 
       if (!evaluation) {
-        throw new Error('Evaluation not found or access denied');
+        throw new Error("Evaluation not found or access denied");
       }
 
       // 2. Fetch test cases
@@ -62,7 +67,7 @@ class EvalWorker {
         .where(and(eq(testCases.evaluationId, evaluationId), inArray(testCases.id, testCaseIds)));
 
       if (testCasesData.length === 0) {
-        throw new Error('No test cases found');
+        throw new Error("No test cases found");
       }
 
       // 3. Initialize trace log
@@ -91,14 +96,14 @@ class EvalWorker {
 
       for (const testCase of testCasesData) {
         const turnStart = Date.now();
-        
+
         // Heartbeat update before processing
         await this.updateHeartbeat(runId, processedCount, `Processing test case: ${testCase.name}`);
-        
+
         try {
           // Simulate SDK evaluation (will be replaced with actual SDK call)
           const result = await this.evaluateTestCase(testCase, evaluation, options.settings);
-          
+
           // Capture the turn data
           const turnData = {
             testCaseId: testCase.id,
@@ -109,7 +114,7 @@ class EvalWorker {
             timestamp: new Date().toISOString(),
             duration: Date.now() - turnStart,
           };
-          
+
           traceLog.turns.push(turnData);
 
           // Save test result
@@ -127,38 +132,45 @@ class EvalWorker {
             createdAt: new Date().toISOString(),
           });
 
-          if (result.status === 'passed') {
+          if (result.status === "passed") {
             passedCount++;
           } else {
             failedCount++;
           }
 
           processedCount++;
-          
+
           // Update heartbeat after successful processing
-          await this.updateHeartbeat(runId, processedCount, `Completed: ${testCase.name} (${result.status})`);
-          
+          await this.updateHeartbeat(
+            runId,
+            processedCount,
+            `Completed: ${testCase.name} (${result.status})`,
+          );
+
           // Send test case completed message
           const completedMessage = createTestCaseCompletedMessage(
             evaluationId,
             testCase.id,
             result.score || 0,
-            result.status === 'passed'
+            result.status === "passed",
           );
           sseServer.sendToOrganization(organizationId, completedMessage);
-
         } catch (error: any) {
-          logger.error('Worker: Test case failed', { runId, testCaseId: testCase.id, error: error.message });
-          
+          logger.error("Worker: Test case failed", {
+            runId,
+            testCaseId: testCase.id,
+            error: error.message,
+          });
+
           failedCount++;
           processedCount++;
-          
+
           // Save failed result
           await db.insert(testResults).values({
             evaluationRunId: runId,
             testCaseId: testCase.id,
             organizationId,
-            status: 'failed',
+            status: "failed",
             output: null,
             score: 0,
             error: error.message,
@@ -169,35 +181,40 @@ class EvalWorker {
           });
 
           // Update heartbeat after failure
-          await this.updateHeartbeat(runId, processedCount, `Failed: ${testCase.name} - ${error.message}`);
-          
+          await this.updateHeartbeat(
+            runId,
+            processedCount,
+            `Failed: ${testCase.name} - ${error.message}`,
+          );
+
           // Send test case failed message
           const failedMessage = createTestCaseFailedMessage(
             evaluationId,
             testCase.id,
-            error.message
+            error.message,
           );
           sseServer.sendToOrganization(organizationId, failedMessage);
         }
 
         // Small delay between test cases to prevent overwhelming the system
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Send progress update
         const progressMessage = createEvaluationProgressMessage(
           evaluationId,
           Math.round((processedCount / testCasesData.length) * 100),
           testCase.name || `Test Case ${testCase.id}`,
-          testCasesData.length
+          testCasesData.length,
         );
         sseServer.sendToOrganization(organizationId, progressMessage);
       }
 
       // 5. Finalize the run
-      const finalStatus = failedCount === 0 ? 'completed' : 'completed_with_failures';
+      const finalStatus = failedCount === 0 ? "completed" : "completed_with_failures";
       const completedAt = new Date().toISOString();
 
-      await db.update(evaluationRuns)
+      await db
+        .update(evaluationRuns)
         .set({
           status: finalStatus,
           processedCount,
@@ -219,21 +236,21 @@ class EvalWorker {
         .where(eq(evaluationRuns.id, runId));
 
       // 6. Compute and store quality score
-      computeAndStoreQualityScore(runId, evaluationId, organizationId).catch(error => {
-        logger.error('Worker: Quality score computation failed', { runId, error: error.message });
+      computeAndStoreQualityScore(runId, evaluationId, organizationId).catch((error) => {
+        logger.error("Worker: Quality score computation failed", { runId, error: error.message });
       });
 
       // 7. Trigger Meta-Judge as post-eval hook (async, fire-and-forget)
-      this.triggerMetaJudge(runId, evaluationId, organizationId, testCasesData).catch(error => {
-        logger.error('Worker: Meta-Judge failed', { runId, error: error.message });
+      this.triggerMetaJudge(runId, evaluationId, organizationId, testCasesData).catch((error) => {
+        logger.error("Worker: Meta-Judge failed", { runId, error: error.message });
       });
 
-      logger.info('Worker: Evaluation run completed', { 
-        runId, 
-        status: finalStatus, 
+      logger.info("Worker: Evaluation run completed", {
+        runId,
+        status: finalStatus,
         totalCases: testCaseIds.length,
         passedCount,
-        failedCount 
+        failedCount,
       });
 
       // Send evaluation completed message
@@ -242,21 +259,18 @@ class EvalWorker {
         totalTests: testCasesData.length,
         passed: passedCount,
         failed: failedCount,
-        results: await db
-          .select()
-          .from(testResults)
-          .where(eq(testResults.evaluationRunId, runId)),
+        results: await db.select().from(testResults).where(eq(testResults.evaluationRunId, runId)),
         status: finalStatus,
       });
       sseServer.sendToOrganization(organizationId, completedMessage);
-
     } catch (error: any) {
-      logger.error('Worker: Evaluation run failed', { runId, error: error.message });
-      
+      logger.error("Worker: Evaluation run failed", { runId, error: error.message });
+
       // Update run status to failed
-      await db.update(evaluationRuns)
+      await db
+        .update(evaluationRuns)
         .set({
-          status: 'failed',
+          status: "failed",
           completedAt: new Date().toISOString(),
           traceLog: JSON.stringify({
             error: error.message,
@@ -266,7 +280,7 @@ class EvalWorker {
         .where(eq(evaluationRuns.id, runId));
 
       // Send error message
-      const errorMessage = createSSEMessage('error', {
+      const errorMessage = createSSEMessage("error", {
         error: error.message,
         runId,
         evaluationId,
@@ -279,7 +293,11 @@ class EvalWorker {
    * Update heartbeat counter and log message.
    * This allows the UI to poll for progress updates.
    */
-  private async updateHeartbeat(runId: number, processedCount: number, message: string): Promise<void> {
+  private async updateHeartbeat(
+    runId: number,
+    processedCount: number,
+    message: string,
+  ): Promise<void> {
     // Simple heartbeat update without complex JSON operations
     const currentRun = await db
       .select()
@@ -297,14 +315,15 @@ class EvalWorker {
           message,
         });
 
-        await db.update(evaluationRuns)
+        await db
+          .update(evaluationRuns)
           .set({
             processedCount,
             traceLog: JSON.stringify(traceLog),
           })
           .where(eq(evaluationRuns.id, runId));
       } catch (error) {
-        logger.warn('Failed to update heartbeat', { runId, error });
+        logger.warn("Failed to update heartbeat", { runId, error });
       }
     }
   }
@@ -317,9 +336,9 @@ class EvalWorker {
     runId: number,
     evaluationId: number,
     organizationId: number,
-    testCases: any[]
+    testCases: any[],
   ): Promise<void> {
-    logger.info('Worker: Triggering Meta-Judge evaluation', { runId, evaluationId });
+    logger.info("Worker: Triggering Meta-Judge evaluation", { runId, evaluationId });
 
     try {
       // Fetch all test results for this run
@@ -329,15 +348,15 @@ class EvalWorker {
         .where(eq(testResults.evaluationRunId, runId));
 
       if (results.length === 0) {
-        logger.warn('No test results found for Meta-Judge', { runId });
+        logger.warn("No test results found for Meta-Judge", { runId });
         return;
       }
 
       // Prepare test results for Meta-Judge
-      const testResultsForJudge = results.map(result => ({
+      const testResultsForJudge = results.map((result) => ({
         testCaseId: result.testCaseId,
         input: this.extractInputFromMessages(result.messages as string),
-        output: result.output || '',
+        output: result.output || "",
         expectedOutput: this.getExpectedOutput(testCases, result.testCaseId) || undefined,
         score: result.score || undefined,
         status: result.status,
@@ -347,11 +366,12 @@ class EvalWorker {
       const judgeResults = await llmJudgeService.evaluateRunBatch(
         runId,
         organizationId,
-        testResultsForJudge
+        testResultsForJudge,
       );
 
       // Update evaluation run with judge results
-      await db.update(evaluationRuns)
+      await db
+        .update(evaluationRuns)
         .set({
           traceLog: JSON.stringify({
             metaJudge: {
@@ -363,18 +383,18 @@ class EvalWorker {
         })
         .where(eq(evaluationRuns.id, runId));
 
-      logger.info('Worker: Meta-Judge evaluation completed', {
+      logger.info("Worker: Meta-Judge evaluation completed", {
         runId,
         totalJudged: judgeResults.totalJudged,
         passedJudged: judgeResults.passedJudged,
         averageJudgeScore: judgeResults.averageJudgeScore,
       });
-
     } catch (error: any) {
-      logger.error('Worker: Meta-Judge evaluation failed', { runId, error: error.message });
-      
+      logger.error("Worker: Meta-Judge evaluation failed", { runId, error: error.message });
+
       // Update evaluation run with error information
-      await db.update(evaluationRuns)
+      await db
+        .update(evaluationRuns)
         .set({
           traceLog: JSON.stringify({
             metaJudge: {
@@ -392,14 +412,14 @@ class EvalWorker {
    * Extract input from messages array.
    */
   private extractInputFromMessages(messages: string | null): string {
-    if (!messages) return '';
-    
+    if (!messages) return "";
+
     try {
       const parsed = JSON.parse(messages);
-      const userMessage = parsed.find((msg: any) => msg.role === 'user');
-      return userMessage?.content || '';
+      const userMessage = parsed.find((msg: any) => msg.role === "user");
+      return userMessage?.content || "";
     } catch {
-      return '';
+      return "";
     }
   }
 
@@ -407,7 +427,7 @@ class EvalWorker {
    * Get expected output for a test case.
    */
   private getExpectedOutput(testCases: any[], testCaseId: number): string | null {
-    const testCase = testCases.find(tc => tc.id === testCaseId);
+    const testCase = testCases.find((tc) => tc.id === testCaseId);
     return testCase?.expectedOutput || null;
   }
 
@@ -418,7 +438,7 @@ class EvalWorker {
   private async evaluateTestCase(
     testCase: any,
     evaluation: any,
-    settings?: Record<string, any>
+    settings?: Record<string, any>,
   ): Promise<{
     status: string;
     output: string;
@@ -427,13 +447,16 @@ class EvalWorker {
     messages?: any[];
     toolCalls?: any[];
   }> {
-    const systemPrompt = evaluation.modelSettings?.systemPrompt || settings?.systemPrompt || 'You are a helpful AI assistant.';
-    const model = evaluation.modelSettings?.model || settings?.model || 'gpt-4o-mini';
+    const systemPrompt =
+      evaluation.modelSettings?.systemPrompt ||
+      settings?.systemPrompt ||
+      "You are a helpful AI assistant.";
+    const model = evaluation.modelSettings?.model || settings?.model || "gpt-4o-mini";
     const organizationId = evaluation.organizationId;
 
     const messages = [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: testCase.input },
+      { role: "system", content: systemPrompt },
+      { role: "user", content: testCase.input },
     ];
 
     try {
@@ -443,17 +466,17 @@ class EvalWorker {
       // Get the org's decrypted API key
       const providerKey = await providerKeysService.getActiveProviderKey(organizationId, provider);
 
-      let output = '';
-      let tokenCount = 0;
+      let output = "";
+      let _tokenCount = 0;
 
       if (!providerKey) {
         // No API key configured — use heuristic fallback
-        logger.warn('No provider key found, using heuristic scoring', { organizationId, provider });
+        logger.warn("No provider key found, using heuristic scoring", { organizationId, provider });
         output = `[Heuristic] Response for: ${testCase.input.substring(0, 100)}`;
         const score = this.heuristicScore(testCase.expectedOutput, output);
-        messages.push({ role: 'assistant', content: output });
+        messages.push({ role: "assistant", content: output });
         return {
-          status: score >= 70 ? 'passed' : 'failed',
+          status: score >= 70 ? "passed" : "failed",
           output,
           score,
           messages,
@@ -463,55 +486,54 @@ class EvalWorker {
 
       const apiKey = providerKey.decryptedKey;
 
-      if (provider === 'openai') {
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      if (provider === "openai") {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
           body: JSON.stringify({ model, messages, max_tokens: 2048, temperature: 0.2 }),
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error?.message ?? JSON.stringify(json));
-        output = json.choices?.[0]?.message?.content ?? '';
-        tokenCount = json.usage?.total_tokens ?? 0;
-      } else if (provider === 'anthropic') {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
+        output = json.choices?.[0]?.message?.content ?? "";
+        _tokenCount = json.usage?.total_tokens ?? 0;
+      } else if (provider === "anthropic") {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
             model,
             max_tokens: 2048,
             system: systemPrompt,
-            messages: [{ role: 'user', content: testCase.input }],
+            messages: [{ role: "user", content: testCase.input }],
           }),
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error?.message ?? JSON.stringify(json));
-        output = json.content?.[0]?.text ?? '';
-        tokenCount = (json.usage?.input_tokens ?? 0) + (json.usage?.output_tokens ?? 0);
+        output = json.content?.[0]?.text ?? "";
+        _tokenCount = (json.usage?.input_tokens ?? 0) + (json.usage?.output_tokens ?? 0);
       } else {
         throw new Error(`Unsupported provider: ${provider}`);
       }
 
-      messages.push({ role: 'assistant', content: output });
+      messages.push({ role: "assistant", content: output });
 
       // Score: if expectedOutput exists, compute similarity; otherwise default pass
       const score = testCase.expectedOutput
         ? this.heuristicScore(testCase.expectedOutput, output)
         : 80;
-      const status = score >= 70 ? 'passed' : 'failed';
+      const status = score >= 70 ? "passed" : "failed";
 
       return { status, output, score, messages, toolCalls: [] };
-
     } catch (error: any) {
-      logger.error('Evaluation failed', { testCaseId: testCase.id, error: error.message });
-      messages.push({ role: 'assistant', content: '' });
+      logger.error("Evaluation failed", { testCaseId: testCase.id, error: error.message });
+      messages.push({ role: "assistant", content: "" });
       return {
-        status: 'failed',
-        output: '',
+        status: "failed",
+        output: "",
         score: 0,
         error: error.message,
         messages,
@@ -525,9 +547,17 @@ class EvalWorker {
    */
   private getProviderFromModel(model: string): string {
     const m = model.toLowerCase();
-    if (m.includes('gpt') || m.includes('o1') || m.includes('o3') || m.includes('davinci') || m.includes('turbo')) return 'openai';
-    if (m.includes('claude') || m.includes('haiku') || m.includes('sonnet') || m.includes('opus')) return 'anthropic';
-    return 'openai'; // default
+    if (
+      m.includes("gpt") ||
+      m.includes("o1") ||
+      m.includes("o3") ||
+      m.includes("davinci") ||
+      m.includes("turbo")
+    )
+      return "openai";
+    if (m.includes("claude") || m.includes("haiku") || m.includes("sonnet") || m.includes("opus"))
+      return "anthropic";
+    return "openai"; // default
   }
 
   /**
@@ -543,10 +573,11 @@ class EvalWorker {
     if (expected.length === 0) return 80;
 
     const actualSet = new Set(actual);
-    const matches = expected.filter(w => actualSet.has(w)).length;
+    const matches = expected.filter((w) => actualSet.has(w)).length;
     const overlap = matches / expected.length;
 
-    const lenRatio = Math.min(actual.length, expected.length) / Math.max(actual.length, expected.length, 1);
+    const lenRatio =
+      Math.min(actual.length, expected.length) / Math.max(actual.length, expected.length, 1);
 
     return Math.round((overlap * 0.7 + lenRatio * 0.3) * 100);
   }

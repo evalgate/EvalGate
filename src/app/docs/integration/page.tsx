@@ -46,9 +46,7 @@ function Section({
 }) {
   return (
     <section id={id} className="scroll-mt-24">
-      <h2 className="mb-6 text-2xl font-bold tracking-tight text-white">
-        {title}
-      </h2>
+      <h2 className="mb-6 text-2xl font-bold tracking-tight text-white">{title}</h2>
       {children}
     </section>
   );
@@ -78,8 +76,7 @@ export default function IntegrationDocsPage() {
             description:
               "TypeScript/JavaScript SDK for AI agent observability, workflow tracing, cost analytics, decision auditing, and governance. Integrates with LangChain, CrewAI, AutoGen.",
             url: "https://www.npmjs.com/package/@pauly4010/evalai-sdk",
-            downloadUrl:
-              "https://www.npmjs.com/package/@pauly4010/evalai-sdk",
+            downloadUrl: "https://www.npmjs.com/package/@pauly4010/evalai-sdk",
             softwareVersion: "1.3.0",
             author: {
               "@type": "Organization",
@@ -87,8 +84,7 @@ export default function IntegrationDocsPage() {
               url: "https://github.com/pauly7610/ai-evaluation-platform",
             },
             programmingLanguage: ["TypeScript", "JavaScript", "Python"],
-            codeRepository:
-              "https://github.com/pauly7610/ai-evaluation-platform",
+            codeRepository: "https://github.com/pauly7610/ai-evaluation-platform",
             license: "https://opensource.org/licenses/MIT",
             featureList: [
               "Multi-agent workflow tracing with DAG visualization",
@@ -119,9 +115,9 @@ export default function IntegrationDocsPage() {
               EvalAI Integration Reference
             </h1>
             <p className="max-w-2xl text-lg text-zinc-400">
-              Complete technical reference for wiring external projects into the
-              AI Evaluation Platform. Every type, endpoint, and method signature
-              below is sourced directly from the codebase.
+              Complete technical reference for wiring external projects into the AI Evaluation
+              Platform. Every type, endpoint, and method signature below is sourced directly from
+              the codebase.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a
@@ -166,10 +162,7 @@ export default function IntegrationDocsPage() {
                 ["#comparison", "Comparison with Alternatives"],
               ].map(([href, label]) => (
                 <li key={href}>
-                  <a
-                    href={href}
-                    className="text-violet-400 hover:text-violet-300"
-                  >
+                  <a href={href} className="text-violet-400 hover:text-violet-300">
                     {label}
                   </a>
                 </li>
@@ -219,9 +212,9 @@ await tracer.endWorkflow({ status: 'success' });`}</CodeBlock>
             {/* SDK Client */}
             <Section id="sdk-client" title="SDK Client & Auth">
               <p className="mb-4 text-zinc-400">
-                The <code className="text-violet-400">AIEvalClient</code> is the
-                main entry point. It supports zero-config initialization via
-                environment variables, or explicit configuration.
+                The <code className="text-violet-400">AIEvalClient</code> is the main entry point.
+                It supports zero-config initialization via environment variables, or explicit
+                configuration.
               </p>
               <CodeBlock lang="typescript">{`const client = new AIEvalClient({
   apiKey: 'your-api-key',           // required (or EVALAI_API_KEY env)
@@ -239,9 +232,7 @@ await tracer.endWorkflow({ status: 'success' });`}</CodeBlock>
 
 // Auth: every request sends Authorization: Bearer <apiKey>`}</CodeBlock>
 
-              <h3 className="mb-3 mt-8 text-lg font-semibold text-white">
-                API Modules
-              </h3>
+              <h3 className="mb-3 mt-8 text-lg font-semibold text-white">API Modules</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -253,16 +244,23 @@ await tracer.endWorkflow({ status: 'success' });`}</CodeBlock>
                   <tbody className="divide-y divide-zinc-800/50">
                     {[
                       ["client.traces", "create, list, get, delete, createSpan, listSpans"],
-                      ["client.evaluations", "create, list, get, update, delete, createTestCase, createRun"],
-                      ["client.llmJudge", "evaluate, createConfig, listConfigs, listResults, getAlignment"],
+                      [
+                        "client.evaluations",
+                        "create, list, get, update, delete, createTestCase, createRun",
+                      ],
+                      [
+                        "client.llmJudge",
+                        "evaluate, createConfig, listConfigs, listResults, getAlignment",
+                      ],
                       ["client.annotations", "create, list, tasks.create, tasks.items.create"],
-                      ["client.developer", "getUsage, apiKeys.create/list/revoke, webhooks.create/list"],
+                      [
+                        "client.developer",
+                        "getUsage, apiKeys.create/list/revoke, webhooks.create/list",
+                      ],
                       ["client.organizations", "getCurrent"],
                     ].map(([mod, methods]) => (
                       <tr key={mod}>
-                        <td className="py-2 pr-4 font-mono text-violet-400">
-                          {mod}
-                        </td>
+                        <td className="py-2 pr-4 font-mono text-violet-400">{mod}</td>
                         <td className="py-2 text-zinc-400">{methods}</td>
                       </tr>
                     ))}
@@ -274,8 +272,8 @@ await tracer.endWorkflow({ status: 'success' });`}</CodeBlock>
             {/* WorkflowTracer */}
             <Section id="workflow-tracer" title="WorkflowTracer API">
               <p className="mb-4 text-zinc-400">
-                The WorkflowTracer instruments multi-agent workflows with
-                tracing, decision auditing, handoff tracking, and cost capture.
+                The WorkflowTracer instruments multi-agent workflows with tracing, decision
+                auditing, handoff tracking, and cost capture.
               </p>
               <CodeBlock lang="typescript">{`const tracer = new WorkflowTracer(client, {
   organizationId?: number,
@@ -319,10 +317,7 @@ tracer.getDecisions()        → RecordDecisionParams[]`}</CodeBlock>
             <Section id="rest-api" title="REST API Contracts">
               <p className="mb-4 text-zinc-400">
                 All endpoints accept JSON, require{" "}
-                <code className="text-violet-400">
-                  Authorization: Bearer &lt;key&gt;
-                </code>{" "}
-                header.
+                <code className="text-violet-400">Authorization: Bearer &lt;key&gt;</code> header.
               </p>
 
               <div className="space-y-8">
@@ -353,10 +348,7 @@ tracer.getDecisions()        → RecordDecisionParams[]`}</CodeBlock>
                     body: `?organizationId=int&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD → { trends: [...], summary: { totalCost, totalTokens, totalRequests, avgDailyCost } }`,
                   },
                 ].map((ep) => (
-                  <div
-                    key={ep.path}
-                    className="rounded-lg border border-zinc-800 p-4"
-                  >
+                  <div key={ep.path} className="rounded-lg border border-zinc-800 p-4">
                     <div className="mb-2 flex items-center gap-2">
                       <span
                         className={`rounded px-2 py-0.5 text-xs font-bold ${
@@ -369,9 +361,7 @@ tracer.getDecisions()        → RecordDecisionParams[]`}</CodeBlock>
                       </span>
                       <code className="text-sm text-white">{ep.path}</code>
                     </div>
-                    <pre className="overflow-x-auto text-xs text-zinc-500">
-                      {ep.body}
-                    </pre>
+                    <pre className="overflow-x-auto text-xs text-zinc-500">{ep.body}</pre>
                   </div>
                 ))}
               </div>
@@ -380,8 +370,8 @@ tracer.getDecisions()        → RecordDecisionParams[]`}</CodeBlock>
             {/* Governance */}
             <Section id="governance" title="Governance Engine">
               <p className="mb-4 text-zinc-400">
-                Enterprise-grade governance with compliance presets for SOC2,
-                GDPR, HIPAA, FINRA, and PCI-DSS.
+                Enterprise-grade governance with compliance presets for SOC2, GDPR, HIPAA, FINRA,
+                and PCI-DSS.
               </p>
               <CodeBlock lang="typescript">{`import { GovernanceEngine, CompliancePresets } from '@/lib/governance/rules';
 
@@ -400,9 +390,7 @@ const engine = new GovernanceEngine({
 const result = engine.evaluate(decision);
 // → { requiresApproval, blocked, reasons[], auditLevel, timestamp }`}</CodeBlock>
 
-              <h3 className="mb-3 mt-8 text-lg font-semibold text-white">
-                Compliance Presets
-              </h3>
+              <h3 className="mb-3 mt-8 text-lg font-semibold text-white">Compliance Presets</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -423,9 +411,7 @@ const result = engine.evaluate(decision);
                       ["PCI_DSS", "80%", "$50", "Yes"],
                     ].map(([preset, conf, amt, pii]) => (
                       <tr key={preset}>
-                        <td className="py-2 pr-4 font-mono text-violet-400">
-                          {preset}
-                        </td>
+                        <td className="py-2 pr-4 font-mono text-violet-400">{preset}</td>
                         <td className="py-2 pr-4">{conf}</td>
                         <td className="py-2 pr-4">{amt}</td>
                         <td className="py-2 pr-4">{pii}</td>
@@ -439,12 +425,9 @@ const result = engine.evaluate(decision);
             {/* Python */}
             <Section id="python" title="Python Integration">
               <p className="mb-4 text-zinc-400">
-                No Python package is published yet. Use the REST API directly,
-                or copy the reference tracer from{" "}
-                <code className="text-violet-400">
-                  src/integrations/crewai-example.py
-                </code>
-                .
+                No Python package is published yet. Use the REST API directly, or copy the reference
+                tracer from{" "}
+                <code className="text-violet-400">src/integrations/crewai-example.py</code>.
               </p>
               <CodeBlock lang="python">{`import requests, os, time
 
@@ -523,13 +506,17 @@ const result = await traceWorkflowStep(tracer, 'MyAgent', async () => {
                       ["Decision auditing", "Yes", "No", "No", "No"],
                       ["Governance presets", "6", "No", "No", "No"],
                       ["Cost tracking", "12 models", "Yes", "Yes", "Yes"],
-                      ["Framework integrations", "LC, CrewAI, AutoGen", "LangChain", "OpenAI", "LangChain"],
+                      [
+                        "Framework integrations",
+                        "LC, CrewAI, AutoGen",
+                        "LangChain",
+                        "OpenAI",
+                        "LangChain",
+                      ],
                       ["Self-hostable", "Yes", "No", "Yes", "No"],
                     ].map(([feature, ...values]) => (
                       <tr key={feature}>
-                        <td className="py-2 pr-4 font-medium text-zinc-300">
-                          {feature}
-                        </td>
+                        <td className="py-2 pr-4 font-medium text-zinc-300">{feature}</td>
                         {values.map((v, i) => (
                           <td
                             key={i}
@@ -550,10 +537,7 @@ const result = await traceWorkflowStep(tracer, 'MyAgent', async () => {
 
           {/* Footer */}
           <div className="mt-20 border-t border-zinc-800 pt-8 text-center text-sm text-zinc-600">
-            <p>
-              Generated from source code. All signatures match the actual
-              codebase.
-            </p>
+            <p>Generated from source code. All signatures match the actual codebase.</p>
             <p className="mt-2">
               <a
                 href="https://github.com/pauly7610/ai-evaluation-platform"

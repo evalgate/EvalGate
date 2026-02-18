@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { useSearchParams } from "next/navigation"
-import { Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 /**
  * Intermediate page after OAuth callback.
@@ -10,16 +10,15 @@ import { Loader2 } from "lucide-react"
  * The client-side redirect ensures the cookie is sent with the dashboard request.
  */
 export default function CallbackSuccessPage() {
-  const searchParams = useSearchParams()
-  const redirectTo = searchParams.get("redirect") || "/dashboard"
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/dashboard";
 
   useEffect(() => {
     // Validate redirect is same-origin path to prevent open redirect
-    const safePath = redirectTo.startsWith("/") && !redirectTo.startsWith("//")
-      ? redirectTo
-      : "/dashboard"
-    window.location.replace(safePath)
-  }, [redirectTo])
+    const safePath =
+      redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/dashboard";
+    window.location.replace(safePath);
+  }, [redirectTo]);
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center">
@@ -28,5 +27,5 @@ export default function CallbackSuccessPage() {
         <p className="text-sm text-muted-foreground">Redirecting...</p>
       </div>
     </div>
-  )
+  );
 }

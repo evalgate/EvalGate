@@ -1,10 +1,10 @@
-export const dynamic = 'force-static'
-export const revalidate = 3600
+export const dynamic = "force-static";
+export const revalidate = 3600;
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Footer } from "@/components/footer"
-import { Rocket, Users, Heart, Zap } from "lucide-react"
+import { Heart, Rocket, Users, Zap } from "lucide-react";
+import Link from "next/link";
+import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
 
 export default function CareersPage() {
   return (
@@ -13,7 +13,9 @@ export default function CareersPage() {
       <header className="border-b border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-3">
-            <Link href="/" className="text-base sm:text-xl font-bold truncate">AI Evaluation Platform</Link>
+            <Link href="/" className="text-base sm:text-xl font-bold truncate">
+              AI Evaluation Platform
+            </Link>
             <Button asChild size="sm" className="h-9 flex-shrink-0">
               <Link href="/dashboard">Dashboard</Link>
             </Button>
@@ -26,14 +28,16 @@ export default function CareersPage() {
         <div className="mb-12 sm:mb-16 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">Join Our Team</h1>
           <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto px-2">
-            Help us build the future of AI quality assurance. We're looking for talented individuals 
+            Help us build the future of AI quality assurance. We're looking for talented individuals
             who are passionate about making AI systems more reliable and trustworthy.
           </p>
         </div>
 
         {/* Why Join Us */}
         <section className="mb-12 sm:mb-16">
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center">Why Work With Us</h2>
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center">
+            Why Work With Us
+          </h2>
           <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-border bg-card p-5 sm:p-6 text-center">
               <div className="flex justify-center mb-3 sm:mb-4">
@@ -99,7 +103,8 @@ export default function CareersPage() {
               <div>
                 <h3 className="font-semibold mb-2 text-sm sm:text-base">🚀 Move Fast</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Ship quickly, learn from users, and iterate. Bias towards action over endless planning.
+                  Ship quickly, learn from users, and iterate. Bias towards action over endless
+                  planning.
                 </p>
               </div>
               <div>
@@ -138,11 +143,13 @@ export default function CareersPage() {
                 <Users className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
               </div>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">No Open Positions Right Now</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">
+              No Open Positions Right Now
+            </h2>
             <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 max-w-2xl mx-auto px-2">
-              We don't have any specific roles open at the moment, but we're always interested in connecting 
-              with exceptional talent. If you're passionate about AI evaluation and believe you'd be a great 
-              addition to our team, we'd love to hear from you.
+              We don't have any specific roles open at the moment, but we're always interested in
+              connecting with exceptional talent. If you're passionate about AI evaluation and
+              believe you'd be a great addition to our team, we'd love to hear from you.
             </p>
             <Button asChild size="lg" className="w-full sm:w-auto">
               <Link href="/contact">Get in Touch</Link>
@@ -155,13 +162,17 @@ export default function CareersPage() {
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Benefits & Perks</h2>
           <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
             <div className="rounded-lg border border-border bg-card p-3 sm:p-4">
-              <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">💰 Competitive Compensation</h3>
+              <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">
+                💰 Competitive Compensation
+              </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Market-rate salary plus generous equity package
               </p>
             </div>
             <div className="rounded-lg border border-border bg-card p-3 sm:p-4">
-              <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">🏥 Health Coverage</h3>
+              <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">
+                🏥 Health Coverage
+              </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Comprehensive medical, dental, and vision insurance
               </p>
@@ -173,13 +184,17 @@ export default function CareersPage() {
               </p>
             </div>
             <div className="rounded-lg border border-border bg-card p-3 sm:p-4">
-              <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">💻 Equipment Budget</h3>
+              <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">
+                💻 Equipment Budget
+              </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Latest MacBook, monitors, and any tools you need
               </p>
             </div>
             <div className="rounded-lg border border-border bg-card p-3 sm:p-4">
-              <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">📚 Learning Budget</h3>
+              <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">
+                📚 Learning Budget
+              </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Conferences, courses, books — invest in your growth
               </p>
@@ -196,5 +211,5 @@ export default function CareersPage() {
 
       <Footer />
     </div>
-  )
+  );
 }

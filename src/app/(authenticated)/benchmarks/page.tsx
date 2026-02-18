@@ -1,10 +1,32 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  ArrowUpDown,
+  Bot,
+  Crown,
+  Medal,
+  Plus,
+  Target,
+  TrendingUp,
+  Trophy,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  Legend,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+} from "recharts";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -12,88 +34,64 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import Link from "next/link"
-import { 
-  Trophy, 
-  Plus, 
-  Users,
-  Target,
-  Zap,
-  DollarSign,
-  Medal,
-  Crown,
-  Bot,
-  ArrowUpDown,
-  TrendingUp
-} from "lucide-react"
-import { useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ResponsiveContainer,
-  Legend,
-} from "recharts"
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSession } from "@/lib/auth-client";
 
 interface Benchmark {
-  id: number
-  name: string
-  description: string | null
-  taskType: string
-  isPublic: boolean
-  createdAt: string
+  id: number;
+  name: string;
+  description: string | null;
+  taskType: string;
+  isPublic: boolean;
+  createdAt: string;
   _stats?: {
-    participantCount: number
-    avgAccuracy: number
+    participantCount: number;
+    avgAccuracy: number;
     topPerformer: {
-      name: string
-      architecture: string
-      accuracy: number
-    } | null
-  }
+      name: string;
+      architecture: string;
+      accuracy: number;
+    } | null;
+  };
 }
 
 interface LeaderboardEntry {
-  rank: number
+  rank: number;
   agentConfig: {
-    id: number
-    name: string
-    architecture: string
-    model: string
-  }
-  accuracy: number | null
-  latencyP50: number | null
-  successRate: number | null
-  score: number
+    id: number;
+    name: string;
+    architecture: string;
+    model: string;
+  };
+  accuracy: number | null;
+  latencyP50: number | null;
+  successRate: number | null;
+  score: number;
 }
 
 const RANK_ICONS: Record<number, React.ReactNode> = {
   1: <Crown className="h-5 w-5 text-yellow-500" />,
   2: <Medal className="h-5 w-5 text-gray-400" />,
   3: <Medal className="h-5 w-5 text-amber-600" />,
-}
+};
 
 const TASK_TYPE_LABELS: Record<string, string> = {
-  qa: 'Q&A',
-  coding: 'Coding',
-  reasoning: 'Reasoning',
-  tool_use: 'Tool Use',
-  multi_step: 'Multi-Step',
-}
+  qa: "Q&A",
+  coding: "Coding",
+  reasoning: "Reasoning",
+  tool_use: "Tool Use",
+  multi_step: "Multi-Step",
+};
 
 export default function BenchmarksPage() {
-  const { data: session, isPending } = useSession()
-  const router = useRouter()
-  const [benchmarks, setBenchmarks] = useState<Benchmark[]>([])
-  const [selectedBenchmark, setSelectedBenchmark] = useState<Benchmark | null>(null)
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState("benchmarks")
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const [benchmarks, setBenchmarks] = useState<Benchmark[]>([]);
+  const [selectedBenchmark, setSelectedBenchmark] = useState<Benchmark | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("benchmarks");
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -150,7 +148,7 @@ export default function BenchmarksPage() {
             },
           },
         },
-      ])
+      ]);
       setLeaderboard([
         {
           rank: 1,
@@ -162,7 +160,12 @@ export default function BenchmarksPage() {
         },
         {
           rank: 2,
-          agentConfig: { id: 2, name: "Claude CoT Agent", architecture: "cot", model: "claude-3.5-sonnet" },
+          agentConfig: {
+            id: 2,
+            name: "Claude CoT Agent",
+            architecture: "cot",
+            model: "claude-3.5-sonnet",
+          },
           accuracy: 89,
           latencyP50: 980,
           successRate: 91,
@@ -178,7 +181,12 @@ export default function BenchmarksPage() {
         },
         {
           rank: 4,
-          agentConfig: { id: 4, name: "Gemini Custom Agent", architecture: "custom", model: "gemini-1.5-pro" },
+          agentConfig: {
+            id: 4,
+            name: "Gemini Custom Agent",
+            architecture: "custom",
+            model: "gemini-1.5-pro",
+          },
           accuracy: 82,
           latencyP50: 1450,
           successRate: 85,
@@ -186,13 +194,18 @@ export default function BenchmarksPage() {
         },
         {
           rank: 5,
-          agentConfig: { id: 5, name: "Mistral ReAct Agent", architecture: "react", model: "mistral-large" },
+          agentConfig: {
+            id: 5,
+            name: "Mistral ReAct Agent",
+            architecture: "react",
+            model: "mistral-large",
+          },
           accuracy: 78,
           latencyP50: 890,
           successRate: 82,
           score: 75,
         },
-      ])
+      ]);
       setSelectedBenchmark({
         id: 1,
         name: "Customer Support Quality",
@@ -200,45 +213,45 @@ export default function BenchmarksPage() {
         taskType: "qa",
         isPublic: true,
         createdAt: new Date().toISOString(),
-      })
-      setIsLoading(false)
-      return
+      });
+      setIsLoading(false);
+      return;
     }
 
     if (session?.user) {
-      const token = localStorage.getItem("bearer_token")
+      const token = localStorage.getItem("bearer_token");
       fetch("/api/benchmarks", {
         headers: { Authorization: `Bearer ${token}` },
       })
-        .then(res => res.json().then(data => ({ res, data })))
+        .then((res) => res.json().then((data) => ({ res, data })))
         .then(({ res, data }) => {
           if (res.status === 403 && data?.code === "NO_ORG_MEMBERSHIP") {
-            router.push("/onboarding")
-            return
+            router.push("/onboarding");
+            return;
           }
-          setBenchmarks(Array.isArray(data) ? data : [])
-          setIsLoading(false)
+          setBenchmarks(Array.isArray(data) ? data : []);
+          setIsLoading(false);
         })
         .catch(() => {
-          setIsLoading(false)
-        })
+          setIsLoading(false);
+        });
     }
-  }, [session, isPending, router])
+  }, [session, isPending, router]);
 
   if (isPending) {
-    return null
+    return null;
   }
 
-  const isDemo = !session?.user
+  const isDemo = !session?.user;
 
   // Radar chart data for comparing architectures
   const radarData = [
-    { metric: 'Accuracy', react: 85, cot: 82, tot: 78, custom: 75 },
-    { metric: 'Speed', react: 70, cot: 75, tot: 60, custom: 72 },
-    { metric: 'Cost Efficiency', react: 65, cot: 70, tot: 55, custom: 80 },
-    { metric: 'Reliability', react: 88, cot: 85, tot: 82, custom: 78 },
-    { metric: 'Tool Use', react: 90, cot: 75, tot: 85, custom: 70 },
-  ]
+    { metric: "Accuracy", react: 85, cot: 82, tot: 78, custom: 75 },
+    { metric: "Speed", react: 70, cot: 75, tot: 60, custom: 72 },
+    { metric: "Cost Efficiency", react: 65, cot: 70, tot: 55, custom: 80 },
+    { metric: "Reliability", react: 88, cot: 85, tot: 82, custom: 78 },
+    { metric: "Tool Use", react: 90, cot: 75, tot: 85, custom: 70 },
+  ];
 
   return (
     <div className="space-y-6">
@@ -257,9 +270,7 @@ export default function BenchmarksPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Benchmarks</h1>
-          <p className="text-muted-foreground">
-            Compare agent architectures and track performance
-          </p>
+          <p className="text-muted-foreground">Compare agent architectures and track performance</p>
         </div>
         {!isDemo && (
           <Button size="sm" asChild>
@@ -297,8 +308,8 @@ export default function BenchmarksPage() {
           ) : benchmarks.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {benchmarks.map((benchmark) => (
-                <Card 
-                  key={benchmark.id} 
+                <Card
+                  key={benchmark.id}
                   className="hover:border-primary transition-colors cursor-pointer"
                   onClick={() => setSelectedBenchmark(benchmark)}
                 >
@@ -378,9 +389,7 @@ export default function BenchmarksPage() {
                       <Trophy className="h-5 w-5 text-primary" />
                       {selectedBenchmark.name} Leaderboard
                     </CardTitle>
-                    <CardDescription>
-                      Ranked by composite score
-                    </CardDescription>
+                    <CardDescription>Ranked by composite score</CardDescription>
                   </div>
                   <Button variant="outline" size="sm">
                     <ArrowUpDown className="mr-2 h-4 w-4" />
@@ -406,13 +415,17 @@ export default function BenchmarksPage() {
                       <TableRow key={entry.agentConfig.id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
-                            {RANK_ICONS[entry.rank] || <span className="w-5 text-center">{entry.rank}</span>}
+                            {RANK_ICONS[entry.rank] || (
+                              <span className="w-5 text-center">{entry.rank}</span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
                             <p className="font-medium">{entry.agentConfig.name}</p>
-                            <p className="text-xs text-muted-foreground">{entry.agentConfig.model}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {entry.agentConfig.model}
+                            </p>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -421,19 +434,19 @@ export default function BenchmarksPage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <span className={entry.accuracy && entry.accuracy >= 90 ? 'text-green-500 font-medium' : ''}>
+                          <span
+                            className={
+                              entry.accuracy && entry.accuracy >= 90
+                                ? "text-green-500 font-medium"
+                                : ""
+                            }
+                          >
                             {entry.accuracy}%
                           </span>
                         </TableCell>
-                        <TableCell className="text-right">
-                          {entry.latencyP50}ms
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {entry.successRate}%
-                        </TableCell>
-                        <TableCell className="text-right font-bold">
-                          {entry.score}
-                        </TableCell>
+                        <TableCell className="text-right">{entry.latencyP50}ms</TableCell>
+                        <TableCell className="text-right">{entry.successRate}%</TableCell>
+                        <TableCell className="text-right font-bold">{entry.score}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -448,9 +461,7 @@ export default function BenchmarksPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Architecture Comparison</CardTitle>
-                <CardDescription>
-                  Performance across different agent architectures
-                </CardDescription>
+                <CardDescription>Performance across different agent architectures</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={350}>
@@ -488,9 +499,7 @@ export default function BenchmarksPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Architecture Insights</CardTitle>
-                <CardDescription>
-                  Best use cases for each architecture
-                </CardDescription>
+                <CardDescription>Best use cases for each architecture</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {[
@@ -518,9 +527,7 @@ export default function BenchmarksPage() {
                       {arch.icon}
                       <span className="font-medium">{arch.name}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {arch.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground mb-2">{arch.description}</p>
                     <div className="flex gap-2">
                       {arch.strengths.map((s) => (
                         <Badge key={s} variant="secondary" className="text-xs">
@@ -536,5 +543,5 @@ export default function BenchmarksPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

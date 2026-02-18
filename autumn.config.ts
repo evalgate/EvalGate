@@ -1,4 +1,4 @@
-import { feature, product, priceItem, featureItem, pricedFeatureItem } from "atmn";
+import { feature, featureItem, pricedFeatureItem, product } from "atmn";
 
 export const traces = feature({
   id: "traces",

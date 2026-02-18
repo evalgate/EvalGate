@@ -1,5 +1,5 @@
 // src/lib/templates/injection.ts
-import { templateEngine, TemplateContext } from './engine';
+import { type TemplateContext, templateEngine } from "./engine";
 
 /**
  * Template variable injection utilities.
@@ -8,7 +8,7 @@ import { templateEngine, TemplateContext } from './engine';
 
 export interface VariableDefinition {
   name: string;
-  type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  type: "string" | "number" | "boolean" | "object" | "array";
   required: boolean;
   defaultValue?: any;
   description?: string;
@@ -50,7 +50,7 @@ export class TemplateInjection {
       strict?: boolean;
       validateRequired?: boolean;
       trackUsage?: boolean;
-    } = {}
+    } = {},
   ): InjectionResult {
     const { strict = false, validateRequired = true, trackUsage = true } = options;
     const errors: string[] = [];
@@ -61,7 +61,7 @@ export class TemplateInjection {
     try {
       // Validate required variables if requested
       if (validateRequired) {
-        const requiredVars = this.extractRequiredVariables(template);
+        const requiredVars = TemplateInjection.extractRequiredVariables(template);
         for (const varName of requiredVars) {
           if (!(varName in context.variables)) {
             errors.push(`Required variable '${varName}' is missing from context`);
@@ -72,7 +72,7 @@ export class TemplateInjection {
       if (errors.length > 0 && strict) {
         return {
           success: false,
-          rendered: '',
+          rendered: "",
           errors,
           warnings,
           usedVariables: [],
@@ -90,14 +90,14 @@ export class TemplateInjection {
       // Render template
       const rendered = templateEngine.render(template, enhancedContext, {
         strict,
-        fallback: strict ? undefined : '',
+        fallback: strict ? undefined : "",
       });
 
       // Track variable usage
       if (trackUsage) {
-        const allVars = this.extractAllVariables(template);
+        const allVars = TemplateInjection.extractAllVariables(template);
         usedVariables.push(...allVars);
-        unusedVariables.push(...Object.keys(context.variables).filter(v => !allVars.includes(v)));
+        unusedVariables.push(...Object.keys(context.variables).filter((v) => !allVars.includes(v)));
       }
 
       return {
@@ -108,11 +108,10 @@ export class TemplateInjection {
         usedVariables,
         unusedVariables,
       };
-
     } catch (error: any) {
       return {
         success: false,
-        rendered: '',
+        rendered: "",
         errors: [`Template rendering failed: ${error.message}`],
         warnings,
         usedVariables: [],
@@ -132,7 +131,7 @@ export class TemplateInjection {
     while ((match = regex.exec(template)) !== null) {
       const variable = match[1].trim();
       // Handle nested properties (e.g., user.name)
-      const parts = variable.split('.');
+      const parts = variable.split(".");
       variables.add(parts[0]);
     }
 
@@ -150,8 +149,8 @@ export class TemplateInjection {
     while ((match = regex.exec(template)) !== null) {
       const variable = match[1].trim();
       // Mark as required if it has no default value
-      if (!variable.includes('|') && !variable.includes('?')) {
-        const parts = variable.split('.');
+      if (!variable.includes("|") && !variable.includes("?")) {
+        const parts = variable.split(".");
         variables.add(parts[0]);
       }
     }
@@ -164,7 +163,7 @@ export class TemplateInjection {
    */
   static validateVariables(
     variables: Record<string, any>,
-    definitions: VariableDefinition[]
+    definitions: VariableDefinition[],
   ): {
     valid: boolean;
     errors: string[];
@@ -186,14 +185,14 @@ export class TemplateInjection {
       const finalValue = value !== undefined ? value : def.defaultValue;
 
       // Type validation
-      if (finalValue !== undefined && !this.validateType(finalValue, def)) {
+      if (finalValue !== undefined && !TemplateInjection.validateType(finalValue, def)) {
         errors.push(`Variable '${def.name}' must be of type ${def.type}`);
         continue;
       }
 
       // Custom validation
       if (finalValue !== undefined && def.validation) {
-        const validationError = this.validateCustom(finalValue, def);
+        const validationError = TemplateInjection.validateCustom(finalValue, def);
         if (validationError) {
           errors.push(`Variable '${def.name}': ${validationError}`);
           continue;
@@ -215,15 +214,15 @@ export class TemplateInjection {
    */
   private static validateType(value: any, definition: VariableDefinition): boolean {
     switch (definition.type) {
-      case 'string':
-        return typeof value === 'string';
-      case 'number':
-        return typeof value === 'number' && !isNaN(value);
-      case 'boolean':
-        return typeof value === 'boolean';
-      case 'object':
-        return typeof value === 'object' && !Array.isArray(value) && value !== null;
-      case 'array':
+      case "string":
+        return typeof value === "string";
+      case "number":
+        return typeof value === "number" && !Number.isNaN(value);
+      case "boolean":
+        return typeof value === "boolean";
+      case "object":
+        return typeof value === "object" && !Array.isArray(value) && value !== null;
+      case "array":
         return Array.isArray(value);
       default:
         return true; // Unknown type, assume valid
@@ -239,7 +238,7 @@ export class TemplateInjection {
     if (!validation) return null;
 
     // Min/Max validation for numbers
-    if (typeof value === 'number') {
+    if (typeof value === "number") {
       if (validation.min !== undefined && value < validation.min) {
         return `Value must be at least ${validation.min}`;
       }
@@ -249,7 +248,7 @@ export class TemplateInjection {
     }
 
     // Pattern validation for strings
-    if (typeof value === 'string' && validation.pattern) {
+    if (typeof value === "string" && validation.pattern) {
       const regex = new RegExp(validation.pattern);
       if (!regex.test(value)) {
         return `Value must match pattern: ${validation.pattern}`;
@@ -258,7 +257,7 @@ export class TemplateInjection {
 
     // Enum validation
     if (validation.enum && !validation.enum.includes(value)) {
-      return `Value must be one of: ${validation.enum.join(', ')}`;
+      return `Value must be one of: ${validation.enum.join(", ")}`;
     }
 
     return null;
@@ -271,12 +270,12 @@ export class TemplateInjection {
     definitions: VariableDefinition[],
     values: Record<string, any>,
     functions?: Record<string, (...args: any[]) => any>,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): VariableContext {
-    const validation = this.validateVariables(values, definitions);
-    
+    const validation = TemplateInjection.validateVariables(values, definitions);
+
     if (!validation.valid) {
-      throw new Error(`Variable validation failed: ${validation.errors.join(', ')}`);
+      throw new Error(`Variable validation failed: ${validation.errors.join(", ")}`);
     }
 
     return {
@@ -317,32 +316,33 @@ export class TemplateInjection {
         lower: (str: string) => str.toLowerCase(),
         capitalize: (str: string) => str.charAt(0).toUpperCase() + str.slice(1),
         trim: (str: string) => str.trim(),
-        
+
         // Number functions
-        round: (num: number, decimals: number = 0) => Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals),
+        round: (num: number, decimals: number = 0) =>
+          Math.round(num * 10 ** decimals) / 10 ** decimals,
         floor: (num: number) => Math.floor(num),
         ceil: (num: number) => Math.ceil(num),
         abs: (num: number) => Math.abs(num),
-        
+
         // Date functions
-        formatDate: (date: Date | string, format: string = 'YYYY-MM-DD') => {
-          const d = typeof date === 'string' ? new Date(date) : date;
-          return d.toISOString().split('T')[0]; // Simple format
+        formatDate: (date: Date | string, _format: string = "YYYY-MM-DD") => {
+          const d = typeof date === "string" ? new Date(date) : date;
+          return d.toISOString().split("T")[0]; // Simple format
         },
-        
+
         // Array functions
-        join: (array: any[], separator: string = ', ') => array.join(separator),
+        join: (array: any[], separator: string = ", ") => array.join(separator),
         length: (array: any[]) => array.length,
         first: (array: any[]) => array[0],
         last: (array: any[]) => array[array.length - 1],
-        
+
         // Object functions
         keys: (obj: object) => Object.keys(obj),
         values: (obj: object) => Object.values(obj),
         entries: (obj: object) => Object.entries(obj),
-        
+
         // Utility functions
-        default: (value: any, defaultValue: any) => value !== undefined ? value : defaultValue,
+        default: (value: any, defaultValue: any) => (value !== undefined ? value : defaultValue),
         json: (obj: any) => JSON.stringify(obj, null, 2),
         parse: (str: string) => {
           try {
@@ -354,7 +354,7 @@ export class TemplateInjection {
       },
       metadata: {
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development',
+        environment: process.env.NODE_ENV || "development",
       },
     };
   }
@@ -370,14 +370,14 @@ export class TemplateInjection {
     while ((match = metadataRegex.exec(template)) !== null) {
       try {
         const metaContent = match[1].trim();
-        if (metaContent.includes(':')) {
-          const [key, ...valueParts] = metaContent.split(':');
-          const value = valueParts.join(':').trim();
+        if (metaContent.includes(":")) {
+          const [key, ...valueParts] = metaContent.split(":");
+          const value = valueParts.join(":").trim();
           metadata[key.trim()] = value;
         } else {
           metadata[metaContent] = true;
         }
-      } catch (error) {
+      } catch (_error) {
         // Skip invalid metadata
       }
     }
@@ -390,30 +390,29 @@ export class TemplateInjection {
    */
   static generateTemplate(
     content: string,
-    variables: VariableDefinition[]
+    variables: VariableDefinition[],
   ): {
-      template: string;
-      definitions: VariableDefinition[];
-    } {
-      let template = content;
-      const definitions: VariableDefinition[] = [];
+    template: string;
+    definitions: VariableDefinition[];
+  } {
+    let template = content;
+    const definitions: VariableDefinition[] = [];
 
-      for (const variable of variables) {
-        const defaultValue = variable.defaultValue !== undefined 
-          ? `| ${JSON.stringify(variable.defaultValue)}` 
-          : '';
-        
-        const required = variable.required ? '' : '?';
-        
-        template = template.replace(
-          new RegExp(`{{\\s*${variable.name}\\s*}}`, 'g'),
-          `{{${variable.name}${required}${defaultValue}}}`
-        );
-        
-        definitions.push(variable);
-      }
+    for (const variable of variables) {
+      const defaultValue =
+        variable.defaultValue !== undefined ? `| ${JSON.stringify(variable.defaultValue)}` : "";
 
-      return { template, definitions };
+      const required = variable.required ? "" : "?";
+
+      template = template.replace(
+        new RegExp(`{{\\s*${variable.name}\\s*}}`, "g"),
+        `{{${variable.name}${required}${defaultValue}}}`,
+      );
+
+      definitions.push(variable);
+    }
+
+    return { template, definitions };
   }
 
   /**
@@ -421,41 +420,41 @@ export class TemplateInjection {
    */
   static preview(
     template: string,
-    definitions: VariableDefinition[]
+    definitions: VariableDefinition[],
   ): {
-      preview: string;
-      sampleData: Record<string, any>;
-    } {
-      const sampleData: Record<string, any> = {};
-      
-      for (const def of definitions) {
-        switch (def.type) {
-          case 'string':
-            sampleData[def.name] = def.defaultValue || `sample_${def.name}`;
-            break;
-          case 'number':
-            sampleData[def.name] = def.defaultValue || 42;
-            break;
-          case 'boolean':
-            sampleData[def.name] = def.defaultValue !== undefined ? def.defaultValue : true;
-            break;
-          case 'object':
-            sampleData[def.name] = def.defaultValue || { sample: 'data' };
-            break;
-          case 'array':
-            sampleData[def.name] = def.defaultValue || ['item1', 'item2'];
-            break;
-        }
+    preview: string;
+    sampleData: Record<string, any>;
+  } {
+    const sampleData: Record<string, any> = {};
+
+    for (const def of definitions) {
+      switch (def.type) {
+        case "string":
+          sampleData[def.name] = def.defaultValue || `sample_${def.name}`;
+          break;
+        case "number":
+          sampleData[def.name] = def.defaultValue || 42;
+          break;
+        case "boolean":
+          sampleData[def.name] = def.defaultValue !== undefined ? def.defaultValue : true;
+          break;
+        case "object":
+          sampleData[def.name] = def.defaultValue || { sample: "data" };
+          break;
+        case "array":
+          sampleData[def.name] = def.defaultValue || ["item1", "item2"];
+          break;
       }
-
-      const context = this.createContext(definitions, sampleData);
-      const result = this.inject(template, context);
-
-      return {
-        preview: result.rendered,
-        sampleData,
-      };
     }
+
+    const context = TemplateInjection.createContext(definitions, sampleData);
+    const result = TemplateInjection.inject(template, context);
+
+    return {
+      preview: result.rendered,
+      sampleData,
+    };
+  }
 }
 
 // Convenience functions
@@ -466,14 +465,14 @@ export const injectTemplate = (
     strict?: boolean;
     validateRequired?: boolean;
     trackUsage?: boolean;
-  }
+  },
 ): InjectionResult => {
   return TemplateInjection.inject(template, context, options);
 };
 
 export const validateTemplateVariables = (
   variables: Record<string, any>,
-  definitions: VariableDefinition[]
+  definitions: VariableDefinition[],
 ) => {
   return TemplateInjection.validateVariables(variables, definitions);
 };
@@ -482,7 +481,7 @@ export const createTemplateContext = (
   definitions: VariableDefinition[],
   values: Record<string, any>,
   functions?: Record<string, (...args: any[]) => any>,
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>,
 ): VariableContext => {
   return TemplateInjection.createContext(definitions, values, functions, metadata);
 };

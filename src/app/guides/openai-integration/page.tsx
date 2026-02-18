@@ -1,8 +1,8 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Footer } from "@/components/footer"
-import { ArrowLeft } from "lucide-react"
-import { PublicPageHeader } from "@/components/public-page-header"
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { Footer } from "@/components/footer";
+import { PublicPageHeader } from "@/components/public-page-header";
+import { Button } from "@/components/ui/button";
 
 export default function OpenAIIntegrationGuide() {
   return (
@@ -10,7 +10,10 @@ export default function OpenAIIntegrationGuide() {
       <PublicPageHeader />
 
       <main className="mx-auto max-w-4xl px-4 sm:px-6 py-8 sm:py-12 flex-1">
-        <Link href="/guides" className="mb-6 sm:mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          href="/guides"
+          className="mb-6 sm:mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           Back to Guides
         </Link>
@@ -35,7 +38,7 @@ export default function OpenAIIntegrationGuide() {
 
           <h2>Basic Setup</h2>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`import OpenAI from 'openai'
+            {`import OpenAI from 'openai'
 import { AIEvalClient, WorkflowTracer, traceOpenAI, traceWorkflowStep } from '@pauly4010/evalai-sdk'
 
 const client = new AIEvalClient({ apiKey: process.env.EVALAI_API_KEY })
@@ -46,14 +49,16 @@ const openai = traceOpenAI(new OpenAI(), client)`}
           </div>
 
           <p className="text-sm text-muted-foreground my-4">
-            <strong>Environment variables:</strong> Make sure you have <code className="bg-muted px-1 rounded">EVALAI_API_KEY</code> and <code className="bg-muted px-1 rounded">EVALAI_ORGANIZATION_ID</code> in your .env file.
+            <strong>Environment variables:</strong> Make sure you have{" "}
+            <code className="bg-muted px-1 rounded">EVALAI_API_KEY</code> and{" "}
+            <code className="bg-muted px-1 rounded">EVALAI_ORGANIZATION_ID</code> in your .env file.
           </p>
 
           <h2>Tracing OpenAI Calls</h2>
 
           <h3>Chat Completions</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`// All OpenAI calls are automatically traced!
+            {`// All OpenAI calls are automatically traced!
 const response = await openai.chat.completions.create({
   model: 'gpt-4',
   messages: [
@@ -75,7 +80,7 @@ console.log(response.choices[0].message.content)
 
           <h3>Streaming Responses</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`// Streaming is automatically traced too!
+            {`// Streaming is automatically traced too!
 const stream = await openai.chat.completions.create({
   model: 'gpt-4',
   messages: messages,
@@ -95,7 +100,7 @@ for await (const chunk of stream) {
 
           <h3>Function Calling</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`const tools = [
+            {`const tools = [
   {
     type: 'function',
     function: {
@@ -124,7 +129,7 @@ const response = await openai.chat.completions.create({
 
           <h3>Embeddings</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`// Embeddings are also automatically traced
+            {`// Embeddings are also automatically traced
 const embedding = await openai.embeddings.create({
   model: 'text-embedding-3-small',
   input: 'Your text here'
@@ -137,7 +142,7 @@ const vector = embedding.data[0].embedding`}
 
           <h3>Multi-Turn Conversations</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`import { traceWorkflowStep } from '@pauly4010/evalai-sdk'
+            {`import { traceWorkflowStep } from '@pauly4010/evalai-sdk'
 
 await tracer.startWorkflow('multi-turn-conversation', undefined, { sessionId: 'session_456' });
 
@@ -162,7 +167,7 @@ await tracer.endWorkflow({ status: 'success' });`}
 
           <h3>Retry Logic with Tracing</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`async function callOpenAIWithRetry(messages, maxRetries = 3) {
+            {`async function callOpenAIWithRetry(messages, maxRetries = 3) {
   await tracer.startWorkflow('openai-with-retry', undefined, { maxRetries });
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -187,7 +192,7 @@ await tracer.endWorkflow({ status: 'success' });`}
 
           <h3>Parallel Requests</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`await tracer.startWorkflow('generate-variations', undefined, { count: 3 });
+            {`await tracer.startWorkflow('generate-variations', undefined, { count: 3 });
 
 const prompts = [
   'Write a formal email...',
@@ -213,7 +218,7 @@ await tracer.endWorkflow({ status: 'success' });`}
 
           <h3>Create Test Cases</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`const testCases = [
+            {`const testCases = [
   {
     input: { prompt: 'Translate "hello" to Spanish' },
     expectedOutput: { contains: 'hola' },
@@ -248,7 +253,7 @@ for (const testCase of testCases) {
 
           <h3>A/B Testing Models</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`async function abTestModels(prompt) {
+            {`async function abTestModels(prompt) {
   const variant = Math.random() < 0.5 ? 'gpt-4' : 'gpt-3.5-turbo';
 
   await tracer.startWorkflow('model-ab-test', undefined, {
@@ -276,7 +281,7 @@ for (const testCase of testCases) {
 
           <h3>1. Add Contextual Metadata</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`await tracer.startWorkflow('content-generation', undefined, {
+            {`await tracer.startWorkflow('content-generation', undefined, {
   userId: user.id,
   contentType: 'blog-post',
   targetAudience: 'developers',
@@ -301,7 +306,7 @@ await tracer.endWorkflow({ status: 'success' });`}
 
           <h3>3. Monitor for Errors</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`try {
+            {`try {
   await tracer.startWorkflow('api-call');
   const result = await traceWorkflowStep(tracer, 'llm-call', () =>
     openai.chat.completions.create({...})
@@ -322,7 +327,7 @@ await tracer.endWorkflow({ status: 'success' });`}
 
           <h3>4. Set Timeouts</h3>
           <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-{`const openai = new OpenAI({
+            {`const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   timeout: 30000, // 30 second timeout
   maxRetries: 2
@@ -333,22 +338,36 @@ await tracer.endWorkflow({ status: 'success' });`}
 
           <h2>Troubleshooting</h2>
 
-          <p><strong>Traces not capturing token usage?</strong></p>
+          <p>
+            <strong>Traces not capturing token usage?</strong>
+          </p>
           <p>Ensure you're using the latest version of the SDK.</p>
 
-          <p><strong>High latency in traces?</strong></p>
+          <p>
+            <strong>High latency in traces?</strong>
+          </p>
           <p>Check if you're using synchronous operations. Use async/await consistently.</p>
 
-          <p><strong>Missing streaming response data?</strong></p>
+          <p>
+            <strong>Missing streaming response data?</strong>
+          </p>
           <p>The SDK automatically buffers streaming responses for complete trace capture.</p>
 
           <h2>Real-World Example</h2>
           <div className="bg-card border border-border p-6 rounded-lg my-6">
             <h3 className="mt-0">Content Moderation System</h3>
-            <p><strong>Setup:</strong> GPT-4 API for content safety classification</p>
-            <p><strong>Tracing:</strong> All API calls traced with content metadata</p>
-            <p><strong>Evaluation:</strong> 500 test cases with known safe/unsafe content</p>
-            <p><strong>Results:</strong></p>
+            <p>
+              <strong>Setup:</strong> GPT-4 API for content safety classification
+            </p>
+            <p>
+              <strong>Tracing:</strong> All API calls traced with content metadata
+            </p>
+            <p>
+              <strong>Evaluation:</strong> 500 test cases with known safe/unsafe content
+            </p>
+            <p>
+              <strong>Results:</strong>
+            </p>
             <ul className="mb-0">
               <li>98.5% accuracy on test suite</li>
               <li>Average latency: 850ms</li>
@@ -369,13 +388,27 @@ await tracer.endWorkflow({ status: 'success' });`}
           <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border">
             <h3 className="font-semibold mb-3 sm:mb-4 text-base sm:text-lg">Related Guides</h3>
             <div className="grid gap-3 sm:gap-4">
-              <Link href="/guides/tracing-setup" className="block p-4 sm:p-5 border border-border rounded-lg hover:border-blue-500 transition-colors">
-                <div className="font-semibold mb-1 text-sm sm:text-base">Setting Up Tracing in Your Application</div>
-                <div className="text-xs sm:text-sm text-muted-foreground">General tracing concepts</div>
+              <Link
+                href="/guides/tracing-setup"
+                className="block p-4 sm:p-5 border border-border rounded-lg hover:border-blue-500 transition-colors"
+              >
+                <div className="font-semibold mb-1 text-sm sm:text-base">
+                  Setting Up Tracing in Your Application
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  General tracing concepts
+                </div>
               </Link>
-              <Link href="/guides/token-optimization" className="block p-4 sm:p-5 border border-border rounded-lg hover:border-blue-500 transition-colors">
-                <div className="font-semibold mb-1 text-sm sm:text-base">Optimizing Token Usage and Latency</div>
-                <div className="text-xs sm:text-sm text-muted-foreground">Reduce OpenAI API costs</div>
+              <Link
+                href="/guides/token-optimization"
+                className="block p-4 sm:p-5 border border-border rounded-lg hover:border-blue-500 transition-colors"
+              >
+                <div className="font-semibold mb-1 text-sm sm:text-base">
+                  Optimizing Token Usage and Latency
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  Reduce OpenAI API costs
+                </div>
               </Link>
             </div>
           </div>
@@ -384,5 +417,5 @@ await tracer.endWorkflow({ status: 'success' });`}
 
       <Footer />
     </div>
-  )
+  );
 }

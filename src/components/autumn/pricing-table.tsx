@@ -1,24 +1,18 @@
-
 "use client";
-import React from "react";
-
-import { useCustomer, usePricingTable, ProductDetails } from "autumn-js/react";
-import { createContext, useContext, useState } from "react";
-import { cn } from "@/lib/utils";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import CheckoutDialog from "@/components/autumn/checkout-dialog";
-import { getPricingTableContent } from "@/lib/autumn/pricing-table-content";
 import type { Product, ProductItem } from "autumn-js";
+
+import { type ProductDetails, useCustomer, usePricingTable } from "autumn-js/react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import React, { createContext, useContext, useState } from "react";
+import CheckoutDialog from "@/components/autumn/checkout-dialog";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useSession } from "@/lib/auth-client";
+import { getPricingTableContent } from "@/lib/autumn/pricing-table-content";
+import { cn } from "@/lib/utils";
 
-export default function PricingTable({
-  productDetails,
-}: {
-  productDetails?: ProductDetails[];
-}) {
+export default function PricingTable({ productDetails }: { productDetails?: ProductDetails[] }) {
   const { checkout } = useCustomer();
   const [isAnnual, setIsAnnual] = useState(false);
   const { products, isLoading, error } = usePricingTable({ productDetails });
@@ -38,9 +32,7 @@ export default function PricingTable({
   }
 
   const intervals = Array.from(
-    new Set(
-      products?.map((p) => p.properties?.interval_group).filter((i) => !!i)
-    )
+    new Set(products?.map((p) => p.properties?.interval_group).filter((i) => !!i)),
   );
 
   const multiInterval = intervals.length > 1;
@@ -83,14 +75,17 @@ export default function PricingTable({
                   // Auth check per guidelines
                   if (!session?.user) {
                     if (!isPending) {
-                      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+                      router.push(
+                        `/login?redirect=${encodeURIComponent(window.location.pathname)}`,
+                      );
                     }
                     return;
                   }
 
                   // Current plan: open billing portal
                   if (product.scenario === "active") {
-                    const token = typeof window !== "undefined" ? localStorage.getItem("bearer_token") : null;
+                    const token =
+                      typeof window !== "undefined" ? localStorage.getItem("bearer_token") : null;
                     try {
                       const res = await fetch("/api/billing-portal", {
                         method: "POST",
@@ -111,9 +106,13 @@ export default function PricingTable({
                       const data = await res.json();
                       const url = data?.url;
                       if (url) {
-                        const isInIframe = typeof window !== "undefined" && window.self !== window.top;
+                        const isInIframe =
+                          typeof window !== "undefined" && window.self !== window.top;
                         if (isInIframe) {
-                          window.parent?.postMessage({ type: "OPEN_EXTERNAL_URL", data: { url } }, "*");
+                          window.parent?.postMessage(
+                            { type: "OPEN_EXTERNAL_URL", data: { url } },
+                            "*",
+                          );
                         } else {
                           window.open(url, "_blank", "noopener,noreferrer");
                         }
@@ -148,9 +147,13 @@ export default function PricingTable({
 
                     const url = (res as any)?.data?.url;
                     if (url) {
-                      const isInIframe = typeof window !== "undefined" && window.self !== window.top;
+                      const isInIframe =
+                        typeof window !== "undefined" && window.self !== window.top;
                       if (isInIframe) {
-                        window.parent?.postMessage({ type: "OPEN_EXTERNAL_URL", data: { url } }, "*");
+                        window.parent?.postMessage(
+                          { type: "OPEN_EXTERNAL_URL", data: { url } },
+                          "*",
+                        );
                       } else {
                         window.open(url, "_blank", "noopener,noreferrer");
                       }
@@ -159,10 +162,7 @@ export default function PricingTable({
                     const url = product.display.button_url;
                     const isInIframe = typeof window !== "undefined" && window.self !== window.top;
                     if (isInIframe) {
-                      window.parent?.postMessage(
-                        { type: "OPEN_EXTERNAL_URL", data: { url } },
-                        "*"
-                      );
+                      window.parent?.postMessage({ type: "OPEN_EXTERNAL_URL", data: { url } }, "*");
                     } else {
                       window.open(url, "_blank", "noopener,noreferrer");
                     }
@@ -229,28 +229,16 @@ export const PricingTableContainer = ({
     <PricingTableContext.Provider
       value={{ isAnnualToggle, setIsAnnualToggle, products, showFeatures }}
     >
-      <div
-        className={cn(
-          "flex items-center flex-col",
-          hasRecommended && "!py-10"
-        )}
-      >
+      <div className={cn("flex items-center flex-col", hasRecommended && "!py-10")}>
         {multiInterval && (
-          <div
-            className={cn(
-              products.some((p) => p.display?.recommend_text) && "mb-8"
-            )}
-          >
-            <AnnualSwitch
-              isAnnualToggle={isAnnualToggle}
-              setIsAnnualToggle={setIsAnnualToggle}
-            />
+          <div className={cn(products.some((p) => p.display?.recommend_text) && "mb-8")}>
+            <AnnualSwitch isAnnualToggle={isAnnualToggle} setIsAnnualToggle={setIsAnnualToggle} />
           </div>
         )}
         <div
           className={cn(
             "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] w-full gap-2",
-            className
+            className,
           )}
         >
           {children}
@@ -268,11 +256,7 @@ interface PricingCardProps {
   buttonProps?: React.ComponentProps<"button">;
 }
 
-export const PricingCard = ({
-  productId,
-  className,
-  buttonProps,
-}: PricingCardProps) => {
+export const PricingCard = ({ productId, className, buttonProps }: PricingCardProps) => {
   const { products, showFeatures } = usePricingTableContext("PricingCard");
 
   const product = products.find((p) => p.id === productId);
@@ -285,21 +269,17 @@ export const PricingCard = ({
 
   const { buttonText } = getPricingTableContent(product);
 
-  const isRecommended = productDisplay?.recommend_text ? true : false;
+  const isRecommended = !!productDisplay?.recommend_text;
   const mainPriceDisplay = product.properties?.is_free
     ? {
         primary_text: "Free",
       }
     : product.items[0].display;
 
-  const featureItems = product.properties?.is_free
-    ? product.items
-    : product.items.slice(1);
+  const featureItems = product.properties?.is_free ? product.items : product.items.slice(1);
 
   const buttonLabel =
-    product.scenario === "active"
-      ? "Manage billing"
-      : productDisplay?.button_text || buttonText;
+    product.scenario === "active" ? "Manage billing" : productDisplay?.button_text || buttonText;
 
   return (
     <div
@@ -307,18 +287,13 @@ export const PricingCard = ({
         " w-full h-full py-6 text-foreground border rounded-lg shadow-sm max-w-xl",
         isRecommended &&
           "lg:-translate-y-6 lg:shadow-lg dark:shadow-zinc-800/80 lg:h-[calc(100%+48px)] bg-secondary/40",
-        className
+        className,
       )}
     >
       {productDisplay?.recommend_text && (
         <RecommendedBadge recommended={productDisplay?.recommend_text} />
       )}
-      <div
-        className={cn(
-          "flex flex-col h-full flex-grow",
-          isRecommended && "lg:translate-y-6"
-        )}
-      >
+      <div className={cn("flex flex-col h-full flex-grow", isRecommended && "lg:translate-y-6")}>
         <div className="h-full">
           <div className="flex flex-col">
             <div className="pb-4">
@@ -327,9 +302,7 @@ export const PricingCard = ({
               </h2>
               {productDisplay?.description && (
                 <div className="text-sm text-muted-foreground px-6 h-8">
-                  <p className="line-clamp-2">
-                    {productDisplay?.description}
-                  </p>
+                  <p className="line-clamp-2">{productDisplay?.description}</p>
                 </div>
               )}
             </div>
@@ -355,13 +328,8 @@ export const PricingCard = ({
             </div>
           )}
         </div>
-        <div
-          className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}
-        >
-          <PricingCardButton
-            recommended={productDisplay?.recommend_text ? true : false}
-            {...buttonProps}
-          >
+        <div className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}>
+          <PricingCardButton recommended={!!productDisplay?.recommend_text} {...buttonProps}>
             {buttonLabel}
           </PricingCardButton>
         </div>
@@ -382,17 +350,10 @@ export const PricingFeatureList = ({
 }) => {
   return (
     <div className={cn("flex-grow", className)}>
-      {everythingFrom && (
-        <p className="text-sm mb-4">
-          Everything from {everythingFrom}, plus:
-        </p>
-      )}
+      {everythingFrom && <p className="text-sm mb-4">Everything from {everythingFrom}, plus:</p>}
       <div className="space-y-3">
         {items.map((item, index) => (
-          <div
-            key={index}
-            className="flex items-start gap-2 text-sm"
-          >
+          <div key={index} className="flex items-start gap-2 text-sm">
             {/* {showIcon && (
               <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
             )} */}
@@ -417,52 +378,51 @@ export interface PricingCardButtonProps extends React.ComponentProps<"button"> {
   buttonUrl?: string;
 }
 
-export const PricingCardButton = React.forwardRef<
-  HTMLButtonElement,
-  PricingCardButtonProps
->(({ recommended, children, className, onClick, ...props }, ref) => {
-  const [loading, setLoading] = useState(false);
+export const PricingCardButton = React.forwardRef<HTMLButtonElement, PricingCardButtonProps>(
+  ({ recommended, children, className, onClick, ...props }, ref) => {
+    const [loading, setLoading] = useState(false);
 
-  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    setLoading(true);
-    try {
-      await onClick?.(e);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+      setLoading(true);
+      try {
+        await onClick?.(e);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  return (
-    <Button
-      className={cn(
-        "w-full py-3 px-4 group overflow-hidden relative transition-all duration-300 hover:brightness-90 border rounded-lg",
-        className
-      )}
-      {...props}
-      variant={recommended ? "default" : "secondary"}
-      ref={ref}
-      disabled={loading || props.disabled}
-      onClick={handleClick}
-    >
-      {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <>
-          <div className="flex items-center justify-between w-full transition-transform duration-300 group-hover:translate-y-[-130%]">
-            <span>{children}</span>
-            <span className="text-sm">→</span>
-          </div>
-          <div className="flex items-center justify-between w-full absolute px-4 translate-y-[130%] transition-transform duration-300 group-hover:translate-y-0 mt-2 group-hover:mt-0">
-            <span>{children}</span>
-            <span className="text-sm">→</span>
-          </div>
-        </>
-      )}
-    </Button>
-  );
-});
+    return (
+      <Button
+        className={cn(
+          "w-full py-3 px-4 group overflow-hidden relative transition-all duration-300 hover:brightness-90 border rounded-lg",
+          className,
+        )}
+        {...props}
+        variant={recommended ? "default" : "secondary"}
+        ref={ref}
+        disabled={loading || props.disabled}
+        onClick={handleClick}
+      >
+        {loading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <>
+            <div className="flex items-center justify-between w-full transition-transform duration-300 group-hover:translate-y-[-130%]">
+              <span>{children}</span>
+              <span className="text-sm">→</span>
+            </div>
+            <div className="flex items-center justify-between w-full absolute px-4 translate-y-[130%] transition-transform duration-300 group-hover:translate-y-0 mt-2 group-hover:mt-0">
+              <span>{children}</span>
+              <span className="text-sm">→</span>
+            </div>
+          </>
+        )}
+      </Button>
+    );
+  },
+);
 PricingCardButton.displayName = "PricingCardButton";
 
 // Annual Switch
@@ -476,11 +436,7 @@ export const AnnualSwitch = ({
   return (
     <div className="flex items-center space-x-2 mb-4">
       <span className="text-sm text-muted-foreground">Monthly</span>
-      <Switch
-        id="annual-billing"
-        checked={isAnnualToggle}
-        onCheckedChange={setIsAnnualToggle}
-      />
+      <Switch id="annual-billing" checked={isAnnualToggle} onCheckedChange={setIsAnnualToggle} />
       <span className="text-sm text-muted-foreground">Annual</span>
     </div>
   );

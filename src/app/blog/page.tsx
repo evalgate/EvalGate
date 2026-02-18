@@ -1,73 +1,78 @@
-"use client"
+"use client";
 
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Footer } from "@/components/footer"
-import { useSession } from "@/lib/auth-client"
-
-import Link from "next/link"
-import { ArrowRight, Calendar } from "lucide-react"
+import { ArrowRight, Calendar } from "lucide-react";
+import Link from "next/link";
+import { Footer } from "@/components/footer";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useSession } from "@/lib/auth-client";
 
 const blogPosts = [
   {
     id: 1,
     title: "Why Every AI Product Needs Evaluation",
-    excerpt: "Traditional testing falls short for LLM applications. Learn why evaluation is critical for AI products and how to get started.",
+    excerpt:
+      "Traditional testing falls short for LLM applications. Learn why evaluation is critical for AI products and how to get started.",
     date: "2025-10-13",
     readTime: "8 min read",
     category: "Best Practices",
-    slug: "why-every-ai-product-needs-evaluation"
+    slug: "why-every-ai-product-needs-evaluation",
   },
   {
     id: 2,
     title: "Building Effective LLM Judge Rubrics",
-    excerpt: "How to design evaluation criteria that capture quality, relevance, and safety in AI outputs. Real examples from production.",
+    excerpt:
+      "How to design evaluation criteria that capture quality, relevance, and safety in AI outputs. Real examples from production.",
     date: "2025-10-13",
     readTime: "12 min read",
     category: "Guides",
-    slug: "building-effective-llm-judge-rubrics"
+    slug: "building-effective-llm-judge-rubrics",
   },
   {
     id: 3,
     title: "The Evolution of AI Testing: From Unit Tests to A/B Tests",
-    excerpt: "A comprehensive look at evaluation methodologies for AI systems across the development lifecycle.",
+    excerpt:
+      "A comprehensive look at evaluation methodologies for AI systems across the development lifecycle.",
     date: "2025-10-13",
     readTime: "10 min read",
     category: "Industry",
-    slug: "evolution-of-ai-testing"
+    slug: "evolution-of-ai-testing",
   },
   {
     id: 4,
     title: "Case Study: Reducing Support Chatbot Errors by 60%",
-    excerpt: "How a SaaS company used systematic evaluation to dramatically improve their AI support agent.",
+    excerpt:
+      "How a SaaS company used systematic evaluation to dramatically improve their AI support agent.",
     date: "2025-10-13",
     readTime: "15 min read",
     category: "Case Studies",
-    slug: "case-study-reducing-chatbot-errors"
+    slug: "case-study-reducing-chatbot-errors",
   },
   {
     id: 5,
     title: "Tracing: The Missing Layer in LLM Observability",
-    excerpt: "Why distributed tracing matters for AI applications and what metrics you should be tracking.",
+    excerpt:
+      "Why distributed tracing matters for AI applications and what metrics you should be tracking.",
     date: "2025-10-13",
     readTime: "9 min read",
     category: "Technical",
-    slug: "tracing-llm-observability"
+    slug: "tracing-llm-observability",
   },
   {
     id: 6,
     title: "Human-in-the-Loop: When to Use Annotations vs LLM Judges",
-    excerpt: "A practical framework for deciding between human review and automated evaluation at scale.",
+    excerpt:
+      "A practical framework for deciding between human review and automated evaluation at scale.",
     date: "2025-10-13",
     readTime: "11 min read",
     category: "Best Practices",
-    slug: "human-in-the-loop"
-  }
-]
+    slug: "human-in-the-loop",
+  },
+];
 
 export default function BlogPage() {
-  const { data: session } = useSession()
+  const { data: session } = useSession();
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -123,7 +128,9 @@ export default function BlogPage() {
                   </span>
                 </div>
                 <h2 className="mb-2 text-lg sm:text-xl font-semibold">{post.title}</h2>
-                <p className="mb-3 sm:mb-4 flex-1 text-sm sm:text-base text-muted-foreground">{post.excerpt}</p>
+                <p className="mb-3 sm:mb-4 flex-1 text-sm sm:text-base text-muted-foreground">
+                  {post.excerpt}
+                </p>
                 <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
                   <span className="text-xs sm:text-sm text-muted-foreground">{post.readTime}</span>
                   <Button asChild variant="ghost" size="sm" className="h-8 sm:h-9">
@@ -141,5 +148,5 @@ export default function BlogPage() {
       {/* Footer */}
       <Footer />
     </div>
-  )
+  );
 }

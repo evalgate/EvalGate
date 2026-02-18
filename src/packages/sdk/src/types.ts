@@ -14,13 +14,13 @@ export interface ClientConfig {
   /** Debug mode - enables request/response logging (default: false) */
   debug?: boolean;
   /** Log level for debug mode (default: 'info') */
-  logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error';
+  logLevel?: "trace" | "debug" | "info" | "warn" | "error";
   /** Retry configuration */
   retry?: {
     /** Maximum retry attempts (default: 3) */
     maxAttempts?: number;
     /** Backoff strategy (default: 'exponential') */
-    backoff?: 'exponential' | 'linear' | 'fixed';
+    backoff?: "exponential" | "linear" | "fixed";
     /** Retryable error codes */
     retryableErrors?: string[];
   };
@@ -44,27 +44,27 @@ export interface ClientConfig {
  */
 export const EvaluationTemplates = {
   // Core Testing
-  UNIT_TESTING: 'unit-testing',
-  OUTPUT_QUALITY: 'output-quality',
-  
+  UNIT_TESTING: "unit-testing",
+  OUTPUT_QUALITY: "output-quality",
+
   // Advanced Evaluation
-  PROMPT_OPTIMIZATION: 'prompt-optimization',
-  CHAIN_OF_THOUGHT: 'chain-of-thought',
-  LONG_CONTEXT_TESTING: 'long-context-testing',
-  MODEL_STEERING: 'model-steering',
-  REGRESSION_TESTING: 'regression-testing',
-  CONFIDENCE_CALIBRATION: 'confidence-calibration',
-  
+  PROMPT_OPTIMIZATION: "prompt-optimization",
+  CHAIN_OF_THOUGHT: "chain-of-thought",
+  LONG_CONTEXT_TESTING: "long-context-testing",
+  MODEL_STEERING: "model-steering",
+  REGRESSION_TESTING: "regression-testing",
+  CONFIDENCE_CALIBRATION: "confidence-calibration",
+
   // Safety & Compliance
-  SAFETY_COMPLIANCE: 'safety-compliance',
-  
+  SAFETY_COMPLIANCE: "safety-compliance",
+
   // Domain-Specific
-  RAG_EVALUATION: 'rag-evaluation',
-  CODE_GENERATION: 'code-generation',
-  SUMMARIZATION: 'summarization',
+  RAG_EVALUATION: "rag-evaluation",
+  CODE_GENERATION: "code-generation",
+  SUMMARIZATION: "summarization",
 } as const;
 
-export type EvaluationTemplateType = typeof EvaluationTemplates[keyof typeof EvaluationTemplates];
+export type EvaluationTemplateType = (typeof EvaluationTemplates)[keyof typeof EvaluationTemplates];
 
 /**
  * Feature usage limits for per-organization quotas
@@ -107,7 +107,7 @@ export interface Trace<TMetadata = Record<string, any>> {
   name: string;
   traceId: string;
   organizationId: number;
-  status: 'pending' | 'success' | 'error';
+  status: "pending" | "success" | "error";
   durationMs: number | null;
   metadata: TMetadata | null;
   createdAt: string;
@@ -120,7 +120,7 @@ export interface CreateTraceParams<TMetadata = Record<string, any>> {
   name: string;
   traceId: string;
   organizationId?: number;
-  status?: 'pending' | 'success' | 'error';
+  status?: "pending" | "success" | "error";
   durationMs?: number;
   metadata?: TMetadata;
 }
@@ -129,7 +129,7 @@ export interface CreateTraceParams<TMetadata = Record<string, any>> {
  * Parameters for updating an existing trace
  */
 export interface UpdateTraceParams<TMetadata = Record<string, any>> {
-  status?: 'pending' | 'success' | 'error';
+  status?: "pending" | "success" | "error";
   durationMs?: number;
   metadata?: TMetadata;
 }
@@ -141,7 +141,7 @@ export interface ListTracesParams {
   limit?: number;
   offset?: number;
   organizationId?: number;
-  status?: 'pending' | 'success' | 'error';
+  status?: "pending" | "success" | "error";
   search?: string;
 }
 
@@ -182,7 +182,7 @@ export interface Evaluation<TMetadata = Record<string, any>> {
   name: string;
   description: string | null;
   type: string;
-  status: 'draft' | 'active' | 'archived';
+  status: "draft" | "active" | "archived";
   organizationId: number;
   createdBy: number;
   createdAt: string;
@@ -199,7 +199,7 @@ export interface CreateEvaluationParams {
   type: string;
   organizationId?: number;
   createdBy: number;
-  status?: 'draft' | 'active' | 'archived';
+  status?: "draft" | "active" | "archived";
 }
 
 /**
@@ -209,7 +209,7 @@ export interface UpdateEvaluationParams {
   name?: string;
   description?: string;
   type?: string;
-  status?: 'draft' | 'active' | 'archived';
+  status?: "draft" | "active" | "archived";
 }
 
 /**
@@ -220,7 +220,7 @@ export interface ListEvaluationsParams {
   offset?: number;
   organizationId?: number;
   type?: string;
-  status?: 'draft' | 'active' | 'archived';
+  status?: "draft" | "active" | "archived";
   search?: string;
 }
 
@@ -251,7 +251,7 @@ export interface CreateTestCaseParams {
 export interface EvaluationRun {
   id: number;
   evaluationId: number;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: "pending" | "running" | "completed" | "failed";
   results: Record<string, any> | null;
   createdAt: string;
   completedAt: string | null;
@@ -261,7 +261,7 @@ export interface EvaluationRun {
  * Parameters for creating an evaluation run
  */
 export interface CreateRunParams {
-  status?: 'pending' | 'running' | 'completed' | 'failed';
+  status?: "pending" | "running" | "completed" | "failed";
   results?: Record<string, any>;
 }
 
@@ -293,7 +293,7 @@ export interface RunLLMJudgeParams {
 
 /**
  * SDK Error class with additional error details
- * 
+ *
  * Common error codes:
  * - MISSING_API_KEY: API key not provided
  * - MISSING_ORGANIZATION_ID: Organization ID not provided
@@ -321,7 +321,7 @@ export class SDKError extends Error {
 
   constructor(message: string, code: string, statusCode: number, details?: any) {
     super(message);
-    this.name = 'SDKError';
+    this.name = "SDKError";
     this.code = code;
     this.statusCode = statusCode;
     this.details = details;
@@ -338,7 +338,7 @@ export type AnnotationData = any;
 
 export interface RetryConfig {
   maxAttempts?: number;
-  backoff?: 'exponential' | 'linear' | 'fixed';
+  backoff?: "exponential" | "linear" | "fixed";
   retryableErrors?: string[];
 }
 
@@ -370,7 +370,7 @@ export interface SnapshotData {
 }
 
 export interface ExportOptions {
-  format: 'json' | 'csv' | 'jsonl';
+  format: "json" | "csv" | "jsonl";
   includeTraces?: boolean;
   includeEvaluations?: boolean;
   includeTestCases?: boolean;
@@ -404,7 +404,7 @@ export interface BatchOptions {
   signal?: AbortSignal;
 }
 
-export type ExportFormat = 'json' | 'csv' | 'jsonl';
+export type ExportFormat = "json" | "csv" | "jsonl";
 
 // ============================================================================
 // ANNOTATIONS API TYPES (v1.2.0)
@@ -464,7 +464,7 @@ export interface AnnotationTask {
   description: string | null;
   instructions: string | null;
   type: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'archived';
+  status: "pending" | "in_progress" | "completed" | "archived";
   organizationId: number;
   annotationSettings: Record<string, any>;
   createdAt: string;
@@ -488,7 +488,7 @@ export interface CreateAnnotationTaskParams {
  */
 export interface ListAnnotationTasksParams {
   organizationId?: number;
-  status?: 'pending' | 'in_progress' | 'completed' | 'archived';
+  status?: "pending" | "in_progress" | "completed" | "archived";
   limit?: number;
   offset?: number;
 }
@@ -604,7 +604,7 @@ export interface Webhook {
   url: string;
   events: string[];
   secret: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   lastTriggeredAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -625,7 +625,7 @@ export interface CreateWebhookParams {
 export interface UpdateWebhookParams {
   url?: string;
   events?: string[];
-  status?: 'active' | 'inactive';
+  status?: "active" | "inactive";
 }
 
 /**
@@ -633,7 +633,7 @@ export interface UpdateWebhookParams {
  */
 export interface ListWebhooksParams {
   organizationId: number;
-  status?: 'active' | 'inactive';
+  status?: "active" | "inactive";
   limit?: number;
   offset?: number;
 }
@@ -807,7 +807,7 @@ export interface Organization {
   name: string;
   slug: string;
   plan: string;
-  status: 'active' | 'suspended' | 'cancelled';
+  status: "active" | "suspended" | "cancelled";
   createdAt: string;
   updatedAt: string;
   metadata?: Record<string, any>;

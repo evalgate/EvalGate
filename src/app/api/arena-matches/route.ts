@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
-import { internalError, zodValidationError } from '@/lib/api/errors';
-import { arenaMatchesService } from '@/lib/services/arena-matches.service';
-import { z } from 'zod';
+import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { internalError, zodValidationError } from "@/lib/api/errors";
+import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { arenaMatchesService } from "@/lib/services/arena-matches.service";
 
 const createArenaMatchSchema = z.object({
   prompt: z.string().min(1),
@@ -19,7 +19,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
     const result = await arenaMatchesService.createArenaMatch(
       ctx.organizationId,
       parsed,
-      ctx.userId
+      ctx.userId,
     );
 
     return NextResponse.json(result, { status: 201 });
@@ -35,19 +35,19 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
     const { searchParams } = new URL(req.url);
     const options: Record<string, unknown> = {};
-    if (searchParams.has('limit')) {
-      options.limit = parseInt(searchParams.get('limit') || '10');
+    if (searchParams.has("limit")) {
+      options.limit = parseInt(searchParams.get("limit") || "10", 10);
     }
-    if (searchParams.has('offset')) {
-      options.offset = parseInt(searchParams.get('offset') || '0');
+    if (searchParams.has("offset")) {
+      options.offset = parseInt(searchParams.get("offset") || "0", 10);
     }
-    if (searchParams.has('winnerId')) {
-      options.winnerId = searchParams.get('winnerId');
+    if (searchParams.has("winnerId")) {
+      options.winnerId = searchParams.get("winnerId");
     }
-    if (searchParams.has('start') && searchParams.has('end')) {
+    if (searchParams.has("start") && searchParams.has("end")) {
       options.dateRange = {
-        start: searchParams.get('start'),
-        end: searchParams.get('end'),
+        start: searchParams.get("start"),
+        end: searchParams.get("end"),
       };
     }
 

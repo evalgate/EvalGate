@@ -3,12 +3,17 @@
  * Normalizes failed cases (truncate, sort), dashboard URL, top N + more.
  */
 
-import type { CheckArgs } from '../check';
-import type { QualityLatestData, RunDetailsData } from '../api';
-import type { GateResult } from '../gate';
-import type { CheckReport, FailedCase, ScoreBreakdown01, ScoreContribPts } from '../formatters/types';
-import { truncateSnippet } from '../render/snippet';
-import { sortFailedCases } from '../render/sort';
+import type { QualityLatestData, RunDetailsData } from "../api";
+import type { CheckArgs } from "../check";
+import type {
+  CheckReport,
+  FailedCase,
+  ScoreBreakdown01,
+  ScoreContribPts,
+} from "../formatters/types";
+import type { GateResult } from "../gate";
+import { truncateSnippet } from "../render/snippet";
+import { sortFailedCases } from "../render/sort";
 
 const TOP_N = 3;
 
@@ -48,7 +53,7 @@ export function buildCheckReport(input: BuildReportInput): CheckReport {
   const breakdown = quality?.breakdown ?? {};
   const flags = (quality?.flags ?? []) as string[];
 
-  const baseUrl = args.baseUrl.replace(/\/$/, '');
+  const baseUrl = args.baseUrl.replace(/\/$/, "");
   const dashboardUrl =
     evaluationRunId != null
       ? `${baseUrl}/evaluations/${args.evaluationId}/runs/${evaluationRunId}`
@@ -58,10 +63,10 @@ export function buildCheckReport(input: BuildReportInput): CheckReport {
   let failedCases: FailedCase[] = [];
   if (runDetails?.results && evaluationRunId != null) {
     const raw = runDetails.results
-      .filter((r) => r.status === 'failed')
+      .filter((r) => r.status === "failed")
       .map((r) => ({
         testCaseId: r.testCaseId,
-        status: 'failed' as const,
+        status: "failed" as const,
         name: r.test_cases?.name,
         input: r.test_cases?.input,
         expectedOutput: r.test_cases?.expectedOutput,
@@ -79,21 +84,20 @@ export function buildCheckReport(input: BuildReportInput): CheckReport {
   const failedCasesMore = failedCases.length - failedCasesShown;
 
   const breakdown01 =
-    Object.keys(breakdown).length > 0 ? (breakdown as CheckReport['breakdown01']) : undefined;
-  const contribPts =
-    args.explain && breakdown01 ? computeContribPts(breakdown01) : undefined;
+    Object.keys(breakdown).length > 0 ? (breakdown as CheckReport["breakdown01"]) : undefined;
+  const contribPts = args.explain && breakdown01 ? computeContribPts(breakdown01) : undefined;
 
   const report: CheckReport = {
     evaluationId: args.evaluationId,
     runId: evaluationRunId,
-    verdict: gateResult.passed ? 'pass' : 'fail',
-    reasonCode: gateResult.reasonCode as CheckReport['reasonCode'],
+    verdict: gateResult.passed ? "pass" : "fail",
+    reasonCode: gateResult.reasonCode as CheckReport["reasonCode"],
     reasonMessage: gateResult.reasonMessage ?? undefined,
     score,
     baselineScore: baselineScore ?? undefined,
     delta: regressionDelta ?? undefined,
     n: total ?? undefined,
-    evidenceLevel: (quality?.evidenceLevel as CheckReport['evidenceLevel']) ?? undefined,
+    evidenceLevel: (quality?.evidenceLevel as CheckReport["evidenceLevel"]) ?? undefined,
     baselineMissing: quality?.baselineMissing === true,
     flags: flags.length > 0 ? [...flags].sort() : undefined,
     breakdown01,

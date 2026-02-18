@@ -1,76 +1,83 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { use, useState, useEffect } from "react"
-import { cn } from "@/lib/utils"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Progress } from "@/components/ui/progress"
-import Link from "next/link"
-import { ArrowLeft, AlertCircle, Sparkles, CheckCircle2, XCircle, Loader2 } from "lucide-react"
-import { useCustomer } from "autumn-js/react"
-import { useSession } from "@/lib/auth-client"
-import { toast } from "sonner"
-import dynamic from "next/dynamic"
-import { Skeleton } from "@/components/ui/skeleton"
+import { useCustomer } from "autumn-js/react";
+import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Sparkles, XCircle } from "lucide-react";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useSession } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 // Lazy load EvaluationBuilder (large component)
 const EvaluationBuilder = dynamic(
-  () => import("@/components/evaluation-builder").then(m => m.EvaluationBuilder),
-  { 
+  () => import("@/components/evaluation-builder").then((m) => m.EvaluationBuilder),
+  {
     ssr: false,
-    loading: () => <Skeleton className="h-96 w-full" />
-  }
-)
+    loading: () => <Skeleton className="h-96 w-full" />,
+  },
+);
 
 type DeploymentStep = {
-  id: string
-  label: string
-  status: "pending" | "in-progress" | "completed" | "error"
-  errorMessage?: string
-}
+  id: string;
+  label: string;
+  status: "pending" | "in-progress" | "completed" | "error";
+  errorMessage?: string;
+};
 
 export default function NewEvaluationPage() {
-  const router = useRouter()
-  const { data: session } = useSession()
-  const { customer, isLoading: isLoadingCustomer, check, refetch } = useCustomer()
-  const [isLoading, setIsLoading] = useState(false)
-  const [canCreateProject, setCanCreateProject] = useState(true)
-  const [deploymentSteps, setDeploymentSteps] = useState<DeploymentStep[]>([])
-  const [showDeploymentProgress, setShowDeploymentProgress] = useState(false)
+  const router = useRouter();
+  const { data: session } = useSession();
+  const { customer, isLoading: isLoadingCustomer, check, refetch } = useCustomer();
+  const [isLoading, setIsLoading] = useState(false);
+  const [canCreateProject, setCanCreateProject] = useState(true);
+  const [deploymentSteps, setDeploymentSteps] = useState<DeploymentStep[]>([]);
+  const [showDeploymentProgress, setShowDeploymentProgress] = useState(false);
 
   // Check if user can create more projects
   useEffect(() => {
     if (!isLoadingCustomer && customer) {
-      const projectsFeature = customer.features?.projects
-      if (projectsFeature && !projectsFeature.unlimited && typeof projectsFeature.balance === 'number') {
-        const canCreate = projectsFeature.balance > 0
-        setCanCreateProject(canCreate)
+      const projectsFeature = customer.features?.projects;
+      if (
+        projectsFeature &&
+        !projectsFeature.unlimited &&
+        typeof projectsFeature.balance === "number"
+      ) {
+        const canCreate = projectsFeature.balance > 0;
+        setCanCreateProject(canCreate);
       }
     }
-  }, [customer, isLoadingCustomer])
+  }, [customer, isLoadingCustomer]);
 
-  const updateStepStatus = (stepId: string, status: DeploymentStep["status"], errorMessage?: string) => {
-    setDeploymentSteps(prev => prev.map(step => 
-      step.id === stepId ? { ...step, status, errorMessage } : step
-    ))
-  }
+  const updateStepStatus = (
+    stepId: string,
+    status: DeploymentStep["status"],
+    errorMessage?: string,
+  ) => {
+    setDeploymentSteps((prev) =>
+      prev.map((step) => (step.id === stepId ? { ...step, status, errorMessage } : step)),
+    );
+  };
 
   const handleDeploy = async (data: {
-    name: string
-    description: string
-    type: string
+    name: string;
+    description: string;
+    type: string;
     templates: Array<{
-      id: string
-      template: any
-      config: any
-    }>
+      id: string;
+      template: any;
+      config: any;
+    }>;
   }) => {
     if (!session?.user) {
-      router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`)
-      return
+      router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
     }
 
     // Initialize deployment steps
@@ -79,53 +86,53 @@ export default function NewEvaluationPage() {
       { id: "limits", label: "Checking project limits", status: "pending" },
       { id: "org", label: "Loading organization", status: "pending" },
       { id: "create", label: "Creating evaluation", status: "pending" },
-      { id: "redirect", label: "Redirecting to evaluation", status: "pending" }
-    ]
-    
-    setDeploymentSteps(steps)
-    setShowDeploymentProgress(true)
-    setIsLoading(true)
+      { id: "redirect", label: "Redirecting to evaluation", status: "pending" },
+    ];
+
+    setDeploymentSteps(steps);
+    setShowDeploymentProgress(true);
+    setIsLoading(true);
 
     try {
       // Step 1: Authentication check
-      updateStepStatus("auth", "in-progress")
-      const token = localStorage.getItem("bearer_token")
+      updateStepStatus("auth", "in-progress");
+      const token = localStorage.getItem("bearer_token");
       if (!token) {
-        throw new Error("Authentication token not found. Please log in again.")
+        throw new Error("Authentication token not found. Please log in again.");
       }
-      updateStepStatus("auth", "completed")
+      updateStepStatus("auth", "completed");
 
       // Step 2: Check feature allowance
-      updateStepStatus("limits", "in-progress")
+      updateStepStatus("limits", "in-progress");
       if (!isLoadingCustomer && customer) {
-        const result = await check({ featureId: "projects", requiredBalance: 1 })
-        if (result && 'success' in result && !result.success) {
-          updateStepStatus("limits", "error", "Project limit reached. Please upgrade your plan.")
-          toast.error("Project limit reached. Please upgrade your plan to create more projects.")
-          return
+        const result = await check({ featureId: "projects", requiredBalance: 1 });
+        if (result && "success" in result && !result.success) {
+          updateStepStatus("limits", "error", "Project limit reached. Please upgrade your plan.");
+          toast.error("Project limit reached. Please upgrade your plan to create more projects.");
+          return;
         }
       }
-      updateStepStatus("limits", "completed")
+      updateStepStatus("limits", "completed");
 
       // Step 3: Get organization
-      updateStepStatus("org", "in-progress")
+      updateStepStatus("org", "in-progress");
       const orgResponse = await fetch("/api/organizations/current", {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       if (!orgResponse.ok) {
-        throw new Error("Failed to load organization. Please try again.")
+        throw new Error("Failed to load organization. Please try again.");
       }
-      
-      const { organization } = await orgResponse.json()
-      updateStepStatus("org", "completed")
+
+      const { organization } = await orgResponse.json();
+      updateStepStatus("org", "completed");
 
       // Step 4: Create evaluation
-      updateStepStatus("create", "in-progress")
+      updateStepStatus("create", "in-progress");
 
       // Build combined config from all selected templates
       const combinedConfig = {
-        templates: data.templates.map(t => ({
+        templates: data.templates.map((t) => ({
           id: t.template.id,
           name: t.config.name || t.template.name,
           description: t.config.description || t.template.description,
@@ -133,15 +140,15 @@ export default function NewEvaluationPage() {
           judgePrompt: t.config.customPrompt || t.template.judgePrompt,
           testCases: t.template.testCases,
           code: t.template.code,
-          humanEvalCriteria: t.template.humanEvalCriteria
-        }))
-      }
-      
+          humanEvalCriteria: t.template.humanEvalCriteria,
+        })),
+      };
+
       const response = await fetch("/api/evaluations", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           organizationId: organization.id,
@@ -157,96 +164,95 @@ export default function NewEvaluationPage() {
             timeout: 30, // 30 seconds (API expects seconds, not ms)
             retry: {
               maxRetries: 3,
-              retryDelay: 1000
+              retryDelay: 1000,
             },
-            stopOnFailure: false
+            stopOnFailure: false,
           },
           modelSettings: {
             model: "gpt-4o",
             temperature: 0.7,
             maxTokens: 1000,
-            topP: 1.0
+            topP: 1.0,
           },
-          customMetrics: []
+          customMetrics: [],
         }),
-      })
+      });
 
-      const responseData = await response.json()
+      const responseData = await response.json();
 
       if (!response.ok) {
-        let errorMessage = responseData.error || "Failed to create evaluation"
-        
+        let errorMessage = responseData.error || "Failed to create evaluation";
+
         // Provide helpful context for common errors
         if (errorMessage.includes("timeout")) {
-          errorMessage += "\n\nTip: Timeout must be between 1-3600 seconds."
+          errorMessage += "\n\nTip: Timeout must be between 1-3600 seconds.";
         } else if (errorMessage.includes("batch")) {
-          errorMessage += "\n\nTip: Batch size must be between 1-1000."
+          errorMessage += "\n\nTip: Batch size must be between 1-1000.";
         } else if (errorMessage.includes("parallel")) {
-          errorMessage += "\n\nTip: Parallel runs must be between 1-100."
+          errorMessage += "\n\nTip: Parallel runs must be between 1-100.";
         }
-        
-        updateStepStatus("create", "error", errorMessage)
-        
+
+        updateStepStatus("create", "error", errorMessage);
+
         if (responseData.code === "FEATURE_LIMIT_REACHED") {
-          toast.error(responseData.error)
+          toast.error(responseData.error);
         } else {
-          toast.error(errorMessage)
+          toast.error(errorMessage);
         }
-        return
+        return;
       }
 
-      updateStepStatus("create", "completed")
+      updateStepStatus("create", "completed");
 
       // Step 5: Redirect
-      updateStepStatus("redirect", "in-progress")
-      await refetch()
-      updateStepStatus("redirect", "completed")
-      
-      toast.success("Evaluation created successfully!")
-      
+      updateStepStatus("redirect", "in-progress");
+      await refetch();
+      updateStepStatus("redirect", "completed");
+
+      toast.success("Evaluation created successfully!");
+
       // Small delay to show completion state
       setTimeout(() => {
-        router.push(`/evaluations/${responseData.id}`)
-      }, 500)
-      
+        router.push(`/evaluations/${responseData.id}`);
+      }, 500);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred"
-      
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+
       // Update the current step with error
-      const currentStep = deploymentSteps.find(s => s.status === "in-progress")
+      const currentStep = deploymentSteps.find((s) => s.status === "in-progress");
       if (currentStep) {
-        updateStepStatus(currentStep.id, "error", errorMessage)
+        updateStepStatus(currentStep.id, "error", errorMessage);
       }
-      
-      toast.error(errorMessage)
+
+      toast.error(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const getStepIcon = (status: DeploymentStep["status"]) => {
     switch (status) {
       case "completed":
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />
+        return <CheckCircle2 className="h-4 w-4 text-green-600" />;
       case "in-progress":
-        return <Loader2 className="h-4 w-4 text-primary animate-spin" />
+        return <Loader2 className="h-4 w-4 text-primary animate-spin" />;
       case "error":
-        return <XCircle className="h-4 w-4 text-destructive" />
+        return <XCircle className="h-4 w-4 text-destructive" />;
       default:
-        return <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30" />
+        return <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30" />;
     }
-  }
+  };
 
-  const completedSteps = deploymentSteps.filter(s => s.status === "completed").length
-  const progressPercentage = (completedSteps / deploymentSteps.length) * 100
-  const hasError = deploymentSteps.some(s => s.status === "error")
-  const errorStep = deploymentSteps.find(s => s.status === "error")
+  const completedSteps = deploymentSteps.filter((s) => s.status === "completed").length;
+  const progressPercentage = (completedSteps / deploymentSteps.length) * 100;
+  const hasError = deploymentSteps.some((s) => s.status === "error");
+  const errorStep = deploymentSteps.find((s) => s.status === "error");
 
   // Show upgrade prompt if limit reached
   if (!isLoadingCustomer && !canCreateProject) {
-    const projectsFeature = customer?.features?.projects
-    const limit = projectsFeature?.included_usage || 0
-    const usage = projectsFeature?.usage || 0
+    const projectsFeature = customer?.features?.projects;
+    const limit = projectsFeature?.included_usage || 0;
+    const usage = projectsFeature?.usage || 0;
 
     return (
       <div className="space-y-4 sm:space-y-6">
@@ -267,27 +273,23 @@ export default function NewEvaluationPage() {
               <div>
                 <CardTitle className="text-base sm:text-lg">Project Limit Reached</CardTitle>
                 <CardDescription className="mt-1 sm:mt-2 text-xs sm:text-sm">
-                  You've used {usage} of {limit} projects in your current plan.
-                  Upgrade to create more projects and unlock additional features.
+                  You've used {usage} of {limit} projects in your current plan. Upgrade to create
+                  more projects and unlock additional features.
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row gap-2 sm:gap-3 p-4 sm:p-6 pt-0">
             <Button asChild size="sm" className="w-full sm:w-auto">
-              <Link href="/pricing">
-                Upgrade Plan
-              </Link>
+              <Link href="/pricing">Upgrade Plan</Link>
             </Button>
             <Button variant="outline" asChild size="sm" className="w-full sm:w-auto">
-              <Link href="/evaluations">
-                View Existing Projects
-              </Link>
+              <Link href="/evaluations">View Existing Projects</Link>
             </Button>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -308,7 +310,8 @@ export default function NewEvaluationPage() {
           <h1 className="text-2xl sm:text-3xl font-bold">Create New Evaluation</h1>
         </div>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Build comprehensive AI evaluations with drag-and-drop templates inspired by industry leaders
+          Build comprehensive AI evaluations with drag-and-drop templates inspired by industry
+          leaders
         </p>
       </div>
 
@@ -318,7 +321,11 @@ export default function NewEvaluationPage() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">
-                {hasError ? "Deployment Failed" : isLoading ? "Deploying Evaluation..." : "Deployment Complete"}
+                {hasError
+                  ? "Deployment Failed"
+                  : isLoading
+                    ? "Deploying Evaluation..."
+                    : "Deployment Complete"}
               </CardTitle>
               <Button
                 variant="ghost"
@@ -334,22 +341,24 @@ export default function NewEvaluationPage() {
           <CardContent className="space-y-3">
             {/* Deployment Steps */}
             <div className="space-y-2">
-              {deploymentSteps.map((step, index) => (
+              {deploymentSteps.map((step, _index) => (
                 <div
                   key={step.id}
                   className={cn(
                     "flex items-start gap-3 p-2 rounded-lg transition-colors",
                     step.status === "in-progress" && "bg-primary/5",
-                    step.status === "error" && "bg-destructive/5"
+                    step.status === "error" && "bg-destructive/5",
                   )}
                 >
                   {getStepIcon(step.status)}
                   <div className="flex-1 min-w-0">
-                    <p className={cn(
-                      "text-sm font-medium",
-                      step.status === "completed" && "text-green-600",
-                      step.status === "error" && "text-destructive"
-                    )}>
+                    <p
+                      className={cn(
+                        "text-sm font-medium",
+                        step.status === "completed" && "text-green-600",
+                        step.status === "error" && "text-destructive",
+                      )}
+                    >
                       {step.label}
                     </p>
                     {step.errorMessage && (
@@ -404,8 +413,8 @@ export default function NewEvaluationPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        setShowDeploymentProgress(false)
-                        setDeploymentSteps([])
+                        setShowDeploymentProgress(false);
+                        setDeploymentSteps([]);
                       }}
                     >
                       Dismiss
@@ -425,5 +434,5 @@ export default function NewEvaluationPage() {
 
       <EvaluationBuilder onDeploy={handleDeploy} />
     </div>
-  )
+  );
 }

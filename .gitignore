@@ -42,3 +42,9 @@ next-env.d.ts
 
 # Cursor rules (local)
 .cursor/rules/
+
+# SDK local config (created by evalai init)
+src/packages/sdk/evalai.config.json
+
+# npm pack artifact
+*.tgz

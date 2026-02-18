@@ -7,10 +7,10 @@
  */
 
 /** Canonical version string — single source of truth for scoring version. */
-export const SCORING_SPEC_VERSION = 'v1' as const;
+export const SCORING_SPEC_VERSION = "v1" as const;
 
 export interface ScoringSpecV1 {
-  version: 'v1';
+  version: "v1";
   /** Weights: passRate, safety, judge+schema, latency+cost */
   weights: {
     passRate: number;

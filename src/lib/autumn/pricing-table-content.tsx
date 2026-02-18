@@ -1,5 +1,4 @@
-
-import { type Product } from "autumn-js";
+import type { Product } from "autumn-js";
 
 export const getPricingTableContent = (product: Product) => {
   const { scenario, free_trial, properties } = product;

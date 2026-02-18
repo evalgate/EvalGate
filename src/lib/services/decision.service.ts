@@ -3,9 +3,9 @@
  * Business logic for agent decision auditing
  */
 
-import { db } from '@/db';
-import { agentDecisions, spans, workflowRuns } from '@/db/schema';
-import { eq, and, desc, sql, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray } from "drizzle-orm";
+import { db } from "@/db";
+import { agentDecisions, spans, workflowRuns } from "@/db/schema";
 
 // ============================================================================
 // TYPES
@@ -23,7 +23,7 @@ export interface CreateDecisionParams {
   workflowRunId?: number;
   organizationId: number;
   agentName: string;
-  decisionType: 'action' | 'tool' | 'delegate' | 'respond' | 'route';
+  decisionType: "action" | "tool" | "delegate" | "respond" | "route";
   chosen: string;
   alternatives: DecisionAlternative[];
   reasoning?: string;
@@ -62,7 +62,7 @@ class DecisionService {
         alternatives: params.alternatives as any,
         reasoning: params.reasoning || null,
         confidence: params.confidence || null,
-        inputContext: params.inputContext as any || null,
+        inputContext: (params.inputContext as any) || null,
         createdAt: now,
       })
       .returning();
@@ -74,11 +74,7 @@ class DecisionService {
    * Get a decision by ID
    */
   async getById(id: number) {
-    const result = await db
-      .select()
-      .from(agentDecisions)
-      .where(eq(agentDecisions.id, id))
-      .limit(1);
+    const result = await db.select().from(agentDecisions).where(eq(agentDecisions.id, id)).limit(1);
 
     return result[0] || null;
   }
@@ -109,7 +105,7 @@ class DecisionService {
 
     // Filter by confidence if specified (done in memory for simplicity)
     if (minConfidence !== undefined) {
-      return results.filter(d => (d.confidence ?? 0) >= minConfidence);
+      return results.filter((d) => (d.confidence ?? 0) >= minConfidence);
     }
 
     return results;
@@ -188,7 +184,7 @@ class DecisionService {
     const decision = await this.getById(decisionId);
     if (!decision) return null;
 
-    const alternatives = decision.alternatives as DecisionAlternative[] || [];
+    const alternatives = (decision.alternatives as DecisionAlternative[]) || [];
 
     // Calculate what-if scenarios
     const comparison = {
@@ -206,7 +202,7 @@ class DecisionService {
         confidenceDiff: (decision.confidence || 0) - alt.confidence,
       })),
       totalAlternatives: alternatives.length,
-      highestAlternativeConfidence: Math.max(...alternatives.map(a => a.confidence), 0),
+      highestAlternativeConfidence: Math.max(...alternatives.map((a) => a.confidence), 0),
     };
 
     return comparison;
@@ -224,8 +220,8 @@ class DecisionService {
       .orderBy(spans.startTime);
 
     // Get decisions for each span
-    const spanIds = traceSpans.map(s => s.id);
-    
+    const spanIds = traceSpans.map((s) => s.id);
+
     if (spanIds.length === 0) {
       return { trace: traceId, decisions: [] };
     }
@@ -237,8 +233,8 @@ class DecisionService {
       .orderBy(agentDecisions.createdAt);
 
     // Build audit trail
-    const auditTrail = decisions.map(d => {
-      const span = traceSpans.find(s => s.id === d.spanId);
+    const auditTrail = decisions.map((d) => {
+      const span = traceSpans.find((s) => s.id === d.spanId);
       return {
         ...d,
         spanName: span?.name,
@@ -268,7 +264,7 @@ class DecisionService {
       return { patterns: [] };
     }
 
-    const runIds = runs.map(r => r.id);
+    const runIds = runs.map((r) => r.id);
 
     // Get all decisions across these runs
     const decisions = await db
@@ -282,17 +278,20 @@ class DecisionService {
       .where(inArray(agentDecisions.workflowRunId, runIds));
 
     // Analyze patterns
-    const patterns: Record<string, {
-      agent: string;
-      type: string;
-      choices: Record<string, number>;
-      avgConfidence: number;
-      totalDecisions: number;
-    }> = {};
+    const patterns: Record<
+      string,
+      {
+        agent: string;
+        type: string;
+        choices: Record<string, number>;
+        avgConfidence: number;
+        totalDecisions: number;
+      }
+    > = {};
 
     for (const d of decisions) {
       const key = `${d.agentName}-${d.decisionType}`;
-      
+
       if (!patterns[key]) {
         patterns[key] = {
           agent: d.agentName,
@@ -309,7 +308,7 @@ class DecisionService {
     }
 
     // Calculate averages
-    const patternList = Object.values(patterns).map(p => ({
+    const patternList = Object.values(patterns).map((p) => ({
       ...p,
       avgConfidence: p.totalDecisions > 0 ? Math.round(p.avgConfidence / p.totalDecisions) : 0,
       mostCommonChoice: Object.entries(p.choices).sort((a, b) => b[1] - a[1])[0]?.[0] || null,

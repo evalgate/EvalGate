@@ -1,79 +1,79 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import Link from "next/link"
-import { ArrowLeft, Star } from "lucide-react"
+import { ArrowLeft, Star } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 
 interface TestCase {
-  name?: string
-  input?: string
-  expected_output?: string
+  name?: string;
+  input?: string;
+  expected_output?: string;
 }
 
 interface TaskType {
-  evaluation_run_id: string
-  test_case_id: string
-  test_cases?: TestCase
+  evaluation_run_id: string;
+  test_case_id: string;
+  test_cases?: TestCase;
 }
 
 // Updated type for Next.js 15
 type PageProps = {
-  params: Promise<{ id: string }>  // Changed: params is now a Promise
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>  // Also a Promise
-}
+  params: Promise<{ id: string }>; // Changed: params is now a Promise
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>; // Also a Promise
+};
 
 export default function Page({ params }: PageProps) {
-  const router = useRouter()
-  const [task, setTask] = useState<TaskType | null>(null)
-  const [rating, setRating] = useState<number>(3)
-  const [feedback, setFeedback] = useState("")
-  const [labels, setLabels] = useState<Record<string, any>>({})
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [taskId, setTaskId] = useState<string | null>(null)  // New state for the unwrapped id
+  const router = useRouter();
+  const [task, setTask] = useState<TaskType | null>(null);
+  const [rating, setRating] = useState<number>(3);
+  const [feedback, setFeedback] = useState("");
+  const [labels, setLabels] = useState<Record<string, any>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [taskId, setTaskId] = useState<string | null>(null); // New state for the unwrapped id
 
   // Unwrap params Promise
   useEffect(() => {
     params.then((resolvedParams) => {
-      setTaskId(resolvedParams.id)
-    })
-  }, [params])
+      setTaskId(resolvedParams.id);
+    });
+  }, [params]);
 
   useEffect(() => {
-    if (!taskId) return  // Don't fetch until we have the id
+    if (!taskId) return; // Don't fetch until we have the id
 
     const fetchTask = async () => {
       try {
-        const response = await fetch(`/api/annotations/tasks/${taskId}`)
-        if (!response.ok) throw new Error("Failed to fetch task")
-        const data = await response.json()
-        setTask(data.task)
+        const response = await fetch(`/api/annotations/tasks/${taskId}`);
+        if (!response.ok) throw new Error("Failed to fetch task");
+        const data = await response.json();
+        setTask(data.task);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred")
+        setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchTask()
-  }, [taskId])  // Changed dependency to taskId
+    fetchTask();
+  }, [taskId]); // Changed dependency to taskId
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setError(null)
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
 
     if (!task) {
-      setError("Task data is not available")
-      setIsSubmitting(false)
-      return
+      setError("Task data is not available");
+      setIsSubmitting(false);
+      return;
     }
 
     try {
@@ -87,24 +87,24 @@ export default function Page({ params }: PageProps) {
           feedback,
           labels,
         }),
-      })
+      });
 
-      if (!response.ok) throw new Error("Failed to submit annotation")
+      if (!response.ok) throw new Error("Failed to submit annotation");
 
-      router.push("/annotations")
+      router.push("/annotations");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-muted-foreground">Loading task...</div>
       </div>
-    )
+    );
   }
 
   if (!task) {
@@ -112,10 +112,10 @@ export default function Page({ params }: PageProps) {
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-muted-foreground">Task not found</div>
       </div>
-    )
+    );
   }
 
-  const { test_cases: testCase = {} } = task
+  const { test_cases: testCase = {} } = task;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -131,7 +131,9 @@ export default function Page({ params }: PageProps) {
 
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Annotation Task</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">{testCase?.name || "Unnamed Test Case"}</p>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          {testCase?.name || "Unnamed Test Case"}
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
@@ -139,7 +141,9 @@ export default function Page({ params }: PageProps) {
         <Card>
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-base sm:text-lg">Input</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">The input provided to the AI model</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
+              The input provided to the AI model
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
             <pre className="rounded-lg bg-muted p-3 sm:p-4 text-xs sm:text-sm overflow-x-auto">
@@ -153,7 +157,9 @@ export default function Page({ params }: PageProps) {
           <Card>
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="text-base sm:text-lg">Expected Output</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">The expected response from the AI model</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
+                The expected response from the AI model
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6 pt-0">
               <pre className="rounded-lg bg-muted p-3 sm:p-4 text-xs sm:text-sm overflow-x-auto">
@@ -167,7 +173,9 @@ export default function Page({ params }: PageProps) {
         <Card>
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-base sm:text-lg">Rating</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Rate the quality of the AI output (1-5 stars)</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
+              Rate the quality of the AI output (1-5 stars)
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -177,10 +185,15 @@ export default function Page({ params }: PageProps) {
                   type="button"
                   onClick={() => setRating(value)}
                   className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
-                    value <= rating ? "text-yellow-500" : "text-muted-foreground hover:text-yellow-500"
+                    value <= rating
+                      ? "text-yellow-500"
+                      : "text-muted-foreground hover:text-yellow-500"
                   }`}
                 >
-                  <Star className="h-6 w-6 sm:h-8 sm:w-8" fill={value <= rating ? "currentColor" : "none"} />
+                  <Star
+                    className="h-6 w-6 sm:h-8 sm:w-8"
+                    fill={value <= rating ? "currentColor" : "none"}
+                  />
                 </button>
               ))}
               <span className="ml-2 sm:ml-4 text-base sm:text-lg font-semibold">{rating} / 5</span>
@@ -192,7 +205,9 @@ export default function Page({ params }: PageProps) {
         <Card>
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-base sm:text-lg">Quality Assessment</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Evaluate specific aspects of the output</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
+              Evaluate specific aspects of the output
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 pt-0">
             <div className="space-y-3">
@@ -251,7 +266,10 @@ export default function Page({ params }: PageProps) {
 
             <div className="space-y-3">
               <Label>Tone</Label>
-              <RadioGroup value={labels.tone || ""} onValueChange={(value) => setLabels({ ...labels, tone: value })}>
+              <RadioGroup
+                value={labels.tone || ""}
+                onValueChange={(value) => setLabels({ ...labels, tone: value })}
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="appropriate" id="tone-appropriate" />
                   <Label htmlFor="tone-appropriate" className="font-normal cursor-pointer">
@@ -279,7 +297,9 @@ export default function Page({ params }: PageProps) {
         <Card>
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-base sm:text-lg">Detailed Feedback</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Provide specific comments about the output</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
+              Provide specific comments about the output
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
             <Textarea
@@ -292,17 +312,27 @@ export default function Page({ params }: PageProps) {
           </CardContent>
         </Card>
 
-        {error && <div className="rounded-md bg-destructive/10 p-3 text-xs sm:text-sm text-destructive">{error}</div>}
+        {error && (
+          <div className="rounded-md bg-destructive/10 p-3 text-xs sm:text-sm text-destructive">
+            {error}
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <Button type="submit" disabled={isSubmitting} className="flex-1" size="sm">
             {isSubmitting ? "Submitting..." : "Submit Annotation"}
           </Button>
-          <Button type="button" variant="outline" asChild size="sm" className="flex-1 sm:flex-initial">
+          <Button
+            type="button"
+            variant="outline"
+            asChild
+            size="sm"
+            className="flex-1 sm:flex-initial"
+          >
             <Link href="/annotations">Cancel</Link>
           </Button>
         </div>
       </form>
     </div>
-  )
+  );
 }

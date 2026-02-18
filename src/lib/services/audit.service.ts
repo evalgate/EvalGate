@@ -3,10 +3,10 @@
  * Immutable audit logging for security events and data mutations.
  */
 
-import { db } from '@/db';
-import { auditLogs } from '@/db/schema';
-import { eq, and, desc, gte, lte } from 'drizzle-orm';
-import { logger } from '@/lib/logger';
+import { and, desc, eq, gte, lte } from "drizzle-orm";
+import { db } from "@/db";
+import { auditLogs } from "@/db/schema";
+import { logger } from "@/lib/logger";
 
 export interface AuditEntry {
   organizationId: number;
@@ -38,7 +38,7 @@ export class AuditService {
       });
     } catch (err) {
       // Audit logging should never break the request — fire and forget
-      logger.error('Failed to write audit log', {
+      logger.error("Failed to write audit log", {
         action: entry.action,
         error: err instanceof Error ? err.message : String(err),
       });
@@ -48,14 +48,17 @@ export class AuditService {
   /**
    * List audit logs for an organization with filtering and pagination.
    */
-  async list(organizationId: number, options?: {
-    action?: string;
-    resourceType?: string;
-    since?: string;
-    until?: string;
-    limit?: number;
-    offset?: number;
-  }) {
+  async list(
+    organizationId: number,
+    options?: {
+      action?: string;
+      resourceType?: string;
+      since?: string;
+      until?: string;
+      limit?: number;
+      offset?: number;
+    },
+  ) {
     const limit = Math.min(options?.limit ?? 50, 100);
     const offset = options?.offset ?? 0;
 

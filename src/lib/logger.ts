@@ -3,7 +3,7 @@
  * Replaces console.log/error calls with proper structured logging
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogContext {
   [key: string]: any;
@@ -31,14 +31,14 @@ class Logger {
     const output = JSON.stringify(logEntry);
 
     switch (level) {
-      case 'error':
+      case "error":
         console.error(output);
         break;
-      case 'warn':
+      case "warn":
         console.warn(output);
         break;
-      case 'debug':
-        if (process.env.NODE_ENV === 'development') {
+      case "debug":
+        if (process.env.NODE_ENV === "development") {
           console.debug(output);
         }
         break;
@@ -48,39 +48,44 @@ class Logger {
   }
 
   debug(message: string, meta?: LogContext) {
-    this.log('debug', message, meta);
+    this.log("debug", message, meta);
   }
 
   info(message: string, meta?: LogContext) {
-    this.log('info', message, meta);
+    this.log("info", message, meta);
   }
 
   warn(message: string, meta?: LogContext) {
-    this.log('warn', message, meta);
+    this.log("warn", message, meta);
   }
 
-  error(metaOrMessage: LogContext | string, messageOrError?: string | Error | unknown, additionalMeta?: LogContext) {
+  error(
+    metaOrMessage: LogContext | string,
+    messageOrError?: string | Error | unknown,
+    additionalMeta?: LogContext,
+  ) {
     // Support both: logger.error({ meta }, 'message') and logger.error('message', error)
     let message: string;
     let meta: LogContext;
 
-    if (typeof metaOrMessage === 'string') {
+    if (typeof metaOrMessage === "string") {
       // Old signature: error(message, error, meta)
       message = metaOrMessage;
       const error = messageOrError;
-      const errorMeta = error instanceof Error 
-        ? { error: error.message, stack: error.stack, ...additionalMeta }
-        : error 
-          ? { error: String(error), ...additionalMeta }
-          : additionalMeta || {};
+      const errorMeta =
+        error instanceof Error
+          ? { error: error.message, stack: error.stack, ...additionalMeta }
+          : error
+            ? { error: String(error), ...additionalMeta }
+            : additionalMeta || {};
       meta = errorMeta;
     } else {
       // New signature: error({ meta }, message)
       meta = metaOrMessage;
-      message = typeof messageOrError === 'string' ? messageOrError : 'Error occurred';
+      message = typeof messageOrError === "string" ? messageOrError : "Error occurred";
     }
-    
-    this.log('error', message, meta);
+
+    this.log("error", message, meta);
   }
 
   child(context: LogContext): Logger {
@@ -90,12 +95,11 @@ class Logger {
 
 // Default logger instance
 export const logger = new Logger({
-  service: 'ai-evaluation-platform',
-  environment: process.env.NODE_ENV || 'development',
+  service: "ai-evaluation-platform",
+  environment: process.env.NODE_ENV || "development",
 });
 
 // Create logger for specific modules
 export function createModuleLogger(module: string): Logger {
   return logger.child({ module });
 }
-

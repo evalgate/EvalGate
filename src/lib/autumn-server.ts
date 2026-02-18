@@ -1,9 +1,9 @@
+import crypto from "node:crypto";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { session, user, apiKeys, organizationMembers, organizations } from "@/db/schema";
-import { eq, and, isNull } from "drizzle-orm";
-import crypto from "crypto";
+import { apiKeys, organizationMembers, organizations, session } from "@/db/schema";
+import { type AuthType, normalizeRole, type Role } from "@/lib/api/secure-route";
 import { scopesForRole } from "@/lib/auth/scopes";
-import { normalizeRole, type Role, type AuthType } from "@/lib/api/secure-route";
 
 /**
  * Server-side Autumn feature checking and tracking
@@ -44,18 +44,17 @@ interface ValidateSessionResult {
  * the key's scopes are checked and a 403 is returned if the scope is missing.
  * Session-based users (browser) are not subject to scope checks.
  */
-export async function validateSession(token: string | null, requiredScope?: string): Promise<ValidateSessionResult> {
+export async function validateSession(
+  token: string | null,
+  requiredScope?: string,
+): Promise<ValidateSessionResult> {
   if (!token) {
     return { valid: false, error: "No authentication token provided" };
   }
 
   try {
     // ── Path 1: Check better-auth session table ──
-    const sessions = await db
-      .select()
-      .from(session)
-      .where(eq(session.token, token))
-      .limit(1);
+    const sessions = await db.select().from(session).where(eq(session.token, token)).limit(1);
 
     if (sessions.length > 0) {
       const userSession = sessions[0];
@@ -67,7 +66,7 @@ export async function validateSession(token: string | null, requiredScope?: stri
       }
 
       // Session-based users get scopes derived from their org role later
-      return { valid: true, userId: userSession.userId, authType: 'session' };
+      return { valid: true, userId: userSession.userId, authType: "session" };
     }
 
     // ── Path 2: Check API keys table (for SDK / programmatic access) ──
@@ -94,8 +93,8 @@ export async function validateSession(token: string | null, requiredScope?: stri
     }
 
     // Reject wildcard scope at runtime (legacy keys)
-    const keyScopes = Array.isArray(apiKey.scopes) ? apiKey.scopes as string[] : [];
-    if (keyScopes.includes('*')) {
+    const keyScopes = Array.isArray(apiKey.scopes) ? (apiKey.scopes as string[]) : [];
+    if (keyScopes.includes("*")) {
       return { valid: false, error: "Wildcard scope '*' is not allowed" };
     }
 
@@ -117,7 +116,7 @@ export async function validateSession(token: string | null, requiredScope?: stri
       valid: true,
       userId: apiKey.userId,
       scopes: keyScopes,
-      authType: 'apiKey',
+      authType: "apiKey",
       apiKeyOrgId: apiKey.organizationId,
       apiKeyId: apiKey.id,
     };
@@ -140,17 +139,20 @@ export async function checkFeature(params: CheckFeatureParams): Promise<{
 
   try {
     // Call Autumn API to check feature allowance
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/autumn/check`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/autumn/check`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          featureId,
+          requiredBalance,
+        }),
       },
-      body: JSON.stringify({
-        userId,
-        featureId,
-        requiredBalance,
-      }),
-    });
+    );
 
     if (!response.ok) {
       return {
@@ -185,18 +187,21 @@ export async function trackFeature(params: TrackFeatureParams): Promise<{
 
   try {
     // Call Autumn API to track usage
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/autumn/track`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/autumn/track`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          featureId,
+          value,
+          idempotencyKey,
+        }),
       },
-      body: JSON.stringify({
-        userId,
-        featureId,
-        value,
-        idempotencyKey,
-      }),
-    });
+    );
 
     if (!response.ok) {
       return {
@@ -220,7 +225,7 @@ export async function trackFeature(params: TrackFeatureParams): Promise<{
  */
 export function extractBearerToken(authHeader: string | null): string | null {
   if (!authHeader) return null;
-  
+
   const match = authHeader.match(/^Bearer\s+(.+)$/i);
   return match ? match[1] : null;
 }
@@ -234,7 +239,7 @@ export async function requireAuth(request: Request): Promise<
       authenticated: true;
       userId: string;
       scopes: string[];
-      authType: Exclude<AuthType, 'anonymous'>;
+      authType: Exclude<AuthType, "anonymous">;
       /** Present only for API-key auth — the org the key belongs to. */
       apiKeyOrgId?: number;
       /** Present only for API-key auth — for usage tracking. */
@@ -258,7 +263,7 @@ export async function requireAuth(request: Request): Promise<
         {
           status: 401,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       ),
     };
   }
@@ -267,7 +272,7 @@ export async function requireAuth(request: Request): Promise<
     authenticated: true,
     userId: validation.userId,
     scopes: validation.scopes ?? [],
-    authType: (validation.authType as Exclude<AuthType, 'anonymous'>) ?? 'session',
+    authType: (validation.authType as Exclude<AuthType, "anonymous">) ?? "session",
     apiKeyOrgId: validation.apiKeyOrgId,
     apiKeyId: validation.apiKeyId,
   };
@@ -286,7 +291,7 @@ export async function requireAuthWithOrg(request: Request): Promise<
       organizationId: number;
       role: Role;
       scopes: string[];
-      authType: Exclude<AuthType, 'anonymous'>;
+      authType: Exclude<AuthType, "anonymous">;
       apiKeyId?: number;
     }
   | { authenticated: false; response: Response }
@@ -297,21 +302,21 @@ export async function requireAuthWithOrg(request: Request): Promise<
   }
 
   // ── API-key path: org comes from the key itself ──
-  if (authResult.authType === 'apiKey' && authResult.apiKeyOrgId) {
+  if (authResult.authType === "apiKey" && authResult.apiKeyOrgId) {
     return {
       authenticated: true,
       userId: authResult.userId,
       organizationId: authResult.apiKeyOrgId,
-      role: 'member' as Role, // API keys don't carry a role; treat as member
+      role: "member" as Role, // API keys don't carry a role; treat as member
       scopes: authResult.scopes,
-      authType: 'apiKey',
+      authType: "apiKey",
       apiKeyId: authResult.apiKeyId,
     };
   }
 
   // ── Session path: look up org membership ──
   // Check for active_org cookie to allow multi-org users to pick which org
-  const cookieHeader = request.headers.get('cookie') ?? '';
+  const cookieHeader = request.headers.get("cookie") ?? "";
   const activeOrgMatch = cookieHeader.match(/(?:^|;\s*)active_org=(\d+)/);
   const preferredOrgId = activeOrgMatch ? parseInt(activeOrgMatch[1], 10) : null;
 
@@ -361,7 +366,7 @@ export async function requireAuthWithOrg(request: Request): Promise<
         {
           status: 403,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       ),
     };
   }
@@ -374,7 +379,7 @@ export async function requireAuthWithOrg(request: Request): Promise<
     organizationId: membership.organizationId,
     role,
     scopes: scopesForRole(role),
-    authType: 'session',
+    authType: "session",
   };
 }
 
@@ -389,7 +394,7 @@ export async function requireAdmin(request: Request): Promise<
       organizationId: number;
       role: Role;
       scopes: string[];
-      authType: Exclude<AuthType, 'anonymous'>;
+      authType: Exclude<AuthType, "anonymous">;
     }
   | { authenticated: false; response: Response }
 > {
@@ -409,7 +414,7 @@ export async function requireAdmin(request: Request): Promise<
         {
           status: 403,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       ),
     };
   }
@@ -424,11 +429,8 @@ export async function requireAdmin(request: Request): Promise<
 export async function requireFeature(
   request: Request,
   featureId: string,
-  requiredBalance: number = 1
-): Promise<
-  | { allowed: true; userId: string }
-  | { allowed: false; response: Response }
-> {
+  requiredBalance: number = 1,
+): Promise<{ allowed: true; userId: string } | { allowed: false; response: Response }> {
   // First check auth
   const authResult = await requireAuth(request);
   if (!authResult.authenticated) {
@@ -455,7 +457,7 @@ export async function requireFeature(
         {
           status: 402, // Payment Required
           headers: { "Content-Type": "application/json" },
-        }
+        },
       ),
     };
   }

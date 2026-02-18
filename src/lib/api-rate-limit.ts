@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { checkRateLimit, getRateLimitTier } from "./rate-limit";
+import crypto from "node:crypto";
 import * as Sentry from "@sentry/nextjs";
-import crypto from "crypto";
+import { type NextRequest, NextResponse } from "next/server";
+import { checkRateLimit } from "./rate-limit";
 
 export async function withRateLimit(
   request: NextRequest,
@@ -9,7 +9,7 @@ export async function withRateLimit(
   options?: {
     customIdentifier?: string;
     customTier?: "free" | "pro" | "enterprise" | "anonymous" | "mcp";
-  }
+  },
 ) {
   try {
     // Get identifier (IP address or custom identifier)
@@ -25,9 +25,7 @@ export async function withRateLimit(
       }
       if (!identifier) {
         identifier =
-          request.headers.get("x-forwarded-for") ||
-          request.headers.get("x-real-ip") ||
-          "127.0.0.1";
+          request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "127.0.0.1";
       }
     }
     identifier = identifier || "anonymous";
@@ -41,10 +39,10 @@ export async function withRateLimit(
     if (!success) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
-        { 
+        {
           status: 429,
-          headers: headers as HeadersInit
-        }
+          headers: headers as HeadersInit,
+        },
       );
     }
 
@@ -59,10 +57,7 @@ export async function withRateLimit(
     return response;
   } catch (error) {
     Sentry.captureException(error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 

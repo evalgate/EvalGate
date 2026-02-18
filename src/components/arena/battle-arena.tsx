@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
+import { Clock, Loader2, Swords, Trophy, Zap } from "lucide-react";
 // src/components/arena/battle-arena.tsx
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Swords, Trophy, Clock, Zap, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ModelResponse {
   modelId: string;
@@ -24,25 +24,23 @@ interface ArenaResult {
 }
 
 const AVAILABLE_MODELS = [
-  { id: 'gpt-4o', label: 'GPT-4o' },
-  { id: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-  { id: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
-  { id: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet' },
-  { id: 'claude-3-opus', label: 'Claude 3 Opus' },
-  { id: 'claude-3-haiku', label: 'Claude 3 Haiku' },
+  { id: "gpt-4o", label: "GPT-4o" },
+  { id: "gpt-4o-mini", label: "GPT-4o Mini" },
+  { id: "gpt-4-turbo", label: "GPT-4 Turbo" },
+  { id: "claude-3.5-sonnet", label: "Claude 3.5 Sonnet" },
+  { id: "claude-3-opus", label: "Claude 3 Opus" },
+  { id: "claude-3-haiku", label: "Claude 3 Haiku" },
 ];
 
 export function BattleArena() {
-  const [prompt, setPrompt] = useState('');
+  const [prompt, setPrompt] = useState("");
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ArenaResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const toggleModel = (id: string) => {
-    setSelectedModels((prev) =>
-      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
-    );
+    setSelectedModels((prev) => (prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]));
   };
 
   const runBattle = async () => {
@@ -52,9 +50,9 @@ export function BattleArena() {
     setResult(null);
 
     try {
-      const res = await fetch('/api/arena/compare', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/arena/compare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt, models: selectedModels }),
       });
       const data = await res.json();
@@ -97,11 +95,11 @@ export function BattleArena() {
             {AVAILABLE_MODELS.map((model) => (
               <Badge
                 key={model.id}
-                variant={selectedModels.includes(model.id) ? 'default' : 'outline'}
+                variant={selectedModels.includes(model.id) ? "default" : "outline"}
                 className={`cursor-pointer transition-colors ${
                   selectedModels.includes(model.id)
-                    ? 'bg-orange-500/20 text-orange-400 border-orange-500/40'
-                    : 'text-zinc-400 hover:bg-zinc-800'
+                    ? "bg-orange-500/20 text-orange-400 border-orange-500/40"
+                    : "text-zinc-400 hover:bg-zinc-800"
                 }`}
                 onClick={() => toggleModel(model.id)}
               >
@@ -144,9 +142,7 @@ export function BattleArena() {
             <CardContent className="pt-6 flex items-center gap-3">
               <Trophy className="h-8 w-8 text-yellow-500" />
               <div>
-                <div className="text-lg font-bold text-yellow-400">
-                  {result.winner.label} wins!
-                </div>
+                <div className="text-lg font-bold text-yellow-400">{result.winner.label} wins!</div>
                 <div className="text-xs text-zinc-400">Match #{result.matchId}</div>
               </div>
             </CardContent>
@@ -159,15 +155,13 @@ export function BattleArena() {
               return (
                 <Card
                   key={resp.modelId}
-                  className={`border ${isWinner ? 'border-yellow-500/40 bg-yellow-500/5' : 'border-zinc-800 bg-zinc-900/50'}`}
+                  className={`border ${isWinner ? "border-yellow-500/40 bg-yellow-500/5" : "border-zinc-800 bg-zinc-900/50"}`}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm">
                         {resp.modelId}
-                        {isWinner && (
-                          <Trophy className="inline h-3 w-3 ml-1 text-yellow-500" />
-                        )}
+                        {isWinner && <Trophy className="inline h-3 w-3 ml-1 text-yellow-500" />}
                       </CardTitle>
                       <Badge variant="outline" className="text-xs">
                         {result.scores[resp.modelId] ?? 0}/100

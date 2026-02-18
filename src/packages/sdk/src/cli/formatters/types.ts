@@ -2,19 +2,19 @@
  * CheckReport and related types for formatters.
  */
 
-export type GateVerdict = 'pass' | 'fail';
+export type GateVerdict = "pass" | "fail";
 
 export type FailureReasonCode =
-  | 'LOW_SCORE'
-  | 'LOW_PASS_RATE'
-  | 'SAFETY_RISK'
-  | 'LATENCY_RISK'
-  | 'COST_RISK'
-  | 'BASELINE_MISSING'
-  | 'MAX_DROP_EXCEEDED'
-  | 'INSUFFICIENT_EVIDENCE'
-  | 'POLICY_VIOLATION'
-  | 'UNKNOWN';
+  | "LOW_SCORE"
+  | "LOW_PASS_RATE"
+  | "SAFETY_RISK"
+  | "LATENCY_RISK"
+  | "COST_RISK"
+  | "BASELINE_MISSING"
+  | "MAX_DROP_EXCEEDED"
+  | "INSUFFICIENT_EVIDENCE"
+  | "POLICY_VIOLATION"
+  | "UNKNOWN";
 
 export type ScoreBreakdown01 = {
   passRate?: number;
@@ -39,12 +39,12 @@ export type GateThresholds = {
   maxDrop?: number;
   minN?: number;
   allowWeakEvidence?: boolean;
-  baseline?: 'published' | 'previous' | 'production';
+  baseline?: "published" | "previous" | "production";
 };
 
 export type FailedCase = {
   testCaseId?: number;
-  status?: 'failed' | 'error' | 'skipped' | 'passed';
+  status?: "failed" | "error" | "skipped" | "passed";
   name?: string;
   input?: string;
   inputSnippet?: string;
@@ -56,7 +56,7 @@ export type FailedCase = {
 };
 
 export type CiContext = {
-  provider?: 'github' | 'gitlab' | 'circle' | 'unknown';
+  provider?: "github" | "gitlab" | "circle" | "unknown";
   repo?: string;
   sha?: string;
   branch?: string;
@@ -81,7 +81,7 @@ export type CheckReport = {
   contribPts?: ScoreContribPts;
   thresholds?: GateThresholds;
   n?: number;
-  evidenceLevel?: 'strong' | 'medium' | 'weak';
+  evidenceLevel?: "strong" | "medium" | "weak";
   baselineMissing?: boolean;
   dashboardUrl?: string;
   failedCases?: FailedCase[];

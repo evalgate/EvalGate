@@ -1,31 +1,27 @@
 // src/app/reports/[evaluationId]/page.tsx
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Trophy, 
-  TrendingUp, 
-  TrendingDown, 
-  Minus, 
-  Clock, 
-  DollarSign, 
-  Target,
-  FileText,
-  Download,
-  Share2,
-  Calendar,
+import {
+  AlertCircle,
   BarChart3,
   CheckCircle,
+  Clock,
+  DollarSign,
+  Download,
+  FileText,
+  Minus,
+  Share2,
+  Target,
+  TrendingDown,
+  TrendingUp,
   XCircle,
-  AlertCircle
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 interface ReportCardData {
   evaluationId: number;
@@ -76,7 +72,7 @@ interface ReportCardData {
       score: number;
       completedAt: string;
     }>;
-    scoreTrend: 'improving' | 'declining' | 'stable';
+    scoreTrend: "improving" | "declining" | "stable";
     performanceChange: number;
   };
   metadata: Record<string, any>;
@@ -85,65 +81,65 @@ interface ReportCardData {
 export default function PublicReportPage() {
   const params = useParams();
   const evaluationId = params.evaluationId as string;
-  
+
   const [reportCard, setReportCard] = useState<ReportCardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchReportCard = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/report-cards/${evaluationId}`);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch report card");
+      }
+
+      const data = await response.json();
+      setReportCard(data);
+    } catch (error: any) {
+      setError(error.message || "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [evaluationId]);
 
   useEffect(() => {
     if (evaluationId) {
       fetchReportCard();
     }
-  }, [evaluationId]);
-
-  const fetchReportCard = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch(`/api/report-cards/${evaluationId}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch report card');
-      }
-      
-      const data = await response.json();
-      setReportCard(data);
-    } catch (error: any) {
-      setError(error.message || 'An error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [evaluationId, fetchReportCard]);
 
   const getGrade = (score: number): string => {
-    if (score >= 95) return 'A+';
-    if (score >= 90) return 'A';
-    if (score >= 85) return 'B+';
-    if (score >= 80) return 'B';
-    if (score >= 75) return 'C+';
-    if (score >= 70) return 'C';
-    if (score >= 60) return 'D';
-    return 'F';
+    if (score >= 95) return "A+";
+    if (score >= 90) return "A";
+    if (score >= 85) return "B+";
+    if (score >= 80) return "B";
+    if (score >= 75) return "C+";
+    if (score >= 70) return "C";
+    if (score >= 60) return "D";
+    return "F";
   };
 
   const getGradeColor = (grade: string): string => {
-    if (grade.startsWith('A')) return 'text-green-600';
-    if (grade.startsWith('B')) return 'text-blue-600';
-    if (grade.startsWith('C')) return 'text-yellow-600';
-    if (grade === 'D') return 'text-orange-600';
-    return 'text-red-600';
+    if (grade.startsWith("A")) return "text-green-600";
+    if (grade.startsWith("B")) return "text-blue-600";
+    if (grade.startsWith("C")) return "text-yellow-600";
+    if (grade === "D") return "text-orange-600";
+    return "text-red-600";
   };
 
   const getTrendIcon = (trend: string) => {
-    if (trend === 'improving') return <TrendingUp className="h-4 w-4 text-green-500" />;
-    if (trend === 'declining') return <TrendingDown className="h-4 w-4 text-red-500" />;
+    if (trend === "improving") return <TrendingUp className="h-4 w-4 text-green-500" />;
+    if (trend === "declining") return <TrendingDown className="h-4 w-4 text-red-500" />;
     return <Minus className="h-4 w-4 text-gray-500" />;
   };
 
   const getStatusIcon = (status: string) => {
-    if (status === 'passed') return <CheckCircle className="h-4 w-4 text-green-500" />;
-    if (status === 'failed') return <XCircle className="h-4 w-4 text-red-500" />;
+    if (status === "passed") return <CheckCircle className="h-4 w-4 text-green-500" />;
+    if (status === "failed") return <XCircle className="h-4 w-4 text-red-500" />;
     return <AlertCircle className="h-4 w-4 text-yellow-500" />;
   };
 
@@ -166,7 +162,9 @@ export default function PublicReportPage() {
           <div className="text-center py-16">
             <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Report Not Found</h1>
-            <p className="text-gray-600">{error || 'This report could not be found or is not publicly accessible.'}</p>
+            <p className="text-gray-600">
+              {error || "This report could not be found or is not publicly accessible."}
+            </p>
           </div>
         </div>
       </div>
@@ -226,8 +224,11 @@ export default function PublicReportPage() {
                 <div className="flex items-center gap-2 mb-2">
                   {getTrendIcon(reportCard.trends.scoreTrend)}
                   <span className="text-sm font-medium">
-                    {reportCard.trends.scoreTrend === 'improving' ? 'Improving' : 
-                     reportCard.trends.scoreTrend === 'declining' ? 'Declining' : 'Stable'}
+                    {reportCard.trends.scoreTrend === "improving"
+                      ? "Improving"
+                      : reportCard.trends.scoreTrend === "declining"
+                        ? "Declining"
+                        : "Stable"}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500">
@@ -256,9 +257,7 @@ export default function PublicReportPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{reportCard.totalRuns}</div>
-              <p className="text-xs text-gray-500 mt-1">
-                {reportCard.completedRuns} completed
-              </p>
+              <p className="text-xs text-gray-500 mt-1">{reportCard.completedRuns} completed</p>
             </CardContent>
           </Card>
 
@@ -307,8 +306,8 @@ export default function PublicReportPage() {
                     <span className="text-sm font-medium">{range}</span>
                     <div className="flex items-center gap-2">
                       <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
                           style={{ width: `${(count / reportCard.totalRuns) * 100}%` }}
                         ></div>
                       </div>
@@ -329,27 +328,32 @@ export default function PublicReportPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {Object.entries(reportCard.performance.statusDistribution).map(([status, count]) => (
-                  <div key={status} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(status)}
-                      <span className="text-sm font-medium capitalize">{status}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className={cn(
-                            "h-2 rounded-full",
-                            status === 'passed' ? 'bg-green-600' : 
-                            status === 'failed' ? 'bg-red-600' : 'bg-yellow-600'
-                          )}
-                          style={{ width: `${(count / reportCard.totalRuns) * 100}%` }}
-                        ></div>
+                {Object.entries(reportCard.performance.statusDistribution).map(
+                  ([status, count]) => (
+                    <div key={status} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(status)}
+                        <span className="text-sm font-medium capitalize">{status}</span>
                       </div>
-                      <span className="text-sm text-gray-600 w-8">{count}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                          <div
+                            className={cn(
+                              "h-2 rounded-full",
+                              status === "passed"
+                                ? "bg-green-600"
+                                : status === "failed"
+                                  ? "bg-red-600"
+                                  : "bg-yellow-600",
+                            )}
+                            style={{ width: `${(count / reportCard.totalRuns) * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm text-gray-600 w-8">{count}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ),
+                )}
               </div>
             </CardContent>
           </Card>
@@ -370,19 +374,27 @@ export default function PublicReportPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Total Judged:</span>
-                    <span className="font-medium">{reportCard.quality.judgeResults.totalJudged}</span>
+                    <span className="font-medium">
+                      {reportCard.quality.judgeResults.totalJudged}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Avg Judge Score:</span>
-                    <span className="font-medium">{reportCard.quality.judgeResults.averageJudgeScore.toFixed(1)}</span>
+                    <span className="font-medium">
+                      {reportCard.quality.judgeResults.averageJudgeScore.toFixed(1)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Passed:</span>
-                    <span className="font-medium text-green-600">{reportCard.quality.judgeResults.passedJudged}</span>
+                    <span className="font-medium text-green-600">
+                      {reportCard.quality.judgeResults.passedJudged}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Failed:</span>
-                    <span className="font-medium text-red-600">{reportCard.quality.judgeResults.failedJudged}</span>
+                    <span className="font-medium text-red-600">
+                      {reportCard.quality.judgeResults.failedJudged}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -392,15 +404,21 @@ export default function PublicReportPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Std Deviation:</span>
-                    <span className="font-medium">{reportCard.quality.consistency.scoreStdDev.toFixed(2)}</span>
+                    <span className="font-medium">
+                      {reportCard.quality.consistency.scoreStdDev.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Variance:</span>
-                    <span className="font-medium">{reportCard.quality.consistency.scoreVariance.toFixed(2)}</span>
+                    <span className="font-medium">
+                      {reportCard.quality.consistency.scoreVariance.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Coefficient of Variation:</span>
-                    <span className="font-medium">{(reportCard.quality.consistency.coefficientOfVariation * 100).toFixed(1)}%</span>
+                    <span className="font-medium">
+                      {(reportCard.quality.consistency.coefficientOfVariation * 100).toFixed(1)}%
+                    </span>
                   </div>
                 </div>
               </div>
@@ -417,17 +435,25 @@ export default function PublicReportPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Change:</span>
-                    <span className={cn(
-                      "font-medium",
-                      reportCard.trends.performanceChange > 0 ? "text-green-600" : 
-                      reportCard.trends.performanceChange < 0 ? "text-red-600" : "text-gray-600"
-                    )}>
-                      {reportCard.trends.performanceChange > 0 ? '+' : ''}{reportCard.trends.performanceChange.toFixed(1)}%
+                    <span
+                      className={cn(
+                        "font-medium",
+                        reportCard.trends.performanceChange > 0
+                          ? "text-green-600"
+                          : reportCard.trends.performanceChange < 0
+                            ? "text-red-600"
+                            : "text-gray-600",
+                      )}
+                    >
+                      {reportCard.trends.performanceChange > 0 ? "+" : ""}
+                      {reportCard.trends.performanceChange.toFixed(1)}%
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Recent Runs:</span>
-                    <span className="font-medium">{reportCard.trends.recentPerformance.length}</span>
+                    <span className="font-medium">
+                      {reportCard.trends.recentPerformance.length}
+                    </span>
                   </div>
                 </div>
               </div>

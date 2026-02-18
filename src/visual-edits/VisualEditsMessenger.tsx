@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const CHANNEL = "ORCHIDS_HOVER_v1" as const;
 const VISUAL_EDIT_MODE_KEY = "orchids_visual_edit_mode" as const;
@@ -168,11 +168,7 @@ const isTextEditable = (element: HTMLElement): boolean => {
   ];
 
   // Check if it's already contentEditable or an input/textarea
-  if (
-    element.contentEditable === "true" ||
-    tagName === "input" ||
-    tagName === "textarea"
-  ) {
+  if (element.contentEditable === "true" || tagName === "input" || tagName === "textarea") {
     return true;
   }
 
@@ -181,16 +177,13 @@ const isTextEditable = (element: HTMLElement): boolean => {
   if (editableTags.includes(tagName) && element.textContent?.trim()) {
     // Check if element has direct text nodes (not just text from children)
     const hasDirectText = Array.from(element.childNodes).some(
-      (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim()
+      (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim(),
     );
 
     // Allow editing if:
     // 1. Element has no children (pure text element)
     // 2. Element has 1 or fewer children AND has direct text content
-    if (
-      element.childElementCount === 0 ||
-      (element.childElementCount <= 1 && hasDirectText)
-    ) {
+    if (element.childElementCount === 0 || (element.childElementCount <= 1 && hasDirectText)) {
       return true;
     }
   }
@@ -211,25 +204,25 @@ const extractDirectTextContent = (element: HTMLElement): string => {
 
 // Helper to parse data-orchids-id to extract file path, line, and column
 const parseOrchidsId = (
-  orchidsId: string
+  orchidsId: string,
 ): { filePath: string; line: number; column: number } | null => {
   // Format: "filepath:line:column"
   const parts = orchidsId.split(":");
   if (parts.length < 3) return null;
 
   // The file path might contain colons, so we need to handle that
-  const column = parseInt(parts.pop() || "0");
-  const line = parseInt(parts.pop() || "0");
+  const column = parseInt(parts.pop() || "0", 10);
+  const line = parseInt(parts.pop() || "0", 10);
   const filePath = parts.join(":"); // Rejoin the remaining parts as the file path
 
-  if (isNaN(line) || isNaN(column)) return null;
+  if (Number.isNaN(line) || Number.isNaN(column)) return null;
 
   return { filePath, line, column };
 };
 
 // Helper to get current styles of an element (including inline styles)
 const getCurrentStyles = (
-  element: HTMLElement
+  element: HTMLElement,
 ): {
   fontSize?: string;
   color?: string;
@@ -294,8 +287,8 @@ const getCurrentStyles = (
 
     // Handle font weight - normalize to standard values
     if (property === "fontWeight") {
-      const weight = parseInt(value);
-      if (!isNaN(weight)) {
+      const weight = parseInt(value, 10);
+      if (!Number.isNaN(weight)) {
         return String(weight);
       }
       return value || "400";
@@ -320,10 +313,7 @@ const getCurrentStyles = (
     }
 
     // Handle letter spacing - if normal, return "normal"
-    if (
-      property === "letterSpacing" &&
-      (value === "normal" || value === "0px")
-    ) {
+    if (property === "letterSpacing" && (value === "normal" || value === "0px")) {
       return "normal";
     }
 
@@ -352,14 +342,8 @@ const getCurrentStyles = (
     marginRight: normalizeValue(computed.marginRight, "marginRight"),
     marginTop: normalizeValue(computed.marginTop, "marginTop"),
     marginBottom: normalizeValue(computed.marginBottom, "marginBottom"),
-    backgroundColor: normalizeValue(
-      computed.backgroundColor,
-      "backgroundColor"
-    ),
-    backgroundImage: normalizeValue(
-      computed.backgroundImage,
-      "backgroundImage"
-    ),
+    backgroundColor: normalizeValue(computed.backgroundColor, "backgroundColor"),
+    backgroundImage: normalizeValue(computed.backgroundImage, "backgroundImage"),
     borderRadius: normalizeValue(computed.borderRadius, "borderRadius"),
     fontFamily: normalizeValue(computed.fontFamily, "fontFamily"),
     opacity: normalizeValue(computed.opacity, "opacity"),
@@ -436,9 +420,7 @@ export default function HoverReceiver() {
   const wasEditableRef = useRef<boolean>(false);
   const styleElementRef = useRef<HTMLStyleElement | null>(null);
   const originalStylesRef = useRef<Record<string, string>>({});
-  const appliedStylesRef = useRef<Map<string, Record<string, string>>>(
-    new Map()
-  );
+  const appliedStylesRef = useRef<Map<string, Record<string, string>>>(new Map());
   const hasStyleChangesRef = useRef<boolean>(false);
   const lastClickTimeRef = useRef<number>(0);
   const pendingCleanupRef = useRef<NodeJS.Timeout | null>(null);
@@ -464,15 +446,12 @@ export default function HoverReceiver() {
     if (isVisualEditMode) {
       // Send acknowledgement to parent that visual edit mode is active
       // This will sync the parent's state with our restored state
-      window.parent.postMessage(
-        { type: CHANNEL, msg: "VISUAL_EDIT_MODE_ACK", active: true },
-        "*"
-      );
+      window.parent.postMessage({ type: CHANNEL, msg: "VISUAL_EDIT_MODE_ACK", active: true }, "*");
 
       // Also send a special message to indicate this was restored from localStorage
       window.parent.postMessage(
         { type: CHANNEL, msg: "VISUAL_EDIT_MODE_RESTORED", active: true },
-        "*"
+        "*",
       );
 
       // Restore focused element after a short delay to ensure DOM is ready
@@ -483,9 +462,7 @@ export default function HoverReceiver() {
           if (focusedData) {
             try {
               const { id } = JSON.parse(focusedData);
-              const element = document.querySelector(
-                `[data-orchids-id="${id}"]`
-              ) as HTMLElement;
+              const element = document.querySelector(`[data-orchids-id="${id}"]`) as HTMLElement;
 
               if (element) {
                 // Simulate a click on the element to restore focus
@@ -505,7 +482,7 @@ export default function HoverReceiver() {
         }
       }, 500); // Wait 500ms for DOM to be fully ready
     }
-  }, []); // Run only on mount
+  }, [isVisualEditMode]); // Run only on mount
 
   // Helper function to expand box dimensions
   const expandBox = (rect: DOMRect): Box => ({
@@ -594,9 +571,7 @@ export default function HoverReceiver() {
 
   // Helper to restore child elements after editing
   const restoreChildElements = (element: HTMLElement) => {
-    const protectedElements = element.querySelectorAll(
-      '[data-orchids-protected="true"]'
-    );
+    const protectedElements = element.querySelectorAll('[data-orchids-protected="true"]');
     protectedElements.forEach((child) => {
       const childEl = child as HTMLElement;
       childEl.removeAttribute("contenteditable");
@@ -659,10 +634,7 @@ export default function HoverReceiver() {
   };
 
   // Handle style changes and send to parent
-  const handleStyleChange = (
-    element: HTMLElement,
-    styles: Record<string, string>
-  ) => {
+  const handleStyleChange = (element: HTMLElement, styles: Record<string, string>) => {
     const orchidsId = element.getAttribute("data-orchids-id");
     if (!orchidsId) return;
 
@@ -671,7 +643,7 @@ export default function HoverReceiver() {
 
     // Find ALL elements with the same orchids ID
     const allMatchingElements = document.querySelectorAll(
-      `[data-orchids-id="${orchidsId}"]`
+      `[data-orchids-id="${orchidsId}"]`,
     ) as NodeListOf<HTMLElement>;
 
     // Apply styles to ALL matching elements for visual feedback
@@ -686,9 +658,7 @@ export default function HoverReceiver() {
         // If backgroundColor is being set to transparent, use transparent keyword
         if (
           property === "backgroundColor" &&
-          (value === "transparent" ||
-            value === "rgba(0, 0, 0, 0)" ||
-            value === "rgb(0, 0, 0, 0)")
+          (value === "transparent" || value === "rgba(0, 0, 0, 0)" || value === "rgb(0, 0, 0, 0)")
         ) {
           finalValue = "transparent";
         }
@@ -700,8 +670,7 @@ export default function HoverReceiver() {
           (property === "textDecoration" && value === "none") ||
           (property === "fontStyle" && value === "normal") ||
           (property === "opacity" && value === "1") ||
-          ((property.includes("padding") || property.includes("margin")) &&
-            value === "0") ||
+          ((property.includes("padding") || property.includes("margin")) && value === "0") ||
           (property === "borderRadius" && value === "0") ||
           (property === "letterSpacing" && value === "normal") ||
           (property === "gap" && value === "normal")
@@ -804,12 +773,12 @@ export default function HoverReceiver() {
 
         // Find ALL elements with the same orchids ID
         const allMatchingElements = document.querySelectorAll(
-          `[data-orchids-id="${elementId}"]`
+          `[data-orchids-id="${elementId}"]`,
         ) as NodeListOf<HTMLElement>;
 
         if (allMatchingElements.length > 0) {
           // If fontFamily is present ensure stylesheet loaded first
-          const fam = styles.fontFamily || styles["fontFamily"];
+          const fam = styles.fontFamily || styles.fontFamily;
           if (fam) {
             const familyKey = fam.replace(/['\s]+/g, "+");
             if (!loadedFontFamilies.current.has(familyKey)) {
@@ -826,8 +795,7 @@ export default function HoverReceiver() {
             persistentFontMap.current.set(elementId, fam);
 
             // Clear any existing timeout
-            const existingTimeout =
-              persistentFontTimeouts.current.get(elementId);
+            const existingTimeout = persistentFontTimeouts.current.get(elementId);
             if (existingTimeout) {
               clearTimeout(existingTimeout);
             }
@@ -849,9 +817,7 @@ export default function HoverReceiver() {
             } else {
               // For other elements, apply styles directly
               Object.entries(styles).forEach(([property, value]) => {
-                const cssProp = property
-                  .replace(/([A-Z])/g, "-$1")
-                  .toLowerCase();
+                const cssProp = property.replace(/([A-Z])/g, "-$1").toLowerCase();
 
                 // Handle special cases for default values
                 let finalValue = String(value);
@@ -868,14 +834,12 @@ export default function HoverReceiver() {
 
                 // If removing styles (setting to default), remove the property
                 if (
-                  (property === "backgroundColor" &&
-                    finalValue === "transparent") ||
+                  (property === "backgroundColor" && finalValue === "transparent") ||
                   (property === "backgroundImage" && value === "none") ||
                   (property === "textDecoration" && value === "none") ||
                   (property === "fontStyle" && value === "normal") ||
                   (property === "opacity" && value === "1") ||
-                  ((property.includes("padding") ||
-                    property.includes("margin")) &&
+                  ((property.includes("padding") || property.includes("margin")) &&
                     value === "0") ||
                   (property === "borderRadius" && value === "0") ||
                   (property === "letterSpacing" && value === "normal") ||
@@ -893,9 +857,7 @@ export default function HoverReceiver() {
       } else if (e.data?.type === "ORCHIDS_IMAGE_UPDATE") {
         const { elementId, src, oldSrc } = e.data;
         let element: HTMLImageElement | null = null;
-        const candidates = document.querySelectorAll(
-          `[data-orchids-id="${elementId}"]`
-        );
+        const candidates = document.querySelectorAll(`[data-orchids-id="${elementId}"]`);
         candidates.forEach((el) => {
           if (el.tagName.toLowerCase() === "img") {
             const img = el as HTMLImageElement;
@@ -911,31 +873,26 @@ export default function HoverReceiver() {
 
         if ((element as HTMLElement).tagName.toLowerCase() === "img") {
           const imgEl = element as HTMLImageElement;
+          /*
+           * Clear any existing responsive sources so the newly uploaded image
+           * always displays.  Some frameworks (e.g. Next.js) add a `srcset`
+           * attribute which can override `src` in certain viewport/device
+           * scenarios, so we strip it out before setting the new source.
+           */
+          imgEl.removeAttribute("srcset");
+          imgEl.srcset = "";
 
-          {
-            /*
-             * Clear any existing responsive sources so the newly uploaded image
-             * always displays.  Some frameworks (e.g. Next.js) add a `srcset`
-             * attribute which can override `src` in certain viewport/device
-             * scenarios, so we strip it out before setting the new source.
-             */
-            imgEl.removeAttribute("srcset");
-            imgEl.srcset = "";
+          imgEl.src = src;
 
-            imgEl.src = src;
+          // Update baseline src so flush doesn't treat this as pending change
+          originalSrcRef.current = normalizeImageSrc(src);
+          focusedImageElementRef.current = imgEl;
 
-            // Update baseline src so flush doesn't treat this as pending change
-            originalSrcRef.current = normalizeImageSrc(src);
-            focusedImageElementRef.current = imgEl;
-
-            imgEl.onload = () => updateFocusBox();
-          }
+          imgEl.onload = () => updateFocusBox();
         }
       } else if (e.data?.type === "RESIZE_ELEMENT") {
         const { elementId, width, height } = e.data;
-        const element = document.querySelector(
-          `[data-orchids-id="${elementId}"]`
-        ) as HTMLElement;
+        const element = document.querySelector(`[data-orchids-id="${elementId}"]`) as HTMLElement;
 
         if (element && focusedElementRef.current === element) {
           // Apply temporary resize styles
@@ -950,7 +907,10 @@ export default function HoverReceiver() {
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, []);
+  }, [
+    handleStyleChange, // Update focus box
+    updateFocusBox,
+  ]);
 
   // Handle resize
   const handleResizeStart = (e: React.MouseEvent, handle: string) => {
@@ -986,13 +946,7 @@ export default function HoverReceiver() {
 
   // Handle resize move
   useEffect(() => {
-    if (
-      !isResizing ||
-      !resizeStart ||
-      !resizeHandle ||
-      !focusedElementRef.current
-    )
-      return;
+    if (!isResizing || !resizeStart || !resizeHandle || !focusedElementRef.current) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       const dx = e.clientX - resizeStart.x;
@@ -1017,10 +971,8 @@ export default function HoverReceiver() {
         const parentPaddingTop = parseFloat(parentStyles.paddingTop) || 0;
         const parentPaddingBottom = parseFloat(parentStyles.paddingBottom) || 0;
 
-        const maxWidth =
-          parentRect.width - parentPaddingLeft - parentPaddingRight;
-        const maxHeight =
-          parentRect.height - parentPaddingTop - parentPaddingBottom;
+        const maxWidth = parentRect.width - parentPaddingLeft - parentPaddingRight;
+        const maxHeight = parentRect.height - parentPaddingTop - parentPaddingBottom;
 
         /*
          * Soft-clamp strategy: we respect the parent’s max size until the
@@ -1032,15 +984,9 @@ export default function HoverReceiver() {
         const exceedsWidth = newWidth > maxWidth;
         const exceedsHeight = newHeight > maxHeight;
 
-        newWidth = Math.max(
-          20,
-          exceedsWidth ? newWidth : Math.min(newWidth, maxWidth)
-        );
+        newWidth = Math.max(20, exceedsWidth ? newWidth : Math.min(newWidth, maxWidth));
 
-        newHeight = Math.max(
-          20,
-          exceedsHeight ? newHeight : Math.min(newHeight, maxHeight)
-        );
+        newHeight = Math.max(20, exceedsHeight ? newHeight : Math.min(newHeight, maxHeight));
       } else {
         // Fallback to minimum dimensions if no parent
         newWidth = Math.max(20, newWidth);
@@ -1062,7 +1008,7 @@ export default function HoverReceiver() {
             width: Math.round(newWidth),
             height: Math.round(newHeight),
           },
-          "*"
+          "*",
         );
       }
     };
@@ -1077,10 +1023,8 @@ export default function HoverReceiver() {
         // Check if element has max-width/max-height constraints
         const maxWidth = computedStyle.maxWidth;
         const maxHeight = computedStyle.maxHeight;
-        const hasMaxWidth =
-          maxWidth && maxWidth !== "none" && maxWidth !== "initial";
-        const hasMaxHeight =
-          maxHeight && maxHeight !== "none" && maxHeight !== "initial";
+        const hasMaxWidth = maxWidth && maxWidth !== "none" && maxWidth !== "initial";
+        const hasMaxHeight = maxHeight && maxHeight !== "none" && maxHeight !== "initial";
 
         // Try to use relative units when possible
         const parent = element.parentElement;
@@ -1093,13 +1037,10 @@ export default function HoverReceiver() {
           const parentPaddingLeft = parseFloat(parentStyles.paddingLeft) || 0;
           const parentPaddingRight = parseFloat(parentStyles.paddingRight) || 0;
           const parentPaddingTop = parseFloat(parentStyles.paddingTop) || 0;
-          const parentPaddingBottom =
-            parseFloat(parentStyles.paddingBottom) || 0;
+          const parentPaddingBottom = parseFloat(parentStyles.paddingBottom) || 0;
 
-          const parentInnerWidth =
-            parentRect.width - parentPaddingLeft - parentPaddingRight;
-          const parentInnerHeight =
-            parentRect.height - parentPaddingTop - parentPaddingBottom;
+          const parentInnerWidth = parentRect.width - parentPaddingLeft - parentPaddingRight;
+          const parentInnerHeight = parentRect.height - parentPaddingTop - parentPaddingBottom;
 
           // If the element takes up a significant portion of parent, use percentage
           const widthPercent = (width / parentInnerWidth) * 100;
@@ -1108,9 +1049,7 @@ export default function HoverReceiver() {
           // Use percentage if it's a round number or close to common values
           if (
             Math.abs(widthPercent - Math.round(widthPercent)) < 0.1 ||
-            [25, 33.333, 50, 66.667, 75, 100].some(
-              (v) => Math.abs(widthPercent - v) < 0.5
-            )
+            [25, 33.333, 50, 66.667, 75, 100].some((v) => Math.abs(widthPercent - v) < 0.5)
           ) {
             widthValue = `${Math.round(widthPercent * 10) / 10}%`;
           }
@@ -1287,7 +1226,7 @@ export default function HoverReceiver() {
       // Clear image element reference
       focusedImageElementRef.current = null;
     }
-  }, [isVisualEditMode]);
+  }, [isVisualEditMode, cleanupEditingElement]);
 
   // Update focus box position when scrolling or resizing
   useEffect(() => {
@@ -1328,7 +1267,7 @@ export default function HoverReceiver() {
         resizeObserver.disconnect();
       };
     }
-  }, [focusedElementId]);
+  }, [focusedElementId, expandBox, updateFocusBox]);
 
   useEffect(() => {
     // Handle pointer movement directly in the iframe
@@ -1380,13 +1319,12 @@ export default function HoverReceiver() {
 
         lastHitIdRef.current = hitId;
 
-        const tagName =
-          hit.getAttribute("data-orchids-name") || hit.tagName.toLowerCase();
+        const tagName = hit.getAttribute("data-orchids-name") || hit.tagName.toLowerCase();
 
         // Update hover boxes immediately for instant feedback
         // Find ALL elements with the same orchids ID
         const allMatchingElements = document.querySelectorAll(
-          `[data-orchids-id="${hitId}"]`
+          `[data-orchids-id="${hitId}"]`,
         ) as NodeListOf<HTMLElement>;
 
         // Create hover boxes for all matching elements except the focused one
@@ -1422,10 +1360,7 @@ export default function HoverReceiver() {
           msg: "HIT",
           id: hitId,
           tag: tagName,
-          rect:
-            hitId !== focusedElementId
-              ? expandBox(hit.getBoundingClientRect())
-              : null,
+          rect: hitId !== focusedElementId ? expandBox(hit.getBoundingClientRect()) : null,
         };
         postMessageDedup(msg);
       }
@@ -1462,9 +1397,7 @@ export default function HoverReceiver() {
       // Only handle if visual edit mode is active
       if (!isVisualEditModeRef.current) return;
 
-      const hit = (e.target as HTMLElement)?.closest<HTMLElement>(
-        "[data-orchids-id]"
-      );
+      const hit = (e.target as HTMLElement)?.closest<HTMLElement>("[data-orchids-id]");
 
       if (hit && isTextEditable(hit)) {
         // Store whether it was already editable
@@ -1476,7 +1409,7 @@ export default function HoverReceiver() {
           const currentStyle = hit.getAttribute("style") || "";
           hit.setAttribute(
             "style",
-            `${currentStyle}; outline: none !important; box-shadow: none !important;`
+            `${currentStyle}; outline: none !important; box-shadow: none !important;`,
           );
 
           hit.contentEditable = "true";
@@ -1506,8 +1439,7 @@ export default function HoverReceiver() {
       const hit = target.closest<HTMLElement>("[data-orchids-id]");
 
       if (hit) {
-        const tagName =
-          hit.getAttribute("data-orchids-name") || hit.tagName.toLowerCase();
+        const tagName = hit.getAttribute("data-orchids-name") || hit.tagName.toLowerCase();
 
         const hitId = hit.getAttribute("data-orchids-id");
         const isEditable = isTextEditable(hit);
@@ -1515,8 +1447,7 @@ export default function HoverReceiver() {
         // Always prevent default for non-text interactions
         const isLink = hit.tagName.toLowerCase() === "a" || !!hit.closest("a");
         const isButton =
-          hit.tagName.toLowerCase() === "button" ||
-          hit.getAttribute("role") === "button";
+          hit.tagName.toLowerCase() === "button" || hit.getAttribute("role") === "button";
 
         // Prevent navigation and button actions
         if (isLink || isButton || !isEditable) {
@@ -1538,15 +1469,12 @@ export default function HoverReceiver() {
             id: hitId,
             tag: tagName,
           };
-          localStorage.setItem(
-            FOCUSED_ELEMENT_KEY,
-            JSON.stringify(focusedElementData)
-          );
+          localStorage.setItem(FOCUSED_ELEMENT_KEY, JSON.stringify(focusedElementData));
         }
 
         // Find ALL other elements with the same orchids ID and show hover boxes
         const allMatchingElements = document.querySelectorAll(
-          `[data-orchids-id="${hitId}"]`
+          `[data-orchids-id="${hitId}"]`,
         ) as NodeListOf<HTMLElement>;
 
         // Create hover boxes for all matching elements except the focused one
@@ -1600,8 +1528,7 @@ export default function HoverReceiver() {
             if (hit.childElementCount > 0) {
               originalContentRef.current = extractDirectTextContent(hit);
             } else {
-              originalContentRef.current =
-                hit.innerText || hit.textContent || "";
+              originalContentRef.current = hit.innerText || hit.textContent || "";
             }
 
             // Create handlers with current element reference
@@ -1617,11 +1544,9 @@ export default function HoverReceiver() {
 
                 // Update original content - for elements with children, only store direct text
                 if (element.childElementCount > 0) {
-                  originalContentRef.current =
-                    extractDirectTextContent(element);
+                  originalContentRef.current = extractDirectTextContent(element);
                 } else {
-                  originalContentRef.current =
-                    element.innerText || element.textContent || "";
+                  originalContentRef.current = element.innerText || element.textContent || "";
                 }
 
                 // Style blur above resets the flag – keep it in sync.
@@ -1677,9 +1602,7 @@ export default function HoverReceiver() {
 
         // Get src for images & track original
         const srcRaw =
-          hit.tagName.toLowerCase() === "img"
-            ? (hit as HTMLImageElement).src
-            : undefined;
+          hit.tagName.toLowerCase() === "img" ? (hit as HTMLImageElement).src : undefined;
 
         if (srcRaw) {
           originalSrcRef.current = normalizeImageSrc(srcRaw);
@@ -1797,7 +1720,7 @@ export default function HoverReceiver() {
         }
 
         const element = document.querySelector(
-          `[data-orchids-id="${elementId}"]`
+          `[data-orchids-id="${elementId}"]`,
         ) as HTMLElement | null;
         if (!element) return;
 
@@ -1835,7 +1758,7 @@ export default function HoverReceiver() {
         // Send acknowledgement back to parent so it knows we received the mode change
         window.parent.postMessage(
           { type: CHANNEL, msg: "VISUAL_EDIT_MODE_ACK", active: newMode },
-          "*"
+          "*",
         );
 
         if (!newMode) {
@@ -1877,7 +1800,7 @@ export default function HoverReceiver() {
       if (e.data.msg === "CLEAR_INLINE_STYLES" && "elementId" in e.data) {
         // Find ALL elements with the same orchids ID
         const allMatchingElements = document.querySelectorAll(
-          `[data-orchids-id="${e.data.elementId}"]`
+          `[data-orchids-id="${e.data.elementId}"]`,
         ) as NodeListOf<HTMLElement>;
 
         allMatchingElements.forEach((element) => {
@@ -1923,7 +1846,7 @@ export default function HoverReceiver() {
 
         // Find ALL elements with the same orchids ID
         const allMatchingElements = document.querySelectorAll(
-          `[data-orchids-id="${elementId}"]`
+          `[data-orchids-id="${elementId}"]`,
         ) as NodeListOf<HTMLElement>;
 
         if (allMatchingElements.length > 0) {
@@ -1940,9 +1863,7 @@ export default function HoverReceiver() {
             boxes.push(expandBox(rect));
 
             if (!tagName) {
-              tagName =
-                element.getAttribute("data-orchids-name") ||
-                element.tagName.toLowerCase();
+              tagName = element.getAttribute("data-orchids-name") || element.tagName.toLowerCase();
             }
           });
 
@@ -2004,7 +1925,17 @@ export default function HoverReceiver() {
       window.removeEventListener("scroll", onScroll, true);
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
-  }, [focusedElementId, isResizing]); // Added focusedElementId and isResizing as dependencies
+  }, [
+    focusedElementId, // Clean up any editing element
+    cleanupEditingElement,
+    expandBox, // already handled, flush too
+    // Flush image src change for current focus
+    flushImageSrcChange,
+    handleStyleBlur,
+    handleTextChange,
+    isScrolling,
+    protectChildElements,
+  ]); // Added focusedElementId and isResizing as dependencies
 
   return (
     <>
@@ -2036,12 +1967,12 @@ export default function HoverReceiver() {
                       // Position below the element if it's too close to the top of the viewport
                       top: box.top < 30 ? box.top + box.height + 4 : box.top - 20,
                       // Add a small shadow for better visibility
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
                       // Ensure text doesn't get cut off
-                      maxWidth: '200px',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
+                      maxWidth: "200px",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
                     }}
                   >
                     {hoverTag}

@@ -2,11 +2,11 @@
 // Based on Hamel Husain's evaluation methodology
 
 export interface AssertionResult {
-  name: string
-  passed: boolean
-  expected: any
-  actual: any
-  message?: string
+  name: string;
+  passed: boolean;
+  expected: any;
+  actual: any;
+  message?: string;
 }
 
 export class AssertionError extends Error {
@@ -15,68 +15,87 @@ export class AssertionError extends Error {
     public expected: any,
     public actual: any,
   ) {
-    super(message)
-    this.name = "AssertionError"
+    super(message);
+    this.name = "AssertionError";
   }
 }
 
 // Core assertion functions
 export function assertEquals(actual: any, expected: any, message?: string): AssertionResult {
-  const passed = JSON.stringify(actual) === JSON.stringify(expected)
+  const passed = JSON.stringify(actual) === JSON.stringify(expected);
   return {
     name: "assertEquals",
     passed,
     expected,
     actual,
     message:
-      message || (passed ? "Values are equal" : `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`),
-  }
+      message ||
+      (passed
+        ? "Values are equal"
+        : `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`),
+  };
 }
 
 export function assertContains(text: string, substring: string, message?: string): AssertionResult {
-  const passed = text.includes(substring)
+  const passed = text.includes(substring);
   return {
     name: "assertContains",
     passed,
     expected: substring,
     actual: text,
-    message: message || (passed ? `Text contains "${substring}"` : `Text does not contain "${substring}"`),
-  }
+    message:
+      message || (passed ? `Text contains "${substring}"` : `Text does not contain "${substring}"`),
+  };
 }
 
-export function assertNotContains(text: string, substring: string, message?: string): AssertionResult {
-  const passed = !text.includes(substring)
+export function assertNotContains(
+  text: string,
+  substring: string,
+  message?: string,
+): AssertionResult {
+  const passed = !text.includes(substring);
   return {
     name: "assertNotContains",
     passed,
     expected: `not containing "${substring}"`,
     actual: text,
-    message: message || (passed ? `Text does not contain "${substring}"` : `Text contains "${substring}"`),
-  }
+    message:
+      message || (passed ? `Text does not contain "${substring}"` : `Text contains "${substring}"`),
+  };
 }
 
 export function assertMatches(text: string, pattern: RegExp, message?: string): AssertionResult {
-  const passed = pattern.test(text)
+  const passed = pattern.test(text);
   return {
     name: "assertMatches",
     passed,
     expected: pattern.toString(),
     actual: text,
-    message: message || (passed ? `Text matches pattern ${pattern}` : `Text does not match pattern ${pattern}`),
-  }
+    message:
+      message ||
+      (passed ? `Text matches pattern ${pattern}` : `Text does not match pattern ${pattern}`),
+  };
 }
 
-export function assertLengthBetween(text: string, min: number, max: number, message?: string): AssertionResult {
-  const length = text.length
-  const passed = length >= min && length <= max
+export function assertLengthBetween(
+  text: string,
+  min: number,
+  max: number,
+  message?: string,
+): AssertionResult {
+  const length = text.length;
+  const passed = length >= min && length <= max;
   return {
     name: "assertLengthBetween",
     passed,
     expected: `length between ${min} and ${max}`,
     actual: length,
     message:
-      message || (passed ? `Length ${length} is within range` : `Length ${length} is not between ${min} and ${max}`),
-  }
+      message ||
+      (passed
+        ? `Length ${length} is within range`
+        : `Length ${length} is not between ${min} and ${max}`),
+  };
 }
 
 export function assertSentiment(
@@ -85,23 +104,43 @@ export function assertSentiment(
   message?: string,
 ): AssertionResult {
   // Simple sentiment analysis based on keywords
-  const positiveWords = ["good", "great", "excellent", "amazing", "wonderful", "fantastic", "love", "best", "happy"]
-  const negativeWords = ["bad", "terrible", "awful", "horrible", "worst", "hate", "poor", "disappointing", "sad"]
+  const positiveWords = [
+    "good",
+    "great",
+    "excellent",
+    "amazing",
+    "wonderful",
+    "fantastic",
+    "love",
+    "best",
+    "happy",
+  ];
+  const negativeWords = [
+    "bad",
+    "terrible",
+    "awful",
+    "horrible",
+    "worst",
+    "hate",
+    "poor",
+    "disappointing",
+    "sad",
+  ];
 
-  const lowerText = text.toLowerCase()
-  const positiveCount = positiveWords.filter((word) => lowerText.includes(word)).length
-  const negativeCount = negativeWords.filter((word) => lowerText.includes(word)).length
+  const lowerText = text.toLowerCase();
+  const positiveCount = positiveWords.filter((word) => lowerText.includes(word)).length;
+  const negativeCount = negativeWords.filter((word) => lowerText.includes(word)).length;
 
-  let actualSentiment: "positive" | "negative" | "neutral"
+  let actualSentiment: "positive" | "negative" | "neutral";
   if (positiveCount > negativeCount) {
-    actualSentiment = "positive"
+    actualSentiment = "positive";
   } else if (negativeCount > positiveCount) {
-    actualSentiment = "negative"
+    actualSentiment = "negative";
   } else {
-    actualSentiment = "neutral"
+    actualSentiment = "neutral";
   }
 
-  const passed = actualSentiment === expectedSentiment
+  const passed = actualSentiment === expectedSentiment;
   return {
     name: "assertSentiment",
     passed,
@@ -112,18 +151,18 @@ export function assertSentiment(
       (passed
         ? `Sentiment is ${expectedSentiment}`
         : `Expected ${expectedSentiment} sentiment, got ${actualSentiment}`),
-  }
+  };
 }
 
 export function assertJsonValid(text: string, message?: string): AssertionResult {
-  let passed = false
-  let parsedJson = null
+  let passed = false;
+  let parsedJson = null;
 
   try {
-    parsedJson = JSON.parse(text)
-    passed = true
-  } catch (e) {
-    passed = false
+    parsedJson = JSON.parse(text);
+    passed = true;
+  } catch (_e) {
+    passed = false;
   }
 
   return {
@@ -132,22 +171,26 @@ export function assertJsonValid(text: string, message?: string): AssertionResult
     expected: "valid JSON",
     actual: passed ? parsedJson : text,
     message: message || (passed ? "Text is valid JSON" : "Text is not valid JSON"),
-  }
+  };
 }
 
-export function assertJsonSchema(text: string, schema: Record<string, any>, message?: string): AssertionResult {
-  let passed = false
-  let parsedJson = null
+export function assertJsonSchema(
+  text: string,
+  schema: Record<string, any>,
+  message?: string,
+): AssertionResult {
+  let passed = false;
+  let parsedJson = null;
 
   try {
-    parsedJson = JSON.parse(text)
+    parsedJson = JSON.parse(text);
 
     // Simple schema validation - check if all required keys exist
-    const requiredKeys = Object.keys(schema)
-    const actualKeys = Object.keys(parsedJson)
-    passed = requiredKeys.every((key) => actualKeys.includes(key))
-  } catch (e) {
-    passed = false
+    const requiredKeys = Object.keys(schema);
+    const actualKeys = Object.keys(parsedJson);
+    passed = requiredKeys.every((key) => actualKeys.includes(key));
+  } catch (_e) {
+    passed = false;
   }
 
   return {
@@ -156,41 +199,54 @@ export function assertJsonSchema(text: string, schema: Record<string, any>, mess
     expected: schema,
     actual: parsedJson,
     message: message || (passed ? "JSON matches schema" : "JSON does not match schema"),
-  }
+  };
 }
 
-export function assertLatency(durationMs: number, maxMs: number, message?: string): AssertionResult {
-  const passed = durationMs <= maxMs
+export function assertLatency(
+  durationMs: number,
+  maxMs: number,
+  message?: string,
+): AssertionResult {
+  const passed = durationMs <= maxMs;
   return {
     name: "assertLatency",
     passed,
     expected: `<= ${maxMs}ms`,
     actual: `${durationMs}ms`,
     message:
-      message || (passed ? `Latency ${durationMs}ms is within limit` : `Latency ${durationMs}ms exceeds ${maxMs}ms`),
-  }
+      message ||
+      (passed
+        ? `Latency ${durationMs}ms is within limit`
+        : `Latency ${durationMs}ms exceeds ${maxMs}ms`),
+  };
 }
 
-export function assertNoHallucination(output: string, groundTruth: string[], message?: string): AssertionResult {
+export function assertNoHallucination(
+  output: string,
+  groundTruth: string[],
+  message?: string,
+): AssertionResult {
   // Check if output contains facts not in ground truth
   // This is a simplified version - in production, you'd use more sophisticated methods
-  const outputLower = output.toLowerCase()
-  const allFactsPresent = groundTruth.every((fact) => outputLower.includes(fact.toLowerCase()))
+  const outputLower = output.toLowerCase();
+  const allFactsPresent = groundTruth.every((fact) => outputLower.includes(fact.toLowerCase()));
 
   return {
     name: "assertNoHallucination",
     passed: allFactsPresent,
     expected: "all facts from ground truth",
     actual: output,
-    message: message || (allFactsPresent ? "No hallucinations detected" : "Output may contain hallucinations"),
-  }
+    message:
+      message ||
+      (allFactsPresent ? "No hallucinations detected" : "Output may contain hallucinations"),
+  };
 }
 
 // Composite assertion runner
 export function runAssertions(assertions: (() => AssertionResult)[]): AssertionResult[] {
   return assertions.map((assertion) => {
     try {
-      return assertion()
+      return assertion();
     } catch (error) {
       return {
         name: "unknown",
@@ -198,7 +254,7 @@ export function runAssertions(assertions: (() => AssertionResult)[]): AssertionR
         expected: null,
         actual: null,
         message: error instanceof Error ? error.message : "Unknown error",
-      }
+      };
     }
-  })
+  });
 }

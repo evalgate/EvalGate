@@ -1,28 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { apiUsageLogs } from '@/db/schema';
-import { eq, and, gte } from 'drizzle-orm';
-import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
-import { validationError } from '@/lib/api/errors';
+import { and, eq, gte } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { apiUsageLogs } from "@/db/schema";
+import { validationError } from "@/lib/api/errors";
+import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 
 export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   const { searchParams } = new URL(req.url);
-  const period = searchParams.get('period') || '7d';
+  const period = searchParams.get("period") || "7d";
 
-  const validPeriods = ['7d', '30d', '90d', 'all'];
+  const validPeriods = ["7d", "30d", "90d", "all"];
   if (!validPeriods.includes(period)) {
-    return validationError('Invalid period. Must be one of: 7d, 30d, 90d, all');
+    return validationError("Invalid period. Must be one of: 7d, 30d, 90d, all");
   }
 
   const now = new Date();
   const endDate = now.toISOString();
   let startDate: string | null = null;
 
-  if (period !== 'all') {
+  if (period !== "all") {
     const daysMap: Record<string, number> = {
-      '7d': 7,
-      '30d': 30,
-      '90d': 90
+      "7d": 7,
+      "30d": 30,
+      "90d": 90,
     };
     const daysAgo = daysMap[period];
     const start = new Date(now);
@@ -31,16 +31,15 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   }
 
   // Use ctx.organizationId instead of query param
-  const whereConditions = period === 'all'
-    ? eq(apiUsageLogs.organizationId, ctx.organizationId)
-    : and(
-        eq(apiUsageLogs.organizationId, ctx.organizationId),
-        gte(apiUsageLogs.createdAt, startDate!)
-      );
+  const whereConditions =
+    period === "all"
+      ? eq(apiUsageLogs.organizationId, ctx.organizationId)
+      : and(
+          eq(apiUsageLogs.organizationId, ctx.organizationId),
+          gte(apiUsageLogs.createdAt, startDate!),
+        );
 
-  const logs = await db.select()
-    .from(apiUsageLogs)
-    .where(whereConditions);
+  const logs = await db.select().from(apiUsageLogs).where(whereConditions);
 
   if (logs.length === 0) {
     return NextResponse.json({
@@ -53,28 +52,28 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
         successRate: 0,
         requestsByStatusCode: {},
         topEndpoints: [],
-        requestsOverTime: []
+        requestsOverTime: [],
       },
       period: {
         start: startDate,
-        end: endDate
-      }
+        end: endDate,
+      },
     });
   }
 
   const totalRequests = logs.length;
-  const responseTimes = logs.map(log => log.responseTimeMs);
+  const responseTimes = logs.map((log) => log.responseTimeMs);
   const avgResponseTime = Math.round(responseTimes.reduce((a, b) => a + b, 0) / totalRequests);
   const minResponseTime = Math.min(...responseTimes);
   const maxResponseTime = Math.max(...responseTimes);
 
-  const errorCount = logs.filter(log => log.statusCode >= 400).length;
+  const errorCount = logs.filter((log) => log.statusCode >= 400).length;
   const successCount = totalRequests - errorCount;
   const errorRate = parseFloat(((errorCount / totalRequests) * 100).toFixed(2));
   const successRate = parseFloat(((successCount / totalRequests) * 100).toFixed(2));
 
   const statusCodeCounts: Record<string, number> = {};
-  logs.forEach(log => {
+  logs.forEach((log) => {
     const code = log.statusCode.toString();
     statusCodeCounts[code] = (statusCodeCounts[code] || 0) + 1;
   });
@@ -85,11 +84,11 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
     "400": statusCodeCounts["400"] || 0,
     "401": statusCodeCounts["401"] || 0,
     "404": statusCodeCounts["404"] || 0,
-    "500": statusCodeCounts["500"] || 0
+    "500": statusCodeCounts["500"] || 0,
   };
 
   const endpointCounts: Record<string, number> = {};
-  logs.forEach(log => {
+  logs.forEach((log) => {
     endpointCounts[log.endpoint] = (endpointCounts[log.endpoint] || 0) + 1;
   });
 
@@ -99,8 +98,8 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
     .slice(0, 10);
 
   const dateCounts: Record<string, number> = {};
-  logs.forEach(log => {
-    const date = log.createdAt.split('T')[0];
+  logs.forEach((log) => {
+    const date = log.createdAt.split("T")[0];
     dateCounts[date] = (dateCounts[date] || 0) + 1;
   });
 
@@ -118,11 +117,11 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
       successRate,
       requestsByStatusCode,
       topEndpoints,
-      requestsOverTime
+      requestsOverTime,
     },
     period: {
       start: startDate,
-      end: endDate
-    }
+      end: endDate,
+    },
   });
-})
+});

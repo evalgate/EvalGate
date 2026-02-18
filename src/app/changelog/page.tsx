@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { Footer } from "@/components/footer"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
-import { ArrowLeft, Package, ExternalLink } from "lucide-react"
+import { ArrowLeft, ExternalLink, Package } from "lucide-react";
+import Link from "next/link";
+import { Footer } from "@/components/footer";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const versions = [
   {
@@ -81,7 +81,7 @@ const versions = [
     ],
     type: "feature" as const,
   },
-]
+];
 
 export default function ChangelogPage() {
   return (
@@ -185,5 +185,5 @@ export default function ChangelogPage() {
 
       <Footer />
     </div>
-  )
+  );
 }

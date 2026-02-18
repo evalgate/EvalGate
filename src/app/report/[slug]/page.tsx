@@ -1,31 +1,27 @@
 // src/app/report/[slug]/page.tsx
-import { db } from '@/db';
-import { reportCards } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { notFound } from 'next/navigation';
-import { CheckCircle, XCircle, BarChart3, Clock, Shield } from 'lucide-react';
+
+import { eq } from "drizzle-orm";
+import { BarChart3, CheckCircle, Clock, Shield, XCircle } from "lucide-react";
+import { notFound } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { db } from "@/db";
+import { reportCards } from "@/db/schema";
 
 export default async function ReportPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  const [report] = await db
-    .select()
-    .from(reportCards)
-    .where(eq(reportCards.slug, slug))
-    .limit(1);
+  const [report] = await db.select().from(reportCards).where(eq(reportCards.slug, slug)).limit(1);
 
   if (!report || !report.isPublic) return notFound();
 
   // Increment view count
-  await db.update(reportCards)
+  await db
+    .update(reportCards)
     .set({ viewCount: (report.viewCount || 0) + 1 })
     .where(eq(reportCards.id, report.id));
 
-  const data = typeof report.reportData === 'string'
-    ? JSON.parse(report.reportData)
-    : report.reportData;
+  const data =
+    typeof report.reportData === "string" ? JSON.parse(report.reportData) : report.reportData;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 to-zinc-900 text-white">
@@ -34,7 +30,9 @@ export default async function ReportPage({ params }: { params: Promise<{ slug: s
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Shield className="h-8 w-8 text-blue-500" />
-            <span className="text-sm font-mono text-zinc-400 uppercase tracking-wider">Evaluation Report Card</span>
+            <span className="text-sm font-mono text-zinc-400 uppercase tracking-wider">
+              Evaluation Report Card
+            </span>
           </div>
           <h1 className="text-3xl font-bold mb-2">{report.title}</h1>
           <p className="text-zinc-400">{report.description}</p>
@@ -115,8 +113,12 @@ export default async function ReportPage({ params }: { params: Promise<{ slug: s
 
         {/* Footer */}
         <div className="text-center text-xs text-zinc-600 mt-12">
-          <p>Verified by <span className="text-blue-400">EvalAI Platform</span></p>
-          <p className="mt-1">{data.evaluationType ?? 'evaluation'} · {report.viewCount || 0} views</p>
+          <p>
+            Verified by <span className="text-blue-400">EvalAI Platform</span>
+          </p>
+          <p className="mt-1">
+            {data.evaluationType ?? "evaluation"} · {report.viewCount || 0} views
+          </p>
         </div>
       </div>
     </div>

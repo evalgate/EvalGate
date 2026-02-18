@@ -1,9 +1,8 @@
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { PublicPageHeader } from "@/components/public-page-header"
-
-import Link from "next/link"
-import { ArrowLeft, Zap, DollarSign, TrendingDown } from "lucide-react"
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { Footer } from "@/components/footer";
+import { PublicPageHeader } from "@/components/public-page-header";
+import { Button } from "@/components/ui/button";
 
 export default function TokenOptimizationPage() {
   return (
@@ -20,24 +19,30 @@ export default function TokenOptimizationPage() {
           </Button>
 
           <div className="mb-8 sm:mb-12">
-            <h1 className="mb-3 sm:mb-4 text-3xl sm:text-4xl font-bold">Token Optimization Guide</h1>
+            <h1 className="mb-3 sm:mb-4 text-3xl sm:text-4xl font-bold">
+              Token Optimization Guide
+            </h1>
             <p className="text-base sm:text-lg text-muted-foreground">
-              Reduce costs and improve performance by optimizing token usage in your LLM applications.
+              Reduce costs and improve performance by optimizing token usage in your LLM
+              applications.
             </p>
           </div>
 
           <div className="prose prose-gray dark:prose-invert max-w-none">
             <h2>The Cost of LLM Applications</h2>
             <p>
-              LLM costs can spiral quickly at scale. A seemingly efficient application using GPT-4 at $0.03 per 1K 
-              input tokens can cost thousands per month with just moderate traffic. Latency compounds the problem—users 
-              abandon slow applications.
+              LLM costs can spiral quickly at scale. A seemingly efficient application using GPT-4
+              at $0.03 per 1K input tokens can cost thousands per month with just moderate traffic.
+              Latency compounds the problem—users abandon slow applications.
             </p>
 
             <h2>Measuring Current Performance</h2>
             <p>
-              Start by understanding your baseline. Navigate to the <Link href="/traces" className="text-blue-500 hover:underline">Traces</Link> dashboard 
-              to see:
+              Start by understanding your baseline. Navigate to the{" "}
+              <Link href="/traces" className="text-blue-500 hover:underline">
+                Traces
+              </Link>{" "}
+              dashboard to see:
             </p>
             <ul>
               <li>Average tokens per request (input + output)</li>
@@ -47,19 +52,23 @@ export default function TokenOptimizationPage() {
             </ul>
 
             <h2>Strategy 1: Reduce Input Tokens</h2>
-            
+
             <h3>1. Trim Unnecessary Context</h3>
             <p>Are you sending more context than the model needs?</p>
             <div className="bg-muted p-4 rounded-lg my-4">
-              <p className="mb-2"><strong>Before:</strong> 3,500 tokens (full conversation history)</p>
-              <p className="mb-0"><strong>After:</strong> 1,200 tokens (last 3 turns + summary)</p>
+              <p className="mb-2">
+                <strong>Before:</strong> 3,500 tokens (full conversation history)
+              </p>
+              <p className="mb-0">
+                <strong>After:</strong> 1,200 tokens (last 3 turns + summary)
+              </p>
               <p className="mb-0 text-sm text-muted-foreground mt-2">Savings: 66% input tokens</p>
             </div>
 
             <h3>2. Semantic Search Over Full Documents</h3>
             <p>
-              For RAG systems, don't dump entire documents into the prompt. Use embeddings to retrieve only the most 
-              relevant chunks.
+              For RAG systems, don't dump entire documents into the prompt. Use embeddings to
+              retrieve only the most relevant chunks.
             </p>
             <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
               {`// Before: Sending 10 full documents (15,000 tokens)
@@ -90,9 +99,16 @@ const context = chunks.join('\\n');`}
             <h3>2. Use Structured Outputs</h3>
             <p>JSON outputs are more token-efficient than prose:</p>
             <div className="bg-card border border-border p-6 rounded-lg my-6">
-              <p className="mb-2"><strong>Prose (120 tokens):</strong></p>
-              <p className="text-sm mb-4">"The sentiment of this review is positive. The user seems happy with the product quality and delivery speed."</p>
-              <p className="mb-2"><strong>JSON (15 tokens):</strong></p>
+              <p className="mb-2">
+                <strong>Prose (120 tokens):</strong>
+              </p>
+              <p className="text-sm mb-4">
+                "The sentiment of this review is positive. The user seems happy with the product
+                quality and delivery speed."
+              </p>
+              <p className="mb-2">
+                <strong>JSON (15 tokens):</strong>
+              </p>
               <p className="text-sm font-mono mb-0">{`{"sentiment": "positive", "aspects": ["quality", "delivery"]}`}</p>
             </div>
 
@@ -190,9 +206,15 @@ const [title, summary, tags] = await Promise.all([
             <h3>3. Caching</h3>
             <p>Cache responses for repeated queries:</p>
             <ul>
-              <li><strong>Exact match caching:</strong> Identical inputs return cached responses</li>
-              <li><strong>Semantic caching:</strong> Similar queries reuse cached responses</li>
-              <li><strong>TTL:</strong> Expire cache after 24 hours for time-sensitive content</li>
+              <li>
+                <strong>Exact match caching:</strong> Identical inputs return cached responses
+              </li>
+              <li>
+                <strong>Semantic caching:</strong> Similar queries reuse cached responses
+              </li>
+              <li>
+                <strong>TTL:</strong> Expire cache after 24 hours for time-sensitive content
+              </li>
             </ul>
 
             <h3>4. Reduce Retrieval Overhead</h3>
@@ -206,29 +228,41 @@ const [title, summary, tags] = await Promise.all([
             <h2>Monitoring and Alerting</h2>
             <p>Set up alerts in the platform to catch regressions:</p>
             <ul>
-              <li><strong>Cost spike:</strong> Alert if daily spend exceeds $X</li>
-              <li><strong>Latency degradation:</strong> Alert if P95 latency &gt; 3s</li>
-              <li><strong>Token anomalies:</strong> Alert if average tokens per request jumps 2x</li>
+              <li>
+                <strong>Cost spike:</strong> Alert if daily spend exceeds $X
+              </li>
+              <li>
+                <strong>Latency degradation:</strong> Alert if P95 latency &gt; 3s
+              </li>
+              <li>
+                <strong>Token anomalies:</strong> Alert if average tokens per request jumps 2x
+              </li>
             </ul>
 
             <h2>Real-World Optimization Case Study</h2>
             <div className="bg-card border border-border p-6 rounded-lg my-6">
               <h3 className="mt-0">Customer Support Chatbot</h3>
-              <p><strong>Initial State:</strong></p>
+              <p>
+                <strong>Initial State:</strong>
+              </p>
               <ul>
                 <li>Model: GPT-4</li>
                 <li>Avg tokens: 4,500 per request</li>
                 <li>Latency: 3.2s</li>
                 <li>Cost: $8,400/month</li>
               </ul>
-              <p><strong>Optimizations Applied:</strong></p>
+              <p>
+                <strong>Optimizations Applied:</strong>
+              </p>
               <ol>
                 <li>Switched to GPT-3.5-turbo for 70% of simple queries (model cascading)</li>
                 <li>Reduced context window from full history to last 3 turns + summary</li>
                 <li>Added semantic caching with 40% hit rate</li>
                 <li>Enabled streaming for perceived latency</li>
               </ol>
-              <p><strong>Final State:</strong></p>
+              <p>
+                <strong>Final State:</strong>
+              </p>
               <ul>
                 <li>Avg tokens: 1,800 per request (-60%)</li>
                 <li>Latency: 1.1s (-66%)</li>
@@ -251,13 +285,21 @@ const [title, summary, tags] = await Promise.all([
           <div className="mt-12 pt-8 border-t border-border">
             <h3 className="font-semibold mb-4">Related Guides</h3>
             <div className="grid gap-4">
-              <Link href="/guides/tracing-setup" className="block p-4 border border-border rounded-lg hover:border-blue-500 transition-colors">
+              <Link
+                href="/guides/tracing-setup"
+                className="block p-4 border border-border rounded-lg hover:border-blue-500 transition-colors"
+              >
                 <div className="font-semibold mb-1">Setting Up Tracing in Your Application</div>
                 <div className="text-sm text-muted-foreground">Required to measure token usage</div>
               </Link>
-              <Link href="/guides/rag-evaluation" className="block p-4 border border-border rounded-lg hover:border-blue-500 transition-colors">
+              <Link
+                href="/guides/rag-evaluation"
+                className="block p-4 border border-border rounded-lg hover:border-blue-500 transition-colors"
+              >
                 <div className="font-semibold mb-1">RAG System Evaluation</div>
-                <div className="text-sm text-muted-foreground">Optimize retrieval for better performance</div>
+                <div className="text-sm text-muted-foreground">
+                  Optimize retrieval for better performance
+                </div>
               </Link>
             </div>
           </div>
@@ -266,5 +308,5 @@ const [title, summary, tags] = await Promise.all([
 
       <Footer />
     </div>
-  )
+  );
 }

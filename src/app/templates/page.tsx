@@ -4,32 +4,36 @@
  * Two-tier layout: Featured quick-start templates + full 50+ template catalog
  */
 
-import { evaluationTemplates, getTemplatesByCategory } from '@/lib/evaluation-templates-library';
-import { TemplateCard } from '@/components/template-card';
+import { Copy, Layers, Search, Zap } from "lucide-react";
+import type { Metadata } from "next";
+import { CatalogTemplateCard, type CatalogTemplateData } from "@/components/catalog-template-card";
+import { TemplateCard } from "@/components/template-card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   COMPREHENSIVE_TEMPLATES,
-  TEMPLATE_CATEGORIES,
   getTemplatesByCategory as getCatalogTemplatesByCategory,
-} from '@/lib/evaluation-templates';
-import { CatalogTemplateCard, type CatalogTemplateData } from '@/components/catalog-template-card';
-import { Metadata } from 'next';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Search, Copy, Zap, Layers } from 'lucide-react';
+  TEMPLATE_CATEGORIES,
+} from "@/lib/evaluation-templates";
+import { evaluationTemplates, getTemplatesByCategory } from "@/lib/evaluation-templates-library";
 
 export const metadata: Metadata = {
-  title: 'Evaluation Templates | EvalAI',
+  title: "Evaluation Templates | EvalAI",
   description: `${COMPREHENSIVE_TEMPLATES.length + evaluationTemplates.length}+ ready-to-use evaluation templates across 17 categories. Chatbots, RAG, adversarial testing, LLM judge, and more.`,
 };
 
 const featuredCategories = [
-  { id: 'all', name: 'All Templates', count: evaluationTemplates.length },
-  { id: 'chatbot', name: 'Chatbots', count: getTemplatesByCategory('chatbot').length },
-  { id: 'rag', name: 'RAG Systems', count: getTemplatesByCategory('rag').length },
-  { id: 'code-gen', name: 'Code Generation', count: getTemplatesByCategory('code-gen').length },
-  { id: 'content', name: 'Content', count: getTemplatesByCategory('content').length },
-  { id: 'classification', name: 'Classification', count: getTemplatesByCategory('classification').length },
+  { id: "all", name: "All Templates", count: evaluationTemplates.length },
+  { id: "chatbot", name: "Chatbots", count: getTemplatesByCategory("chatbot").length },
+  { id: "rag", name: "RAG Systems", count: getTemplatesByCategory("rag").length },
+  { id: "code-gen", name: "Code Generation", count: getTemplatesByCategory("code-gen").length },
+  { id: "content", name: "Content", count: getTemplatesByCategory("content").length },
+  {
+    id: "classification",
+    name: "Classification",
+    count: getTemplatesByCategory("classification").length,
+  },
 ];
 
 /** Strip the icon (React component function) to make templates serializable for client components */
@@ -48,11 +52,10 @@ export default function TemplatesPage() {
         <Badge variant="secondary" className="text-sm">
           {totalTemplates}+ Templates
         </Badge>
-        <h1 className="text-4xl font-bold tracking-tight">
-          Evaluation Templates
-        </h1>
+        <h1 className="text-4xl font-bold tracking-tight">Evaluation Templates</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Copy/paste ready templates for common AI evaluation scenarios. From chatbots to adversarial testing, LLM judges to production monitoring.
+          Copy/paste ready templates for common AI evaluation scenarios. From chatbots to
+          adversarial testing, LLM judges to production monitoring.
         </p>
       </div>
 
@@ -184,10 +187,7 @@ export default function TemplatesPage() {
               >
                 Open a PR
               </a>
-              <a
-                href="/documentation"
-                className="px-6 py-3 border rounded-md hover:bg-accent"
-              >
+              <a href="/documentation" className="px-6 py-3 border rounded-md hover:bg-accent">
                 View Documentation
               </a>
             </div>
@@ -198,7 +198,12 @@ export default function TemplatesPage() {
   );
 }
 
-function StatCard({ icon, label, value, description }: {
+function StatCard({
+  icon,
+  label,
+  value,
+  description,
+}: {
   icon: React.ReactNode;
   label: string;
   value: string;
@@ -208,9 +213,7 @@ function StatCard({ icon, label, value, description }: {
     <Card>
       <CardContent className="py-6">
         <div className="flex items-start gap-4">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            {icon}
-          </div>
+          <div className="p-2 bg-primary/10 rounded-lg">{icon}</div>
           <div className="space-y-1">
             <div className="text-sm text-muted-foreground">{label}</div>
             <div className="text-2xl font-bold">{value}</div>

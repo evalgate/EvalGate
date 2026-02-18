@@ -1,14 +1,14 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { AlertCircle } from "lucide-react"
-import Link from "next/link"
+import { AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function AuthErrorPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; error_description?: string }>
+  searchParams: Promise<{ error?: string; error_description?: string }>;
 }) {
-  const params = await searchParams
+  const params = await searchParams;
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center p-4 sm:p-6">
@@ -23,7 +23,9 @@ export default async function AuthErrorPage({
               <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-destructive" />
             </div>
             <CardTitle className="text-xl sm:text-2xl">Authentication Error</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Something went wrong during authentication</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
+              Something went wrong during authentication
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
             {params?.error_description ? (
@@ -46,5 +48,5 @@ export default async function AuthErrorPage({
         </Card>
       </div>
     </div>
-  )
+  );
 }

@@ -1,128 +1,127 @@
-"use client"
+"use client";
 
-import { use } from 'react'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Skeleton } from "@/components/ui/skeleton"
-import Link from "next/link"
-import { 
-  ArrowLeft, 
-  Clock, 
-  Activity, 
-  DollarSign, 
-  CheckCircle, 
-  XCircle, 
-  Bot,
+import {
+  Activity,
+  ArrowLeft,
   ArrowRight,
-  GitBranch,
-  Zap,
-  MoreHorizontal,
+  Bot,
+  CheckCircle,
+  Clock,
+  DollarSign,
   Edit,
+  GitBranch,
+  MoreHorizontal,
+  Play,
   Trash2,
-  Play
-} from "lucide-react"
-import { useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { WorkflowDAG } from "@/components/workflow-dag"
+  XCircle,
+  Zap,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WorkflowDAG } from "@/components/workflow-dag";
+import { useSession } from "@/lib/auth-client";
 
 type PageProps = {
-  params: Promise<{ id: string }>
-}
+  params: Promise<{ id: string }>;
+};
 
 interface WorkflowStats {
-  workflow: any
+  workflow: any;
   stats: {
-    totalRuns: number
-    completedRuns: number
-    failedRuns: number
-    successRate: string
-    avgDuration: number
-    totalCost: string
-  }
+    totalRuns: number;
+    completedRuns: number;
+    failedRuns: number;
+    successRate: string;
+    avgDuration: number;
+    totalCost: string;
+  };
 }
 
 interface WorkflowRun {
-  id: number
-  status: 'running' | 'completed' | 'failed' | 'cancelled'
-  input: any
-  output: any
-  totalCost: string | null
-  totalDurationMs: number | null
-  agentCount: number | null
-  handoffCount: number | null
-  startedAt: string
-  completedAt: string | null
+  id: number;
+  status: "running" | "completed" | "failed" | "cancelled";
+  input: any;
+  output: any;
+  totalCost: string | null;
+  totalDurationMs: number | null;
+  agentCount: number | null;
+  handoffCount: number | null;
+  startedAt: string;
+  completedAt: string | null;
 }
 
 interface Handoff {
-  id: number
-  fromAgent: string | null
-  toAgent: string
-  handoffType: string
-  context: any
-  timestamp: string
+  id: number;
+  fromAgent: string | null;
+  toAgent: string;
+  handoffType: string;
+  context: any;
+  timestamp: string;
 }
 
 export default function WorkflowDetailPage({ params }: PageProps) {
-  const { id } = use(params)
-  const { data: session, isPending } = useSession()
-  const router = useRouter()
-  const [workflowData, setWorkflowData] = useState<WorkflowStats | null>(null)
-  const [runs, setRuns] = useState<WorkflowRun[]>([])
-  const [handoffStats, setHandoffStats] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>()
-  const [activeTab, setActiveTab] = useState("overview")
+  const { id } = use(params);
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const [workflowData, setWorkflowData] = useState<WorkflowStats | null>(null);
+  const [runs, setRuns] = useState<WorkflowRun[]>([]);
+  const [handoffStats, setHandoffStats] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     if (!isPending && !session?.user) {
-      router.push("/auth/login")
-      return
+      router.push("/auth/login");
+      return;
     }
 
     if (session?.user) {
-      const token = localStorage.getItem("bearer_token")
-      
+      const token = localStorage.getItem("bearer_token");
+
       // Fetch workflow with stats
       Promise.all([
         fetch(`/api/workflows/${id}?includeStats=true`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).then(res => res.json()),
+          headers: { Authorization: `Bearer ${token}` },
+        }).then((res) => res.json()),
         fetch(`/api/workflows/${id}/runs?limit=20`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).then(res => res.json()),
+          headers: { Authorization: `Bearer ${token}` },
+        }).then((res) => res.json()),
         fetch(`/api/workflows/${id}/handoffs`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).then(res => res.json()),
+          headers: { Authorization: `Bearer ${token}` },
+        }).then((res) => res.json()),
       ])
         .then(([workflow, runsData, handoffs]) => {
           if (workflow?.code === "NO_ORG_MEMBERSHIP") {
-            router.push("/onboarding")
-            return
+            router.push("/onboarding");
+            return;
           }
           if (workflow?.error) {
-            router.push("/workflows")
-            return
+            router.push("/workflows");
+            return;
           }
-          setWorkflowData(workflow)
-          setRuns(Array.isArray(runsData) ? runsData : [])
-          setHandoffStats(handoffs?.handoffStats || [])
-          setIsLoading(false)
+          setWorkflowData(workflow);
+          setRuns(Array.isArray(runsData) ? runsData : []);
+          setHandoffStats(handoffs?.handoffStats || []);
+          setIsLoading(false);
         })
         .catch(() => {
-          setIsLoading(false)
-        })
+          setIsLoading(false);
+        });
     }
-  }, [session, isPending, router, id])
+  }, [session, isPending, router, id]);
 
   if (isPending || !session?.user || isLoading) {
     return (
@@ -147,14 +146,14 @@ export default function WorkflowDetailPage({ params }: PageProps) {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (!workflowData) {
-    return null
+    return null;
   }
 
-  const { workflow, stats } = workflowData
+  const { workflow, stats } = workflowData;
 
   return (
     <div className="space-y-6">
@@ -175,8 +174,8 @@ export default function WorkflowDetailPage({ params }: PageProps) {
                   workflow.status === "active"
                     ? "default"
                     : workflow.status === "draft"
-                    ? "secondary"
-                    : "outline"
+                      ? "secondary"
+                      : "outline"
                 }
               >
                 {workflow.status}
@@ -214,9 +213,7 @@ export default function WorkflowDetailPage({ params }: PageProps) {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Runs
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Runs</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalRuns}</div>
@@ -231,9 +228,7 @@ export default function WorkflowDetailPage({ params }: PageProps) {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <div className="text-2xl font-bold text-green-500">
-                {stats.successRate}%
-              </div>
+              <div className="text-2xl font-bold text-green-500">{stats.successRate}%</div>
               <CheckCircle className="h-5 w-5 text-green-500" />
             </div>
           </CardContent>
@@ -257,9 +252,7 @@ export default function WorkflowDetailPage({ params }: PageProps) {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Cost
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Cost</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -285,9 +278,7 @@ export default function WorkflowDetailPage({ params }: PageProps) {
           <Card>
             <CardHeader>
               <CardTitle>Workflow Graph</CardTitle>
-              <CardDescription>
-                Click on a node to see details
-              </CardDescription>
+              <CardDescription>Click on a node to see details</CardDescription>
             </CardHeader>
             <CardContent>
               {workflow.definition && (
@@ -314,7 +305,7 @@ export default function WorkflowDetailPage({ params }: PageProps) {
                   {JSON.stringify(
                     workflow.definition.nodes.find((n: any) => n.id === selectedNodeId),
                     null,
-                    2
+                    2,
                   )}
                 </pre>
               </CardContent>
@@ -352,8 +343,8 @@ export default function WorkflowDetailPage({ params }: PageProps) {
                           )}
                           {run.totalCost && (
                             <div className="flex items-center gap-1">
-                              <DollarSign className="h-3 w-3" />
-                              ${parseFloat(run.totalCost).toFixed(4)}
+                              <DollarSign className="h-3 w-3" />$
+                              {parseFloat(run.totalCost).toFixed(4)}
                             </div>
                           )}
                           {run.agentCount !== null && (
@@ -397,9 +388,7 @@ export default function WorkflowDetailPage({ params }: PageProps) {
             <Card>
               <CardHeader>
                 <CardTitle>Handoff Patterns</CardTitle>
-                <CardDescription>
-                  Agent-to-agent transitions across all runs
-                </CardDescription>
+                <CardDescription>Agent-to-agent transitions across all runs</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -411,16 +400,12 @@ export default function WorkflowDetailPage({ params }: PageProps) {
                       <div className="flex items-center gap-3">
                         <Badge variant="outline">{stat.handoffType}</Badge>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">
-                            {stat.fromAgent || "Start"}
-                          </span>
+                          <span className="font-medium">{stat.fromAgent || "Start"}</span>
                           <ArrowRight className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">{stat.toAgent}</span>
                         </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {stat.count} times
-                      </div>
+                      <div className="text-sm text-muted-foreground">{stat.count} times</div>
                     </div>
                   ))}
                 </div>
@@ -440,5 +425,5 @@ export default function WorkflowDetailPage({ params }: PageProps) {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

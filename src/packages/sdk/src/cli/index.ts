@@ -7,25 +7,25 @@
  *   evalai check  — CI/CD evaluation gate (see evalai check --help)
  */
 
-import { parseArgs, runCheck } from './check';
-import { runInit } from './init';
-import { runDoctor } from './doctor';
+import { parseArgs, runCheck } from "./check";
+import { runDoctor } from "./doctor";
+import { runInit } from "./init";
 
 const argv = process.argv.slice(2);
 const subcommand = argv[0];
 
-if (subcommand === 'init') {
+if (subcommand === "init") {
   const cwd = process.cwd();
   const ok = runInit(cwd);
   process.exit(ok ? 0 : 1);
-} else if (subcommand === 'doctor') {
+} else if (subcommand === "doctor") {
   runDoctor(argv.slice(1))
     .then((code) => process.exit(code))
     .catch((err) => {
       console.error(`EvalAI ERROR: ${err instanceof Error ? err.message : String(err)}`);
       process.exit(1);
     });
-} else if (subcommand === 'check') {
+} else if (subcommand === "check") {
   const parsed = parseArgs(argv.slice(1));
   if (!parsed.ok) {
     console.error(parsed.message);
@@ -64,5 +64,5 @@ Examples:
   evalai check --minScore 92 --evaluationId 42 --apiKey $EVALAI_API_KEY
   evalai check --policy HIPAA --evaluationId 42 --apiKey $EVALAI_API_KEY
 `);
-  process.exit(subcommand === '--help' || subcommand === '-h' ? 0 : 1);
+  process.exit(subcommand === "--help" || subcommand === "-h" ? 0 : 1);
 }

@@ -4,8 +4,8 @@
  * No authentication required - public endpoint
  */
 
-import { NextResponse } from 'next/server';
-import ragData from '../../../../../public/demo/rag.json';
+import { NextResponse } from "next/server";
+import ragData from "../../../../../public/demo/rag.json";
 
 /**
  * GET /api/demo/rag

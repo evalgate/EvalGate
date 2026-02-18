@@ -5,51 +5,65 @@
  * POST /api/evaluations/[id]/versions           — create new version (publish snapshot)
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { evaluations } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
-import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
-import { notFound, validationError } from '@/lib/api/errors';
-import { versioningService } from '@/lib/services/versioning.service';
-import { SCOPES } from '@/lib/auth/scopes';
+import { and, eq } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { evaluations } from "@/db/schema";
+import { notFound, validationError } from "@/lib/api/errors";
+import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { SCOPES } from "@/lib/auth/scopes";
+import { versioningService } from "@/lib/services/versioning.service";
 
-export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
-  const evaluationId = parseInt(params.id);
-  if (isNaN(evaluationId)) return validationError('Valid evaluation ID required');
+export const GET = secureRoute(
+  async (req: NextRequest, ctx: AuthContext, params) => {
+    const evaluationId = parseInt(params.id, 10);
+    if (Number.isNaN(evaluationId)) return validationError("Valid evaluation ID required");
 
-  // Verify ownership
-  const [evaluation] = await db
-    .select()
-    .from(evaluations)
-    .where(and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, ctx.organizationId)))
-    .limit(1);
+    // Verify ownership
+    const [evaluation] = await db
+      .select()
+      .from(evaluations)
+      .where(
+        and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, ctx.organizationId)),
+      )
+      .limit(1);
 
-  if (!evaluation) return notFound('Evaluation not found');
+    if (!evaluation) return notFound("Evaluation not found");
 
-  const { searchParams } = new URL(req.url);
-  const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
-  const offset = parseInt(searchParams.get('offset') || '0');
+    const { searchParams } = new URL(req.url);
+    const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100);
+    const offset = parseInt(searchParams.get("offset") || "0", 10);
 
-  const versions = await versioningService.listVersions(evaluationId, limit, offset);
+    const versions = await versioningService.listVersions(evaluationId, limit, offset);
 
-  return NextResponse.json({ data: versions, count: versions.length });
-}, { requiredScopes: [SCOPES.EVAL_READ] });
+    return NextResponse.json({ data: versions, count: versions.length });
+  },
+  { requiredScopes: [SCOPES.EVAL_READ] },
+);
 
-export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
-  const evaluationId = parseInt(params.id);
-  if (isNaN(evaluationId)) return validationError('Valid evaluation ID required');
+export const POST = secureRoute(
+  async (_req: NextRequest, ctx: AuthContext, params) => {
+    const evaluationId = parseInt(params.id, 10);
+    if (Number.isNaN(evaluationId)) return validationError("Valid evaluation ID required");
 
-  // Verify ownership
-  const [evaluation] = await db
-    .select()
-    .from(evaluations)
-    .where(and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, ctx.organizationId)))
-    .limit(1);
+    // Verify ownership
+    const [evaluation] = await db
+      .select()
+      .from(evaluations)
+      .where(
+        and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, ctx.organizationId)),
+      )
+      .limit(1);
 
-  if (!evaluation) return notFound('Evaluation not found');
+    if (!evaluation) return notFound("Evaluation not found");
 
-  const result = await versioningService.createVersion(evaluationId, ctx.organizationId, ctx.userId);
+    const result = await versioningService.createVersion(
+      evaluationId,
+      ctx.organizationId,
+      ctx.userId,
+    );
 
-  return NextResponse.json(result, { status: 201 });
-}, { requiredScopes: [SCOPES.EVAL_WRITE] });
+    return NextResponse.json(result, { status: 201 });
+  },
+  { requiredScopes: [SCOPES.EVAL_WRITE] },
+);

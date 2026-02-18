@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Request validation schemas using Zod
@@ -18,36 +18,42 @@ export const createTraceSchema = z.object({
   name: z.string().min(1).max(255),
   traceId: z.string().min(1).max(255),
   organizationId: organizationIdSchema,
-  status: z.enum(['pending', 'success', 'error']).default('pending'),
+  status: z.enum(["pending", "success", "error"]).default("pending"),
   durationMs: z.number().int().min(0).optional().nullable(),
   metadata: z.record(z.any()).optional().nullable(),
 });
 
 export const listTracesSchema = z.object({
   organizationId: organizationIdSchema.optional(),
-  status: z.enum(['pending', 'success', 'error']).optional(),
+  status: z.enum(["pending", "success", "error"]).optional(),
   search: z.string().optional(),
   ...paginationSchema.shape,
 });
 
 // Evaluation schemas
-const executionSettingsSchema = z.object({
-  batchSize: z.number().int().min(1).max(1000).optional(),
-  parallelRuns: z.number().int().min(1).max(100).optional(),
-  timeout: z.number().int().min(1).max(3600).optional(), // seconds
-  retry: z.object({
-    maxRetries: z.number().int().min(0).max(10).optional(),
-    retryDelay: z.number().int().min(0).optional(),
-  }).optional(),
-  stopOnFailure: z.boolean().optional(),
-}).optional();
+const executionSettingsSchema = z
+  .object({
+    batchSize: z.number().int().min(1).max(1000).optional(),
+    parallelRuns: z.number().int().min(1).max(100).optional(),
+    timeout: z.number().int().min(1).max(3600).optional(), // seconds
+    retry: z
+      .object({
+        maxRetries: z.number().int().min(0).max(10).optional(),
+        retryDelay: z.number().int().min(0).optional(),
+      })
+      .optional(),
+    stopOnFailure: z.boolean().optional(),
+  })
+  .optional();
 
-const modelSettingsSchema = z.object({
-  model: z.string().optional(),
-  temperature: z.number().min(0).max(2).optional(),
-  maxTokens: z.number().int().min(1).optional(),
-  topP: z.number().min(0).max(1).optional(),
-}).optional();
+const modelSettingsSchema = z
+  .object({
+    model: z.string().optional(),
+    temperature: z.number().min(0).max(2).optional(),
+    maxTokens: z.number().int().min(1).optional(),
+    topP: z.number().min(0).max(1).optional(),
+  })
+  .optional();
 
 const testCaseItemSchema = z.object({
   name: z.string().optional(),
@@ -93,47 +99,53 @@ export const updateEvaluationBodySchema = z.object({
 export const putEvaluationBodySchema = z.object({
   name: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
-  status: z.enum(['draft', 'active', 'archived']).optional(),
+  status: z.enum(["draft", "active", "archived"]).optional(),
 });
 
 /** Body for POST /api/evaluations/:id/runs */
-export const createRunBodySchema = z.object({
-  environment: z.enum(['dev', 'staging', 'prod']).optional(),
-}).default({});
+export const createRunBodySchema = z
+  .object({
+    environment: z.enum(["dev", "staging", "prod"]).optional(),
+  })
+  .default({});
 
-const ciContextSchema = z.object({
-  provider: z.enum(['github', 'gitlab', 'circle', 'unknown']).optional(),
-  repo: z.string().optional(),
-  sha: z.string().optional(),
-  branch: z.string().optional(),
-  pr: z.number().optional(),
-  runUrl: z.string().optional(),
-  actor: z.string().optional(),
-}).optional();
+const ciContextSchema = z
+  .object({
+    provider: z.enum(["github", "gitlab", "circle", "unknown"]).optional(),
+    repo: z.string().optional(),
+    sha: z.string().optional(),
+    branch: z.string().optional(),
+    pr: z.number().optional(),
+    runUrl: z.string().optional(),
+    actor: z.string().optional(),
+  })
+  .optional();
 
 /** Body for POST /api/evaluations/:id/runs/import */
 export const importRunBodySchema = z
   .object({
-    environment: z.enum(['dev', 'staging', 'prod']).optional().default('dev'),
+    environment: z.enum(["dev", "staging", "prod"]).optional().default("dev"),
     importClientVersion: z.string().optional(),
     ci: ciContextSchema,
-    results: z.array(
-      z.object({
-        testCaseId: z.number().int().positive(),
-        status: z.enum(['passed', 'failed']),
-        output: z.string(),
-        latencyMs: z.number().int().min(0).optional(),
-        costUsd: z.number().min(0).optional(),
-        assertionsJson: z.record(z.any()).optional(),
-      })
-    ).min(1),
+    results: z
+      .array(
+        z.object({
+          testCaseId: z.number().int().positive(),
+          status: z.enum(["passed", "failed"]),
+          output: z.string(),
+          latencyMs: z.number().int().min(0).optional(),
+          costUsd: z.number().min(0).optional(),
+          assertionsJson: z.record(z.any()).optional(),
+        }),
+      )
+      .min(1),
   })
   .refine(
     (data) => {
       const ids = data.results.map((r) => r.testCaseId);
       return ids.length === new Set(ids).size;
     },
-    { message: 'Duplicate testCaseId in results' }
+    { message: "Duplicate testCaseId in results" },
   );
 
 /** Body for POST /api/evaluations/:id/publish-run */
@@ -158,14 +170,14 @@ export const createTestCaseBodySchema = z.object({
 export const createTraceBodySchema = z.object({
   name: z.string().min(1).max(255),
   traceId: z.string().min(1).max(255),
-  status: z.enum(['pending', 'success', 'error']).optional(),
+  status: z.enum(["pending", "success", "error"]).optional(),
   durationMs: z.number().int().min(0).optional().nullable(),
   metadata: z.record(z.any()).optional().nullable(),
 });
 
 /** Body for PATCH /api/traces/:id */
 export const updateTraceBodySchema = z.object({
-  status: z.enum(['pending', 'success', 'error']).optional(),
+  status: z.enum(["pending", "success", "error"]).optional(),
   durationMs: z.number().int().min(0).optional().nullable(),
   metadata: z.record(z.any()).optional(),
 });
@@ -194,19 +206,23 @@ export const createAPIKeySchema = z.object({
 });
 
 /** Body for POST /api/developer/api-keys (organizationId from ctx) */
-export const createAPIKeyBodySchema = z.object({
-  name: z.string().min(1).max(255),
-  scopes: z.array(z.string()).min(1),
-  expiresAt: z.string().optional(),
-}).strict(); // rejects userId, user_id
+export const createAPIKeyBodySchema = z
+  .object({
+    name: z.string().min(1).max(255),
+    scopes: z.array(z.string()).min(1),
+    expiresAt: z.string().optional(),
+  })
+  .strict(); // rejects userId, user_id
 
 /** Body for PATCH /api/developer/api-keys/:id */
-export const updateAPIKeyBodySchema = z.object({
-  name: z.string().min(1).max(255).optional(),
-  scopes: z.array(z.string()).optional(),
-}).refine((d) => d.name !== undefined || d.scopes !== undefined, {
-  message: 'At least one field (name or scopes) must be provided',
-});
+export const updateAPIKeyBodySchema = z
+  .object({
+    name: z.string().min(1).max(255).optional(),
+    scopes: z.array(z.string()).optional(),
+  })
+  .refine((d) => d.name !== undefined || d.scopes !== undefined, {
+    message: "At least one field (name or scopes) must be provided",
+  });
 
 // Webhook schemas
 export const createWebhookSchema = z.object({
@@ -219,17 +235,24 @@ export const createWebhookSchema = z.object({
 /** Body for POST /api/developer/webhooks */
 export const createWebhookBodySchema = z.object({
   organizationId: organizationIdSchema,
-  url: z.string().min(1).refine((s) => s.trim().startsWith('http://') || s.trim().startsWith('https://'), {
-    message: 'URL must start with http:// or https://',
-  }),
+  url: z
+    .string()
+    .min(1)
+    .refine((s) => s.trim().startsWith("http://") || s.trim().startsWith("https://"), {
+      message: "URL must start with http:// or https://",
+    }),
   events: z.array(z.string()).min(1),
 });
 
 /** Body for PATCH /api/developer/webhooks/:id */
 export const updateWebhookBodySchema = z.object({
-  url: z.string().min(1).refine((s) => s.startsWith('http://') || s.startsWith('https://')).optional(),
+  url: z
+    .string()
+    .min(1)
+    .refine((s) => s.startsWith("http://") || s.startsWith("https://"))
+    .optional(),
   events: z.array(z.string()).min(1).optional(),
-  status: z.enum(['active', 'inactive']).optional(),
+  status: z.enum(["active", "inactive"]).optional(),
 });
 
 // Annotation schemas
@@ -247,7 +270,7 @@ export const createLLMJudgeConfigSchema = z.object({
   name: z.string().min(1).max(255),
   prompt: z.string().min(1),
   rubric: z.string().optional(),
-  model: z.string().default('gpt-4'),
+  model: z.string().default("gpt-4"),
   temperature: z.number().min(0).max(2).default(0.7),
   organizationId: organizationIdSchema,
 });
@@ -258,7 +281,7 @@ export const createLLMJudgeConfigSchema = z.object({
  */
 export function validateRequest<T>(
   schema: z.ZodSchema<T>,
-  data: unknown
+  data: unknown,
 ): { success: true; data: T } | { success: false; errors: z.ZodError } {
   try {
     const parsed = schema.parse(data);
@@ -276,11 +299,9 @@ export function validateRequest<T>(
  * Escapes SQL LIKE wildcards (% and _) and enforces a max length.
  */
 export function sanitizeSearchInput(input: string, maxLength: number = 500): string {
-  if (!input || typeof input !== 'string') return '';
+  if (!input || typeof input !== "string") return "";
   const trimmed = input.trim().slice(0, maxLength);
-  return trimmed
-    .replace(/%/g, '\\%')
-    .replace(/_/g, '\\_');
+  return trimmed.replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
 
 /**
@@ -289,7 +310,7 @@ export function sanitizeSearchInput(input: string, maxLength: number = 500): str
 export function safeParseInt(value: string | null | undefined, defaultValue: number): number {
   if (!value) return defaultValue;
   const parsed = parseInt(value, 10);
-  return isNaN(parsed) ? defaultValue : parsed;
+  return Number.isNaN(parsed) ? defaultValue : parsed;
 }
 
 /**
@@ -300,9 +321,9 @@ export function formatValidationErrors(errors: z.ZodError): {
   fields: Record<string, string[]>;
 } {
   const fields: Record<string, string[]> = {};
-  
+
   errors.errors.forEach((err) => {
-    const path = err.path.join('.');
+    const path = err.path.join(".");
     if (!fields[path]) {
       fields[path] = [];
     }
@@ -310,8 +331,7 @@ export function formatValidationErrors(errors: z.ZodError): {
   });
 
   return {
-    message: 'Validation failed',
+    message: "Validation failed",
     fields,
   };
 }
-

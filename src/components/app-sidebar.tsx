@@ -1,33 +1,32 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Link from "next/link";
 import {
+  BarChart3,
   Beaker,
   BookOpen,
-  Settings,
-  BarChart3,
-  Users,
-  FileText,
   Code,
-  Newspaper,
-  Terminal,
-  Package,
-  Key,
-  Workflow,
   DollarSign,
-  Trophy
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+  FileText,
+  Key,
+  Newspaper,
+  Package,
+  Settings,
+  Terminal,
+  Trophy,
+  Users,
+  Workflow,
+} from "lucide-react";
+import Link from "next/link";
+import type * as React from "react";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuItem,
   SidebarMenuButton,
-} from "@/components/ui/sidebar"
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -144,7 +143,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/documentation" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                <a
+                  href="/documentation"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
                   <BookOpen />
                   <span>Documentation</span>
                 </a>
@@ -152,7 +156,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/guides" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                <a
+                  href="/guides"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
                   <FileText />
                   <span>Guides</span>
                 </a>
@@ -160,7 +169,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/api-reference" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                <a
+                  href="/api-reference"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
                   <Code />
                   <span>API Reference</span>
                 </a>
@@ -168,7 +182,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="/blog" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                <a
+                  href="/blog"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
                   <Newspaper />
                   <span>Blog</span>
                 </a>
@@ -190,5 +209,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

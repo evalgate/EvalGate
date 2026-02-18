@@ -4,13 +4,16 @@
  * Returns canonical error envelope on failure.
  */
 
-import type { NextRequest } from 'next/server';
-import type { z } from 'zod';
-import { validationError, zodValidationError } from '@/lib/api/errors';
+import type { NextRequest } from "next/server";
+import type { z } from "zod";
+import { validationError, zodValidationError } from "@/lib/api/errors";
 
 export type ParseBodyResult<T> =
   | { ok: true; data: T }
-  | { ok: false; response: ReturnType<typeof validationError> | ReturnType<typeof zodValidationError> };
+  | {
+      ok: false;
+      response: ReturnType<typeof validationError> | ReturnType<typeof zodValidationError>;
+    };
 
 /**
  * Parse and validate request body against a Zod schema.
@@ -29,7 +32,7 @@ export async function parseBody<T>(
     if (options?.allowEmpty) {
       data = {};
     } else {
-      return { ok: false, response: validationError('Invalid JSON body') };
+      return { ok: false, response: validationError("Invalid JSON body") };
     }
   }
 

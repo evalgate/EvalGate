@@ -1,9 +1,8 @@
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { PublicPageHeader } from "@/components/public-page-header"
-
-import Link from "next/link"
-import { ArrowLeft, Activity, Code, Eye } from "lucide-react"
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { Footer } from "@/components/footer";
+import { PublicPageHeader } from "@/components/public-page-header";
+import { Button } from "@/components/ui/button";
 
 export default function TracingSetupPage() {
   return (
@@ -29,8 +28,9 @@ export default function TracingSetupPage() {
           <div className="prose prose-gray dark:prose-invert max-w-none">
             <h2>Why Tracing Matters</h2>
             <p>
-              Distributed tracing gives you full visibility into your AI application's behavior in production. 
-              Track every LLM call, measure latency, monitor token usage, and debug issues before they impact users.
+              Distributed tracing gives you full visibility into your AI application's behavior in
+              production. Track every LLM call, measure latency, monitor token usage, and debug
+              issues before they impact users.
             </p>
 
             <h2>Installation</h2>
@@ -40,18 +40,25 @@ export default function TracingSetupPage() {
             </div>
             <p>Or with other package managers:</p>
             <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4">
-              yarn add @pauly4010/evalai-sdk<br />
+              yarn add @pauly4010/evalai-sdk
+              <br />
               pnpm add @pauly4010/evalai-sdk
             </div>
 
             <h2>Environment Setup</h2>
-            <p>Create a <code>.env</code> file in your project root:</p>
+            <p>
+              Create a <code>.env</code> file in your project root:
+            </p>
             <div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
               {`EVALAI_API_KEY=sk_test_your_api_key_here
 EVALAI_ORGANIZATION_ID=your_org_id_here`}
             </div>
             <p className="text-sm text-muted-foreground">
-              Get your API key from the <Link href="/developer" className="text-primary underline">Developer Dashboard</Link>.
+              Get your API key from the{" "}
+              <Link href="/developer" className="text-primary underline">
+                Developer Dashboard
+              </Link>
+              .
             </p>
 
             <h2>Basic Setup</h2>
@@ -91,12 +98,24 @@ const span = await client.traces.createSpan(trace.id, {
             <h2>What Gets Tracked</h2>
             <p>Each trace automatically captures:</p>
             <ul>
-              <li><strong>Input/Output:</strong> Full prompts and responses</li>
-              <li><strong>Timing:</strong> Start time, duration, latency</li>
-              <li><strong>Tokens:</strong> Input tokens, output tokens, total cost</li>
-              <li><strong>Model:</strong> Model name, version, parameters</li>
-              <li><strong>Metadata:</strong> User ID, session ID, custom tags</li>
-              <li><strong>Errors:</strong> Stack traces and error messages</li>
+              <li>
+                <strong>Input/Output:</strong> Full prompts and responses
+              </li>
+              <li>
+                <strong>Timing:</strong> Start time, duration, latency
+              </li>
+              <li>
+                <strong>Tokens:</strong> Input tokens, output tokens, total cost
+              </li>
+              <li>
+                <strong>Model:</strong> Model name, version, parameters
+              </li>
+              <li>
+                <strong>Metadata:</strong> User ID, session ID, custom tags
+              </li>
+              <li>
+                <strong>Errors:</strong> Stack traces and error messages
+              </li>
             </ul>
 
             <h2>Nested Traces (Spans)</h2>
@@ -139,8 +158,11 @@ await tracer.endWorkflow({ status: 'success' });`}
 
             <h2>Viewing Traces</h2>
             <p>
-              Once instrumented, visit the <Link href="/traces" className="text-blue-500 hover:underline">Traces</Link> page 
-              in your dashboard to:
+              Once instrumented, visit the{" "}
+              <Link href="/traces" className="text-blue-500 hover:underline">
+                Traces
+              </Link>{" "}
+              page in your dashboard to:
             </p>
             <ul>
               <li>Search and filter traces by metadata, tags, or time range</li>
@@ -152,13 +174,15 @@ await tracer.endWorkflow({ status: 'success' });`}
 
             <h2>Integration with Evaluations</h2>
             <p>
-              Traces can be used as test cases for evaluations. Convert real production traces into 
+              Traces can be used as test cases for evaluations. Convert real production traces into
               regression tests to ensure your AI system maintains quality over time.
             </p>
 
             <h2>Best Practices</h2>
             <ul>
-              <li>Use descriptive names for traces (e.g., "customer-support-query" not "llm-call")</li>
+              <li>
+                Use descriptive names for traces (e.g., "customer-support-query" not "llm-call")
+              </li>
               <li>Add relevant metadata (user ID, session ID, feature flags)</li>
               <li>Tag traces with environment (production, staging, development)</li>
               <li>Set up sampling for high-volume applications (trace 10% of requests)</li>
@@ -167,26 +191,45 @@ await tracer.endWorkflow({ status: 'success' });`}
             </ul>
 
             <h2>Troubleshooting</h2>
-            <p><strong>Traces not appearing?</strong></p>
+            <p>
+              <strong>Traces not appearing?</strong>
+            </p>
             <p>Check that your API key is correct and the SDK is properly initialized.</p>
-            
-            <p><strong>High latency overhead?</strong></p>
-            <p>The SDK adds minimal overhead (~10ms), but ensure you're not blocking on trace uploads.</p>
 
-            <p><strong>Missing span data?</strong></p>
+            <p>
+              <strong>High latency overhead?</strong>
+            </p>
+            <p>
+              The SDK adds minimal overhead (~10ms), but ensure you're not blocking on trace
+              uploads.
+            </p>
+
+            <p>
+              <strong>Missing span data?</strong>
+            </p>
             <p>Make sure async functions are properly awaited within trace callbacks.</p>
           </div>
 
           <div className="mt-12 pt-8 border-t border-border">
             <h3 className="font-semibold mb-4">Related Guides</h3>
             <div className="grid gap-4">
-              <Link href="/guides/openai-integration" className="block p-4 border border-border rounded-lg hover:border-blue-500 transition-colors">
+              <Link
+                href="/guides/openai-integration"
+                className="block p-4 border border-border rounded-lg hover:border-blue-500 transition-colors"
+              >
                 <div className="font-semibold mb-1">Using with OpenAI API</div>
-                <div className="text-sm text-muted-foreground">Specific integration patterns for OpenAI</div>
+                <div className="text-sm text-muted-foreground">
+                  Specific integration patterns for OpenAI
+                </div>
               </Link>
-              <Link href="/guides/token-optimization" className="block p-4 border border-border rounded-lg hover:border-blue-500 transition-colors">
+              <Link
+                href="/guides/token-optimization"
+                className="block p-4 border border-border rounded-lg hover:border-blue-500 transition-colors"
+              >
                 <div className="font-semibold mb-1">Optimizing Token Usage and Latency</div>
-                <div className="text-sm text-muted-foreground">Use tracing data to reduce costs</div>
+                <div className="text-sm text-muted-foreground">
+                  Use tracing data to reduce costs
+                </div>
               </Link>
             </div>
           </div>
@@ -195,5 +238,5 @@ await tracer.endWorkflow({ status: 'success' });`}
 
       <Footer />
     </div>
-  )
+  );
 }

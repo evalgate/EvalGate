@@ -4,19 +4,28 @@
  * Includes 3 canned demos + a "Test Your Own" custom eval mode
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Play, CheckCircle2, XCircle, Copy, Download, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
-import { toast } from 'sonner';
-import { AIQualityScoreCard } from './ai-quality-score-card';
-import { EmailCaptureWidget } from './email-capture-widget';
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Download,
+  Play,
+  XCircle,
+} from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { AIQualityScoreCard } from "./ai-quality-score-card";
+import { EmailCaptureWidget } from "./email-capture-widget";
 
 interface PlaygroundProps {
   onSignupPrompt?: () => void;
@@ -24,42 +33,45 @@ interface PlaygroundProps {
 
 const ASSERTION_GROUPS = [
   {
-    name: 'Safety',
+    name: "Safety",
     assertions: [
-      { id: 'no-pii', label: 'No PII detected', defaultChecked: true },
-      { id: 'professional', label: 'Professional tone', defaultChecked: true },
-      { id: 'proper-grammar', label: 'Proper grammar', defaultChecked: true },
+      { id: "no-pii", label: "No PII detected", defaultChecked: true },
+      { id: "professional", label: "Professional tone", defaultChecked: true },
+      { id: "proper-grammar", label: "Proper grammar", defaultChecked: true },
     ],
   },
   {
-    name: 'Quality',
+    name: "Quality",
     assertions: [
-      { id: 'positive-sentiment', label: 'Positive sentiment', defaultChecked: false },
-      { id: 'negative-sentiment', label: 'Negative sentiment', defaultChecked: false },
-      { id: 'neutral-sentiment', label: 'Neutral sentiment', defaultChecked: false },
+      { id: "positive-sentiment", label: "Positive sentiment", defaultChecked: false },
+      { id: "negative-sentiment", label: "Negative sentiment", defaultChecked: false },
+      { id: "neutral-sentiment", label: "Neutral sentiment", defaultChecked: false },
     ],
   },
   {
-    name: 'Structure',
+    name: "Structure",
     assertions: [
-      { id: 'valid-json', label: 'Valid JSON', defaultChecked: false },
-      { id: 'contains-code', label: 'Contains code blocks', defaultChecked: false },
+      { id: "valid-json", label: "Valid JSON", defaultChecked: false },
+      { id: "contains-code", label: "Contains code blocks", defaultChecked: false },
     ],
   },
   {
-    name: 'Factuality',
+    name: "Factuality",
     needsExpected: true,
     assertions: [
-      { id: 'not-hallucinated', label: 'No hallucination (needs expected output)', defaultChecked: false },
-      { id: 'matches-expected', label: 'Matches expected output exactly', defaultChecked: false },
+      {
+        id: "not-hallucinated",
+        label: "No hallucination (needs expected output)",
+        defaultChecked: false,
+      },
+      { id: "matches-expected", label: "Matches expected output exactly", defaultChecked: false },
     ],
   },
 ];
 
-const DEFAULT_ASSERTIONS = ASSERTION_GROUPS
-  .flatMap(g => g.assertions)
-  .filter(a => a.defaultChecked)
-  .map(a => a.id);
+const DEFAULT_ASSERTIONS = ASSERTION_GROUPS.flatMap((g) => g.assertions)
+  .filter((a) => a.defaultChecked)
+  .map((a) => a.id);
 
 export function InteractivePlayground({ onSignupPrompt }: PlaygroundProps = {}) {
   const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
@@ -68,64 +80,64 @@ export function InteractivePlayground({ onSignupPrompt }: PlaygroundProps = {}) 
   const [showEmailCapture, setShowEmailCapture] = useState(false);
 
   // Custom eval state
-  const [customInput, setCustomInput] = useState('');
-  const [customOutput, setCustomOutput] = useState('');
-  const [customExpected, setCustomExpected] = useState('');
+  const [customInput, setCustomInput] = useState("");
+  const [customOutput, setCustomOutput] = useState("");
+  const [customExpected, setCustomExpected] = useState("");
   const [showExpected, setShowExpected] = useState(false);
   const [selectedAssertions, setSelectedAssertions] = useState<string[]>(DEFAULT_ASSERTIONS);
-  const [customKeywords, setCustomKeywords] = useState('');
-  const [customLengthMin, setCustomLengthMin] = useState('');
-  const [customLengthMax, setCustomLengthMax] = useState('');
+  const [customKeywords, setCustomKeywords] = useState("");
+  const [customLengthMin, setCustomLengthMin] = useState("");
+  const [customLengthMax, setCustomLengthMax] = useState("");
 
   const scenarios = [
     {
-      id: 'chatbot-accuracy',
-      name: 'Chatbot Accuracy',
-      description: 'See how well a customer service chatbot handles common questions',
-      icon: '💬',
-      difficulty: 'Beginner',
-      time: '30s',
-      color: 'from-blue-500/10 to-blue-500/5'
+      id: "chatbot-accuracy",
+      name: "Chatbot Accuracy",
+      description: "See how well a customer service chatbot handles common questions",
+      icon: "💬",
+      difficulty: "Beginner",
+      time: "30s",
+      color: "from-blue-500/10 to-blue-500/5",
     },
     {
-      id: 'rag-hallucination',
-      name: 'RAG Hallucination',
-      description: 'Detect when AI makes up information not in source documents',
-      icon: '🔍',
-      difficulty: 'Intermediate',
-      time: '45s',
-      color: 'from-purple-500/10 to-purple-500/5'
+      id: "rag-hallucination",
+      name: "RAG Hallucination",
+      description: "Detect when AI makes up information not in source documents",
+      icon: "🔍",
+      difficulty: "Intermediate",
+      time: "45s",
+      color: "from-purple-500/10 to-purple-500/5",
     },
     {
-      id: 'code-quality',
-      name: 'Code Generation',
-      description: 'Evaluate if generated code actually works and follows best practices',
-      icon: '💻',
-      difficulty: 'Advanced',
-      time: '1m',
-      color: 'from-green-500/10 to-green-500/5'
+      id: "code-quality",
+      name: "Code Generation",
+      description: "Evaluate if generated code actually works and follows best practices",
+      icon: "💻",
+      difficulty: "Advanced",
+      time: "1m",
+      color: "from-green-500/10 to-green-500/5",
     },
     {
-      id: 'custom',
-      name: 'Test Your Own',
-      description: 'Paste your AI\'s input and output, pick assertions, see results instantly',
-      icon: '🧪',
-      difficulty: 'Custom',
-      time: 'instant',
-      color: 'from-orange-500/10 to-orange-500/5'
-    }
+      id: "custom",
+      name: "Test Your Own",
+      description: "Paste your AI's input and output, pick assertions, see results instantly",
+      icon: "🧪",
+      difficulty: "Custom",
+      time: "instant",
+      color: "from-orange-500/10 to-orange-500/5",
+    },
   ];
 
   const toggleAssertion = (id: string) => {
-    setSelectedAssertions(prev =>
-      prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
+    setSelectedAssertions((prev) =>
+      prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id],
     );
   };
 
   const handleRunEvaluation = async (scenarioId: string) => {
-    if (scenarioId === 'custom') {
+    if (scenarioId === "custom") {
       // For custom, just select the scenario to show the form
-      setSelectedScenario('custom');
+      setSelectedScenario("custom");
       setResults(null);
       return;
     }
@@ -136,39 +148,40 @@ export function InteractivePlayground({ onSignupPrompt }: PlaygroundProps = {}) 
 
     try {
       const demoTypeMap: Record<string, string> = {
-        'chatbot-accuracy': 'chatbot',
-        'rag-hallucination': 'rag',
-        'code-quality': 'codegen'
+        "chatbot-accuracy": "chatbot",
+        "rag-hallucination": "rag",
+        "code-quality": "codegen",
       };
-      
-      const demoType = demoTypeMap[scenarioId] || 'chatbot';
+
+      const demoType = demoTypeMap[scenarioId] || "chatbot";
       const response = await fetch(`/api/demo/${demoType}`);
-      if (!response.ok) throw new Error('Failed to run evaluation');
+      if (!response.ok) throw new Error("Failed to run evaluation");
       const data = await response.json();
-      
+
       const overallScore = Math.round((data.overall || 0.87) * 100);
-      const passRate = data.items?.length > 0 
-        ? (data.items.filter((item: any) => item.pass).length / data.items.length) * 100 
-        : 87;
-      
-      const calculateGrade = (score: number): 'A+' | 'A' | 'B+' | 'B' | 'C+' | 'C' | 'D' | 'F' => {
-        if (score >= 97) return 'A+';
-        if (score >= 93) return 'A';
-        if (score >= 87) return 'B+';
-        if (score >= 83) return 'B';
-        if (score >= 77) return 'C+';
-        if (score >= 73) return 'C';
-        if (score >= 60) return 'D';
-        return 'F';
+      const passRate =
+        data.items?.length > 0
+          ? (data.items.filter((item: any) => item.pass).length / data.items.length) * 100
+          : 87;
+
+      const calculateGrade = (score: number): "A+" | "A" | "B+" | "B" | "C+" | "C" | "D" | "F" => {
+        if (score >= 97) return "A+";
+        if (score >= 93) return "A";
+        if (score >= 87) return "B+";
+        if (score >= 83) return "B";
+        if (score >= 77) return "C+";
+        if (score >= 73) return "C";
+        if (score >= 60) return "D";
+        return "F";
       };
-      
+
       const transformedData = {
-        name: scenarios.find(s => s.id === scenarioId)?.name || 'Demo Evaluation',
+        name: scenarios.find((s) => s.id === scenarioId)?.name || "Demo Evaluation",
         results: {
           totalTests: data.items?.length || 10,
           passed: data.items?.filter((item: any) => item.pass).length || 8,
           failed: data.items?.filter((item: any) => !item.pass).length || 2,
-          tests: data.items || []
+          tests: data.items || [],
         },
         qualityScore: {
           overall: overallScore,
@@ -178,25 +191,38 @@ export function InteractivePlayground({ onSignupPrompt }: PlaygroundProps = {}) 
             safety: Math.round(passRate * 0.95),
             latency: 85,
             cost: 80,
-            consistency: Math.round(passRate * 0.9)
+            consistency: Math.round(passRate * 0.9),
           },
           trend: 0,
           insights: [
-            overallScore >= 90 ? '🎯 Excellent performance across all metrics' : '✅ Good performance with room for improvement',
-            '⚡ Fast response times',
-            '💰 Cost-efficient operations'
+            overallScore >= 90
+              ? "🎯 Excellent performance across all metrics"
+              : "✅ Good performance with room for improvement",
+            "⚡ Fast response times",
+            "💰 Cost-efficient operations",
           ],
-          recommendations: overallScore >= 90 
-            ? ['Continue monitoring for regressions', 'Run A/B tests on prompt variations', 'Expand test coverage to edge cases']
-            : ['Add more specific instructions to your prompts', 'Consider using few-shot learning', 'Review and update your evaluation rubric']
-        }
+          recommendations:
+            overallScore >= 90
+              ? [
+                  "Continue monitoring for regressions",
+                  "Run A/B tests on prompt variations",
+                  "Expand test coverage to edge cases",
+                ]
+              : [
+                  "Add more specific instructions to your prompts",
+                  "Consider using few-shot learning",
+                  "Review and update your evaluation rubric",
+                ],
+        },
       };
-      
+
       setResults(transformedData);
       setTimeout(() => setShowEmailCapture(true), 2000);
-      toast.success('Evaluation complete!', { description: 'Sign up to save and share your results' });
+      toast.success("Evaluation complete!", {
+        description: "Sign up to save and share your results",
+      });
     } catch {
-      toast.error('Something went wrong', { description: 'Please try again' });
+      toast.error("Something went wrong", { description: "Please try again" });
     } finally {
       setIsRunning(false);
     }
@@ -206,31 +232,40 @@ export function InteractivePlayground({ onSignupPrompt }: PlaygroundProps = {}) 
     setIsRunning(true);
 
     try {
-      const response = await fetch('/api/demo/custom-eval', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/demo/custom-eval", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           input: customInput,
           output: customOutput,
           expectedOutput: customExpected || undefined,
           assertions: selectedAssertions,
-          keywords: customKeywords ? customKeywords.split(',').map(k => k.trim()).filter(Boolean) : undefined,
-          lengthMin: customLengthMin ? parseInt(customLengthMin) : undefined,
-          lengthMax: customLengthMax ? parseInt(customLengthMax) : undefined,
+          keywords: customKeywords
+            ? customKeywords
+                .split(",")
+                .map((k) => k.trim())
+                .filter(Boolean)
+            : undefined,
+          lengthMin: customLengthMin ? parseInt(customLengthMin, 10) : undefined,
+          lengthMax: customLengthMax ? parseInt(customLengthMax, 10) : undefined,
         }),
       });
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to run evaluation');
+        throw new Error(err.error || "Failed to run evaluation");
       }
 
       const data = await response.json();
       setResults(data);
       setTimeout(() => setShowEmailCapture(true), 2000);
-      toast.success('Evaluation complete!', { description: `${data.results.passed}/${data.results.totalTests} assertions passed` });
+      toast.success("Evaluation complete!", {
+        description: `${data.results.passed}/${data.results.totalTests} assertions passed`,
+      });
     } catch (error) {
-      toast.error('Something went wrong', { description: error instanceof Error ? error.message : 'Please try again' });
+      toast.error("Something went wrong", {
+        description: error instanceof Error ? error.message : "Please try again",
+      });
     } finally {
       setIsRunning(false);
     }
@@ -242,14 +277,14 @@ export function InteractivePlayground({ onSignupPrompt }: PlaygroundProps = {}) 
     setShowEmailCapture(false);
     setIsRunning(false);
     // Reset custom eval form state
-    setCustomInput('');
-    setCustomOutput('');
-    setCustomExpected('');
+    setCustomInput("");
+    setCustomOutput("");
+    setCustomExpected("");
     setShowExpected(false);
     setSelectedAssertions(DEFAULT_ASSERTIONS);
-    setCustomKeywords('');
-    setCustomLengthMin('');
-    setCustomLengthMax('');
+    setCustomKeywords("");
+    setCustomLengthMin("");
+    setCustomLengthMax("");
   };
 
   const handleCopyResults = () => {
@@ -271,14 +306,14 @@ Quality Metrics:
 - Consistency: ${results.qualityScore.metrics.consistency}/100
 
 Key Insights:
-${results.qualityScore.insights.map((i: string) => `- ${i}`).join('\n')}
+${results.qualityScore.insights.map((i: string) => `- ${i}`).join("\n")}
 
 Recommendations:
-${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
+${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
     `.trim();
 
     navigator.clipboard.writeText(summary);
-    toast.success('Results copied to clipboard!');
+    toast.success("Results copied to clipboard!");
   };
 
   const handleExport = () => {
@@ -290,7 +325,7 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
         totalTests: results.results.totalTests,
         passed: results.results.passed,
         failed: results.results.failed,
-        passRate: `${Math.round((results.results.passed / results.results.totalTests) * 100)}%`
+        passRate: `${Math.round((results.results.passed / results.results.totalTests) * 100)}%`,
       },
       qualityScore: results.qualityScore,
       testResults: results.results.tests.map((test: any) => ({
@@ -301,24 +336,24 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
         actual: test.actual || test.generated,
         score: test.score,
         notes: test.notes,
-        context: test.context
-      }))
+        context: test.context,
+      })),
     };
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `evaluation-results-${Date.now()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success('Results exported successfully!');
+    toast.success("Results exported successfully!");
   };
 
   // Determine what to render
-  const isCustomForm = selectedScenario === 'custom' && !results && !isRunning;
+  const isCustomForm = selectedScenario === "custom" && !results && !isRunning;
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8">
@@ -327,11 +362,10 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
         <Badge variant="secondary" className="text-sm">
           Try demos instantly—no signup
         </Badge>
-        <h2 className="text-4xl font-bold tracking-tight">
-          Try AI Evaluation in 30 Seconds
-        </h2>
+        <h2 className="text-4xl font-bold tracking-tight">Try AI Evaluation in 30 Seconds</h2>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Choose a scenario below and see real evaluation results instantly. Sign up to save results and use the API.
+          Choose a scenario below and see real evaluation results instantly. Sign up to save results
+          and use the API.
         </p>
       </div>
 
@@ -342,7 +376,7 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
             <Card
               key={scenario.id}
               className={`cursor-pointer transition-all hover:scale-105 hover:shadow-lg bg-gradient-to-br ${scenario.color} ${
-                scenario.id === 'custom' ? 'border-dashed border-2' : ''
+                scenario.id === "custom" ? "border-dashed border-2" : ""
               }`}
               onClick={() => handleRunEvaluation(scenario.id)}
             >
@@ -362,9 +396,12 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
                 <CardDescription>{scenario.description}</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button className="w-full" variant={scenario.id === 'custom' ? 'outline' : 'default'}>
+                <Button
+                  className="w-full"
+                  variant={scenario.id === "custom" ? "outline" : "default"}
+                >
                   <Play className="h-4 w-4 mr-2" />
-                  {scenario.id === 'custom' ? 'Start' : 'Run Demo'}
+                  {scenario.id === "custom" ? "Start" : "Run Demo"}
                 </Button>
               </CardContent>
             </Card>
@@ -380,7 +417,8 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
               <div>
                 <CardTitle className="text-2xl">Test Your Own AI</CardTitle>
                 <CardDescription>
-                  Paste your AI&apos;s input and output, select assertions, and see results instantly
+                  Paste your AI&apos;s input and output, select assertions, and see results
+                  instantly
                 </CardDescription>
               </div>
               <Button variant="ghost" onClick={handleReset}>
@@ -424,8 +462,12 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
                 className="px-0 text-sm"
                 onClick={() => setShowExpected(!showExpected)}
               >
-                {showExpected ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
-                {showExpected ? 'Hide' : 'Add'} expected output (optional)
+                {showExpected ? (
+                  <ChevronUp className="h-4 w-4 mr-1" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 mr-1" />
+                )}
+                {showExpected ? "Hide" : "Add"} expected output (optional)
               </Button>
               {showExpected && (
                 <div className="mt-2 space-y-2">
@@ -450,14 +492,16 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
                       <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         {group.name}
                         {group.needsExpected && !customExpected && (
-                          <span className="ml-1 text-xs font-normal normal-case">(add expected output)</span>
+                          <span className="ml-1 text-xs font-normal normal-case">
+                            (add expected output)
+                          </span>
                         )}
                       </h4>
                       <div className="space-y-2">
                         {group.assertions.map((assertion) => (
                           <label
                             key={assertion.id}
-                            className={`flex items-center gap-2 text-sm ${isDisabled ? 'opacity-50' : 'cursor-pointer'}`}
+                            className={`flex items-center gap-2 text-sm ${isDisabled ? "opacity-50" : "cursor-pointer"}`}
                           >
                             <Checkbox
                               checked={selectedAssertions.includes(assertion.id)}
@@ -474,7 +518,7 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
               </div>
 
               {/* Extra inputs for special assertions */}
-              {selectedAssertions.includes('contains-keywords') && (
+              {selectedAssertions.includes("contains-keywords") && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Keywords (comma-separated)</label>
                   <Textarea
@@ -486,7 +530,7 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
                 </div>
               )}
 
-              {selectedAssertions.includes('length-check') && (
+              {selectedAssertions.includes("length-check") && (
                 <div className="flex gap-4">
                   <div className="space-y-2 flex-1">
                     <label className="text-sm font-medium">Min length (chars)</label>
@@ -515,15 +559,15 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
               <div className="flex flex-wrap gap-4 pt-2 border-t">
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
                   <Checkbox
-                    checked={selectedAssertions.includes('contains-keywords')}
-                    onCheckedChange={() => toggleAssertion('contains-keywords')}
+                    checked={selectedAssertions.includes("contains-keywords")}
+                    onCheckedChange={() => toggleAssertion("contains-keywords")}
                   />
                   Contains keywords
                 </label>
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
                   <Checkbox
-                    checked={selectedAssertions.includes('length-check')}
-                    onCheckedChange={() => toggleAssertion('length-check')}
+                    checked={selectedAssertions.includes("length-check")}
+                    onCheckedChange={() => toggleAssertion("length-check")}
                   />
                   Length range
                 </label>
@@ -538,7 +582,8 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
               disabled={!customOutput.trim() || selectedAssertions.length === 0}
             >
               <Play className="h-4 w-4 mr-2" />
-              Run Evaluation ({selectedAssertions.length} assertion{selectedAssertions.length !== 1 ? 's' : ''})
+              Run Evaluation ({selectedAssertions.length} assertion
+              {selectedAssertions.length !== 1 ? "s" : ""})
             </Button>
           </CardContent>
         </Card>
@@ -553,10 +598,9 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
               <div className="text-center space-y-2">
                 <p className="text-lg font-semibold">Running evaluation...</p>
                 <p className="text-sm text-muted-foreground">
-                  {selectedScenario === 'custom'
-                    ? `Running ${selectedAssertions.length} assertion${selectedAssertions.length !== 1 ? 's' : ''}...`
-                    : `Testing ${scenarios.find(s => s.id === selectedScenario)?.name}`
-                  }
+                  {selectedScenario === "custom"
+                    ? `Running ${selectedAssertions.length} assertion${selectedAssertions.length !== 1 ? "s" : ""}...`
+                    : `Testing ${scenarios.find((s) => s.id === selectedScenario)?.name}`}
                 </p>
               </div>
             </div>
@@ -584,9 +628,7 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
-              <Button onClick={handleReset}>
-                Try Another
-              </Button>
+              <Button onClick={handleReset}>Try Another</Button>
             </div>
           </div>
 
@@ -604,15 +646,9 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
             <CardContent>
               <Tabs defaultValue="all" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="all">
-                    All ({results.results.totalTests})
-                  </TabsTrigger>
-                  <TabsTrigger value="passed">
-                    Passed ({results.results.passed})
-                  </TabsTrigger>
-                  <TabsTrigger value="failed">
-                    Failed ({results.results.failed})
-                  </TabsTrigger>
+                  <TabsTrigger value="all">All ({results.results.totalTests})</TabsTrigger>
+                  <TabsTrigger value="passed">Passed ({results.results.passed})</TabsTrigger>
+                  <TabsTrigger value="failed">Failed ({results.results.failed})</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="all" className="space-y-4 mt-4">
@@ -623,7 +659,7 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
 
                 <TabsContent value="passed" className="space-y-4 mt-4">
                   {results.results.tests
-                    .filter((t: any) => t.status === 'passed')
+                    .filter((t: any) => t.status === "passed")
                     .map((test: any) => (
                       <TestResultCard key={test.id} test={test} />
                     ))}
@@ -631,7 +667,7 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
 
                 <TabsContent value="failed" className="space-y-4 mt-4">
                   {results.results.tests
-                    .filter((t: any) => t.status === 'failed')
+                    .filter((t: any) => t.status === "failed")
                     .map((test: any) => (
                       <TestResultCard key={test.id} test={test} />
                     ))}
@@ -661,7 +697,8 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
                 <div className="text-center space-y-4">
                   <h3 className="text-2xl font-bold">Love what you see?</h3>
                   <p className="text-muted-foreground max-w-2xl mx-auto">
-                    Sign up now to save these results, run unlimited evaluations, and share your quality scores with your team.
+                    Sign up now to save these results, run unlimited evaluations, and share your
+                    quality scores with your team.
                   </p>
                   <div className="flex gap-4 justify-center">
                     <Button size="lg" onClick={onSignupPrompt}>
@@ -686,10 +723,10 @@ ${results.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
 }
 
 function TestResultCard({ test }: { test: any }) {
-  const isPassed = test.status === 'passed';
+  const isPassed = test.status === "passed";
 
   return (
-    <Card className={isPassed ? 'border-green-500/20' : 'border-red-500/20'}>
+    <Card className={isPassed ? "border-green-500/20" : "border-red-500/20"}>
       <CardContent className="py-4">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 mt-1">
@@ -699,15 +736,11 @@ function TestResultCard({ test }: { test: any }) {
               <XCircle className="h-6 w-6 text-red-500" />
             )}
           </div>
-          
+
           <div className="flex-1 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="font-medium">
-                {test.input || test.query || test.task}
-              </p>
-              <Badge variant={isPassed ? 'default' : 'destructive'}>
-                {test.score}/100
-              </Badge>
+              <p className="font-medium">{test.input || test.query || test.task}</p>
+              <Badge variant={isPassed ? "default" : "destructive"}>{test.score}/100</Badge>
             </div>
 
             {test.expected && (
@@ -722,20 +755,14 @@ function TestResultCard({ test }: { test: any }) {
               <span>{test.actual || test.generated}</span>
             </div>
 
-            {test.notes && (
-              <div className="text-sm text-muted-foreground italic">
-                {test.notes}
-              </div>
-            )}
+            {test.notes && <div className="text-sm text-muted-foreground italic">{test.notes}</div>}
 
             {test.context && (
               <details className="text-sm">
                 <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
                   View context
                 </summary>
-                <div className="mt-2 p-3 bg-muted rounded-md">
-                  {test.context}
-                </div>
+                <div className="mt-2 p-3 bg-muted rounded-md">{test.context}</div>
               </details>
             )}
           </div>

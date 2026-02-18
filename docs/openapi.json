@@ -14,9 +14,22 @@
       "get": {
         "summary": "Get quality score",
         "parameters": [
-          { "name": "evaluationId", "in": "query", "required": true, "schema": { "type": "integer" } },
-          { "name": "action", "in": "query", "schema": { "type": "string", "enum": ["latest", "trend"] } },
-          { "name": "baseline", "in": "query", "schema": { "type": "string", "enum": ["published", "previous", "production"] } }
+          {
+            "name": "evaluationId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["latest", "trend"] }
+          },
+          {
+            "name": "baseline",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["published", "previous", "production"] }
+          }
         ],
         "responses": {
           "200": { "description": "Quality score or trend" },
@@ -29,7 +42,11 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "type": "object", "required": ["runId"], "properties": { "runId": { "type": "integer" } } }
+              "schema": {
+                "type": "object",
+                "required": ["runId"],
+                "properties": { "runId": { "type": "integer" } }
+              }
             }
           }
         },
@@ -147,7 +164,21 @@
           "error": {
             "type": "object",
             "properties": {
-              "code": { "type": "string", "enum": ["UNAUTHORIZED", "FORBIDDEN", "NOT_FOUND", "VALIDATION_ERROR", "RATE_LIMITED", "CONFLICT", "INTERNAL_ERROR", "SERVICE_UNAVAILABLE", "QUOTA_EXCEEDED", "NO_ORG_MEMBERSHIP"] },
+              "code": {
+                "type": "string",
+                "enum": [
+                  "UNAUTHORIZED",
+                  "FORBIDDEN",
+                  "NOT_FOUND",
+                  "VALIDATION_ERROR",
+                  "RATE_LIMITED",
+                  "CONFLICT",
+                  "INTERNAL_ERROR",
+                  "SERVICE_UNAVAILABLE",
+                  "QUOTA_EXCEEDED",
+                  "NO_ORG_MEMBERSHIP"
+                ]
+              },
               "message": { "type": "string" },
               "details": {},
               "requestId": { "type": "string", "format": "uuid" }

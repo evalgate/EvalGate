@@ -1,13 +1,13 @@
 /**
  * Enhanced Assertion Library
  * Tier 1.3: Pre-Built Assertion Library with 20+ built-in assertions
- * 
+ *
  * @example
  * ```typescript
  * import { expect } from '@ai-eval-platform/sdk';
- * 
+ *
  * const output = "Hello, how can I help you today?";
- * 
+ *
  * expect(output).toContainKeywords(['help', 'today']);
  * expect(output).toHaveSentiment('positive');
  * expect(output).toMatchPattern(/help/i);
@@ -52,7 +52,11 @@ export class Expectation {
       passed,
       expected,
       actual: this.value,
-      message: message || (passed ? "Values are equal" : `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(this.value)}`)
+      message:
+        message ||
+        (passed
+          ? "Values are equal"
+          : `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(this.value)}`),
     };
   }
 
@@ -68,7 +72,9 @@ export class Expectation {
       passed,
       expected: substring,
       actual: text,
-      message: message || (passed ? `Text contains "${substring}"` : `Text does not contain "${substring}"`)
+      message:
+        message ||
+        (passed ? `Text contains "${substring}"` : `Text does not contain "${substring}"`),
     };
   }
 
@@ -78,14 +84,16 @@ export class Expectation {
    */
   toContainKeywords(keywords: string[], message?: string): AssertionResult {
     const text = String(this.value).toLowerCase();
-    const missingKeywords = keywords.filter(k => !text.includes(k.toLowerCase()));
+    const missingKeywords = keywords.filter((k) => !text.includes(k.toLowerCase()));
     const passed = missingKeywords.length === 0;
     return {
       name: "toContainKeywords",
       passed,
       expected: keywords,
       actual: text,
-      message: message || (passed ? `Contains all keywords` : `Missing keywords: ${missingKeywords.join(', ')}`)
+      message:
+        message ||
+        (passed ? `Contains all keywords` : `Missing keywords: ${missingKeywords.join(", ")}`),
     };
   }
 
@@ -101,7 +109,9 @@ export class Expectation {
       passed,
       expected: `not containing "${substring}"`,
       actual: text,
-      message: message || (passed ? `Text does not contain "${substring}"` : `Text contains "${substring}"`)
+      message:
+        message ||
+        (passed ? `Text does not contain "${substring}"` : `Text contains "${substring}"`),
     };
   }
 
@@ -114,19 +124,19 @@ export class Expectation {
     const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
     const phonePattern = /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/;
     const ssnPattern = /\b\d{3}-\d{2}-\d{4}\b/;
-    
+
     const foundPII = [];
-    if (emailPattern.test(text)) foundPII.push('email');
-    if (phonePattern.test(text)) foundPII.push('phone number');
-    if (ssnPattern.test(text)) foundPII.push('SSN');
-    
+    if (emailPattern.test(text)) foundPII.push("email");
+    if (phonePattern.test(text)) foundPII.push("phone number");
+    if (ssnPattern.test(text)) foundPII.push("SSN");
+
     const passed = foundPII.length === 0;
     return {
       name: "toNotContainPII",
       passed,
       expected: "no PII",
-      actual: foundPII.length > 0 ? `Found: ${foundPII.join(', ')}` : "no PII",
-      message: message || (passed ? "No PII detected" : `PII detected: ${foundPII.join(', ')}`)
+      actual: foundPII.length > 0 ? `Found: ${foundPII.join(", ")}` : "no PII",
+      message: message || (passed ? "No PII detected" : `PII detected: ${foundPII.join(", ")}`),
     };
   }
 
@@ -142,7 +152,8 @@ export class Expectation {
       passed,
       expected: pattern.toString(),
       actual: text,
-      message: message || (passed ? `Matches pattern ${pattern}` : `Does not match pattern ${pattern}`)
+      message:
+        message || (passed ? `Matches pattern ${pattern}` : `Does not match pattern ${pattern}`),
     };
   }
 
@@ -157,7 +168,7 @@ export class Expectation {
     try {
       parsedJson = JSON.parse(String(this.value));
       passed = true;
-    } catch (e) {
+    } catch (_e) {
       passed = false;
     }
 
@@ -166,7 +177,7 @@ export class Expectation {
       passed,
       expected: "valid JSON",
       actual: passed ? parsedJson : this.value,
-      message: message || (passed ? "Valid JSON" : "Invalid JSON")
+      message: message || (passed ? "Valid JSON" : "Invalid JSON"),
     };
   }
 
@@ -182,8 +193,8 @@ export class Expectation {
       parsedJson = JSON.parse(String(this.value));
       const requiredKeys = Object.keys(schema);
       const actualKeys = Object.keys(parsedJson);
-      passed = requiredKeys.every(key => actualKeys.includes(key));
-    } catch (e) {
+      passed = requiredKeys.every((key) => actualKeys.includes(key));
+    } catch (_e) {
       passed = false;
     }
 
@@ -192,7 +203,7 @@ export class Expectation {
       passed,
       expected: schema,
       actual: parsedJson,
-      message: message || (passed ? "JSON matches schema" : "JSON does not match schema")
+      message: message || (passed ? "JSON matches schema" : "JSON does not match schema"),
     };
   }
 
@@ -200,18 +211,43 @@ export class Expectation {
    * Assert value has expected sentiment
    * @example expect(output).toHaveSentiment('positive')
    */
-  toHaveSentiment(expected: 'positive' | 'negative' | 'neutral', message?: string): AssertionResult {
+  toHaveSentiment(
+    expected: "positive" | "negative" | "neutral",
+    message?: string,
+  ): AssertionResult {
     const text = String(this.value).toLowerCase();
-    const positiveWords = ['good', 'great', 'excellent', 'amazing', 'wonderful', 'fantastic', 'love', 'best', 'happy', 'helpful'];
-    const negativeWords = ['bad', 'terrible', 'awful', 'horrible', 'worst', 'hate', 'poor', 'disappointing', 'sad', 'useless'];
+    const positiveWords = [
+      "good",
+      "great",
+      "excellent",
+      "amazing",
+      "wonderful",
+      "fantastic",
+      "love",
+      "best",
+      "happy",
+      "helpful",
+    ];
+    const negativeWords = [
+      "bad",
+      "terrible",
+      "awful",
+      "horrible",
+      "worst",
+      "hate",
+      "poor",
+      "disappointing",
+      "sad",
+      "useless",
+    ];
 
-    const positiveCount = positiveWords.filter(w => text.includes(w)).length;
-    const negativeCount = negativeWords.filter(w => text.includes(w)).length;
+    const positiveCount = positiveWords.filter((w) => text.includes(w)).length;
+    const negativeCount = negativeWords.filter((w) => text.includes(w)).length;
 
-    let actual: 'positive' | 'negative' | 'neutral';
-    if (positiveCount > negativeCount) actual = 'positive';
-    else if (negativeCount > positiveCount) actual = 'negative';
-    else actual = 'neutral';
+    let actual: "positive" | "negative" | "neutral";
+    if (positiveCount > negativeCount) actual = "positive";
+    else if (negativeCount > positiveCount) actual = "negative";
+    else actual = "neutral";
 
     const passed = actual === expected;
     return {
@@ -219,7 +255,8 @@ export class Expectation {
       passed,
       expected,
       actual,
-      message: message || (passed ? `Sentiment is ${expected}` : `Expected ${expected}, got ${actual}`)
+      message:
+        message || (passed ? `Sentiment is ${expected}` : `Expected ${expected}, got ${actual}`),
     };
   }
 
@@ -229,14 +266,16 @@ export class Expectation {
    */
   toHaveLength(range: { min?: number; max?: number }, message?: string): AssertionResult {
     const length = String(this.value).length;
-    const passed = (range.min === undefined || length >= range.min) && 
-                   (range.max === undefined || length <= range.max);
+    const passed =
+      (range.min === undefined || length >= range.min) &&
+      (range.max === undefined || length <= range.max);
     return {
       name: "toHaveLength",
       passed,
       expected: range,
       actual: length,
-      message: message || (passed ? `Length ${length} is within range` : `Length ${length} not in range`)
+      message:
+        message || (passed ? `Length ${length} is within range` : `Length ${length} not in range`),
     };
   }
 
@@ -246,14 +285,16 @@ export class Expectation {
    */
   toNotHallucinate(groundTruth: string[], message?: string): AssertionResult {
     const text = String(this.value).toLowerCase();
-    const missingFacts = groundTruth.filter(fact => !text.includes(fact.toLowerCase()));
+    const missingFacts = groundTruth.filter((fact) => !text.includes(fact.toLowerCase()));
     const passed = missingFacts.length === 0;
     return {
       name: "toNotHallucinate",
       passed,
       expected: "all ground truth facts",
-      actual: missingFacts.length > 0 ? `Missing: ${missingFacts.join(', ')}` : "all facts present",
-      message: message || (passed ? "No hallucinations detected" : `Missing facts: ${missingFacts.join(', ')}`)
+      actual: missingFacts.length > 0 ? `Missing: ${missingFacts.join(", ")}` : "all facts present",
+      message:
+        message ||
+        (passed ? "No hallucinations detected" : `Missing facts: ${missingFacts.join(", ")}`),
     };
   }
 
@@ -269,7 +310,8 @@ export class Expectation {
       passed,
       expected: `<= ${maxMs}ms`,
       actual: `${duration}ms`,
-      message: message || (passed ? `${duration}ms within limit` : `${duration}ms exceeds ${maxMs}ms`)
+      message:
+        message || (passed ? `${duration}ms within limit` : `${duration}ms exceeds ${maxMs}ms`),
     };
   }
 
@@ -284,7 +326,7 @@ export class Expectation {
       passed,
       expected: "truthy value",
       actual: this.value,
-      message: message || (passed ? "Value is truthy" : "Value is falsy")
+      message: message || (passed ? "Value is truthy" : "Value is falsy"),
     };
   }
 
@@ -293,13 +335,13 @@ export class Expectation {
    * @example expect(error).toBeFalsy()
    */
   toBeFalsy(message?: string): AssertionResult {
-    const passed = !Boolean(this.value);
+    const passed = !this.value;
     return {
       name: "toBeFalsy",
       passed,
       expected: "falsy value",
       actual: this.value,
-      message: message || (passed ? "Value is falsy" : "Value is truthy")
+      message: message || (passed ? "Value is falsy" : "Value is truthy"),
     };
   }
 
@@ -315,7 +357,7 @@ export class Expectation {
       passed,
       expected: `> ${expected}`,
       actual: value,
-      message: message || (passed ? `${value} > ${expected}` : `${value} <= ${expected}`)
+      message: message || (passed ? `${value} > ${expected}` : `${value} <= ${expected}`),
     };
   }
 
@@ -331,7 +373,7 @@ export class Expectation {
       passed,
       expected: `< ${expected}`,
       actual: value,
-      message: message || (passed ? `${value} < ${expected}` : `${value} >= ${expected}`)
+      message: message || (passed ? `${value} < ${expected}` : `${value} >= ${expected}`),
     };
   }
 
@@ -347,7 +389,7 @@ export class Expectation {
       passed,
       expected: `between ${min} and ${max}`,
       actual: value,
-      message: message || (passed ? `${value} is within range` : `${value} is outside range`)
+      message: message || (passed ? `${value} is within range` : `${value} is outside range`),
     };
   }
 
@@ -363,7 +405,7 @@ export class Expectation {
       passed: hasCodeBlock,
       expected: "code block",
       actual: text,
-      message: message || (hasCodeBlock ? "Contains code block" : "No code block found")
+      message: message || (hasCodeBlock ? "Contains code block" : "No code block found"),
     };
   }
 
@@ -373,15 +415,17 @@ export class Expectation {
    */
   toBeProfessional(message?: string): AssertionResult {
     const text = String(this.value).toLowerCase();
-    const profanity = ['damn', 'hell', 'shit', 'fuck', 'ass', 'bitch', 'crap'];
-    const foundProfanity = profanity.filter(word => text.includes(word));
+    const profanity = ["damn", "hell", "shit", "fuck", "ass", "bitch", "crap"];
+    const foundProfanity = profanity.filter((word) => text.includes(word));
     const passed = foundProfanity.length === 0;
     return {
       name: "toBeProfessional",
       passed,
       expected: "professional tone",
-      actual: foundProfanity.length > 0 ? `Found: ${foundProfanity.join(', ')}` : "professional",
-      message: message || (passed ? "Professional tone" : `Unprofessional language: ${foundProfanity.join(', ')}`)
+      actual: foundProfanity.length > 0 ? `Found: ${foundProfanity.join(", ")}` : "professional",
+      message:
+        message ||
+        (passed ? "Professional tone" : `Unprofessional language: ${foundProfanity.join(", ")}`),
     };
   }
 
@@ -392,34 +436,34 @@ export class Expectation {
   toHaveProperGrammar(message?: string): AssertionResult {
     const text = String(this.value);
     const issues = [];
-    
+
     // Check for double spaces
-    if (/  +/.test(text)) issues.push('double spaces');
-    
+    if (/ {2,}/.test(text)) issues.push("double spaces");
+
     // Check for missing periods at end
-    if (text.length > 10 && !/[.!?]$/.test(text.trim())) issues.push('missing ending punctuation');
-    
+    if (text.length > 10 && !/[.!?]$/.test(text.trim())) issues.push("missing ending punctuation");
+
     // Check for lowercase sentence starts
-    if (/\.\s+[a-z]/.test(text)) issues.push('lowercase after period');
-    
+    if (/\.\s+[a-z]/.test(text)) issues.push("lowercase after period");
+
     const passed = issues.length === 0;
     return {
       name: "toHaveProperGrammar",
       passed,
       expected: "proper grammar",
-      actual: issues.length > 0 ? `Issues: ${issues.join(', ')}` : "proper grammar",
-      message: message || (passed ? "Proper grammar" : `Grammar issues: ${issues.join(', ')}`)
+      actual: issues.length > 0 ? `Issues: ${issues.join(", ")}` : "proper grammar",
+      message: message || (passed ? "Proper grammar" : `Grammar issues: ${issues.join(", ")}`),
     };
   }
 }
 
 /**
  * Create an expectation for fluent assertions
- * 
+ *
  * @example
  * ```typescript
  * const output = "Hello, how can I help you?";
- * 
+ *
  * expect(output).toContain("help");
  * expect(output).toHaveSentiment('positive');
  * expect(output).toHaveLength({ min: 10, max: 100 });
@@ -431,7 +475,7 @@ export function expect(value: any): Expectation {
 
 /**
  * Run multiple assertions and collect results
- * 
+ *
  * @example
  * ```typescript
  * const results = runAssertions([
@@ -439,7 +483,7 @@ export function expect(value: any): Expectation {
  *   () => expect(output).toHaveSentiment('positive'),
  *   () => expect(output).toHaveLength({ min: 10 })
  * ]);
- * 
+ *
  * const allPassed = results.every(r => r.passed);
  * ```
  */
@@ -453,7 +497,7 @@ export function runAssertions(assertions: (() => AssertionResult)[]): AssertionR
         passed: false,
         expected: null,
         actual: null,
-        message: error instanceof Error ? error.message : "Unknown error"
+        message: error instanceof Error ? error.message : "Unknown error",
       };
     }
   });
@@ -461,7 +505,7 @@ export function runAssertions(assertions: (() => AssertionResult)[]): AssertionR
 
 // Standalone assertion functions
 export function containsKeywords(text: string, keywords: string[]): boolean {
-  return keywords.every(keyword => text.toLowerCase().includes(keyword.toLowerCase()));
+  return keywords.every((keyword) => text.toLowerCase().includes(keyword.toLowerCase()));
 }
 
 export function matchesPattern(text: string, pattern: RegExp): boolean {
@@ -493,20 +537,20 @@ export function notContainsPII(text: string): boolean {
     /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/, // Email
     /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, // IP address
   ];
-  return !piiPatterns.some(pattern => pattern.test(text));
+  return !piiPatterns.some((pattern) => pattern.test(text));
 }
 
-export function hasSentiment(text: string, expected: 'positive' | 'negative' | 'neutral'): boolean {
+export function hasSentiment(text: string, expected: "positive" | "negative" | "neutral"): boolean {
   // This is a simplified implementation
-  const positiveWords = ['good', 'great', 'excellent', 'awesome'];
-  const negativeWords = ['bad', 'terrible', 'awful', 'poor'];
-  
+  const positiveWords = ["good", "great", "excellent", "awesome"];
+  const negativeWords = ["bad", "terrible", "awful", "poor"];
+
   const words = text.toLowerCase().split(/\s+/);
-  const positiveCount = words.filter(word => positiveWords.includes(word)).length;
-  const negativeCount = words.filter(word => negativeWords.includes(word)).length;
-  
-  if (expected === 'positive') return positiveCount > negativeCount;
-  if (expected === 'negative') return negativeCount > positiveCount;
+  const positiveCount = words.filter((word) => positiveWords.includes(word)).length;
+  const negativeCount = words.filter((word) => negativeWords.includes(word)).length;
+
+  if (expected === "positive") return positiveCount > negativeCount;
+  if (expected === "negative") return negativeCount > positiveCount;
   return positiveCount === negativeCount; // neutral
 }
 
@@ -514,10 +558,10 @@ export function similarTo(text1: string, text2: string, threshold = 0.8): boolea
   // Simple similarity check - in a real app, you'd use a proper string similarity algorithm
   const words1 = new Set(text1.toLowerCase().split(/\s+/));
   const words2 = new Set(text2.toLowerCase().split(/\s+/));
-  
-  const intersection = new Set([...words1].filter(word => words2.has(word)));
+
+  const intersection = new Set([...words1].filter((word) => words2.has(word)));
   const union = new Set([...words1, ...words2]);
-  
+
   return intersection.size / union.size >= threshold;
 }
 
@@ -540,13 +584,13 @@ export function isValidURL(url: string): boolean {
 
 export function hasNoHallucinations(text: string, groundTruth: string[]): boolean {
   // This is a simplified implementation
-  return groundTruth.every(truth => text.includes(truth));
+  return groundTruth.every((truth) => text.includes(truth));
 }
 
 export function matchesSchema(value: any, schema: Record<string, any>): boolean {
   // This is a simplified implementation
-  if (typeof value !== 'object' || value === null) return false;
-  return Object.keys(schema).every(key => key in value);
+  if (typeof value !== "object" || value === null) return false;
+  return Object.keys(schema).every((key) => key in value);
 }
 
 export function hasReadabilityScore(text: string, minScore: number): boolean {
@@ -561,25 +605,28 @@ function syllables(word: string): number {
   // Simple syllable counter
   word = word.toLowerCase();
   if (word.length <= 3) return 1;
-  return word.replace(/[^aeiouy]+/g, ' ').trim().split(/\s+/).length;
+  return word
+    .replace(/[^aeiouy]+/g, " ")
+    .trim()
+    .split(/\s+/).length;
 }
 
 export function containsLanguage(text: string, language: string): boolean {
   // This is a simplified implementation
   // In a real app, you'd use a language detection library
   const languageKeywords: Record<string, string[]> = {
-    'en': ['the', 'and', 'you', 'that', 'was', 'for', 'are', 'with'],
-    'es': ['el', 'la', 'los', 'las', 'de', 'que', 'y', 'en'],
-    'fr': ['le', 'la', 'les', 'de', 'et', 'à', 'un', 'une'],
+    en: ["the", "and", "you", "that", "was", "for", "are", "with"],
+    es: ["el", "la", "los", "las", "de", "que", "y", "en"],
+    fr: ["le", "la", "les", "de", "et", "à", "un", "une"],
   };
-  
+
   const keywords = languageKeywords[language.toLowerCase()] || [];
-  return keywords.some(keyword => text.toLowerCase().includes(keyword));
+  return keywords.some((keyword) => text.toLowerCase().includes(keyword));
 }
 
 export function hasFactualAccuracy(text: string, facts: string[]): boolean {
   // This is a simplified implementation
-  return facts.every(fact => text.includes(fact));
+  return facts.every((fact) => text.includes(fact));
 }
 
 export function respondedWithinTime(startTime: number, maxMs: number): boolean {
@@ -588,13 +635,13 @@ export function respondedWithinTime(startTime: number, maxMs: number): boolean {
 
 export function hasNoToxicity(text: string): boolean {
   // This is a simplified implementation
-  const toxicWords = ['hate', 'stupid', 'idiot', 'dumb'];
-  return !toxicWords.some(word => text.toLowerCase().includes(word));
+  const toxicWords = ["hate", "stupid", "idiot", "dumb"];
+  return !toxicWords.some((word) => text.toLowerCase().includes(word));
 }
 
 export function followsInstructions(text: string, instructions: string[]): boolean {
-  return instructions.every(instruction => {
-    if (instruction.startsWith('!')) {
+  return instructions.every((instruction) => {
+    if (instruction.startsWith("!")) {
       return !text.includes(instruction.slice(1));
     }
     return text.includes(instruction);
@@ -602,14 +649,14 @@ export function followsInstructions(text: string, instructions: string[]): boole
 }
 
 export function containsAllRequiredFields(obj: any, requiredFields: string[]): boolean {
-  return requiredFields.every(field => field in obj);
+  return requiredFields.every((field) => field in obj);
 }
 
 export function hasValidCodeSyntax(code: string, language: string): boolean {
   // This is a simplified implementation
   // In a real app, you'd use a proper parser for each language
   try {
-    if (language === 'json') JSON.parse(code);
+    if (language === "json") JSON.parse(code);
     // Add more language validations as needed
     return true;
   } catch {

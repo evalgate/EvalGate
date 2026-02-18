@@ -1,15 +1,15 @@
 /**
  * Test Suite Builder
  * Tier 2.7: Declarative test definitions
- * 
+ *
  * @example
  * ```typescript
  * import { createTestSuite, expect } from '@ai-eval-platform/sdk';
- * 
+ *
  * const suite = createTestSuite('chatbot-responses', {
  *   cases: [
- *     { 
- *       input: 'Hello', 
+ *     {
+ *       input: 'Hello',
  *       assertions: [
  *         (output) => expect(output).toContain('greeting'),
  *         (output) => expect(output).toHaveSentiment('positive')
@@ -17,12 +17,12 @@
  *     }
  *   ]
  * });
- * 
+ *
  * const results = await suite.run();
  * ```
  */
 
-import { expect, AssertionResult } from './assertions';
+import { type AssertionResult, expect } from "./assertions";
 
 /**
  * Test suite case definition (different from API TestCase type)
@@ -102,12 +102,12 @@ export interface TestSuiteResult {
 export class TestSuite {
   constructor(
     private name: string,
-    private config: TestSuiteConfig
+    private config: TestSuiteConfig,
   ) {}
 
   /**
    * Run all test cases
-   * 
+   *
    * @example
    * ```typescript
    * const results = await suite.run();
@@ -117,28 +117,28 @@ export class TestSuite {
   async run(): Promise<TestSuiteResult> {
     const startTime = Date.now();
     const results: TestSuiteCaseResult[] = [];
-    
-    const runTestCase = async (testCase: TestSuiteCase, index: number): Promise<TestSuiteCaseResult> => {
+
+    const runTestCase = async (
+      testCase: TestSuiteCase,
+      index: number,
+    ): Promise<TestSuiteCaseResult> => {
       const caseStartTime = Date.now();
       const id = testCase.id || `case-${index}`;
-      
+
       try {
         // Execute to get output
         let actual: string;
         if (this.config.executor) {
           const timeout = this.config.timeout || 30000;
-          const timeoutPromise = new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error(`Test timeout after ${timeout}ms`)), timeout)
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`Test timeout after ${timeout}ms`)), timeout),
           );
-          
-          actual = await Promise.race([
-            this.config.executor(testCase.input),
-            timeoutPromise
-          ]);
+
+          actual = await Promise.race([this.config.executor(testCase.input), timeoutPromise]);
         } else if (testCase.expected) {
           actual = testCase.expected; // Use expected as actual if no executor
         } else {
-          throw new Error('No executor provided and no expected output');
+          throw new Error("No executor provided and no expected output");
         }
 
         // Run assertions
@@ -170,7 +170,7 @@ export class TestSuite {
           actual,
           passed: allPassed,
           assertions,
-          durationMs
+          durationMs,
         };
       } catch (error) {
         const durationMs = Date.now() - caseStartTime;
@@ -178,25 +178,23 @@ export class TestSuite {
           id,
           input: testCase.input,
           expected: testCase.expected,
-          actual: '',
+          actual: "",
           passed: false,
           assertions: [],
           durationMs,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? error.message : String(error),
         };
       }
     };
 
     // Run tests
     if (this.config.parallel) {
-      results.push(...await Promise.all(
-        this.config.cases.map((tc, i) => runTestCase(tc, i))
-      ));
+      results.push(...(await Promise.all(this.config.cases.map((tc, i) => runTestCase(tc, i)))));
     } else {
       for (let i = 0; i < this.config.cases.length; i++) {
         const result = await runTestCase(this.config.cases[i], i);
         results.push(result);
-        
+
         if (this.config.stopOnFailure && !result.passed) {
           break;
         }
@@ -204,8 +202,8 @@ export class TestSuite {
     }
 
     const durationMs = Date.now() - startTime;
-    const passed = results.filter(r => r.passed).length;
-    const failed = results.filter(r => !r.passed).length;
+    const passed = results.filter((r) => r.passed).length;
+    const failed = results.filter((r) => !r.passed).length;
 
     return {
       name: this.name,
@@ -213,7 +211,7 @@ export class TestSuite {
       passed,
       failed,
       durationMs,
-      results
+      results,
     };
   }
 
@@ -234,7 +232,7 @@ export class TestSuite {
 
 /**
  * Create a test suite
- * 
+ *
  * @example
  * ```typescript
  * const suite = createTestSuite('my-tests', {
@@ -260,7 +258,7 @@ export function createTestSuite(name: string, config: TestSuiteConfig): TestSuit
 
 /**
  * Helper to create assertions from expected keywords
- * 
+ *
  * @example
  * ```typescript
  * const suite = createTestSuite('tests', {
@@ -279,7 +277,7 @@ export function containsKeywords(keywords: string[]): (output: string) => Assert
 
 /**
  * Helper to create pattern matching assertion
- * 
+ *
  * @example
  * ```typescript
  * const suite = createTestSuite('tests', {
@@ -298,7 +296,7 @@ export function matchesPattern(pattern: RegExp): (output: string) => AssertionRe
 
 /**
  * Helper to create sentiment assertion
- * 
+ *
  * @example
  * ```typescript
  * const suite = createTestSuite('tests', {
@@ -311,13 +309,15 @@ export function matchesPattern(pattern: RegExp): (output: string) => AssertionRe
  * });
  * ```
  */
-export function hasSentiment(sentiment: 'positive' | 'negative' | 'neutral'): (output: string) => AssertionResult {
+export function hasSentiment(
+  sentiment: "positive" | "negative" | "neutral",
+): (output: string) => AssertionResult {
   return (output) => expect(output).toHaveSentiment(sentiment);
 }
 
 /**
  * Helper to create length range assertion
- * 
+ *
  * @example
  * ```typescript
  * const suite = createTestSuite('tests', {
@@ -330,6 +330,9 @@ export function hasSentiment(sentiment: 'positive' | 'negative' | 'neutral'): (o
  * });
  * ```
  */
-export function hasLength(range: { min?: number; max?: number }): (output: string) => AssertionResult {
+export function hasLength(range: {
+  min?: number;
+  max?: number;
+}): (output: string) => AssertionResult {
   return (output) => expect(output).toHaveLength(range);
 }

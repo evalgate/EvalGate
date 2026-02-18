@@ -1,21 +1,25 @@
-import { Button } from "@/components/ui/button"
-import { Footer } from "@/components/footer"
-import { PublicPageHeader } from "@/components/public-page-header"
-import { ArrowLeft, GitBranch, TrendingUp, AlertCircle } from "lucide-react"
-import Link from "next/link"
+import { AlertCircle, ArrowLeft, GitBranch, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { PublicPageHeader } from "@/components/public-page-header";
+import { Button } from "@/components/ui/button";
 
 export default function ABTestingGuidePage() {
   return (
     <div className="min-h-screen bg-background">
       <PublicPageHeader />
       <div className="mx-auto max-w-4xl px-4 sm:px-6 py-8 sm:py-12">
-        <Link href="/guides" className="mb-6 sm:mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          href="/guides"
+          className="mb-6 sm:mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           Back to Guides
         </Link>
 
         <div className="mb-6 sm:mb-8">
-          <h1 className="mb-3 sm:mb-4 text-3xl sm:text-4xl font-bold tracking-tight">A/B Testing for LLMs</h1>
+          <h1 className="mb-3 sm:mb-4 text-3xl sm:text-4xl font-bold tracking-tight">
+            A/B Testing for LLMs
+          </h1>
           <p className="text-base sm:text-lg text-muted-foreground">
             Learn how to run controlled experiments to improve your LLM applications in production
           </p>
@@ -25,8 +29,8 @@ export default function ABTestingGuidePage() {
           <section className="mb-8 sm:mb-12">
             <h2 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-semibold">Why A/B Test LLMs?</h2>
             <p className="mb-4 text-sm sm:text-base text-muted-foreground">
-              A/B testing allows you to validate changes to your LLM application with real users before full deployment.
-              This is critical because:
+              A/B testing allows you to validate changes to your LLM application with real users
+              before full deployment. This is critical because:
             </p>
             <ul className="mb-4 space-y-2 text-sm sm:text-base text-muted-foreground">
               <li>• LLM outputs are non-deterministic and context-dependent</li>
@@ -37,8 +41,10 @@ export default function ABTestingGuidePage() {
           </section>
 
           <section className="mb-8 sm:mb-12">
-            <h2 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-semibold">Setting Up an Experiment</h2>
-            
+            <h2 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-semibold">
+              Setting Up an Experiment
+            </h2>
+
             <div className="mb-6 rounded-lg border border-border bg-card p-4 sm:p-6">
               <div className="mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
                 <GitBranch className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
@@ -74,16 +80,26 @@ export default function ABTestingGuidePage() {
                 Define what success looks like for your experiment:
               </p>
               <ul className="space-y-2 text-sm sm:text-base text-muted-foreground">
-                <li>• <strong>User engagement:</strong> Click-through rates, time spent</li>
-                <li>• <strong>Quality metrics:</strong> Thumbs up/down, user ratings</li>
-                <li>• <strong>Task completion:</strong> Conversion rates, success rates</li>
-                <li>• <strong>Performance:</strong> Latency, token usage</li>
+                <li>
+                  • <strong>User engagement:</strong> Click-through rates, time spent
+                </li>
+                <li>
+                  • <strong>Quality metrics:</strong> Thumbs up/down, user ratings
+                </li>
+                <li>
+                  • <strong>Task completion:</strong> Conversion rates, success rates
+                </li>
+                <li>
+                  • <strong>Performance:</strong> Latency, token usage
+                </li>
               </ul>
             </div>
           </section>
 
           <section className="mb-8 sm:mb-12">
-            <h2 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-semibold">Running the Experiment</h2>
+            <h2 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-semibold">
+              Running the Experiment
+            </h2>
             <p className="mb-4 text-sm sm:text-base text-muted-foreground">
               Use our platform to randomly assign users to variants and track results:
             </p>
@@ -117,8 +133,8 @@ await experiment.track(userId, {
                 <h3 className="text-base sm:text-lg font-semibold">Statistical Significance</h3>
               </div>
               <p className="text-sm sm:text-base text-muted-foreground">
-                Wait for statistical significance before making decisions. Our platform calculates p-values and
-                confidence intervals automatically. Generally, you need:
+                Wait for statistical significance before making decisions. Our platform calculates
+                p-values and confidence intervals automatically. Generally, you need:
               </p>
               <ul className="mt-3 space-y-1 text-sm sm:text-base text-muted-foreground">
                 <li>• At least 100 samples per variant</li>
@@ -146,13 +162,15 @@ await experiment.track(userId, {
               <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
                 <h3 className="mb-2 text-base sm:text-lg font-semibold">Monitor Cost</h3>
                 <p className="text-sm sm:text-base text-muted-foreground">
-                  Track token usage and API costs across variants to ensure improvements are cost-effective
+                  Track token usage and API costs across variants to ensure improvements are
+                  cost-effective
                 </p>
               </div>
               <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
                 <h3 className="mb-2 text-base sm:text-lg font-semibold">Document Everything</h3>
                 <p className="text-sm sm:text-base text-muted-foreground">
-                  Keep detailed records of hypotheses, configurations, and results for future reference
+                  Keep detailed records of hypotheses, configurations, and results for future
+                  reference
                 </p>
               </div>
             </div>
@@ -169,5 +187,5 @@ await experiment.track(userId, {
         </div>
       </div>
     </div>
-  )
+  );
 }

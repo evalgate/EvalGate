@@ -21,19 +21,21 @@ try {
     SELECT name FROM sqlite_master 
     WHERE type='table' AND name='verification'
   `);
-  
+
   console.log("🔍 Verification table exists:", result.rows.length > 0);
-  
+
   // List all tables
   const allTables = await client.execute(`
     SELECT name FROM sqlite_master 
     WHERE type='table' 
     ORDER BY name
   `);
-  
+
   console.log("📋 Total tables:", allTables.rows.length);
-  console.log("📋 Table names:", allTables.rows.map(r => r.name));
-  
+  console.log(
+    "📋 Table names:",
+    allTables.rows.map((r) => r.name),
+  );
 } catch (err) {
   console.error("❌ Database error:", err.message);
 }

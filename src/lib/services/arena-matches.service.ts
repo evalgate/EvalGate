@@ -1,10 +1,11 @@
 // src/lib/services/arena-matches.service.ts
-import { db } from '@/db';
-import { arenaMatches, llmJudgeConfigs } from '@/db/schema';
-import { eq, and, desc, gte, lte } from 'drizzle-orm';
-import { logger } from '@/lib/logger';
-import { z } from 'zod';
-import { llmJudgeService } from './llm-judge.service';
+
+import { and, desc, eq, gte, lte } from "drizzle-orm";
+import { z } from "zod";
+import { db } from "@/db";
+import { arenaMatches, llmJudgeConfigs } from "@/db/schema";
+import { logger } from "@/lib/logger";
+import { llmJudgeService } from "./llm-judge.service";
 
 export const createArenaMatchSchema = z.object({
   prompt: z.string().min(1),
@@ -65,18 +66,18 @@ export class ArenaMatchesService {
   async createArenaMatch(
     organizationId: number,
     input: CreateArenaMatchInput,
-    createdBy: string
+    createdBy: string,
   ): Promise<ArenaMatchResult> {
-    logger.info('Creating arena match', { 
-      organizationId, 
+    logger.info("Creating arena match", {
+      organizationId,
       models: input.models.length,
-      promptLength: input.prompt.length 
+      promptLength: input.prompt.length,
     });
 
     // Verify organization has access to requested models
     const availableModels = await this.getAvailableModels(organizationId, input.models);
     if (availableModels.length === 0) {
-      throw new Error('No available models found for arena match');
+      throw new Error("No available models found for arena match");
     }
 
     // Get or create default judge config
@@ -90,41 +91,44 @@ export class ArenaMatchesService {
       input.prompt,
       availableModels,
       organizationId,
-      judgeConfigId
+      judgeConfigId,
     );
 
     // Determine winner
     const winner = this.determineWinner(results);
-    
+
     // Calculate scores for leaderboard
     const scores = this.calculateScores(results);
 
     // Save arena match
     const now = new Date().toISOString();
-    const [match] = await db.insert(arenaMatches).values({
-      organizationId,
-      prompt: input.prompt,
-      winnerId: winner.modelId,
-      winnerLabel: winner.modelLabel,
-      judgeReasoning: winner.reasoning,
-      results: JSON.stringify(results),
-      scores: JSON.stringify(scores),
-      createdBy,
-      createdAt: now,
-    }).returning({
-      id: arenaMatches.id,
-      prompt: arenaMatches.prompt,
-      winnerId: arenaMatches.winnerId,
-      winnerLabel: arenaMatches.winnerLabel,
-      judgeReasoning: arenaMatches.judgeReasoning,
-      results: arenaMatches.results,
-      scores: arenaMatches.scores,
-      organizationId: arenaMatches.organizationId,
-      createdBy: arenaMatches.createdBy,
-      createdAt: arenaMatches.createdAt,
-    });
+    const [match] = await db
+      .insert(arenaMatches)
+      .values({
+        organizationId,
+        prompt: input.prompt,
+        winnerId: winner.modelId,
+        winnerLabel: winner.modelLabel,
+        judgeReasoning: winner.reasoning,
+        results: JSON.stringify(results),
+        scores: JSON.stringify(scores),
+        createdBy,
+        createdAt: now,
+      })
+      .returning({
+        id: arenaMatches.id,
+        prompt: arenaMatches.prompt,
+        winnerId: arenaMatches.winnerId,
+        winnerLabel: arenaMatches.winnerLabel,
+        judgeReasoning: arenaMatches.judgeReasoning,
+        results: arenaMatches.results,
+        scores: arenaMatches.scores,
+        organizationId: arenaMatches.organizationId,
+        createdBy: arenaMatches.createdBy,
+        createdAt: arenaMatches.createdAt,
+      });
 
-    logger.info('Arena match completed', {
+    logger.info("Arena match completed", {
       matchId: match.id,
       winner: winner.modelLabel,
       totalModels: results.length,
@@ -134,9 +138,13 @@ export class ArenaMatchesService {
     return {
       ...match,
       winnerScore: winner.score,
-      judgeReasoning: match.judgeReasoning || '',
-      results: typeof match.results === 'string' ? JSON.parse(match.results as string) : (match.results || []),
-      scores: typeof match.scores === 'string' ? JSON.parse(match.scores as string) : (match.scores || {}),
+      judgeReasoning: match.judgeReasoning || "",
+      results:
+        typeof match.results === "string"
+          ? JSON.parse(match.results as string)
+          : match.results || [],
+      scores:
+        typeof match.scores === "string" ? JSON.parse(match.scores as string) : match.scores || {},
       metadata: {},
     } as ArenaMatchResult;
   }
@@ -144,10 +152,7 @@ export class ArenaMatchesService {
   /**
    * Get arena match by ID.
    */
-  async getArenaMatch(
-    organizationId: number,
-    matchId: number
-  ): Promise<ArenaMatchResult | null> {
+  async getArenaMatch(organizationId: number, matchId: number): Promise<ArenaMatchResult | null> {
     const [match] = await db
       .select()
       .from(arenaMatches)
@@ -162,9 +167,9 @@ export class ArenaMatchesService {
       winnerId: match.winnerId,
       winnerLabel: match.winnerLabel,
       winnerScore: 0,
-      judgeReasoning: match.judgeReasoning || '',
-      results: typeof match.results === 'string' ? JSON.parse(match.results) : match.results,
-      scores: typeof match.scores === 'string' ? JSON.parse(match.scores) : (match.scores || {}),
+      judgeReasoning: match.judgeReasoning || "",
+      results: typeof match.results === "string" ? JSON.parse(match.results) : match.results,
+      scores: typeof match.scores === "string" ? JSON.parse(match.scores) : match.scores || {},
       metadata: {},
       organizationId: match.organizationId,
       createdBy: match.createdBy,
@@ -182,7 +187,7 @@ export class ArenaMatchesService {
       offset?: number;
       winnerId?: string;
       dateRange?: { start: string; end: string };
-    }
+    },
   ): Promise<Array<ArenaMatchResult>> {
     // Build where conditions upfront to avoid Drizzle chaining issues
     const conditions = [eq(arenaMatches.organizationId, organizationId)];
@@ -202,20 +207,29 @@ export class ArenaMatchesService {
       .limit(options?.limit ?? 100)
       .offset(options?.offset ?? 0);
 
-    return matches.map(match => ({
-      id: match.id,
-      prompt: match.prompt,
-      winnerId: match.winnerId,
-      winnerLabel: match.winnerLabel,
-      winnerScore: 0,
-      judgeReasoning: match.judgeReasoning || '',
-      results: typeof match.results === 'string' ? JSON.parse(match.results as string) : (match.results || []),
-      scores: typeof match.scores === 'string' ? JSON.parse(match.scores as string) : (match.scores || {}),
-      metadata: {},
-      organizationId: match.organizationId,
-      createdBy: match.createdBy,
-      createdAt: match.createdAt,
-    } as ArenaMatchResult));
+    return matches.map(
+      (match) =>
+        ({
+          id: match.id,
+          prompt: match.prompt,
+          winnerId: match.winnerId,
+          winnerLabel: match.winnerLabel,
+          winnerScore: 0,
+          judgeReasoning: match.judgeReasoning || "",
+          results:
+            typeof match.results === "string"
+              ? JSON.parse(match.results as string)
+              : match.results || [],
+          scores:
+            typeof match.scores === "string"
+              ? JSON.parse(match.scores as string)
+              : match.scores || {},
+          metadata: {},
+          organizationId: match.organizationId,
+          createdBy: match.createdBy,
+          createdAt: match.createdAt,
+        }) as ArenaMatchResult,
+    );
   }
 
   /**
@@ -226,14 +240,18 @@ export class ArenaMatchesService {
     options?: {
       limit?: number;
       timeRange?: { days: number };
-    }
+    },
   ): Promise<LeaderboardEntry[]> {
     // Get all arena matches for the organization
     const matches = await this.getArenaMatches(organizationId, {
-      dateRange: options?.timeRange ? {
-        start: new Date(Date.now() - options.timeRange.days * 24 * 60 * 60 * 1000).toISOString(),
-        end: new Date().toISOString(),
-      } : undefined,
+      dateRange: options?.timeRange
+        ? {
+            start: new Date(
+              Date.now() - options.timeRange.days * 24 * 60 * 60 * 1000,
+            ).toISOString(),
+            end: new Date().toISOString(),
+          }
+        : undefined,
     });
 
     // Calculate leaderboard entries
@@ -241,10 +259,10 @@ export class ArenaMatchesService {
 
     for (const match of matches) {
       const results = match.results;
-      
+
       for (const result of results) {
         const existing = modelStats.get(result.modelId);
-        
+
         if (!existing) {
           modelStats.set(result.modelId, {
             modelId: result.modelId,
@@ -263,20 +281,23 @@ export class ArenaMatchesService {
         }
 
         const entry = modelStats.get(result.modelId)!;
-        
+
         entry.totalMatches++;
         entry.lastMatchAt = match.createdAt;
-        
+
         // Update win/loss/draw counts
         if (result.modelId === match.winnerId) {
           entry.wins++;
         } else {
           entry.losses++;
         }
-        
+
         // Update scores
-        entry.averageScore = (entry.averageScore * (entry.totalMatches - 1) + result.score) / entry.totalMatches;
-        entry.averageResponseTime = (entry.averageResponseTime * (entry.totalMatches - 1) + result.responseTime) / entry.totalMatches;
+        entry.averageScore =
+          (entry.averageScore * (entry.totalMatches - 1) + result.score) / entry.totalMatches;
+        entry.averageResponseTime =
+          (entry.averageResponseTime * (entry.totalMatches - 1) + result.responseTime) /
+          entry.totalMatches;
         entry.totalCost += result.cost;
       }
     }
@@ -288,12 +309,11 @@ export class ArenaMatchesService {
     }
 
     // Sort by win rate, then by total matches
-    const leaderboard = Array.from(modelStats.values())
-      .sort((a, b) => {
-        if (b.winRate !== a.winRate) return b.winRate - a.winRate;
-        if (b.totalMatches !== a.totalMatches) return b.totalMatches - a.totalMatches;
-        return b.averageScore - a.averageScore;
-      });
+    const leaderboard = Array.from(modelStats.values()).sort((a, b) => {
+      if (b.winRate !== a.winRate) return b.winRate - a.winRate;
+      if (b.totalMatches !== a.totalMatches) return b.totalMatches - a.totalMatches;
+      return b.averageScore - a.averageScore;
+    });
 
     return options?.limit ? leaderboard.slice(0, options.limit) : leaderboard;
   }
@@ -305,26 +325,28 @@ export class ArenaMatchesService {
     prompt: string,
     models: Array<{ id: string; label: string; config: any }>,
     organizationId: number,
-    judgeConfigId: number
-  ): Promise<Array<{
-    modelId: string;
-    modelLabel: string;
-    score: number;
-    output: string;
-    responseTime: number;
-    tokenCount: number;
-    cost: number;
-  }>> {
+    judgeConfigId: number,
+  ): Promise<
+    Array<{
+      modelId: string;
+      modelLabel: string;
+      score: number;
+      output: string;
+      responseTime: number;
+      tokenCount: number;
+      cost: number;
+    }>
+  > {
     const results = [];
 
     for (const model of models) {
       try {
         const startTime = Date.now();
-        
+
         // Call the model (this would integrate with actual LLM providers)
         const output = await this.callModel(model, prompt);
         const endTime = Date.now();
-        
+
         // Get judge score
         const judgeResult = await llmJudgeService.evaluate(organizationId, {
           configId: judgeConfigId,
@@ -346,10 +368,9 @@ export class ArenaMatchesService {
           tokenCount,
           cost,
         });
-
       } catch (error: any) {
         logger.error(`Arena match failed for model ${model.label}`, error);
-        
+
         results.push({
           modelId: model.id,
           modelLabel: model.label,
@@ -368,15 +389,15 @@ export class ArenaMatchesService {
   /**
    * Determine the winner of an arena match.
    */
-  private determineWinner(results: Array<{
-    modelId: string;
-    modelLabel: string;
-    score: number;
-    output: string;
-  }>): { modelId: string; modelLabel: string; score: number; reasoning: string } {
-    const winner = results.reduce((prev, current) => 
-      current.score > prev.score ? current : prev
-    );
+  private determineWinner(
+    results: Array<{
+      modelId: string;
+      modelLabel: string;
+      score: number;
+      output: string;
+    }>,
+  ): { modelId: string; modelLabel: string; score: number; reasoning: string } {
+    const winner = results.reduce((prev, current) => (current.score > prev.score ? current : prev));
 
     return {
       modelId: winner.modelId,
@@ -389,12 +410,14 @@ export class ArenaMatchesService {
   /**
    * Calculate scores for all models.
    */
-  private calculateScores(results: Array<{
-    modelId: string;
-    score: number;
-  }>): Record<string, number> {
+  private calculateScores(
+    results: Array<{
+      modelId: string;
+      score: number;
+    }>,
+  ): Record<string, number> {
     const scores: Record<string, number> = {};
-    
+
     for (const result of results) {
       scores[result.modelId] = result.score;
     }
@@ -406,21 +429,33 @@ export class ArenaMatchesService {
    * Get available models for the organization.
    */
   private async getAvailableModels(
-    organizationId: number,
-    requestedModels: string[]
+    _organizationId: number,
+    requestedModels: string[],
   ): Promise<Array<{ id: string; label: string; config: any }>> {
     // This would integrate with your model management system
     // For now, return mock data
     const allModels = [
-      { id: 'gpt-4', label: 'GPT-4', config: { provider: 'openai', model: 'gpt-4' } },
-      { id: 'gpt-4-turbo', label: 'GPT-4 Turbo', config: { provider: 'openai', model: 'gpt-4-turbo' } },
-      { id: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', config: { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022' } },
-      { id: 'gemini-pro', label: 'Gemini Pro', config: { provider: 'google', model: 'gemini-pro' } },
+      { id: "gpt-4", label: "GPT-4", config: { provider: "openai", model: "gpt-4" } },
+      {
+        id: "gpt-4-turbo",
+        label: "GPT-4 Turbo",
+        config: { provider: "openai", model: "gpt-4-turbo" },
+      },
+      {
+        id: "claude-3.5-sonnet",
+        label: "Claude 3.5 Sonnet",
+        config: { provider: "anthropic", model: "claude-3-5-sonnet-20241022" },
+      },
+      {
+        id: "gemini-pro",
+        label: "Gemini Pro",
+        config: { provider: "google", model: "gemini-pro" },
+      },
     ];
 
     // Filter by requested models
-    return allModels.filter(model => 
-      requestedModels.length === 0 || requestedModels.includes(model.id)
+    return allModels.filter(
+      (model) => requestedModels.length === 0 || requestedModels.includes(model.id),
     );
   }
 
@@ -429,16 +464,18 @@ export class ArenaMatchesService {
    */
   private async getOrCreateDefaultJudgeConfig(
     organizationId: number,
-    createdBy: string
+    createdBy: string,
   ): Promise<number> {
     // Check if default config exists
     const [existing] = await db
       .select()
       .from(llmJudgeConfigs)
-      .where(and(
-        eq(llmJudgeConfigs.organizationId, organizationId),
-        eq(llmJudgeConfigs.name, 'Arena Judge Config')
-      ))
+      .where(
+        and(
+          eq(llmJudgeConfigs.organizationId, organizationId),
+          eq(llmJudgeConfigs.name, "Arena Judge Config"),
+        ),
+      )
       .limit(1);
 
     if (existing) {
@@ -446,11 +483,13 @@ export class ArenaMatchesService {
     }
 
     // Create default judge config
-    const [config] = await db.insert(llmJudgeConfigs).values({
-      organizationId,
-      name: 'Arena Judge Config',
-      model: 'gpt-4o-mini',
-      promptTemplate: `You are an expert AI evaluator. Compare the following responses and determine which one is better.
+    const [config] = await db
+      .insert(llmJudgeConfigs)
+      .values({
+        organizationId,
+        name: "Arena Judge Config",
+        model: "gpt-4o-mini",
+        promptTemplate: `You are an expert AI evaluator. Compare the following responses and determine which one is better.
 
 Respond ONLY with valid JSON in this exact format:
 {"score": <0-100>, "reasoning": "<detailed explanation>", "passed": <true/false>}
@@ -463,23 +502,24 @@ Consider:
 - Safety and ethics
 
 Provide a clear explanation for your choice.`,
-      criteria: {
-        relevance: 0.3,
-        clarity: 0.2,
-        completeness: 0.2,
-        helpfulness: 0.2,
-        safety: 0.1,
-      },
-      settings: {
-        temperature: 0.1,
-        maxTokens: 500,
-      },
-      createdBy,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }).returning({
-      id: llmJudgeConfigs.id,
-    });
+        criteria: {
+          relevance: 0.3,
+          clarity: 0.2,
+          completeness: 0.2,
+          helpfulness: 0.2,
+          safety: 0.1,
+        },
+        settings: {
+          temperature: 0.1,
+          maxTokens: 500,
+        },
+        createdBy,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+      .returning({
+        id: llmJudgeConfigs.id,
+      });
 
     return config.id;
   }
@@ -489,19 +529,21 @@ Provide a clear explanation for your choice.`,
    */
   private async callModel(
     model: { id: string; label: string; config: any },
-    prompt: string
+    _prompt: string,
   ): Promise<string> {
     // This would integrate with your actual LLM providers
     // For now, return mock responses
-    
+
     const mockResponses: Record<string, string> = {
-      'gpt-4': 'I understand your request completely and will provide a comprehensive response that addresses all aspects of your query.',
-      'gpt-4-turbo': 'Quick response: I can help with that! Here\'s what you need to know...',
-      'claude-3.5-sonnet': 'I\'ll provide a thoughtful analysis of your request with detailed insights.',
-      'gemini-pro': 'I\'ll analyze your request thoroughly and provide a comprehensive response.',
+      "gpt-4":
+        "I understand your request completely and will provide a comprehensive response that addresses all aspects of your query.",
+      "gpt-4-turbo": "Quick response: I can help with that! Here's what you need to know...",
+      "claude-3.5-sonnet":
+        "I'll provide a thoughtful analysis of your request with detailed insights.",
+      "gemini-pro": "I'll analyze your request thoroughly and provide a comprehensive response.",
     };
 
-    return mockResponses[model.id] || 'Model response not available';
+    return mockResponses[model.id] || "Model response not available";
   }
 
   /**
@@ -520,15 +562,15 @@ Provide a clear explanation for your choice.`,
   private calculateCost(config: any, tokenCount: number): number {
     // This would integrate with your pricing system
     const pricing: Record<string, number> = {
-      'gpt-4': 0.03, // $0.03 per 1K tokens
-      'gpt-4-turbo': 0.01,
-      'claude-3.5-sonnet-20241022': 0.015,
-      'gemini-pro': 0.025,
+      "gpt-4": 0.03, // $0.03 per 1K tokens
+      "gpt-4-turbo": 0.01,
+      "claude-3.5-sonnet-20241022": 0.015,
+      "gemini-pro": 0.025,
     };
 
-    const modelKey = config.model || 'gpt-4';
+    const modelKey = config.model || "gpt-4";
     const pricePerToken = pricing[modelKey] || 0.03;
-    
+
     return (tokenCount / 1000) * pricePerToken;
   }
 
@@ -561,31 +603,37 @@ Provide a clear explanation for your choice.`,
     });
 
     const totalMatches = matches.length;
-    const averageScore = matches.length > 0
-      ? matches.reduce((sum, match) => {
-        const scores = typeof match.scores === 'string' ? JSON.parse(match.scores) : match.scores;
-        const scoreValues = Object.values(scores) as number[];
-        return sum + (scoreValues.length > 0 ? scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length : 0);
-      }, 0) / matches.length
-      : 0;
+    const averageScore =
+      matches.length > 0
+        ? matches.reduce((sum, match) => {
+            const scores =
+              typeof match.scores === "string" ? JSON.parse(match.scores) : match.scores;
+            const scoreValues = Object.values(scores) as number[];
+            return (
+              sum +
+              (scoreValues.length > 0
+                ? scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length
+                : 0)
+            );
+          }, 0) / matches.length
+        : 0;
 
     // Find most active model
     const modelCounts = new Map<string, number>();
     for (const match of matches) {
-      const results = typeof match.results === 'string' ? JSON.parse(match.results) : match.results;
+      const results = typeof match.results === "string" ? JSON.parse(match.results) : match.results;
       for (const result of results) {
         modelCounts.set(result.modelId, (modelCounts.get(result.modelId) || 0) + 1);
       }
     }
-    const mostActiveModel = Array.from(modelCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      [0]?.[0] || '';
+    const mostActiveModel =
+      Array.from(modelCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
 
     // Find top performer
     const leaderboard = await this.getLeaderboard(organizationId, { limit: 1 });
-    const topPerformer = leaderboard[0]?.modelLabel || '';
+    const topPerformer = leaderboard[0]?.modelLabel || "";
 
-    const recentActivity = matches.filter(match => {
+    const recentActivity = matches.filter((match) => {
       const matchDate = new Date(match.createdAt);
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       return matchDate > weekAgo;

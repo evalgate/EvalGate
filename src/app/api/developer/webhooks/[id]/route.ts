@@ -1,57 +1,51 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { webhooks } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { secureRoute, type AuthContext } from '@/lib/api/secure-route';
-import { notFound, forbidden, validationError } from '@/lib/api/errors';
-import { parseBody } from '@/lib/api/parse';
-import { updateWebhookBodySchema } from '@/lib/validation';
+import { eq } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { webhooks } from "@/db/schema";
+import { forbidden, notFound, validationError } from "@/lib/api/errors";
+import { parseBody } from "@/lib/api/parse";
+import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { updateWebhookBodySchema } from "@/lib/validation";
 
-type LoadWebhookResult =
-  | { error: NextResponse }
-  | { webhook: typeof webhooks.$inferSelect };
+type LoadWebhookResult = { error: NextResponse } | { webhook: typeof webhooks.$inferSelect };
 
 /**
  * Fetch the webhook and verify it belongs to the caller's org.
  * Returns the webhook row or a NextResponse error.
  */
 async function loadOwnedWebhook(webhookId: number, ctx: AuthContext): Promise<LoadWebhookResult> {
-  const result = await db
-    .select()
-    .from(webhooks)
-    .where(eq(webhooks.id, webhookId))
-    .limit(1);
+  const result = await db.select().from(webhooks).where(eq(webhooks.id, webhookId)).limit(1);
 
   if (result.length === 0) {
-    return { error: notFound('Webhook not found') };
+    return { error: notFound("Webhook not found") };
   }
   if (result[0].organizationId !== ctx.organizationId) {
-    return { error: forbidden('Webhook does not belong to your organization') };
+    return { error: forbidden("Webhook does not belong to your organization") };
   }
   return { webhook: result[0] };
 }
 
-export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
-  const webhookId = parseInt(params.id);
-  if (isNaN(webhookId)) {
-    return validationError('Valid ID is required');
+export const GET = secureRoute(async (_req: NextRequest, ctx: AuthContext, params) => {
+  const webhookId = parseInt(params.id, 10);
+  if (Number.isNaN(webhookId)) {
+    return validationError("Valid ID is required");
   }
 
   const result = await loadOwnedWebhook(webhookId, ctx);
-  if ('error' in result) return result.error;
+  if ("error" in result) return result.error;
 
   const { secret, ...webhookWithoutSecret } = result.webhook;
   return NextResponse.json(webhookWithoutSecret, { status: 200 });
-})
+});
 
 export const PATCH = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
-  const webhookId = parseInt(params.id);
-  if (isNaN(webhookId)) {
-    return validationError('Valid ID is required');
+  const webhookId = parseInt(params.id, 10);
+  if (Number.isNaN(webhookId)) {
+    return validationError("Valid ID is required");
   }
 
   const result = await loadOwnedWebhook(webhookId, ctx);
-  if ('error' in result) return result.error;
+  if ("error" in result) return result.error;
 
   const parsed = await parseBody(req, updateWebhookBodySchema);
   if (!parsed.ok) return parsed.response;
@@ -59,7 +53,7 @@ export const PATCH = secureRoute(async (req: NextRequest, ctx: AuthContext, para
   const { url, events, status } = parsed.data;
 
   const updates: Record<string, unknown> = {
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   };
 
   if (url !== undefined) {
@@ -81,37 +75,34 @@ export const PATCH = secureRoute(async (req: NextRequest, ctx: AuthContext, para
     .returning();
 
   if (updated.length === 0) {
-    return notFound('Webhook not found');
+    return notFound("Webhook not found");
   }
 
   const { secret, ...webhookWithoutSecret } = updated[0];
   return NextResponse.json(webhookWithoutSecret, { status: 200 });
-})
+});
 
-export const DELETE = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
-  const webhookId = parseInt(params.id);
-  if (isNaN(webhookId)) {
-    return validationError('Valid ID is required');
+export const DELETE = secureRoute(async (_req: NextRequest, ctx: AuthContext, params) => {
+  const webhookId = parseInt(params.id, 10);
+  if (Number.isNaN(webhookId)) {
+    return validationError("Valid ID is required");
   }
 
   const result = await loadOwnedWebhook(webhookId, ctx);
-  if ('error' in result) return result.error;
+  if ("error" in result) return result.error;
 
-  const deleted = await db
-    .delete(webhooks)
-    .where(eq(webhooks.id, webhookId))
-    .returning();
+  const deleted = await db.delete(webhooks).where(eq(webhooks.id, webhookId)).returning();
 
   if (deleted.length === 0) {
-    return notFound('Webhook not found');
+    return notFound("Webhook not found");
   }
 
   const { secret: _secret, ...deletedWithoutSecret } = deleted[0];
   return NextResponse.json(
     {
-      message: 'Webhook deleted successfully',
-      deletedWebhook: deletedWithoutSecret
+      message: "Webhook deleted successfully",
+      deletedWebhook: deletedWithoutSecret,
     },
-    { status: 200 }
+    { status: 200 },
   );
-})
+});

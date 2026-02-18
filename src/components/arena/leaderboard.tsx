@@ -1,25 +1,24 @@
 // src/components/arena/leaderboard.tsx
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Trophy, 
-  TrendingUp, 
-  TrendingDown, 
-  Minus, 
-  Clock, 
-  DollarSign, 
-  Target,
-  RefreshCw,
+import {
+  BarChart3,
+  Clock,
+  DollarSign,
   Filter,
-  BarChart3
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+  Minus,
+  RefreshCw,
+  TrendingDown,
+  TrendingUp,
+  Trophy,
+} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 interface LeaderboardEntry {
   modelId: string;
@@ -45,37 +44,34 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [timeRange, setTimeRange] = useState(30);
-  const [sortBy, setSortBy] = useState<'winRate' | 'totalMatches' | 'averageScore'>('winRate');
+  const [_sortBy, _setSortBy] = useState<"winRate" | "totalMatches" | "averageScore">("winRate");
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [organizationId, timeRange, sortBy]);
-
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `/api/arena-matches/leaderboard?limit=50&days=${timeRange}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await fetch(`/api/arena-matches/leaderboard?limit=50&days=${timeRange}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch leaderboard');
+        throw new Error("Failed to fetch leaderboard");
       }
 
       const data = await response.json();
       setLeaderboard(data);
     } catch (error) {
-      console.error('Leaderboard fetch error:', error);
+      console.error("Leaderboard fetch error:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [timeRange]);
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
 
   const getStreakIcon = (streak: number) => {
     if (streak > 0) return <TrendingUp className="h-4 w-4 text-green-500" />;
@@ -84,9 +80,9 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
   };
 
   const getStreakColor = (streak: number) => {
-    if (streak > 0) return 'text-green-600';
-    if (streak < 0) return 'text-red-600';
-    return 'text-gray-600';
+    if (streak > 0) return "text-green-600";
+    if (streak < 0) return "text-red-600";
+    return "text-gray-600";
   };
 
   const getRankIcon = (rank: number) => {
@@ -97,9 +93,9 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
   };
 
   const getWinRateColor = (winRate: number) => {
-    if (winRate >= 80) return 'text-green-600';
-    if (winRate >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (winRate >= 80) return "text-green-600";
+    if (winRate >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   if (isLoading) {
@@ -129,9 +125,7 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
               <Trophy className="h-5 w-5" />
               Arena Leaderboard
             </CardTitle>
-            <CardDescription>
-              Track model performance in competitive battles
-            </CardDescription>
+            <CardDescription>Track model performance in competitive battles</CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={fetchLeaderboard}>
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -146,12 +140,12 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
               <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
               <TabsTrigger value="stats">Statistics</TabsTrigger>
             </TabsList>
-            
+
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
               <select
                 value={timeRange.toString()}
-                onChange={(e) => setTimeRange(parseInt(e.target.value))}
+                onChange={(e) => setTimeRange(parseInt(e.target.value, 10))}
                 className="text-sm border rounded px-2 py-1"
               >
                 <option value="7">Last 7 days</option>
@@ -173,13 +167,15 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
                     <div className="flex items-center justify-center w-12">
                       {getRankIcon(index + 1)}
                     </div>
-                    
+
                     <div className="space-y-1">
                       <div className="font-semibold">{entry.modelLabel}</div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span>{entry.totalMatches} matches</span>
                         <span>•</span>
-                        <span>{entry.wins}W - {entry.losses}L - {entry.draws}D</span>
+                        <span>
+                          {entry.wins}W - {entry.losses}L - {entry.draws}D
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -193,9 +189,7 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
                     </div>
 
                     <div className="text-right">
-                      <div className="text-lg font-bold">
-                        {entry.averageScore.toFixed(0)}
-                      </div>
+                      <div className="text-lg font-bold">{entry.averageScore.toFixed(0)}</div>
                       <div className="text-xs text-muted-foreground">Avg Score</div>
                     </div>
 
@@ -248,9 +242,7 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
                   <div className="text-2xl font-bold">
                     {leaderboard.reduce((sum, entry) => sum + entry.totalMatches, 0)}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Across all models
-                  </p>
+                  <p className="text-xs text-muted-foreground">Across all models</p>
                 </CardContent>
               </Card>
 
@@ -261,12 +253,13 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
                 <CardContent>
                   <div className="text-2xl font-bold">
                     {leaderboard.length > 0
-                      ? (leaderboard.reduce((sum, entry) => sum + entry.averageScore, 0) / leaderboard.length).toFixed(1)
-                      : '0'}
+                      ? (
+                          leaderboard.reduce((sum, entry) => sum + entry.averageScore, 0) /
+                          leaderboard.length
+                        ).toFixed(1)
+                      : "0"}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Across all matches
-                  </p>
+                  <p className="text-xs text-muted-foreground">Across all matches</p>
                 </CardContent>
               </Card>
 
@@ -278,9 +271,7 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
                   <div className="text-2xl font-bold">
                     ${leaderboard.reduce((sum, entry) => sum + entry.totalCost, 0).toFixed(2)}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    In arena battles
-                  </p>
+                  <p className="text-xs text-muted-foreground">In arena battles</p>
                 </CardContent>
               </Card>
             </div>
@@ -292,7 +283,7 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
                   <div key={entry.modelId} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{entry.modelLabel}</span>
-                      <Badge variant={entry.winRate >= 70 ? 'default' : 'secondary'}>
+                      <Badge variant={entry.winRate >= 70 ? "default" : "secondary"}>
                         {entry.winRate.toFixed(1)}% Win Rate
                       </Badge>
                     </div>
@@ -303,7 +294,9 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
                       </div>
                       <div>
                         <span className="text-muted-foreground">Time:</span>
-                        <span className="font-medium ml-1">{(entry.averageResponseTime / 1000).toFixed(1)}s</span>
+                        <span className="font-medium ml-1">
+                          {(entry.averageResponseTime / 1000).toFixed(1)}s
+                        </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Cost:</span>
@@ -312,7 +305,8 @@ export function ArenaLeaderboard({ organizationId, className }: ArenaLeaderboard
                       <div>
                         <span className="text-muted-foreground">Streak:</span>
                         <span className={cn("font-medium ml-1", getStreakColor(entry.streak))}>
-                          {entry.streak > 0 ? '+' : ''}{entry.streak}
+                          {entry.streak > 0 ? "+" : ""}
+                          {entry.streak}
                         </span>
                       </div>
                     </div>

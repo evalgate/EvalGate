@@ -3,7 +3,7 @@
  * Provides accessible keyboard navigation for interactive components
  */
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from "react";
 
 export interface KeyboardNavigationOptions {
   /** Enable arrow key navigation */
@@ -53,11 +53,11 @@ export function useKeyboardNavigation(options: KeyboardNavigationOptions = {}) {
 
       // Arrow key navigation
       if (enableArrowKeys) {
-        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
           event.preventDefault();
           handled = true;
 
-          const direction = event.key === 'ArrowDown' ? 1 : -1;
+          const direction = event.key === "ArrowDown" ? 1 : -1;
           let newIndex = currentIndex.current + direction;
 
           if (loop) {
@@ -72,7 +72,9 @@ export function useKeyboardNavigation(options: KeyboardNavigationOptions = {}) {
           currentIndex.current = newIndex;
 
           // Focus the new element
-          const items = containerRef.current.querySelectorAll('[role="option"], [role="menuitem"], [data-keyboard-nav]');
+          const items = containerRef.current.querySelectorAll(
+            '[role="option"], [role="menuitem"], [data-keyboard-nav]',
+          );
           const targetItem = items[newIndex] as HTMLElement;
           if (targetItem) {
             targetItem.focus();
@@ -81,10 +83,12 @@ export function useKeyboardNavigation(options: KeyboardNavigationOptions = {}) {
       }
 
       // Enter/Space to select
-      if (enableSelect && (event.key === 'Enter' || event.key === ' ')) {
-        if (document.activeElement?.hasAttribute('data-keyboard-nav') || 
-            document.activeElement?.getAttribute('role') === 'option' ||
-            document.activeElement?.getAttribute('role') === 'menuitem') {
+      if (enableSelect && (event.key === "Enter" || event.key === " ")) {
+        if (
+          document.activeElement?.hasAttribute("data-keyboard-nav") ||
+          document.activeElement?.getAttribute("role") === "option" ||
+          document.activeElement?.getAttribute("role") === "menuitem"
+        ) {
           event.preventDefault();
           handled = true;
           onSelect?.(currentIndex.current);
@@ -92,19 +96,21 @@ export function useKeyboardNavigation(options: KeyboardNavigationOptions = {}) {
       }
 
       // Escape to close
-      if (enableEscape && event.key === 'Escape') {
+      if (enableEscape && event.key === "Escape") {
         event.preventDefault();
         handled = true;
         onClose?.();
       }
 
       // Tab navigation
-      if (enableTabNavigation && event.key === 'Tab') {
+      if (enableTabNavigation && event.key === "Tab") {
         // Let default tab behavior work, but track index
-        const items = containerRef.current.querySelectorAll('[role="option"], [role="menuitem"], [data-keyboard-nav]');
+        const items = containerRef.current.querySelectorAll(
+          '[role="option"], [role="menuitem"], [data-keyboard-nav]',
+        );
         const activeElement = document.activeElement;
         const activeIndex = Array.from(items).indexOf(activeElement as HTMLElement);
-        
+
         if (activeIndex !== -1) {
           currentIndex.current = activeIndex;
         }
@@ -112,17 +118,26 @@ export function useKeyboardNavigation(options: KeyboardNavigationOptions = {}) {
 
       return handled;
     },
-    [enableArrowKeys, enableTabNavigation, enableEscape, enableSelect, onSelect, onClose, itemCount, loop]
+    [
+      enableArrowKeys,
+      enableTabNavigation,
+      enableEscape,
+      enableSelect,
+      onSelect,
+      onClose,
+      itemCount,
+      loop,
+    ],
   );
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    container.addEventListener('keydown', handleKeyDown as any);
+    container.addEventListener("keydown", handleKeyDown as any);
 
     return () => {
-      container.removeEventListener('keydown', handleKeyDown as any);
+      container.removeEventListener("keydown", handleKeyDown as any);
     };
   }, [handleKeyDown]);
 
@@ -152,14 +167,14 @@ export function useFocusTrap(isActive: boolean = true) {
 
     const container = containerRef.current;
     const focusableElements = container.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
 
     const firstElement = focusableElements[0];
     const lastElement = focusableElements[focusableElements.length - 1];
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Tab') return;
+      if (event.key !== "Tab") return;
 
       if (event.shiftKey) {
         // Shift + Tab
@@ -179,10 +194,10 @@ export function useFocusTrap(isActive: boolean = true) {
     // Focus first element
     firstElement?.focus();
 
-    container.addEventListener('keydown', handleKeyDown);
+    container.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      container.removeEventListener('keydown', handleKeyDown);
+      container.removeEventListener("keydown", handleKeyDown);
     };
   }, [isActive]);
 
@@ -200,14 +215,14 @@ export function useKeyboardShortcuts(shortcuts: Record<string, () => void>) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = [
-        event.ctrlKey && 'ctrl',
-        event.shiftKey && 'shift',
-        event.altKey && 'alt',
-        event.metaKey && 'meta',
+        event.ctrlKey && "ctrl",
+        event.shiftKey && "shift",
+        event.altKey && "alt",
+        event.metaKey && "meta",
         event.key.toLowerCase(),
       ]
         .filter(Boolean)
-        .join('+');
+        .join("+");
 
       const handler = shortcuts[key];
       if (handler) {
@@ -216,10 +231,10 @@ export function useKeyboardShortcuts(shortcuts: Record<string, () => void>) {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [shortcuts]);
 }
@@ -229,13 +244,12 @@ export function useKeyboardShortcuts(shortcuts: Record<string, () => void>) {
  */
 export function useSkipLinks() {
   const skipToContent = useCallback(() => {
-    const mainContent = document.querySelector('main');
+    const mainContent = document.querySelector("main");
     if (mainContent) {
       mainContent.focus();
-      mainContent.scrollIntoView({ behavior: 'smooth' });
+      mainContent.scrollIntoView({ behavior: "smooth" });
     }
   }, []);
 
   return { skipToContent };
 }
-

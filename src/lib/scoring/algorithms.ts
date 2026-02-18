@@ -15,7 +15,7 @@ export interface ScoringResult {
 }
 
 export interface ScoringOptions {
-  algorithm?: 'cosine' | 'levenshtein' | 'combined' | 'jaccard' | 'bleu';
+  algorithm?: "cosine" | "levenshtein" | "combined" | "jaccard" | "bleu";
   weights?: {
     semantic?: number;
     syntactic?: number;
@@ -39,21 +39,21 @@ export class ScoringAlgorithms {
         score: 0,
         confidence: 0,
         details: {
-          algorithm: 'cosine',
+          algorithm: "cosine",
           metrics: { similarity: 0 },
-          explanation: 'One or both texts are empty',
+          explanation: "One or both texts are empty",
         },
       };
     }
 
     // Simple tokenization and vectorization
-    const tokens1 = this.tokenize(text1.toLowerCase());
-    const tokens2 = this.tokenize(text2.toLowerCase());
+    const tokens1 = ScoringAlgorithms.tokenize(text1.toLowerCase());
+    const tokens2 = ScoringAlgorithms.tokenize(text2.toLowerCase());
 
     // Create TF-IDF vectors
     const allTokens = [...new Set([...tokens1, ...tokens2])];
-    const vector1 = this.createTFIDFVector(tokens1, allTokens);
-    const vector2 = this.createTFIDFVector(tokens2, allTokens);
+    const vector1 = ScoringAlgorithms.createTFIDFVector(tokens1, allTokens);
+    const vector2 = ScoringAlgorithms.createTFIDFVector(tokens2, allTokens);
 
     // Calculate cosine similarity
     const dotProduct = vector1.reduce((sum, val, i) => sum + val * vector2[i], 0);
@@ -65,10 +65,11 @@ export class ScoringAlgorithms {
 
     return {
       score,
-      confidence: Math.min(tokens1.length, tokens2.length) / Math.max(tokens1.length, tokens2.length),
+      confidence:
+        Math.min(tokens1.length, tokens2.length) / Math.max(tokens1.length, tokens2.length),
       details: {
-        algorithm: 'cosine',
-        metrics: { 
+        algorithm: "cosine",
+        metrics: {
           similarity: similarity,
           tokens1: tokens1.length,
           tokens2: tokens2.length,
@@ -91,24 +92,24 @@ export class ScoringAlgorithms {
         score: 0,
         confidence: 0,
         details: {
-          algorithm: 'levenshtein',
+          algorithm: "levenshtein",
           metrics: { distance: 0, similarity: 0 },
-          explanation: 'One or both texts are empty',
+          explanation: "One or both texts are empty",
         },
       };
     }
 
-    const distance = this.calculateLevenshteinDistance(text1, text2);
+    const distance = ScoringAlgorithms.calculateLevenshteinDistance(text1, text2);
     const maxLength = Math.max(text1.length, text2.length);
-    const similarity = maxLength > 0 ? 1 - (distance / maxLength) : 1;
+    const similarity = maxLength > 0 ? 1 - distance / maxLength : 1;
     const score = Math.round(similarity * 100);
 
     return {
       score,
       confidence: 1, // Levenshtein is deterministic
       details: {
-        algorithm: 'levenshtein',
-        metrics: { 
+        algorithm: "levenshtein",
+        metrics: {
           distance,
           similarity,
           maxLength,
@@ -130,17 +131,17 @@ export class ScoringAlgorithms {
         score: 0,
         confidence: 0,
         details: {
-          algorithm: 'jaccard',
+          algorithm: "jaccard",
           metrics: { similarity: 0 },
-          explanation: 'One or both texts are empty',
+          explanation: "One or both texts are empty",
         },
       };
     }
 
-    const tokens1 = new Set(this.tokenize(text1.toLowerCase()));
-    const tokens2 = new Set(this.tokenize(text2.toLowerCase()));
+    const tokens1 = new Set(ScoringAlgorithms.tokenize(text1.toLowerCase()));
+    const tokens2 = new Set(ScoringAlgorithms.tokenize(text2.toLowerCase()));
 
-    const intersection = new Set([...tokens1].filter(x => tokens2.has(x)));
+    const intersection = new Set([...tokens1].filter((x) => tokens2.has(x)));
     const union = new Set([...tokens1, ...tokens2]);
 
     const similarity = union.size > 0 ? intersection.size / union.size : 0;
@@ -150,8 +151,8 @@ export class ScoringAlgorithms {
       score,
       confidence: Math.min(tokens1.size, tokens2.size) / Math.max(tokens1.size, tokens2.size),
       details: {
-        algorithm: 'jaccard',
-        metrics: { 
+        algorithm: "jaccard",
+        metrics: {
           similarity,
           intersectionSize: intersection.size,
           unionSize: union.size,
@@ -173,24 +174,24 @@ export class ScoringAlgorithms {
         score: 0,
         confidence: 0,
         details: {
-          algorithm: 'bleu',
+          algorithm: "bleu",
           metrics: { bleu: 0 },
-          explanation: 'One or both texts are empty',
+          explanation: "One or both texts are empty",
         },
       };
     }
 
-    const refTokens = this.tokenize(reference.toLowerCase());
-    const candTokens = this.tokenize(candidate.toLowerCase());
+    const refTokens = ScoringAlgorithms.tokenize(reference.toLowerCase());
+    const candTokens = ScoringAlgorithms.tokenize(candidate.toLowerCase());
 
     if (refTokens.length === 0) {
       return {
         score: 0,
         confidence: 0,
         details: {
-          algorithm: 'bleu',
+          algorithm: "bleu",
           metrics: { bleu: 0 },
-          explanation: 'Reference text has no tokens',
+          explanation: "Reference text has no tokens",
         },
       };
     }
@@ -198,31 +199,32 @@ export class ScoringAlgorithms {
     // Calculate n-gram precisions
     const precisions: number[] = [];
     for (let i = 1; i <= n; i++) {
-      const refNGrams = this.getNGrams(refTokens, i);
-      const candNGrams = this.getNGrams(candTokens, i);
-      
-      const intersection = new Set([...refNGrams].filter(x => candNGrams.has(x)));
+      const refNGrams = ScoringAlgorithms.getNGrams(refTokens, i);
+      const candNGrams = ScoringAlgorithms.getNGrams(candTokens, i);
+
+      const intersection = new Set([...refNGrams].filter((x) => candNGrams.has(x)));
       const precision = candNGrams.size > 0 ? intersection.size / candNGrams.size : 0;
       precisions.push(precision);
     }
 
     // Calculate geometric mean of precisions
     const product = precisions.reduce((acc, p) => acc * p, 1);
-    const bleu = Math.pow(product, 1 / n) * 100;
+    const bleu = product ** (1 / n) * 100;
 
     // Brevity penalty
-    const bp = candTokens.length > refTokens.length 
-      ? Math.exp(1 - refTokens.length / candTokens.length)
-      : 1;
+    const bp =
+      candTokens.length > refTokens.length ? Math.exp(1 - refTokens.length / candTokens.length) : 1;
 
     const finalScore = bleu * bp;
 
     return {
       score: Math.round(finalScore),
-      confidence: Math.min(refTokens.length, candTokens.length) / Math.max(refTokens.length, candTokens.length),
+      confidence:
+        Math.min(refTokens.length, candTokens.length) /
+        Math.max(refTokens.length, candTokens.length),
       details: {
-        algorithm: 'bleu',
-        metrics: { 
+        algorithm: "bleu",
+        metrics: {
           bleu: finalScore / 100,
           precisions: precisions as any,
           brevityPenalty: bp,
@@ -237,11 +239,7 @@ export class ScoringAlgorithms {
   /**
    * Combined scoring algorithm that weights multiple metrics.
    */
-  static combinedScore(
-    text1: string, 
-    text2: string, 
-    options: ScoringOptions = {}
-  ): ScoringResult {
+  static combinedScore(text1: string, text2: string, options: ScoringOptions = {}): ScoringResult {
     const weights = {
       semantic: 0.4,
       syntactic: 0.3,
@@ -250,9 +248,9 @@ export class ScoringAlgorithms {
     };
 
     // Calculate individual scores
-    const cosine = this.cosineSimilarity(text1, text2);
-    const levenshtein = this.levenshteinDistance(text1, text2);
-    const jaccard = this.jaccardSimilarity(text1, text2);
+    const cosine = ScoringAlgorithms.cosineSimilarity(text1, text2);
+    const levenshtein = ScoringAlgorithms.levenshteinDistance(text1, text2);
+    const jaccard = ScoringAlgorithms.jaccardSimilarity(text1, text2);
 
     // Normalize scores to 0-1 range
     const normalizedCosine = cosine.score / 100;
@@ -260,14 +258,14 @@ export class ScoringAlgorithms {
     const normalizedJaccard = jaccard.score / 100;
 
     // Calculate length penalty
-    const lengthPenalty = this.calculateLengthPenalty(text1, text2);
+    const lengthPenalty = ScoringAlgorithms.calculateLengthPenalty(text1, text2);
 
     // Weighted combination
-    const combinedScore = (
-      weights.semantic * normalizedCosine +
-      weights.syntactic * normalizedLevenshtein +
-      weights.length * normalizedJaccard
-    ) * (1 - lengthPenalty);
+    const combinedScore =
+      (weights.semantic * normalizedCosine +
+        weights.syntactic * normalizedLevenshtein +
+        weights.length * normalizedJaccard) *
+      (1 - lengthPenalty);
 
     const finalScore = Math.round(combinedScore * 100);
 
@@ -275,7 +273,7 @@ export class ScoringAlgorithms {
       score: finalScore,
       confidence: (cosine.confidence + levenshtein.confidence + jaccard.confidence) / 3,
       details: {
-        algorithm: 'combined',
+        algorithm: "combined",
         metrics: {
           cosine: normalizedCosine,
           levenshtein: normalizedLevenshtein,
@@ -295,9 +293,9 @@ export class ScoringAlgorithms {
     // Simple tokenization - split on whitespace and punctuation
     return text
       .toLowerCase()
-      .replace(/[^\w\s]/g, ' ') // Replace non-word chars with space
+      .replace(/[^\w\s]/g, " ") // Replace non-word chars with space
       .split(/\s+/)
-      .filter(token => token.length > 0);
+      .filter((token) => token.length > 0);
   }
 
   /**
@@ -313,7 +311,7 @@ export class ScoringAlgorithms {
     }
 
     // Create vector
-    return vocabulary.map(token => {
+    return vocabulary.map((token) => {
       const tfValue = tf[token] || 0;
       return tfValue / totalTokens;
     });
@@ -339,9 +337,9 @@ export class ScoringAlgorithms {
           matrix[i][j] = matrix[i - 1][j - 1];
         } else {
           matrix[i][j] = Math.min(
-            matrix[i - 1][j] + 1,    // deletion
-            matrix[i][j - 1] + 1,    // insertion
-            matrix[i - 1][j - 1] + 1 // substitution
+            matrix[i - 1][j] + 1, // deletion
+            matrix[i][j - 1] + 1, // insertion
+            matrix[i - 1][j - 1] + 1, // substitution
           );
         }
       }
@@ -355,13 +353,13 @@ export class ScoringAlgorithms {
    */
   private static getNGrams(tokens: string[], n: number): Set<string> {
     const ngrams = new Set<string>();
-    
+
     if (tokens.length < n) {
       return ngrams;
     }
 
     for (let i = 0; i <= tokens.length - n; i++) {
-      const ngram = tokens.slice(i, i + n).join(' ');
+      const ngram = tokens.slice(i, i + n).join(" ");
       ngrams.add(ngram);
     }
 
@@ -387,21 +385,20 @@ export class ScoringAlgorithms {
    */
   static batchScore(
     pairs: Array<{ text1: string; text2: string }>,
-    options: ScoringOptions = {}
+    options: ScoringOptions = {},
   ): ScoringResult[] {
-    return pairs.map(pair => {
-      switch (options.algorithm || 'combined') {
-        case 'cosine':
-          return this.cosineSimilarity(pair.text1, pair.text2);
-        case 'levenshtein':
-          return this.levenshteinDistance(pair.text1, pair.text2);
-        case 'jaccard':
-          return this.jaccardSimilarity(pair.text1, pair.text2);
-        case 'bleu':
-          return this.bleuScore(pair.text1, pair.text2);
-        case 'combined':
+    return pairs.map((pair) => {
+      switch (options.algorithm || "combined") {
+        case "cosine":
+          return ScoringAlgorithms.cosineSimilarity(pair.text1, pair.text2);
+        case "levenshtein":
+          return ScoringAlgorithms.levenshteinDistance(pair.text1, pair.text2);
+        case "jaccard":
+          return ScoringAlgorithms.jaccardSimilarity(pair.text1, pair.text2);
+        case "bleu":
+          return ScoringAlgorithms.bleuScore(pair.text1, pair.text2);
         default:
-          return this.combinedScore(pair.text1, pair.text2, options);
+          return ScoringAlgorithms.combinedScore(pair.text1, pair.text2, options);
       }
     });
   }
@@ -409,13 +406,16 @@ export class ScoringAlgorithms {
   /**
    * Get algorithm recommendations based on text characteristics.
    */
-  static getRecommendation(text1: string, text2: string): {
-    recommended: 'cosine' | 'levenshtein' | 'combined';
+  static getRecommendation(
+    text1: string,
+    text2: string,
+  ): {
+    recommended: "cosine" | "levenshtein" | "combined";
     reasoning: string;
     alternatives: Array<{ algorithm: string; reason: string }>;
   } {
-    const tokens1 = this.tokenize(text1);
-    const tokens2 = this.tokenize(text2);
+    const tokens1 = ScoringAlgorithms.tokenize(text1);
+    const tokens2 = ScoringAlgorithms.tokenize(text2);
     const avgLength = (tokens1.length + tokens2.length) / 2;
 
     const recommendations = [];
@@ -424,52 +424,52 @@ export class ScoringAlgorithms {
     // For short texts, Levenshtein is good
     if (avgLength < 10) {
       recommendations.push({
-        algorithm: 'levenshtein',
-        reason: 'Short texts benefit from character-level comparison',
+        algorithm: "levenshtein",
+        reason: "Short texts benefit from character-level comparison",
       });
     } else {
       alternatives.push({
-        algorithm: 'levenshtein',
-        reason: 'Character-level comparison for detailed analysis',
+        algorithm: "levenshtein",
+        reason: "Character-level comparison for detailed analysis",
       });
     }
 
     // For texts with shared vocabulary, cosine is good
     const tokenSet2 = new Set(tokens2);
-    const intersection = new Set([...tokens1].filter(x => tokenSet2.has(x)));
+    const intersection = new Set([...tokens1].filter((x) => tokenSet2.has(x)));
     const union = new Set([...tokens1, ...tokens2]);
     const overlap = intersection.size / union.size;
 
     if (overlap > 0.3) {
       recommendations.push({
-        algorithm: 'cosine',
-        reason: 'High vocabulary overlap suggests semantic similarity',
+        algorithm: "cosine",
+        reason: "High vocabulary overlap suggests semantic similarity",
       });
     } else {
       alternatives.push({
-        algorithm: 'cosine',
-        reason: 'Semantic similarity for different vocabularies',
+        algorithm: "cosine",
+        reason: "Semantic similarity for different vocabularies",
       });
     }
 
     // For evaluation purposes, combined is always recommended
     recommendations.push({
-      algorithm: 'combined',
-      reason: 'Balanced approach for comprehensive evaluation',
+      algorithm: "combined",
+      reason: "Balanced approach for comprehensive evaluation",
     });
 
     alternatives.push({
-      algorithm: 'jaccard',
-      reason: 'Token overlap measurement',
+      algorithm: "jaccard",
+      reason: "Token overlap measurement",
     });
 
     alternatives.push({
-      algorithm: 'bleu',
-      reason: 'N-gram precision for structured text',
+      algorithm: "bleu",
+      reason: "N-gram precision for structured text",
     });
 
     return {
-      recommended: recommendations[0].algorithm as 'cosine' | 'levenshtein' | 'combined',
+      recommended: recommendations[0].algorithm as "cosine" | "levenshtein" | "combined",
       reasoning: recommendations[0].reason,
       alternatives,
     };
@@ -478,23 +478,20 @@ export class ScoringAlgorithms {
 
 // Convenience functions
 export const scoreText = (
-  text1: string, 
-  text2: string, 
-  options?: ScoringOptions
+  text1: string,
+  text2: string,
+  options?: ScoringOptions,
 ): ScoringResult => {
   return ScoringAlgorithms.combinedScore(text1, text2, options);
 };
 
 export const compareTexts = (
   pairs: Array<{ text1: string; text2: string }>,
-  options?: ScoringOptions
+  options?: ScoringOptions,
 ): ScoringResult[] => {
   return ScoringAlgorithms.batchScore(pairs, options);
 };
 
-export const getScoringRecommendation = (
-  text1: string, 
-  text2: string
-) => {
+export const getScoringRecommendation = (text1: string, text2: string) => {
   return ScoringAlgorithms.getRecommendation(text1, text2);
 };

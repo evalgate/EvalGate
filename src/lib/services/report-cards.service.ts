@@ -1,9 +1,15 @@
 // src/lib/services/report-cards.service.ts
-import { db } from '@/db';
-import { evaluations, evaluationRuns, testResults, llmJudgeResults, organizations } from '@/db/schema';
-import { eq, and, desc, inArray } from 'drizzle-orm';
-import { logger } from '@/lib/logger';
-import { z } from 'zod';
+
+import { and, desc, eq, inArray } from "drizzle-orm";
+import { db } from "@/db";
+import {
+  evaluationRuns,
+  evaluations,
+  llmJudgeResults,
+  organizations,
+  testResults,
+} from "@/db/schema";
+import { logger } from "@/lib/logger";
 
 export interface ReportCardData {
   evaluationId: number;
@@ -54,7 +60,7 @@ export interface ReportCardData {
       score: number;
       completedAt: string;
     }>;
-    scoreTrend: 'improving' | 'declining' | 'stable';
+    scoreTrend: "improving" | "declining" | "stable";
     performanceChange: number;
   };
   metadata: Record<string, any>;
@@ -64,8 +70,8 @@ export interface ReportCardSummary {
   evaluationId: number;
   evaluationName: string;
   overallScore: number;
-  grade: 'A+' | 'A' | 'B+' | 'B' | 'C+' | 'C' | 'D' | 'F';
-  status: 'excellent' | 'good' | 'fair' | 'poor';
+  grade: "A+" | "A" | "B+" | "B" | "C+" | "C" | "D" | "F";
+  status: "excellent" | "good" | "fair" | "poor";
   lastUpdated: string;
   keyMetrics: {
     averageScore: number;
@@ -84,24 +90,18 @@ export class ReportCardsService {
   /**
    * Generate a comprehensive report card for an evaluation.
    */
-  async generateReportCard(
-    evaluationId: number,
-    organizationId: number
-  ): Promise<ReportCardData> {
-    logger.info('Generating report card', { evaluationId, organizationId });
+  async generateReportCard(evaluationId: number, organizationId: number): Promise<ReportCardData> {
+    logger.info("Generating report card", { evaluationId, organizationId });
 
     // Get evaluation details
     const [evaluation] = await db
       .select()
       .from(evaluations)
-      .where(and(
-        eq(evaluations.id, evaluationId),
-        eq(evaluations.organizationId, organizationId)
-      ))
+      .where(and(eq(evaluations.id, evaluationId), eq(evaluations.organizationId, organizationId)))
       .limit(1);
 
     if (!evaluation) {
-      throw new Error('Evaluation not found or access denied');
+      throw new Error("Evaluation not found or access denied");
     }
 
     // Get organization details
@@ -119,25 +119,30 @@ export class ReportCardsService {
       .orderBy(desc(evaluationRuns.createdAt));
 
     // Get test results for all runs
-    const runIds = runs.map(r => r.id);
-    const testResultsData = runIds.length > 0
-      ? await db.select().from(testResults).where(inArray(testResults.evaluationRunId, runIds))
-      : [];
+    const runIds = runs.map((r) => r.id);
+    const testResultsData =
+      runIds.length > 0
+        ? await db.select().from(testResults).where(inArray(testResults.evaluationRunId, runIds))
+        : [];
 
     // Get judge results for all runs
-    const judgeResultsData = runIds.length > 0
-      ? await db.select().from(llmJudgeResults).where(inArray(llmJudgeResults.evaluationRunId, runIds))
-      : [];
+    const judgeResultsData =
+      runIds.length > 0
+        ? await db
+            .select()
+            .from(llmJudgeResults)
+            .where(inArray(llmJudgeResults.evaluationRunId, runIds))
+        : [];
 
     // Calculate performance metrics
     const performance = this.calculatePerformance(testResultsData);
-    
+
     // Calculate quality metrics
     const quality = this.calculateQuality(judgeResultsData);
-    
+
     // Calculate trends
     const trends = this.calculateTrends(runs, testResultsData);
-    
+
     // Calculate overall statistics
     const stats = this.calculateOverallStats(runs, testResultsData);
 
@@ -146,14 +151,15 @@ export class ReportCardsService {
       evaluationName: evaluation.name,
       evaluationType: evaluation.type,
       organizationId,
-      organizationName: organization?.name || 'Unknown',
+      organizationName: organization?.name || "Unknown",
       totalRuns: runs.length,
-      completedRuns: runs.filter(r => ['completed', 'completed_with_failures'].includes(r.status)).length,
+      completedRuns: runs.filter((r) => ["completed", "completed_with_failures"].includes(r.status))
+        .length,
       averageScore: stats.averageScore,
       passRate: stats.passRate,
       averageDuration: stats.averageDuration,
       totalCost: stats.totalCost,
-      lastRunAt: runs.length > 0 ? runs[0].createdAt : '',
+      lastRunAt: runs.length > 0 ? runs[0].createdAt : "",
       createdAt: evaluation.createdAt,
       performance,
       quality,
@@ -171,10 +177,10 @@ export class ReportCardsService {
    */
   async generateReportCardSummary(
     evaluationId: number,
-    organizationId: number
+    organizationId: number,
   ): Promise<ReportCardSummary> {
     const reportCard = await this.generateReportCard(evaluationId, organizationId);
-    
+
     const overallScore = this.calculateOverallScore(reportCard);
     const grade = this.calculateGrade(overallScore);
     const status = this.getStatus(grade);
@@ -204,7 +210,7 @@ export class ReportCardsService {
       limit?: number;
       offset?: number;
       evaluationType?: string;
-    }
+    },
   ): Promise<ReportCardSummary[]> {
     // Get evaluations for the organization
     const evaluationsData = await db
@@ -217,8 +223,11 @@ export class ReportCardsService {
       .from(evaluations)
       .where(
         options?.evaluationType
-          ? and(eq(evaluations.organizationId, organizationId), eq(evaluations.type, options.evaluationType))
-          : eq(evaluations.organizationId, organizationId)
+          ? and(
+              eq(evaluations.organizationId, organizationId),
+              eq(evaluations.type, options.evaluationType),
+            )
+          : eq(evaluations.organizationId, organizationId),
       )
       .orderBy(desc(evaluations.createdAt))
       .limit(options?.limit ?? 50)
@@ -226,7 +235,7 @@ export class ReportCardsService {
 
     // Generate report card summaries for each evaluation
     const reportCards: ReportCardSummary[] = [];
-    
+
     for (const evaluation of evaluationsData) {
       try {
         const summary = await this.generateReportCardSummary(evaluation.id, organizationId);
@@ -242,7 +251,7 @@ export class ReportCardsService {
   /**
    * Calculate performance metrics.
    */
-  private calculatePerformance(testResults: any[]): ReportCardData['performance'] {
+  private calculatePerformance(testResults: any[]): ReportCardData["performance"] {
     if (testResults.length === 0) {
       return {
         scoreDistribution: {},
@@ -255,16 +264,16 @@ export class ReportCardsService {
     // Score distribution
     const scoreDistribution: Record<string, number> = {};
     const scoreRanges = [
-      { range: '0-20', min: 0, max: 20 },
-      { range: '21-40', min: 21, max: 40 },
-      { range: '41-60', min: 41, max: 60 },
-      { range: '61-80', min: 61, max: 80 },
-      { range: '81-100', min: 81, max: 100 },
+      { range: "0-20", min: 0, max: 20 },
+      { range: "21-40", min: 21, max: 40 },
+      { range: "41-60", min: 41, max: 60 },
+      { range: "61-80", min: 61, max: 80 },
+      { range: "81-100", min: 81, max: 100 },
     ];
 
     for (const range of scoreRanges) {
       scoreDistribution[range.range] = testResults.filter(
-        r => r.score && r.score >= range.min && r.score <= range.max
+        (r) => r.score && r.score >= range.min && r.score <= range.max,
       ).length;
     }
 
@@ -276,8 +285,8 @@ export class ReportCardsService {
 
     // Duration stats
     const durations = testResults
-      .map(r => r.durationMs || 0)
-      .filter(d => d > 0)
+      .map((r) => r.durationMs || 0)
+      .filter((d) => d > 0)
       .sort((a, b) => a - b);
 
     const durationStats = {
@@ -289,8 +298,8 @@ export class ReportCardsService {
 
     // Cost stats
     const costs = testResults
-      .map(r => this.extractCost(r))
-      .filter(c => c > 0)
+      .map((r) => this.extractCost(r))
+      .filter((c) => c > 0)
       .sort((a, b) => a - b);
 
     const costStats = {
@@ -311,7 +320,7 @@ export class ReportCardsService {
   /**
    * Calculate quality metrics.
    */
-  private calculateQuality(judgeResults: any[]): ReportCardData['quality'] {
+  private calculateQuality(judgeResults: any[]): ReportCardData["quality"] {
     if (judgeResults.length === 0) {
       return {
         judgeResults: {
@@ -328,10 +337,10 @@ export class ReportCardsService {
       };
     }
 
-    const scores = judgeResults.map(r => r.score || 0).filter(s => s > 0);
-    const passed = judgeResults.filter(r => {
+    const scores = judgeResults.map((r) => r.score || 0).filter((s) => s > 0);
+    const passed = judgeResults.filter((r) => {
       try {
-        const metadata = typeof r.metadata === 'string' ? JSON.parse(r.metadata) : r.metadata;
+        const metadata = typeof r.metadata === "string" ? JSON.parse(r.metadata) : r.metadata;
         return metadata?.passed === true;
       } catch {
         return false;
@@ -340,9 +349,8 @@ export class ReportCardsService {
 
     // Calculate consistency metrics
     const mean = scores.length > 0 ? scores.reduce((sum, s) => sum + s, 0) / scores.length : 0;
-    const variance = scores.length > 0 
-      ? scores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / scores.length 
-      : 0;
+    const variance =
+      scores.length > 0 ? scores.reduce((sum, s) => sum + (s - mean) ** 2, 0) / scores.length : 0;
     const stdDev = Math.sqrt(variance);
     const coefficientOfVariation = mean > 0 ? stdDev / mean : 0;
 
@@ -364,17 +372,18 @@ export class ReportCardsService {
   /**
    * Calculate trends.
    */
-  private calculateTrends(runs: any[], testResults: any[]): ReportCardData['trends'] {
+  private calculateTrends(runs: any[], testResults: any[]): ReportCardData["trends"] {
     const recentRuns = runs
-      .filter(r => ['completed', 'completed_with_failures'].includes(r.status))
+      .filter((r) => ["completed", "completed_with_failures"].includes(r.status))
       .slice(0, 10)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    const recentPerformance = recentRuns.map(run => {
-      const runResults = testResults.filter(r => r.evaluationRunId === run.id);
-      const avgScore = runResults.length > 0
-        ? runResults.reduce((sum, r) => sum + (r.score || 0), 0) / runResults.length
-        : 0;
+    const recentPerformance = recentRuns.map((run) => {
+      const runResults = testResults.filter((r) => r.evaluationRunId === run.id);
+      const avgScore =
+        runResults.length > 0
+          ? runResults.reduce((sum, r) => sum + (r.score || 0), 0) / runResults.length
+          : 0;
 
       return {
         runId: run.id,
@@ -384,20 +393,20 @@ export class ReportCardsService {
     });
 
     // Calculate trend
-    let scoreTrend: 'improving' | 'declining' | 'stable' = 'stable';
+    let scoreTrend: "improving" | "declining" | "stable" = "stable";
     let performanceChange = 0;
 
     if (recentPerformance.length >= 3) {
       const recent = recentPerformance.slice(0, 3);
       const earlier = recentPerformance.slice(3, 6);
-      
+
       if (earlier.length > 0) {
         const recentAvg = recent.reduce((sum, p) => sum + p.score, 0) / recent.length;
         const earlierAvg = earlier.reduce((sum, p) => sum + p.score, 0) / earlier.length;
         performanceChange = recentAvg - earlierAvg;
 
-        if (performanceChange > 5) scoreTrend = 'improving';
-        else if (performanceChange < -5) scoreTrend = 'declining';
+        if (performanceChange > 5) scoreTrend = "improving";
+        else if (performanceChange < -5) scoreTrend = "declining";
       }
     }
 
@@ -411,27 +420,34 @@ export class ReportCardsService {
   /**
    * Calculate overall statistics.
    */
-  private calculateOverallStats(runs: any[], testResults: any[]): {
+  private calculateOverallStats(
+    runs: any[],
+    testResults: any[],
+  ): {
     averageScore: number;
     passRate: number;
     averageDuration: number;
     totalCost: number;
   } {
-    const completedRuns = runs.filter(r => ['completed', 'completed_with_failures'].includes(r.status));
-    
+    const completedRuns = runs.filter((r) =>
+      ["completed", "completed_with_failures"].includes(r.status),
+    );
+
     if (completedRuns.length === 0) {
       return { averageScore: 0, passRate: 0, averageDuration: 0, totalCost: 0 };
     }
 
-    const scores = testResults.map(r => r.score || 0);
-    const averageScore = scores.length > 0 ? scores.reduce((sum, s) => sum + s, 0) / scores.length : 0;
-    
-    const passedCount = testResults.filter(r => r.status === 'passed').length;
+    const scores = testResults.map((r) => r.score || 0);
+    const averageScore =
+      scores.length > 0 ? scores.reduce((sum, s) => sum + s, 0) / scores.length : 0;
+
+    const passedCount = testResults.filter((r) => r.status === "passed").length;
     const passRate = testResults.length > 0 ? (passedCount / testResults.length) * 100 : 0;
-    
-    const durations = testResults.map(r => r.durationMs || 0).filter(d => d > 0);
-    const averageDuration = durations.length > 0 ? durations.reduce((sum, d) => sum + d, 0) / durations.length : 0;
-    
+
+    const durations = testResults.map((r) => r.durationMs || 0).filter((d) => d > 0);
+    const averageDuration =
+      durations.length > 0 ? durations.reduce((sum, d) => sum + d, 0) / durations.length : 0;
+
     const totalCost = testResults.reduce((sum, r) => sum + this.extractCost(r), 0);
 
     return {
@@ -447,7 +463,10 @@ export class ReportCardsService {
    */
   private extractCost(testResult: any): number {
     try {
-      const metadata = typeof testResult.metadata === 'string' ? JSON.parse(testResult.metadata) : testResult.metadata;
+      const metadata =
+        typeof testResult.metadata === "string"
+          ? JSON.parse(testResult.metadata)
+          : testResult.metadata;
       return metadata?.cost || 0;
     } catch {
       return 0;
@@ -467,10 +486,13 @@ export class ReportCardsService {
 
     const normalizedScore = reportCard.averageScore;
     const normalizedPassRate = reportCard.passRate;
-    const consistencyScore = Math.max(0, 100 - (reportCard.quality.consistency.coefficientOfVariation * 100));
+    const consistencyScore = Math.max(
+      0,
+      100 - reportCard.quality.consistency.coefficientOfVariation * 100,
+    );
     const judgeQualityScore = reportCard.quality.judgeResults.averageJudgeScore;
 
-    const overallScore = 
+    const overallScore =
       normalizedScore * weights.averageScore +
       normalizedPassRate * weights.passRate +
       consistencyScore * weights.consistency +
@@ -482,25 +504,25 @@ export class ReportCardsService {
   /**
    * Calculate grade based on score.
    */
-  private calculateGrade(score: number): ReportCardSummary['grade'] {
-    if (score >= 95) return 'A+';
-    if (score >= 90) return 'A';
-    if (score >= 85) return 'B+';
-    if (score >= 80) return 'B';
-    if (score >= 75) return 'C+';
-    if (score >= 70) return 'C';
-    if (score >= 60) return 'D';
-    return 'F';
+  private calculateGrade(score: number): ReportCardSummary["grade"] {
+    if (score >= 95) return "A+";
+    if (score >= 90) return "A";
+    if (score >= 85) return "B+";
+    if (score >= 80) return "B";
+    if (score >= 75) return "C+";
+    if (score >= 70) return "C";
+    if (score >= 60) return "D";
+    return "F";
   }
 
   /**
    * Get status based on grade.
    */
-  private getStatus(grade: ReportCardSummary['grade']): ReportCardSummary['status'] {
-    if (grade === 'A+' || grade === 'A') return 'excellent';
-    if (grade === 'B+' || grade === 'B') return 'good';
-    if (grade === 'C+' || grade === 'C') return 'fair';
-    return 'poor';
+  private getStatus(grade: ReportCardSummary["grade"]): ReportCardSummary["status"] {
+    if (grade === "A+" || grade === "A") return "excellent";
+    if (grade === "B+" || grade === "B") return "good";
+    if (grade === "C+" || grade === "C") return "fair";
+    return "poor";
   }
 
   /**
@@ -523,9 +545,10 @@ export class ReportCardsService {
     });
 
     const totalEvaluations = reportCards.length;
-    const averageScore = reportCards.length > 0
-      ? reportCards.reduce((sum, card) => sum + card.overallScore, 0) / reportCards.length
-      : 0;
+    const averageScore =
+      reportCards.length > 0
+        ? reportCards.reduce((sum, card) => sum + card.overallScore, 0) / reportCards.length
+        : 0;
 
     // Grade distribution
     const gradeDistribution: Record<string, number> = {};
@@ -537,7 +560,7 @@ export class ReportCardsService {
     const topPerformers = reportCards
       .sort((a, b) => b.overallScore - a.overallScore)
       .slice(0, 5)
-      .map(card => ({
+      .map((card) => ({
         evaluationId: card.evaluationId,
         evaluationName: card.evaluationName,
         grade: card.grade,
@@ -546,7 +569,7 @@ export class ReportCardsService {
 
     // Recent activity (evaluations updated in last 7 days)
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const recentActivity = reportCards.filter(card => {
+    const recentActivity = reportCards.filter((card) => {
       const lastUpdated = new Date(card.lastUpdated);
       return lastUpdated > weekAgo;
     }).length;

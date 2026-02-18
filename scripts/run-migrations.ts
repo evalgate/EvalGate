@@ -1,4 +1,5 @@
 #!/usr/bin/env npx tsx
+
 /**
  * Run Drizzle migrations in numerical order.
  *
@@ -9,18 +10,18 @@
  * Requires TURSO_CONNECTION_URL and TURSO_AUTH_TOKEN in .env.local or .env.
  */
 
-import { createClient } from '@libsql/client';
-import { readdir, readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { createClient } from "@libsql/client";
 
 async function loadEnv() {
-  for (const f of ['.env.local', '.env']) {
+  for (const f of [".env.local", ".env"]) {
     try {
-      const content = await readFile(join(process.cwd(), f), 'utf-8');
-      for (const line of content.split('\n')) {
+      const content = await readFile(join(process.cwd(), f), "utf-8");
+      for (const line of content.split("\n")) {
         const m = line.match(/^([^#=]+)=(.*)$/);
-        if (m) process.env[m[1].trim()] = m[2].trim().replace(/^["']|["']$/g, '');
+        if (m) process.env[m[1].trim()] = m[2].trim().replace(/^["']|["']$/g, "");
       }
       break;
     } catch {
@@ -30,14 +31,14 @@ async function loadEnv() {
 }
 
 function parseStatements(sql: string): string[] {
-  const parts = sql.includes('--> statement-breakpoint')
+  const parts = sql.includes("--> statement-breakpoint")
     ? sql.split(/--> statement-breakpoint/)
     : sql.split(/;\s*\n/);
   return parts
     .map((s) => {
-      const trimmed = s.trim().replace(/\s*;\s*$/, '');
+      const trimmed = s.trim().replace(/\s*;\s*$/, "");
       // Strip leading comment lines so statements like "-- comment\nCREATE ..." are kept
-      return trimmed.replace(/^\s*--[^\n]*\n?/gm, '').trim();
+      return trimmed.replace(/^\s*--[^\n]*\n?/gm, "").trim();
     })
     .filter((s) => s.length > 0);
 }
@@ -66,7 +67,9 @@ export async function runMigrations(options: RunMigrationsOptions = {}): Promise
   }
 
   if (!url) {
-    throw new Error('TURSO_CONNECTION_URL is required. Set it in .env.local, .env, or pass to runMigrations.');
+    throw new Error(
+      "TURSO_CONNECTION_URL is required. Set it in .env.local, .env, or pass to runMigrations.",
+    );
   }
 
   const client = createClient({
@@ -74,19 +77,21 @@ export async function runMigrations(options: RunMigrationsOptions = {}): Promise
     authToken: authToken || undefined,
   });
 
-  const files = await readdir(join(process.cwd(), 'drizzle'));
+  const files = await readdir(join(process.cwd(), "drizzle"));
   const sqlFiles = files
-    .filter((f) => f.endsWith('.sql'))
+    .filter((f) => f.endsWith(".sql"))
     .filter((f) => only.length === 0 || only.some((o) => f.startsWith(o)))
     .sort((a, b) => {
-      const numA = parseInt(a.match(/^(\d+)/)?.[1] ?? '0', 10);
-      const numB = parseInt(b.match(/^(\d+)/)?.[1] ?? '0', 10);
+      const numA = parseInt(a.match(/^(\d+)/)?.[1] ?? "0", 10);
+      const numB = parseInt(b.match(/^(\d+)/)?.[1] ?? "0", 10);
       return numA - numB;
     });
 
   if (sqlFiles.length === 0) {
     if (!silent) {
-      console.log(only.length ? `No migrations match: ${only.join(', ')}` : 'No migration files found.');
+      console.log(
+        only.length ? `No migrations match: ${only.join(", ")}` : "No migration files found.",
+      );
     }
     client.close();
     return;
@@ -97,8 +102,8 @@ export async function runMigrations(options: RunMigrationsOptions = {}): Promise
   }
 
   for (const file of sqlFiles) {
-    const path = join(process.cwd(), 'drizzle', file);
-    const content = await readFile(path, 'utf-8');
+    const path = join(process.cwd(), "drizzle", file);
+    const content = await readFile(path, "utf-8");
     const statements = parseStatements(content);
 
     if (statements.length === 0) {
@@ -110,22 +115,24 @@ export async function runMigrations(options: RunMigrationsOptions = {}): Promise
     let skipped = 0;
     for (const stmt of statements) {
       const s = stmt.trim();
-      if (!s || s.startsWith('--')) continue;
-      const sql = s.endsWith(';') ? s : s + ';';
+      if (!s || s.startsWith("--")) continue;
+      const sql = s.endsWith(";") ? s : `${s};`;
       try {
         await client.execute(sql);
         applied++;
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         const isSkip =
-          msg.includes('duplicate column') ||
-          msg.includes('already exists') ||
-          msg.includes('no such table') ||
-          msg.includes('no such column') ||
-          msg.includes('UNIQUE constraint failed');
+          msg.includes("duplicate column") ||
+          msg.includes("already exists") ||
+          msg.includes("no such table") ||
+          msg.includes("no such column") ||
+          msg.includes("UNIQUE constraint failed");
         if (isSkip) {
-          if (msg.includes('UNIQUE constraint failed') && !silent) {
-            console.warn(`  [skip] ${file}: ${msg} (fix duplicate data and re-run to apply constraint)`);
+          if (msg.includes("UNIQUE constraint failed") && !silent) {
+            console.warn(
+              `  [skip] ${file}: ${msg} (fix duplicate data and re-run to apply constraint)`,
+            );
           }
           skipped++;
         } else {
@@ -136,12 +143,14 @@ export async function runMigrations(options: RunMigrationsOptions = {}): Promise
       }
     }
     if (!silent && (applied > 0 || skipped > 0)) {
-      console.log(`  [ok]   ${file} (${applied} applied${skipped > 0 ? `, ${skipped} skipped` : ''})`);
+      console.log(
+        `  [ok]   ${file} (${applied} applied${skipped > 0 ? `, ${skipped} skipped` : ""})`,
+      );
     }
   }
 
   if (!silent) {
-    console.log('\nDone.');
+    console.log("\nDone.");
   }
   client.close();
 }
@@ -155,8 +164,8 @@ async function main() {
 const __filename = fileURLToPath(import.meta.url);
 const isEntryPoint =
   process.argv[1] === __filename ||
-  process.argv[1]?.replace(/\\/g, '/') === __filename.replace(/\\/g, '/') ||
-  process.argv[1]?.endsWith('run-migrations.ts');
+  process.argv[1]?.replace(/\\/g, "/") === __filename.replace(/\\/g, "/") ||
+  process.argv[1]?.endsWith("run-migrations.ts");
 if (isEntryPoint) {
   main().catch((err) => {
     console.error(err);

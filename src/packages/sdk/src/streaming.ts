@@ -1,16 +1,16 @@
 /**
  * Streaming & Batch Operations
  * Tier 2.8: Handle large datasets efficiently
- * 
+ *
  * @example
  * ```typescript
  * import { streamEvaluations, batchCreate } from '@ai-eval-platform/sdk';
- * 
+ *
  * // Stream large evaluation results
  * for await (const result of streamEvaluations(client, config)) {
  *   console.log(`Progress: ${result.completed}/${result.total}`);
  * }
- * 
+ *
  * // Batch create traces
  * await batchCreate(client.traces, traces, { batchSize: 100 });
  * ```
@@ -70,7 +70,7 @@ export interface BatchResult<T> {
 
 /**
  * Batch create items
- * 
+ *
  * @example
  * ```typescript
  * const traces = [
@@ -78,7 +78,7 @@ export interface BatchResult<T> {
  *   { name: 'trace-2', traceId: 'id-2' },
  *   // ... 1000 more
  * ];
- * 
+ *
  * const result = await batchCreate(
  *   (item) => client.traces.create(item),
  *   traces,
@@ -92,7 +92,7 @@ export interface BatchResult<T> {
 export async function batchProcess<TInput, TOutput>(
   processor: (item: TInput) => Promise<TOutput>,
   items: TInput[],
-  options: BatchOptions = {}
+  options: BatchOptions = {},
 ): Promise<BatchResult<TOutput>> {
   const {
     batchSize = 100,
@@ -100,7 +100,7 @@ export async function batchProcess<TInput, TOutput>(
     delayMs = 0,
     onProgress,
     onError,
-    continueOnError = true
+    continueOnError = true,
   } = options;
 
   const result: BatchResult<TOutput> = {
@@ -109,8 +109,8 @@ export async function batchProcess<TInput, TOutput>(
     summary: {
       total: items.length,
       successful: 0,
-      failed: 0
-    }
+      failed: 0,
+    },
   };
 
   // Split into batches
@@ -135,21 +135,21 @@ export async function batchProcess<TInput, TOutput>(
             batch: batchIndex,
             index: itemIndex,
             error: error instanceof Error ? error : new Error(String(error)),
-            item
+            item,
           };
-          
+
           result.failed.push({
             item,
-            error: batchError.error
+            error: batchError.error,
           });
           result.summary.failed++;
 
           if (onError) onError(batchError);
-          
+
           if (!continueOnError) {
             throw error;
           }
-          
+
           return { success: false, error };
         }
       });
@@ -172,13 +172,13 @@ export async function batchProcess<TInput, TOutput>(
         completed: result.summary.successful + result.summary.failed,
         failed: result.summary.failed,
         batch: batchIndex + 1,
-        totalBatches: batches.length
+        totalBatches: batches.length,
       });
     }
 
     // Delay between batches
     if (delayMs > 0 && batchIndex < batches.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }
 
@@ -187,27 +187,25 @@ export async function batchProcess<TInput, TOutput>(
 
 /**
  * Stream evaluation results
- * 
+ *
  * @example
  * ```typescript
  * const config = {
  *   cases: [...],
  *   executor: async (input) => callLLM(input)
  * };
- * 
+ *
  * for await (const result of streamEvaluation(config)) {
  *   console.log(`Case ${result.caseId}: ${result.passed ? 'PASS' : 'FAIL'}`);
  *   console.log(`Progress: ${result.completed}/${result.total}`);
  * }
  * ```
  */
-export async function* streamEvaluation<T>(
-  config: {
-    cases: T[];
-    executor: (testCase: T) => Promise<any>;
-    onProgress?: (progress: BatchProgress) => void;
-  }
-): AsyncGenerator<{
+export async function* streamEvaluation<T>(config: {
+  cases: T[];
+  executor: (testCase: T) => Promise<any>;
+  onProgress?: (progress: BatchProgress) => void;
+}): AsyncGenerator<{
   caseId: string;
   case: T;
   result: any;
@@ -229,18 +227,18 @@ export async function* streamEvaluation<T>(
         result,
         passed: true,
         completed,
-        total: cases.length
+        total: cases.length,
       };
     } catch (error) {
       completed++;
-      
+
       yield {
         caseId: `case-${index}`,
         case: testCase,
         result: error,
         passed: false,
         completed,
-        total: cases.length
+        total: cases.length,
       };
     }
   }
@@ -248,7 +246,7 @@ export async function* streamEvaluation<T>(
 
 /**
  * Batch read with pagination
- * 
+ *
  * @example
  * ```typescript
  * const allTraces = await batchRead(
@@ -263,7 +261,7 @@ export async function batchRead<T>(
     pageSize?: number;
     maxPages?: number;
     onProgress?: (page: number, items: number) => void;
-  } = {}
+  } = {},
 ): Promise<T[]> {
   const { pageSize = 100, maxPages, onProgress } = options;
   const allItems: T[] = [];
@@ -273,7 +271,7 @@ export async function batchRead<T>(
   while (hasMore && (!maxPages || page < maxPages)) {
     const items = await fetcher({
       limit: pageSize,
-      offset: page * pageSize
+      offset: page * pageSize,
     });
 
     if (items.length === 0) {
@@ -281,7 +279,7 @@ export async function batchRead<T>(
     } else {
       allItems.push(...items);
       page++;
-      
+
       if (onProgress) {
         onProgress(page, allItems.length);
       }
@@ -297,11 +295,11 @@ export async function batchRead<T>(
 
 /**
  * Rate-limited batch processor
- * 
+ *
  * @example
  * ```typescript
  * const limiter = new RateLimiter({ requestsPerSecond: 10 });
- * 
+ *
  * for (const item of items) {
  *   await limiter.throttle(() => client.traces.create(item));
  * }
@@ -345,7 +343,7 @@ export class RateLimiter {
       const fn = this.queue.shift();
       if (fn) {
         await fn();
-        await new Promise(resolve => setTimeout(resolve, this.interval));
+        await new Promise((resolve) => setTimeout(resolve, this.interval));
       }
     }
 
@@ -355,7 +353,7 @@ export class RateLimiter {
 
 /**
  * Chunk array into smaller arrays
- * 
+ *
  * @example
  * ```typescript
  * const chunks = chunk([1, 2, 3, 4, 5], 2);

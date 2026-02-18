@@ -5,14 +5,13 @@
  * and provides built-in executor implementations.
  */
 
-import crypto from 'crypto';
-import { db } from '@/db';
-import { sha256Hex } from '@/lib/crypto/hash';
-import { sha256Input } from '@/lib/utils/input-hash';
-import { spans, traces, costRecords } from '@/db/schema';
-import { eq, desc, and, gte, sql } from 'drizzle-orm';
-import { logger } from '@/lib/logger';
-import { providerKeysService } from './provider-keys.service';
+import crypto from "node:crypto";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { costRecords, spans, traces } from "@/db/schema";
+import { sha256Hex } from "@/lib/crypto/hash";
+import { sha256Input } from "@/lib/utils/input-hash";
+import { providerKeysService } from "./provider-keys.service";
 
 // ── Interface ──
 
@@ -26,7 +25,10 @@ export interface EvalExecutorResult {
 }
 
 export interface EvalExecutor {
-  run(input: string, ctx?: { traceId?: string; metadata?: Record<string, unknown> }): Promise<EvalExecutorResult>;
+  run(
+    input: string,
+    ctx?: { traceId?: string; metadata?: Record<string, unknown> },
+  ): Promise<EvalExecutorResult>;
 }
 
 // ── Direct LLM Executor ──
@@ -34,31 +36,34 @@ export interface EvalExecutor {
 export class DirectLLMExecutor implements EvalExecutor {
   constructor(
     private organizationId: number,
-    private model: string = 'gpt-4o-mini',
-    private provider: string = 'openai',
+    private model: string = "gpt-4o-mini",
+    private provider: string = "openai",
     private systemPrompt?: string,
   ) {}
 
   async run(input: string): Promise<EvalExecutorResult> {
     const t0 = Date.now();
 
-    if (this.provider === 'openai') {
-      const providerKey = await providerKeysService.getActiveProviderKey(this.organizationId, 'openai');
+    if (this.provider === "openai") {
+      const providerKey = await providerKeysService.getActiveProviderKey(
+        this.organizationId,
+        "openai",
+      );
       if (!providerKey) {
-        throw new Error('No OpenAI provider key configured for this organization');
+        throw new Error("No OpenAI provider key configured for this organization");
       }
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${providerKey.decryptedKey}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${providerKey.decryptedKey}`,
         },
         body: JSON.stringify({
           model: this.model,
           messages: [
-            ...(this.systemPrompt ? [{ role: 'system' as const, content: this.systemPrompt }] : []),
-            { role: 'user' as const, content: input },
+            ...(this.systemPrompt ? [{ role: "system" as const, content: this.systemPrompt }] : []),
+            { role: "user" as const, content: input },
           ],
           temperature: 0.1,
         }),
@@ -70,7 +75,7 @@ export class DirectLLMExecutor implements EvalExecutor {
       }
 
       const data = await response.json();
-      const content = data.choices?.[0]?.message?.content ?? '';
+      const content = data.choices?.[0]?.message?.content ?? "";
       const usage = data.usage;
 
       return {
@@ -78,28 +83,31 @@ export class DirectLLMExecutor implements EvalExecutor {
         latencyMs: Date.now() - t0,
         tokens: usage ? { input: usage.prompt_tokens, output: usage.completion_tokens } : undefined,
         model: this.model,
-        provider: 'openai',
+        provider: "openai",
       };
     }
 
-    if (this.provider === 'anthropic') {
-      const providerKey = await providerKeysService.getActiveProviderKey(this.organizationId, 'anthropic');
+    if (this.provider === "anthropic") {
+      const providerKey = await providerKeysService.getActiveProviderKey(
+        this.organizationId,
+        "anthropic",
+      );
       if (!providerKey) {
-        throw new Error('No Anthropic provider key configured for this organization');
+        throw new Error("No Anthropic provider key configured for this organization");
       }
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': providerKey.decryptedKey,
-          'anthropic-version': '2023-06-01',
+          "Content-Type": "application/json",
+          "x-api-key": providerKey.decryptedKey,
+          "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({
           model: this.model,
           max_tokens: 4096,
           ...(this.systemPrompt ? { system: this.systemPrompt } : {}),
-          messages: [{ role: 'user', content: input }],
+          messages: [{ role: "user", content: input }],
         }),
       });
 
@@ -109,7 +117,7 @@ export class DirectLLMExecutor implements EvalExecutor {
       }
 
       const data = await response.json();
-      const content = data.content?.[0]?.text ?? '';
+      const content = data.content?.[0]?.text ?? "";
       const usage = data.usage;
 
       return {
@@ -117,7 +125,7 @@ export class DirectLLMExecutor implements EvalExecutor {
         latencyMs: Date.now() - t0,
         tokens: usage ? { input: usage.input_tokens, output: usage.output_tokens } : undefined,
         model: this.model,
-        provider: 'anthropic',
+        provider: "anthropic",
       };
     }
 
@@ -133,7 +141,10 @@ export class WebhookExecutor implements EvalExecutor {
     private secret?: string,
   ) {}
 
-  async run(input: string, ctx?: { traceId?: string; metadata?: Record<string, unknown> }): Promise<EvalExecutorResult> {
+  async run(
+    input: string,
+    ctx?: { traceId?: string; metadata?: Record<string, unknown> },
+  ): Promise<EvalExecutorResult> {
     const t0 = Date.now();
     const timestamp = new Date().toISOString();
     const metadata = ctx?.metadata ?? {};
@@ -147,22 +158,22 @@ export class WebhookExecutor implements EvalExecutor {
     const rawBody = JSON.stringify({ input, ...ctx });
 
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'X-EvalAI-Timestamp': timestamp,
-      'X-EvalAI-Idempotency-Key': idempotencyKey,
+      "Content-Type": "application/json",
+      "X-EvalAI-Timestamp": timestamp,
+      "X-EvalAI-Idempotency-Key": idempotencyKey,
     };
 
     if (this.secret) {
       const payloadToSign = `${timestamp}.${rawBody}`;
       const signature = crypto
-        .createHmac('sha256', this.secret)
+        .createHmac("sha256", this.secret)
         .update(payloadToSign)
-        .digest('hex');
-      headers['X-EvalAI-Signature'] = `sha256=${signature}`;
+        .digest("hex");
+      headers["X-EvalAI-Signature"] = `sha256=${signature}`;
     }
 
     const response = await fetch(this.url, {
-      method: 'POST',
+      method: "POST",
       headers,
       body: rawBody,
     });
@@ -175,7 +186,7 @@ export class WebhookExecutor implements EvalExecutor {
     const json = await response.json();
 
     return {
-      output: json.output ?? '',
+      output: json.output ?? "",
       latencyMs: Date.now() - t0,
       tokens: json.tokens,
       model: json.model,
@@ -221,9 +232,9 @@ export class TraceLinkedExecutor implements EvalExecutor {
     const latestCost = db
       .select({
         spanId: costRecords.spanId,
-        model: sql<string>`max(${costRecords.model})`.as('model'),
-        provider: sql<string>`max(${costRecords.provider})`.as('provider'),
-        totalCost: sql<string>`max(${costRecords.totalCost})`.as('totalCost'),
+        model: sql<string>`max(${costRecords.model})`.as("model"),
+        provider: sql<string>`max(${costRecords.provider})`.as("provider"),
+        totalCost: sql<string>`max(${costRecords.totalCost})`.as("totalCost"),
       })
       .from(costRecords)
       .where(
@@ -233,7 +244,7 @@ export class TraceLinkedExecutor implements EvalExecutor {
         ),
       )
       .groupBy(costRecords.spanId)
-      .as('latestCost');
+      .as("latestCost");
 
     const [matched] = await db
       .select({
@@ -254,26 +265,26 @@ export class TraceLinkedExecutor implements EvalExecutor {
     if (matched) {
       const hasProvenance = !!matched.model; // model comes from cost_records join
       return {
-        output: matched.output ?? '',
-        latencyMs: matched.durationMs ?? (Date.now() - t0),
+        output: matched.output ?? "",
+        latencyMs: matched.durationMs ?? Date.now() - t0,
         model: matched.model ?? undefined,
-        provider: matched.provider ?? 'trace-linked',
+        provider: matched.provider ?? "trace-linked",
         meta: { matched: true, hasProvenance },
       };
     }
 
     return {
-      output: '',
+      output: "",
       latencyMs: Date.now() - t0,
-      provider: 'trace-linked',
-      meta: { matched: false, reason: 'NO_SPAN_MATCH' },
+      provider: "trace-linked",
+      meta: { matched: false, reason: "NO_SPAN_MATCH" },
     };
   }
 }
 
 // ── Factory ──
 
-export type ExecutorType = 'direct_llm' | 'webhook' | 'trace_linked';
+export type ExecutorType = "direct_llm" | "webhook" | "trace_linked";
 
 export interface ExecutorConfig {
   model?: string;
@@ -298,17 +309,17 @@ export function createExecutor(
   runContext?: RunContext,
 ): EvalExecutor {
   switch (type) {
-    case 'direct_llm':
+    case "direct_llm":
       return new DirectLLMExecutor(
         organizationId,
         config.model,
         config.provider,
         config.systemPrompt,
       );
-    case 'webhook':
-      if (!config.url) throw new Error('Webhook executor requires a url in config');
+    case "webhook":
+      if (!config.url) throw new Error("Webhook executor requires a url in config");
       return new WebhookExecutor(config.url, config.secret);
-    case 'trace_linked':
+    case "trace_linked":
       return new TraceLinkedExecutor(
         organizationId,
         runContext?.evaluationRunId,

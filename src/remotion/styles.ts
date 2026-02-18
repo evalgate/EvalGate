@@ -1,4 +1,4 @@
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
 export const colors = {
   bg: "#09090b",
@@ -78,7 +78,7 @@ export const card: CSSProperties = {
 };
 
 export const badge = (
-  variant: "default" | "outline" | "destructive" | "amber" | "red" = "default"
+  variant: "default" | "outline" | "destructive" | "amber" | "red" = "default",
 ): CSSProperties => {
   const base: CSSProperties = {
     display: "inline-flex",
@@ -95,9 +95,19 @@ export const badge = (
     case "destructive":
       return { ...base, backgroundColor: colors.redDim, color: colors.red };
     case "amber":
-      return { ...base, backgroundColor: colors.amberDim, color: colors.amber, border: `1px solid rgba(245,158,11,0.3)` };
+      return {
+        ...base,
+        backgroundColor: colors.amberDim,
+        color: colors.amber,
+        border: `1px solid rgba(245,158,11,0.3)`,
+      };
     case "red":
-      return { ...base, backgroundColor: colors.redDim, color: colors.red, border: `1px solid rgba(239,68,68,0.3)` };
+      return {
+        ...base,
+        backgroundColor: colors.redDim,
+        color: colors.red,
+        border: `1px solid rgba(239,68,68,0.3)`,
+      };
     default:
       return { ...base, backgroundColor: colors.primary, color: "#fff" };
   }

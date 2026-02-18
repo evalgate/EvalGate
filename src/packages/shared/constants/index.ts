@@ -5,7 +5,7 @@ export const EVALUATION_TYPES = {
   HUMAN_EVAL: "human_eval",
   MODEL_EVAL: "model_eval",
   AB_TEST: "ab_test",
-} as const
+} as const;
 
 export const EVALUATION_STATUS = {
   PENDING: "pending",
@@ -13,14 +13,14 @@ export const EVALUATION_STATUS = {
   COMPLETED: "completed",
   FAILED: "failed",
   CANCELLED: "cancelled",
-} as const
+} as const;
 
 export const ORGANIZATION_ROLES = {
   OWNER: "owner",
   ADMIN: "admin",
   MEMBER: "member",
   VIEWER: "viewer",
-} as const
+} as const;
 
 export const SPAN_TYPES = {
   LLM: "llm",
@@ -28,34 +28,34 @@ export const SPAN_TYPES = {
   AGENT: "agent",
   RETRIEVAL: "retrieval",
   CUSTOM: "custom",
-} as const
+} as const;
 
 export const TEST_STATUS = {
   PASSED: "passed",
   FAILED: "failed",
   SKIPPED: "skipped",
-} as const
+} as const;
 
 export const ANNOTATION_STATUS = {
   PENDING: "pending",
   IN_PROGRESS: "in_progress",
   COMPLETED: "completed",
   SKIPPED: "skipped",
-} as const
+} as const;
 
 export const AB_TEST_STATUS = {
   DRAFT: "draft",
   RUNNING: "running",
   PAUSED: "paused",
   COMPLETED: "completed",
-} as const
+} as const;
 
 export const METRIC_TYPES = {
   ACCURACY: "accuracy",
   LATENCY: "latency",
   COST: "cost",
   CUSTOM: "custom",
-} as const
+} as const;
 
 export const METRIC_AGGREGATIONS = {
   AVG: "avg",
@@ -65,4 +65,4 @@ export const METRIC_AGGREGATIONS = {
   P50: "p50",
   P95: "p95",
   P99: "p99",
-} as const
+} as const;

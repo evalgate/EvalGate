@@ -1,15 +1,16 @@
 // src/lib/services/provider-keys.service.ts
-import { db } from '@/db';
-import { providerKeys, organizations } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
-import { logger } from '@/lib/logger';
-import { encryption, KeyManager } from '@/lib/security/encryption';
-import { z } from 'zod';
+
+import { and, eq } from "drizzle-orm";
+import { z } from "zod";
+import { db } from "@/db";
+import { organizations, providerKeys } from "@/db/schema";
+import { logger } from "@/lib/logger";
+import { encryption } from "@/lib/security/encryption";
 
 export const createProviderKeySchema = z.object({
   provider: z.string().min(1),
   keyName: z.string().min(1).max(255),
-  keyType: z.enum(['api_key', 'oauth_token', 'service_account']),
+  keyType: z.enum(["api_key", "oauth_token", "service_account"]),
   apiKey: z.string().min(1),
   metadata: z.record(z.any()).optional(),
 });
@@ -51,7 +52,7 @@ export class ProviderKeysService {
   async createProviderKey(
     organizationId: number,
     input: CreateProviderKeyInput,
-    createdBy: string
+    createdBy: string,
   ): Promise<{
     id: number;
     provider: string;
@@ -59,7 +60,11 @@ export class ProviderKeysService {
     keyType: string;
     keyPrefix: string;
   }> {
-    logger.info('Creating provider key', { organizationId, provider: input.provider, keyName: input.keyName });
+    logger.info("Creating provider key", {
+      organizationId,
+      provider: input.provider,
+      keyName: input.keyName,
+    });
 
     // Verify organization exists
     const [org] = await db
@@ -69,7 +74,7 @@ export class ProviderKeysService {
       .limit(1);
 
     if (!org) {
-      throw new Error('Organization not found');
+      throw new Error("Organization not found");
     }
 
     // Generate encryption key for this organization (or use existing)
@@ -79,35 +84,38 @@ export class ProviderKeysService {
     const encrypted = encryption.encrypt(input.apiKey, encryptionKey);
 
     // Generate key prefix (first few characters for identification)
-    const keyPrefix = input.apiKey.substring(0, 4) + '...';
+    const keyPrefix = `${input.apiKey.substring(0, 4)}...`;
 
     // Save to database
-    const [result] = await db.insert(providerKeys).values({
-      organizationId,
-      provider: input.provider,
-      keyName: input.keyName,
-      keyType: input.keyType,
-      encryptedKey: encrypted.encrypted,
-      keyPrefix,
-      iv: encrypted.iv,
-      tag: encrypted.tag,
-      metadata: JSON.stringify(input.metadata || {}),
-      isActive: true,
-      createdBy,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }).returning({
-      id: providerKeys.id,
-      provider: providerKeys.provider,
-      keyName: providerKeys.keyName,
-      keyType: providerKeys.keyType,
-      keyPrefix: providerKeys.keyPrefix,
-    });
+    const [result] = await db
+      .insert(providerKeys)
+      .values({
+        organizationId,
+        provider: input.provider,
+        keyName: input.keyName,
+        keyType: input.keyType,
+        encryptedKey: encrypted.encrypted,
+        keyPrefix,
+        iv: encrypted.iv,
+        tag: encrypted.tag,
+        metadata: JSON.stringify(input.metadata || {}),
+        isActive: true,
+        createdBy,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+      .returning({
+        id: providerKeys.id,
+        provider: providerKeys.provider,
+        keyName: providerKeys.keyName,
+        keyType: providerKeys.keyType,
+        keyPrefix: providerKeys.keyPrefix,
+      });
 
-    logger.info('Provider key created successfully', { 
-      id: result.id, 
-      organizationId, 
-      provider: result.provider 
+    logger.info("Provider key created successfully", {
+      id: result.id,
+      organizationId,
+      provider: result.provider,
     });
 
     return result;
@@ -121,19 +129,21 @@ export class ProviderKeysService {
     options?: {
       provider?: string;
       includeInactive?: boolean;
-    }
-  ): Promise<Array<{
-    id: number;
-    provider: string;
-    keyName: string;
-    keyType: string;
-    keyPrefix: string;
-    isActive: boolean | null;
-    lastUsedAt: string | null;
-    expiresAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-  }>> {
+    },
+  ): Promise<
+    Array<{
+      id: number;
+      provider: string;
+      keyName: string;
+      keyType: string;
+      keyPrefix: string;
+      isActive: boolean | null;
+      lastUsedAt: string | null;
+      expiresAt: string | null;
+      createdAt: string;
+      updatedAt: string;
+    }>
+  > {
     const { provider, includeInactive = false } = options || {};
 
     const conditions = [eq(providerKeys.organizationId, organizationId)];
@@ -167,15 +177,12 @@ export class ProviderKeysService {
    */
   async getProviderKey(
     organizationId: number,
-    keyId: number
+    keyId: number,
   ): Promise<DecryptedProviderKey | null> {
     const [key] = await db
       .select()
       .from(providerKeys)
-      .where(and(
-        eq(providerKeys.id, keyId),
-        eq(providerKeys.organizationId, organizationId)
-      ))
+      .where(and(eq(providerKeys.id, keyId), eq(providerKeys.organizationId, organizationId)))
       .limit(1);
 
     if (!key) {
@@ -185,7 +192,7 @@ export class ProviderKeysService {
     // Get encryption key for this organization
     const encryptionKey = await this.getEncryptionKey(organizationId);
     if (!encryptionKey) {
-      throw new Error('Encryption key not found for organization');
+      throw new Error("Encryption key not found for organization");
     }
 
     // Decrypt the API key
@@ -195,7 +202,7 @@ export class ProviderKeysService {
         iv: key.iv,
         tag: key.tag,
       },
-      encryptionKey
+      encryptionKey,
     );
 
     if (!decrypted.success) {
@@ -203,7 +210,8 @@ export class ProviderKeysService {
     }
 
     // Update last used timestamp
-    await db.update(providerKeys)
+    await db
+      .update(providerKeys)
       .set({ lastUsedAt: new Date().toISOString() })
       .where(eq(providerKeys.id, keyId));
 
@@ -215,7 +223,7 @@ export class ProviderKeysService {
       keyType: key.keyType,
       keyPrefix: key.keyPrefix,
       decryptedKey: decrypted.decrypted,
-      metadata: typeof key.metadata === 'string' ? JSON.parse(key.metadata) : (key.metadata || {}),
+      metadata: typeof key.metadata === "string" ? JSON.parse(key.metadata) : key.metadata || {},
       isActive: key.isActive ?? true,
       lastUsedAt: key.lastUsedAt,
       expiresAt: key.expiresAt,
@@ -230,16 +238,18 @@ export class ProviderKeysService {
    */
   async getActiveProviderKey(
     organizationId: number,
-    provider: string
+    provider: string,
   ): Promise<DecryptedProviderKey | null> {
     const [key] = await db
       .select()
       .from(providerKeys)
-      .where(and(
-        eq(providerKeys.organizationId, organizationId),
-        eq(providerKeys.provider, provider),
-        eq(providerKeys.isActive, true)
-      ))
+      .where(
+        and(
+          eq(providerKeys.organizationId, organizationId),
+          eq(providerKeys.provider, provider),
+          eq(providerKeys.isActive, true),
+        ),
+      )
       .orderBy(providerKeys.createdAt)
       .limit(1);
 
@@ -256,7 +266,7 @@ export class ProviderKeysService {
   async updateProviderKey(
     organizationId: number,
     keyId: number,
-    input: UpdateProviderKeyInput
+    input: UpdateProviderKeyInput,
   ): Promise<{
     id: number;
     keyName: string;
@@ -267,14 +277,11 @@ export class ProviderKeysService {
     const [existing] = await db
       .select()
       .from(providerKeys)
-      .where(and(
-        eq(providerKeys.id, keyId),
-        eq(providerKeys.organizationId, organizationId)
-      ))
+      .where(and(eq(providerKeys.id, keyId), eq(providerKeys.organizationId, organizationId)))
       .limit(1);
 
     if (!existing) {
-      throw new Error('Provider key not found');
+      throw new Error("Provider key not found");
     }
 
     const updateData: any = {
@@ -293,7 +300,8 @@ export class ProviderKeysService {
       updateData.isActive = input.isActive;
     }
 
-    const [result] = await db.update(providerKeys)
+    const [result] = await db
+      .update(providerKeys)
       .set(updateData)
       .where(eq(providerKeys.id, keyId))
       .returning({
@@ -304,12 +312,13 @@ export class ProviderKeysService {
         updatedAt: providerKeys.updatedAt,
       });
 
-    logger.info('Provider key updated', { keyId, organizationId });
+    logger.info("Provider key updated", { keyId, organizationId });
 
     return {
       id: result.id,
       keyName: result.keyName,
-      metadata: typeof result.metadata === 'string' ? JSON.parse(result.metadata) : (result.metadata || {}),
+      metadata:
+        typeof result.metadata === "string" ? JSON.parse(result.metadata) : result.metadata || {},
       isActive: result.isActive ?? true,
       updatedAt: result.updatedAt,
     };
@@ -322,19 +331,16 @@ export class ProviderKeysService {
     const [existing] = await db
       .select()
       .from(providerKeys)
-      .where(and(
-        eq(providerKeys.id, keyId),
-        eq(providerKeys.organizationId, organizationId)
-      ))
+      .where(and(eq(providerKeys.id, keyId), eq(providerKeys.organizationId, organizationId)))
       .limit(1);
 
     if (!existing) {
-      throw new Error('Provider key not found');
+      throw new Error("Provider key not found");
     }
 
     await db.delete(providerKeys).where(eq(providerKeys.id, keyId));
 
-    logger.info('Provider key deleted', { keyId, organizationId });
+    logger.info("Provider key deleted", { keyId, organizationId });
   }
 
   /**
@@ -344,12 +350,12 @@ export class ProviderKeysService {
     const baseKey = process.env.PROVIDER_KEY_ENCRYPTION_KEY;
     if (!baseKey) {
       throw new Error(
-        'PROVIDER_KEY_ENCRYPTION_KEY environment variable is required. ' +
-        'Generate a strong secret and set it in your .env file.'
+        "PROVIDER_KEY_ENCRYPTION_KEY environment variable is required. " +
+          "Generate a strong secret and set it in your .env file.",
       );
     }
     const salt = `org-${organizationId}`;
-    
+
     return encryption.deriveKey(baseKey, salt, 100000);
   }
 
@@ -360,7 +366,7 @@ export class ProviderKeysService {
     try {
       return await this.getOrCreateEncryptionKey(organizationId);
     } catch (error) {
-      logger.error('Failed to get encryption key', { organizationId, error });
+      logger.error("Failed to get encryption key", { organizationId, error });
       return null;
     }
   }
@@ -370,11 +376,11 @@ export class ProviderKeysService {
    */
   validateProviderKey(provider: string, apiKey: string): boolean {
     const patterns: Record<string, RegExp> = {
-      'openai': /^sk-[A-Za-z0-9]{48}$/,
-      'anthropic': /^sk-ant-api03-[A-Za-z0-9_-]{95}$/,
-      'google': /^[A-Za-z0-9_-]{39}$/,
-      'cohere': /^[A-Za-z0-9]{40}$/,
-      'huggingface': /^hf_[A-Za-z0-9]{34}$/,
+      openai: /^sk-[A-Za-z0-9]{48}$/,
+      anthropic: /^sk-ant-api03-[A-Za-z0-9_-]{95}$/,
+      google: /^[A-Za-z0-9_-]{39}$/,
+      cohere: /^[A-Za-z0-9]{40}$/,
+      huggingface: /^hf_[A-Za-z0-9]{34}$/,
     };
 
     const pattern = patterns[provider];
@@ -405,16 +411,16 @@ export class ProviderKeysService {
       .where(eq(providerKeys.organizationId, organizationId));
 
     const totalKeys = keys.length;
-    const activeKeys = keys.filter(k => k.isActive).length;
-    
+    const activeKeys = keys.filter((k) => k.isActive).length;
+
     const keysByProvider: Record<string, number> = {};
-    keys.forEach(key => {
+    keys.forEach((key) => {
       keysByProvider[key.provider] = (keysByProvider[key.provider] || 0) + 1;
     });
 
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const recentlyUsed = keys.filter(k => 
-      k.lastUsedAt && new Date(k.lastUsedAt) > oneWeekAgo
+    const recentlyUsed = keys.filter(
+      (k) => k.lastUsedAt && new Date(k.lastUsedAt) > oneWeekAgo,
     ).length;
 
     return {

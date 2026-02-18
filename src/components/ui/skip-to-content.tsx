@@ -3,7 +3,7 @@
  * Accessibility feature for keyboard navigation
  */
 
-'use client';
+"use client";
 
 export function SkipToContent() {
   return (
@@ -15,4 +15,3 @@ export function SkipToContent() {
     </a>
   );
 }
-

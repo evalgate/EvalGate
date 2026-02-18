@@ -13,23 +13,23 @@
  *   npx ts-node examples/webhook-executor.ts
  */
 
-import { AIEvalClient } from '@pauly4010/evalai-sdk';
+import { AIEvalClient } from "@pauly4010/evalai-sdk";
 
 async function main() {
   const client = new AIEvalClient({
-    baseUrl: process.env.EVALAI_BASE_URL || 'http://localhost:3000',
-    apiKey: process.env.EVALAI_API_KEY || '',
+    baseUrl: process.env.EVALAI_BASE_URL || "http://localhost:3000",
+    apiKey: process.env.EVALAI_API_KEY || "",
   });
 
-  const webhookUrl = process.env.WEBHOOK_URL || 'https://my-app.example.com/api/generate';
+  const webhookUrl = process.env.WEBHOOK_URL || "https://my-app.example.com/api/generate";
   const webhookSecret = process.env.WEBHOOK_SECRET; // optional
 
   // 1. Create an evaluation using a Webhook executor
   const evaluation = await client.evaluations.create({
-    name: 'Chatbot Quality Gate',
-    description: 'Tests the production chatbot endpoint via webhook',
-    type: 'unit_test',
-    executorType: 'webhook',
+    name: "Chatbot Quality Gate",
+    description: "Tests the production chatbot endpoint via webhook",
+    type: "unit_test",
+    executorType: "webhook",
     executorConfig: {
       url: webhookUrl,
       secret: webhookSecret,
@@ -42,19 +42,19 @@ async function main() {
   // 2. Add test cases (input = what we send, expectedOutput = what we assert)
   const testCases = [
     {
-      name: 'Greeting',
-      input: 'Hello, how are you?',
-      expectedOutput: 'greeting response',
+      name: "Greeting",
+      input: "Hello, how are you?",
+      expectedOutput: "greeting response",
     },
     {
-      name: 'Product question',
-      input: 'What does your product do?',
-      expectedOutput: 'product description',
+      name: "Product question",
+      input: "What does your product do?",
+      expectedOutput: "product description",
     },
     {
-      name: 'Out-of-scope',
-      input: 'Write me a poem about cats',
-      expectedOutput: 'polite redirect to product topics',
+      name: "Out-of-scope",
+      input: "Write me a poem about cats",
+      expectedOutput: "polite redirect to product topics",
     },
   ];
 
@@ -70,7 +70,7 @@ async function main() {
 
   // 4. Poll for completion
   let status = run.status;
-  while (status === 'pending' || status === 'running') {
+  while (status === "pending" || status === "running") {
     await new Promise((r) => setTimeout(r, 3000));
     const updated = await client.evaluations.getRun(evaluation.id, run.id);
     status = updated.status;

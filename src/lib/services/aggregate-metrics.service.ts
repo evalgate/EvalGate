@@ -7,21 +7,25 @@
  * Also provides confidence bands for trend data based on sample size.
  */
 
-import { db } from '@/db';
+import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { db } from "@/db";
 import {
-  evaluationRuns,
-  testResults,
-  llmJudgeResults,
   costRecords,
+  evaluationRuns,
+  llmJudgeResults,
   qualityScores,
-} from '@/db/schema';
-import { eq, and, sql, desc, isNotNull, isNull } from 'drizzle-orm';
-import { computeQualityScore, type ScoreInputs, type QualityScoreResult } from '@/lib/scoring/quality-score';
-import { logger } from '@/lib/logger';
-import { parseAssertionsJson, computeSafetyPassRate } from '@/lib/eval/assertions';
-import { SCORING_SPEC_V1, SCORING_SPEC_VERSION } from '@/lib/scoring/scoring-spec';
-import { canonicalizeJson } from '@/lib/crypto/canonical-json';
-import { sha256Hex } from '@/lib/crypto/hash';
+  testResults,
+} from "@/db/schema";
+import { canonicalizeJson } from "@/lib/crypto/canonical-json";
+import { sha256Hex } from "@/lib/crypto/hash";
+import { computeSafetyPassRate, parseAssertionsJson } from "@/lib/eval/assertions";
+import { logger } from "@/lib/logger";
+import {
+  computeQualityScore,
+  type QualityScoreResult,
+  type ScoreInputs,
+} from "@/lib/scoring/quality-score";
+import { SCORING_SPEC_V1, SCORING_SPEC_VERSION } from "@/lib/scoring/scoring-spec";
 
 export interface AggregateMetrics {
   total: number;
@@ -97,7 +101,7 @@ export async function computeRunAggregates(
       );
 
     const withAssertions = resultsWithAssertions.filter(
-      (r) => r.assertionsJson != null && typeof r.assertionsJson === 'object',
+      (r) => r.assertionsJson != null && typeof r.assertionsJson === "object",
     );
 
     if (withAssertions.length > 0) {
@@ -124,7 +128,7 @@ export async function computeRunAggregates(
           ),
         );
       const safetyFails = Number(safetyFailures[0]?.count ?? 0);
-      safetyPassRate = 1 - (safetyFails / total);
+      safetyPassRate = 1 - safetyFails / total;
     }
   }
 
@@ -246,8 +250,7 @@ export async function computeAndStoreQualityScore(
 ): Promise<QualityScoreResult> {
   const metrics = await computeRunAggregates(evaluationRunId, organizationId);
 
-  const hasProvenance =
-    metrics.traceCoverageRate == null || metrics.costRecordCount > 0;
+  const hasProvenance = metrics.traceCoverageRate == null || metrics.costRecordCount > 0;
 
   const inputs: ScoreInputs = {
     total: metrics.total,
@@ -264,12 +267,11 @@ export async function computeAndStoreQualityScore(
   const result = computeQualityScore(inputs);
 
   // Reproducible scoring: canonical inputs + spec + hashes
-  const inputsJson = JSON.stringify(inputs);
-  const scoringSpecJson = JSON.stringify(SCORING_SPEC_V1);
+  const _inputsJson = JSON.stringify(inputs);
+  const _scoringSpecJson = JSON.stringify(SCORING_SPEC_V1);
   const inputsHash = sha256Hex(canonicalizeJson(inputs));
   const scoringSpecHash = sha256Hex(canonicalizeJson(SCORING_SPEC_V1));
-  const scoringCommit =
-    process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GIT_SHA ?? null;
+  const scoringCommit = process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GIT_SHA ?? null;
 
   // Backfill hasProvenance for direct_llm runs when cost records exist (only where null)
   if (metrics.costRecordCount > 0) {
@@ -293,7 +295,8 @@ export async function computeAndStoreQualityScore(
     score: result.score,
     total: metrics.total,
     traceCoverageRate: metrics.traceCoverageRate != null ? String(metrics.traceCoverageRate) : null,
-    provenanceCoverageRate: metrics.provenanceCoverageRate != null ? String(metrics.provenanceCoverageRate) : null,
+    provenanceCoverageRate:
+      metrics.provenanceCoverageRate != null ? String(metrics.provenanceCoverageRate) : null,
     breakdown: JSON.stringify(result.breakdown),
     flags: JSON.stringify(result.flags),
     evidenceLevel: result.evidenceLevel,
@@ -307,7 +310,7 @@ export async function computeAndStoreQualityScore(
     createdAt: new Date().toISOString(),
   });
 
-  logger.info('Quality score computed', {
+  logger.info("Quality score computed", {
     evaluationRunId,
     evaluationId,
     score: result.score,

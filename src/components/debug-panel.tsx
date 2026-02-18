@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
+import { AlertTriangle, Bug, ChevronRight, Lightbulb, Loader2, X } from "lucide-react";
 // src/components/debug-panel.tsx
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Bug, Lightbulb, AlertTriangle, ChevronRight, Loader2, X } from 'lucide-react';
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface FailurePattern {
   pattern: string;
@@ -46,7 +46,7 @@ export function DebugPanel({ evaluationId, runId, onClose }: DebugPanelProps) {
     setError(null);
     try {
       const res = await fetch(`/api/evaluations/${evaluationId}/runs/${runId}/debug`, {
-        method: 'POST',
+        method: "POST",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -59,17 +59,17 @@ export function DebugPanel({ evaluationId, runId, onClose }: DebugPanelProps) {
   };
 
   const severityColor: Record<string, string> = {
-    low: 'text-blue-400 border-blue-400/30',
-    medium: 'text-yellow-400 border-yellow-400/30',
-    high: 'text-orange-400 border-orange-400/30',
-    critical: 'text-red-400 border-red-400/30',
+    low: "text-blue-400 border-blue-400/30",
+    medium: "text-yellow-400 border-yellow-400/30",
+    high: "text-orange-400 border-orange-400/30",
+    critical: "text-red-400 border-red-400/30",
   };
 
   const fixTypeIcon: Record<string, string> = {
-    prompt_edit: '✏️',
-    parameter_change: '⚙️',
-    model_switch: '🔄',
-    data_fix: '🗃️',
+    prompt_edit: "✏️",
+    parameter_change: "⚙️",
+    model_switch: "🔄",
+    data_fix: "🗃️",
   };
 
   return (
@@ -79,7 +79,9 @@ export function DebugPanel({ evaluationId, runId, onClose }: DebugPanelProps) {
         <div className="flex items-center gap-2">
           <Bug className="h-5 w-5 text-purple-500" />
           <span className="font-semibold text-sm">Debug Agent</span>
-          <Badge variant="outline" className="text-xs">Run #{runId}</Badge>
+          <Badge variant="outline" className="text-xs">
+            Run #{runId}
+          </Badge>
         </div>
         {onClose && (
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -121,7 +123,10 @@ export function DebugPanel({ evaluationId, runId, onClose }: DebugPanelProps) {
             <Card className="bg-zinc-900/50 border-zinc-800">
               <CardContent className="pt-4">
                 <div className="flex items-start gap-2">
-                  <Badge variant="outline" className={`text-xs ${severityColor[analysis.severity] || ''}`}>
+                  <Badge
+                    variant="outline"
+                    className={`text-xs ${severityColor[analysis.severity] || ""}`}
+                  >
                     {analysis.severity}
                   </Badge>
                 </div>
@@ -139,9 +144,14 @@ export function DebugPanel({ evaluationId, runId, onClose }: DebugPanelProps) {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {analysis.failurePatterns.map((fp, i) => (
-                    <div key={i} className="flex items-center justify-between py-2 border-b border-zinc-800 last:border-0">
+                    <div
+                      key={i}
+                      className="flex items-center justify-between py-2 border-b border-zinc-800 last:border-0"
+                    >
                       <div>
-                        <Badge variant="outline" className="text-xs mr-2">{fp.category}</Badge>
+                        <Badge variant="outline" className="text-xs mr-2">
+                          {fp.category}
+                        </Badge>
                         <span className="text-xs text-zinc-400">{fp.pattern}</span>
                       </div>
                       <span className="text-xs text-zinc-500">{fp.occurrences}×</span>
@@ -184,7 +194,7 @@ export function DebugPanel({ evaluationId, runId, onClose }: DebugPanelProps) {
                     <div key={i} className="p-3 bg-zinc-800/50 rounded-lg">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs">
-                          {fixTypeIcon[fix.type] || '💡'} {fix.type.replace('_', ' ')}
+                          {fixTypeIcon[fix.type] || "💡"} {fix.type.replace("_", " ")}
                         </span>
                         <Badge variant="outline" className="text-xs">
                           {Math.round(fix.confidence * 100)}% confident
@@ -193,8 +203,12 @@ export function DebugPanel({ evaluationId, runId, onClose }: DebugPanelProps) {
                       <p className="text-xs text-zinc-300">{fix.description}</p>
                       {fix.diff && (
                         <div className="mt-2 text-xs font-mono">
-                          <div className="bg-red-500/10 text-red-400 p-1 rounded-t">- {fix.diff.before}</div>
-                          <div className="bg-green-500/10 text-green-400 p-1 rounded-b">+ {fix.diff.after}</div>
+                          <div className="bg-red-500/10 text-red-400 p-1 rounded-t">
+                            - {fix.diff.before}
+                          </div>
+                          <div className="bg-green-500/10 text-green-400 p-1 rounded-b">
+                            + {fix.diff.after}
+                          </div>
                         </div>
                       )}
                     </div>

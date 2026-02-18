@@ -1,12 +1,13 @@
 // Set test DB env before any module imports db (test:db-setup creates test.db before vitest)
-import { resolve } from 'node:path';
-const testDb = resolve(process.cwd(), 'test.db').replace(/\\/g, '/');
-process.env.TURSO_CONNECTION_URL = `file:${testDb}`;
-process.env.TURSO_AUTH_TOKEN = 'test-token';
+import { resolve } from "node:path";
 
-import { beforeAll } from 'vitest';
-import { db } from '@/db';
-import { user, organizations } from '@/db/schema';
+const testDb = resolve(process.cwd(), "test.db").replace(/\\/g, "/");
+process.env.TURSO_CONNECTION_URL = `file:${testDb}`;
+process.env.TURSO_AUTH_TOKEN = "test-token";
+
+import { beforeAll } from "vitest";
+import { db } from "@/db";
+import { organizations, user } from "@/db/schema";
 
 // Setup for tests (migrations run via pnpm test:db-setup before vitest)
 beforeAll(async () => {
@@ -16,16 +17,16 @@ beforeAll(async () => {
     await db
       .insert(user)
       .values({
-        id: 'test-user',
-        name: 'Test User',
-        email: 'test@example.com',
+        id: "test-user",
+        name: "Test User",
+        email: "test@example.com",
         emailVerified: false,
       })
       .onConflictDoNothing();
     const existingOrg = await db.select().from(organizations).limit(1);
     if (existingOrg.length === 0) {
       await db.insert(organizations).values({
-        name: 'Test Org',
+        name: "Test Org",
         createdAt: now,
         updatedAt: now,
       });
@@ -34,4 +35,3 @@ beforeAll(async () => {
     // Ignore if already seeded
   }
 });
-

@@ -4,11 +4,11 @@
  */
 
 export type McpErrorCode =
-  | 'VALIDATION_ERROR'
-  | 'FORBIDDEN'
-  | 'NOT_FOUND'
-  | 'UNAUTHORIZED'
-  | 'INTERNAL';
+  | "VALIDATION_ERROR"
+  | "FORBIDDEN"
+  | "NOT_FOUND"
+  | "UNAUTHORIZED"
+  | "INTERNAL";
 
 export class McpToolError extends Error {
   constructor(
@@ -17,6 +17,6 @@ export class McpToolError extends Error {
     public status: number,
   ) {
     super(message);
-    this.name = 'McpToolError';
+    this.name = "McpToolError";
   }
 }

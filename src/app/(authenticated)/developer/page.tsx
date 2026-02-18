@@ -1,23 +1,22 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Activity,
+  AlertCircle,
+  BarChart3,
+  CheckCircle2,
+  Clock,
+  Copy,
+  Key,
+  Plus,
+  Trash2,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,58 +26,71 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { toast } from "sonner"
-import { useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { useOrganizationId } from "@/hooks/use-organization"
-import { getBearerToken } from "@/hooks/use-safe-storage"
-import { Activity, Clock, AlertCircle, TrendingUp, BarChart3, Zap, Key, Webhook, Plus, Copy, Trash2, CheckCircle2 } from "lucide-react"
-import dynamic from "next/dynamic"
-import { Skeleton } from "@/components/ui/skeleton"
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useOrganizationId } from "@/hooks/use-organization";
+import { getBearerToken } from "@/hooks/use-safe-storage";
+import { useSession } from "@/lib/auth-client";
 
 // Lazy load Recharts components
 // Import as type "any" to avoid type conflicts with dynamic imports
-const LineChart = dynamic<any>(
-  () => import("recharts").then((mod) => mod.LineChart),
-  { ssr: false }
-)
-const Line = dynamic<any>(() => import("recharts").then((mod) => mod.Line), { ssr: false })
-const BarChart = dynamic<any>(
-  () => import("recharts").then((mod) => mod.BarChart),
-  { ssr: false }
-)
-const Bar = dynamic<any>(() => import("recharts").then((mod) => mod.Bar), { ssr: false })
-const XAxis = dynamic<any>(() => import("recharts").then((mod) => mod.XAxis), { ssr: false })
-const YAxis = dynamic<any>(() => import("recharts").then((mod) => mod.YAxis), { ssr: false })
-const CartesianGrid = dynamic<any>(() => import("recharts").then((mod) => mod.CartesianGrid), { ssr: false })
-const Tooltip = dynamic<any>(() => import("recharts").then((mod) => mod.Tooltip), { ssr: false })
-const ResponsiveContainer = dynamic<any>(() => import("recharts").then((mod) => mod.ResponsiveContainer), { ssr: false })
+const LineChart = dynamic<any>(() => import("recharts").then((mod) => mod.LineChart), {
+  ssr: false,
+});
+const Line = dynamic<any>(() => import("recharts").then((mod) => mod.Line), { ssr: false });
+const BarChart = dynamic<any>(() => import("recharts").then((mod) => mod.BarChart), { ssr: false });
+const Bar = dynamic<any>(() => import("recharts").then((mod) => mod.Bar), { ssr: false });
+const XAxis = dynamic<any>(() => import("recharts").then((mod) => mod.XAxis), { ssr: false });
+const YAxis = dynamic<any>(() => import("recharts").then((mod) => mod.YAxis), { ssr: false });
+const CartesianGrid = dynamic<any>(() => import("recharts").then((mod) => mod.CartesianGrid), {
+  ssr: false,
+});
+const Tooltip = dynamic<any>(() => import("recharts").then((mod) => mod.Tooltip), { ssr: false });
+const ResponsiveContainer = dynamic<any>(
+  () => import("recharts").then((mod) => mod.ResponsiveContainer),
+  { ssr: false },
+);
 
 interface UsageSummary {
-  totalRequests: number
-  avgResponseTime: number
-  errorRate: number
-  successRate: number
-  requestsByStatusCode: Record<string, number>
-  topEndpoints: Array<{ endpoint: string; count: number }>
-  requestsOverTime: Array<{ date: string; count: number }>
+  totalRequests: number;
+  avgResponseTime: number;
+  errorRate: number;
+  successRate: number;
+  requestsByStatusCode: Record<string, number>;
+  topEndpoints: Array<{ endpoint: string; count: number }>;
+  requestsOverTime: Array<{ date: string; count: number }>;
 }
 
 interface APIKey {
-  id: number
-  name: string
-  keyPrefix: string
-  scopes: string[]
-  lastUsedAt: string | null
-  expiresAt: string | null
-  revokedAt: string | null
-  createdAt: string
+  id: number;
+  name: string;
+  keyPrefix: string;
+  scopes: string[];
+  lastUsedAt: string | null;
+  expiresAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
 }
 
 const AVAILABLE_SCOPES = [
@@ -90,112 +102,109 @@ const AVAILABLE_SCOPES = [
   { value: "llm-judge:write", label: "Write LLM Judge" },
   { value: "annotations:read", label: "Read Annotations" },
   { value: "annotations:write", label: "Write Annotations" },
-]
+];
 
 export default function DeveloperDashboardPage() {
-  const { data: session, isPending } = useSession()
-  const router = useRouter()
-  const organizationId = useOrganizationId()
-  const [loading, setLoading] = useState(true)
-  const [summary, setSummary] = useState<UsageSummary | null>(null)
-  const [period, setPeriod] = useState("7d")
-  
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const organizationId = useOrganizationId();
+  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState<UsageSummary | null>(null);
+  const [period, setPeriod] = useState("7d");
+
   // API Keys state
-  const [apiKeys, setApiKeys] = useState<APIKey[]>([])
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [newKeyDialogOpen, setNewKeyDialogOpen] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [keyToDelete, setKeyToDelete] = useState<number | null>(null)
-  const [keyName, setKeyName] = useState("")
-  const [selectedScopes, setSelectedScopes] = useState<string[]>([])
-  const [expiresAt, setExpiresAt] = useState("")
-  const [creating, setCreating] = useState(false)
-  const [newApiKey, setNewApiKey] = useState<string>("")
-  const [copied, setCopied] = useState(false)
+  const [apiKeys, setApiKeys] = useState<APIKey[]>([]);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newKeyDialogOpen, setNewKeyDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [keyToDelete, setKeyToDelete] = useState<number | null>(null);
+  const [keyName, setKeyName] = useState("");
+  const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
+  const [expiresAt, setExpiresAt] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [newApiKey, setNewApiKey] = useState<string>("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
-      router.push("/auth/login")
+      router.push("/auth/login");
     }
-  }, [session, isPending, router])
+  }, [session, isPending, router]);
 
-  useEffect(() => {
-    if (session?.user && organizationId) {
-      fetchUsageSummary()
-      fetchAPIKeys()
-    }
-  }, [session, period, organizationId])
-
-  const fetchUsageSummary = async () => {
+  const fetchUsageSummary = useCallback(async () => {
     if (!organizationId) return;
-    
+
     try {
-      const token = getBearerToken()
+      const token = getBearerToken();
       if (!token) return;
-      
+
       const response = await fetch(
         `/api/developer/usage/summary?organizationId=${organizationId}&period=${period}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
-      )
+        },
+      );
 
       if (response.ok) {
-        const data = await response.json()
-        setSummary(data.summary)
+        const data = await response.json();
+        setSummary(data.summary);
       }
-    } catch (error) {
+    } catch (_error) {
       // Error already handled
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  }, [organizationId, period]);
 
-  const fetchAPIKeys = async () => {
-    if (!organizationId) return
-    
+  const fetchAPIKeys = useCallback(async () => {
+    if (!organizationId) return;
+
     try {
-      const token = getBearerToken()
-      if (!token) return
+      const token = getBearerToken();
+      if (!token) return;
 
-      const response = await fetch(
-        `/api/developer/api-keys?organizationId=${organizationId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
+      const response = await fetch(`/api/developer/api-keys?organizationId=${organizationId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        setApiKeys(data)
+        const data = await response.json();
+        setApiKeys(data);
       }
-    } catch (error) {
+    } catch (_error) {
       // Error handled
     }
-  }
+  }, [organizationId]);
+
+  useEffect(() => {
+    if (session?.user && organizationId) {
+      fetchUsageSummary();
+      fetchAPIKeys();
+    }
+  }, [session, organizationId, fetchAPIKeys, fetchUsageSummary]);
 
   const handleCreateKey = async () => {
     if (!keyName.trim()) {
-      toast.error("Please enter a key name")
-      return
+      toast.error("Please enter a key name");
+      return;
     }
 
     if (selectedScopes.length === 0) {
-      toast.error("Please select at least one scope")
-      return
+      toast.error("Please select at least one scope");
+      return;
     }
 
-    setCreating(true)
+    setCreating(true);
 
     try {
-      const token = getBearerToken()
+      const token = getBearerToken();
       if (!token) {
-        toast.error("Authentication required")
-        return
+        toast.error("Authentication required");
+        return;
       }
 
       const response = await fetch("/api/developer/api-keys", {
@@ -210,100 +219,98 @@ export default function DeveloperDashboardPage() {
           scopes: selectedScopes,
           expiresAt: expiresAt || null,
         }),
-      })
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        setNewApiKey(data.apiKey)
-        setNewKeyDialogOpen(true)
-        setCreateDialogOpen(false)
-        
+        const data = await response.json();
+        setNewApiKey(data.apiKey);
+        setNewKeyDialogOpen(true);
+        setCreateDialogOpen(false);
+
         // Reset form
-        setKeyName("")
-        setSelectedScopes([])
-        setExpiresAt("")
-        
+        setKeyName("");
+        setSelectedScopes([]);
+        setExpiresAt("");
+
         // Refresh list
-        fetchAPIKeys()
-        
-        toast.success("API key created successfully")
+        fetchAPIKeys();
+
+        toast.success("API key created successfully");
       } else {
-        const error = await response.json()
-        toast.error(error.error || "Failed to create API key")
+        const error = await response.json();
+        toast.error(error.error || "Failed to create API key");
       }
-    } catch (error) {
-      toast.error("Error creating API key")
+    } catch (_error) {
+      toast.error("Error creating API key");
     } finally {
-      setCreating(false)
+      setCreating(false);
     }
-  }
+  };
 
   const handleDeleteKey = async () => {
-    if (!keyToDelete) return
+    if (!keyToDelete) return;
 
     try {
-      const token = getBearerToken()
-      if (!token) return
+      const token = getBearerToken();
+      if (!token) return;
 
       const response = await fetch(`/api/developer/api-keys/${keyToDelete}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
+      });
 
       if (response.ok) {
-        toast.success("API key revoked successfully")
-        fetchAPIKeys()
+        toast.success("API key revoked successfully");
+        fetchAPIKeys();
       } else {
-        toast.error("Failed to revoke API key")
+        toast.error("Failed to revoke API key");
       }
-    } catch (error) {
-      toast.error("Error revoking API key")
+    } catch (_error) {
+      toast.error("Error revoking API key");
     } finally {
-      setDeleteDialogOpen(false)
-      setKeyToDelete(null)
+      setDeleteDialogOpen(false);
+      setKeyToDelete(null);
     }
-  }
+  };
 
   const copyToClipboard = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text)
-      setCopied(true)
-      toast.success("Copied to clipboard")
-      setTimeout(() => setCopied(false), 2000)
-    } catch (error) {
-      toast.error("Failed to copy")
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success("Copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (_error) {
+      toast.error("Failed to copy");
     }
-  }
+  };
 
   const toggleScope = (scope: string) => {
     setSelectedScopes((prev) =>
-      prev.includes(scope)
-        ? prev.filter((s) => s !== scope)
-        : [...prev, scope]
-    )
-  }
+      prev.includes(scope) ? prev.filter((s) => s !== scope) : [...prev, scope],
+    );
+  };
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return "Never"
+    if (!dateString) return "Never";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   if (isPending || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
-    )
+    );
   }
 
   if (!session?.user) {
-    return null
+    return null;
   }
 
   return (
@@ -326,7 +333,6 @@ export default function DeveloperDashboardPage() {
             <option value="90d">Last 90 days</option>
           </select>
         </div>
-
       </div>
 
       {summary && (
@@ -388,7 +394,12 @@ export default function DeveloperDashboardPage() {
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip />
-                  <Line type="monotone" dataKey="count" stroke="hsl(var(--primary))" strokeWidth={2} />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </Card>
@@ -439,15 +450,21 @@ export default function DeveloperDashboardPage() {
             </div>
             <div>
               <div className="font-semibold mb-1">2. Install SDK</div>
-              <code className="text-xs bg-background/50 px-2 py-1 rounded">npm install @pauly4010/evalai-sdk</code>
+              <code className="text-xs bg-background/50 px-2 py-1 rounded">
+                npm install @pauly4010/evalai-sdk
+              </code>
             </div>
             <div>
               <div className="font-semibold mb-1">3. Add to .env</div>
-              <code className="text-xs bg-background/50 px-2 py-1 rounded block">EVALAI_API_KEY=...</code>
+              <code className="text-xs bg-background/50 px-2 py-1 rounded block">
+                EVALAI_API_KEY=...
+              </code>
             </div>
             <div>
               <div className="font-semibold mb-1">4. Initialize</div>
-              <code className="text-xs bg-background/50 px-2 py-1 rounded block">AIEvalClient.init()</code>
+              <code className="text-xs bg-background/50 px-2 py-1 rounded block">
+                AIEvalClient.init()
+              </code>
             </div>
           </div>
         </CardContent>
@@ -462,9 +479,7 @@ export default function DeveloperDashboardPage() {
                 <Key className="h-5 w-5" />
                 API Keys
               </CardTitle>
-              <CardDescription>
-                Create and manage API keys for SDK authentication
-              </CardDescription>
+              <CardDescription>Create and manage API keys for SDK authentication</CardDescription>
             </div>
             <Button onClick={() => setCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
@@ -480,11 +495,7 @@ export default function DeveloperDashboardPage() {
               <p className="text-sm text-muted-foreground mt-2">
                 Create your first API key to start using the SDK
               </p>
-              <Button
-                onClick={() => setCreateDialogOpen(true)}
-                className="mt-4"
-                variant="outline"
-              >
+              <Button onClick={() => setCreateDialogOpen(true)} className="mt-4" variant="outline">
                 <Plus className="mr-2 h-4 w-4" />
                 Create API Key
               </Button>
@@ -507,9 +518,7 @@ export default function DeveloperDashboardPage() {
                   <TableRow key={key.id}>
                     <TableCell className="font-medium">{key.name}</TableCell>
                     <TableCell>
-                      <code className="text-xs bg-muted px-2 py-1 rounded">
-                        {key.keyPrefix}...
-                      </code>
+                      <code className="text-xs bg-muted px-2 py-1 rounded">{key.keyPrefix}...</code>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
@@ -547,8 +556,8 @@ export default function DeveloperDashboardPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setKeyToDelete(key.id)
-                          setDeleteDialogOpen(true)
+                          setKeyToDelete(key.id);
+                          setDeleteDialogOpen(true);
                         }}
                         disabled={!!key.revokedAt}
                       >
@@ -618,9 +627,7 @@ export default function DeveloperDashboardPage() {
                 value={expiresAt}
                 onChange={(e) => setExpiresAt(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">
-                Leave empty for no expiration
-              </p>
+              <p className="text-xs text-muted-foreground">Leave empty for no expiration</p>
             </div>
           </div>
           <DialogFooter>
@@ -658,16 +665,8 @@ export default function DeveloperDashboardPage() {
                 Save this key securely - you won't be able to see it again!
               </p>
               <div className="flex gap-2">
-                <Input
-                  value={newApiKey}
-                  readOnly
-                  className="font-mono text-sm"
-                />
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => copyToClipboard(newApiKey)}
-                >
+                <Input value={newApiKey} readOnly className="font-mono text-sm" />
+                <Button size="icon" variant="outline" onClick={() => copyToClipboard(newApiKey)}>
                   {copied ? (
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                   ) : (
@@ -697,7 +696,8 @@ export default function DeveloperDashboardPage() {
             <div className="space-y-2">
               <Label className="text-base font-semibold">Step 3: Add to Your .env File</Label>
               <p className="text-sm text-muted-foreground mb-2">
-                Create a <code className="bg-muted px-1 rounded">.env</code> file in your project root:
+                Create a <code className="bg-muted px-1 rounded">.env</code> file in your project
+                root:
               </p>
               <div className="bg-muted p-3 rounded-md font-mono text-sm space-y-1">
                 <div className="flex items-center justify-between">
@@ -708,7 +708,11 @@ export default function DeveloperDashboardPage() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => copyToClipboard(`EVALAI_API_KEY=${newApiKey}\nEVALAI_ORGANIZATION_ID=${organizationId}`)}
+                    onClick={() =>
+                      copyToClipboard(
+                        `EVALAI_API_KEY=${newApiKey}\nEVALAI_ORGANIZATION_ID=${organizationId}`,
+                      )
+                    }
                   >
                     <Copy className="h-3 w-3" />
                   </Button>
@@ -721,7 +725,7 @@ export default function DeveloperDashboardPage() {
               <Label className="text-base font-semibold">Step 4: Initialize the Client</Label>
               <div className="bg-muted p-3 rounded-md">
                 <pre className="text-sm overflow-x-auto">
-{`import { AIEvalClient } from '@pauly4010/evalai-sdk'
+                  {`import { AIEvalClient } from '@pauly4010/evalai-sdk'
 
 // Auto-loads from environment variables
 const client = AIEvalClient.init()
@@ -736,7 +740,11 @@ const trace = await client.traces.create({
                   size="sm"
                   variant="ghost"
                   className="mt-2"
-                  onClick={() => copyToClipboard(`import { AIEvalClient } from '@pauly4010/evalai-sdk'\n\nconst client = AIEvalClient.init()\n\nconst trace = await client.traces.create({\n  name: 'My First Trace',\n  traceId: 'trace-001'\n})`)}
+                  onClick={() =>
+                    copyToClipboard(
+                      `import { AIEvalClient } from '@pauly4010/evalai-sdk'\n\nconst client = AIEvalClient.init()\n\nconst trace = await client.traces.create({\n  name: 'My First Trace',\n  traceId: 'trace-001'\n})`,
+                    )
+                  }
                 >
                   <Copy className="h-3 w-3 mr-2" />
                   Copy Code
@@ -763,12 +771,12 @@ const trace = await client.traces.create({
             {/* Quick Links */}
             <div className="flex gap-2 pt-2">
               <Button variant="outline" asChild className="flex-1">
-                <a href="/documentation" target="_blank">
+                <a href="/documentation" target="_blank" rel="noopener">
                   View Full Documentation
                 </a>
               </Button>
               <Button variant="outline" asChild className="flex-1">
-                <a href="/api-reference" target="_blank">
+                <a href="/api-reference" target="_blank" rel="noopener">
                   API Reference
                 </a>
               </Button>
@@ -804,5 +812,5 @@ const trace = await client.traces.create({
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

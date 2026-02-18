@@ -1,61 +1,61 @@
-"use client"
+"use client";
 
-import { use, useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { AIQualityScoreCard } from "@/components/ai-quality-score-card"
-import { Download, Copy, ExternalLink, Lock } from "lucide-react"
-import Link from "next/link"
-import { getPublicDemo, validateDemoData, type DemoEvaluation } from "@/lib/demo-loader"
-import { toast } from "sonner"
+import { Copy, Download, ExternalLink, Lock } from "lucide-react";
+import Link from "next/link";
+import { use, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { AIQualityScoreCard } from "@/components/ai-quality-score-card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { type DemoEvaluation, getPublicDemo, validateDemoData } from "@/lib/demo-loader";
 
 type PageProps = {
-  params: Promise<{ id: string }>
-}
+  params: Promise<{ id: string }>;
+};
 
 export default function SharePage({ params }: PageProps) {
-  const { id } = use(params)
-  const [demo, setDemo] = useState<DemoEvaluation | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { id } = use(params);
+  const [demo, setDemo] = useState<DemoEvaluation | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadDemo() {
       try {
-        const data = await getPublicDemo(id)
-        
+        const data = await getPublicDemo(id);
+
         if (!data) {
-          setError('Demo not found or not publicly available')
-          return
+          setError("Demo not found or not publicly available");
+          return;
         }
-        
+
         if (!validateDemoData(data)) {
-          setError('Invalid demo data format')
-          return
+          setError("Invalid demo data format");
+          return;
         }
-        
-        setDemo(data)
+
+        setDemo(data);
       } catch (err) {
-        setError('Failed to load demo')
-        console.error(err)
+        setError("Failed to load demo");
+        console.error(err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    
-    loadDemo()
-  }, [id])
+
+    loadDemo();
+  }, [id]);
 
   const handleCopyLink = () => {
-    const url = window.location.href
-    navigator.clipboard.writeText(url)
-    toast.success('Share link copied to clipboard!')
-  }
+    const url = window.location.href;
+    navigator.clipboard.writeText(url);
+    toast.success("Share link copied to clipboard!");
+  };
 
   const handleCopyResults = () => {
-    if (!demo) return
-    
+    if (!demo) return;
+
     const summary = `
 Evaluation Results: ${demo.name}
 Grade: ${demo.qualityScore.grade} (${demo.qualityScore.overall}/100)
@@ -74,33 +74,33 @@ Quality Metrics:
 - Consistency: ${demo.qualityScore.metrics.consistency}/100
 
 Key Insights:
-${demo.qualityScore.insights.map((i: string) => `- ${i}`).join('\n')}
+${demo.qualityScore.insights.map((i: string) => `- ${i}`).join("\n")}
 
 Recommendations:
-${demo.qualityScore.recommendations.map((r: string) => `- ${r}`).join('\n')}
+${demo.qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
 
 View full results: ${window.location.href}
-    `.trim()
+    `.trim();
 
-    navigator.clipboard.writeText(summary)
-    toast.success('Results copied to clipboard!')
-  }
+    navigator.clipboard.writeText(summary);
+    toast.success("Results copied to clipboard!");
+  };
 
   const handleDownload = () => {
-    if (!demo) return
-    
-    const blob = new Blob([JSON.stringify(demo, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${demo.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    
-    toast.success('Demo data downloaded!')
-  }
+    if (!demo) return;
+
+    const blob = new Blob([JSON.stringify(demo, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${demo.name.replace(/\s+/g, "-").toLowerCase()}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.success("Demo data downloaded!");
+  };
 
   if (loading) {
     return (
@@ -110,7 +110,7 @@ View full results: ${window.location.href}
           <p className="text-muted-foreground">Loading shared evaluation...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error || !demo) {
@@ -123,19 +123,17 @@ View full results: ${window.location.href}
               Demo Not Available
             </CardTitle>
             <CardDescription>
-              {error || 'This evaluation is not publicly shared or does not exist.'}
+              {error || "This evaluation is not publicly shared or does not exist."}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <Link href="/">
-                Go to Homepage
-              </Link>
+              <Link href="/">Go to Homepage</Link>
             </Button>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -145,10 +143,10 @@ View full results: ${window.location.href}
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-sm text-center sm:text-left">
-              📊 <strong>You're viewing a shared evaluation</strong> exported from our platform.{' '}
+              📊 <strong>You're viewing a shared evaluation</strong> exported from our platform.{" "}
               <Link href="/auth/login" className="underline font-medium">
                 Sign in
-              </Link>{' '}
+              </Link>{" "}
               to run your own tests.
             </p>
             <Button variant="outline" size="sm" onClick={handleCopyLink}>
@@ -180,15 +178,9 @@ View full results: ${window.location.href}
                 >
                   {demo.type.replace("_", " ")}
                 </Badge>
-                {demo.category && (
-                  <Badge variant="secondary">
-                    {demo.category}
-                  </Badge>
-                )}
+                {demo.category && <Badge variant="secondary">{demo.category}</Badge>}
               </div>
-              {demo.description && (
-                <p className="text-muted-foreground">{demo.description}</p>
-              )}
+              {demo.description && <p className="text-muted-foreground">{demo.description}</p>}
               <p className="text-sm text-muted-foreground mt-2">
                 Shared on {new Date(demo.timestamp).toLocaleDateString()}
               </p>
@@ -257,9 +249,7 @@ View full results: ${window.location.href}
           <Card>
             <CardHeader>
               <CardTitle>Test Results</CardTitle>
-              <CardDescription>
-                Detailed results for each test case
-              </CardDescription>
+              <CardDescription>Detailed results for each test case</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -277,7 +267,10 @@ View full results: ${window.location.href}
                       </div>
                       {test.input && (
                         <p className="text-sm text-muted-foreground">
-                          Input: {typeof test.input === 'string' ? test.input : JSON.stringify(test.input).slice(0, 100)}
+                          Input:{" "}
+                          {typeof test.input === "string"
+                            ? test.input
+                            : JSON.stringify(test.input).slice(0, 100)}
                         </p>
                       )}
                     </div>
@@ -304,23 +297,20 @@ View full results: ${window.location.href}
           <CardContent className="pt-6 text-center">
             <h3 className="text-xl font-bold mb-2">Want to create your own evaluations?</h3>
             <p className="text-muted-foreground mb-4">
-              Sign up to run comprehensive AI evaluations with custom test cases, automated scoring, and detailed analytics.
+              Sign up to run comprehensive AI evaluations with custom test cases, automated scoring,
+              and detailed analytics.
             </p>
             <div className="flex gap-3 justify-center">
               <Button asChild>
-                <Link href="/auth/signup">
-                  Get Started Free
-                </Link>
+                <Link href="/auth/signup">Get Started Free</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/">
-                  Learn More
-                </Link>
+                <Link href="/">Learn More</Link>
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }

@@ -1,5 +1,5 @@
 // src/lib/sdk/mapper.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Zod schemas for validating SDK results before database insertion.
@@ -9,17 +9,17 @@ import { z } from 'zod';
 // Assertion result for envelope (optional from SDK)
 export const SDKAssertionResultSchema = z.object({
   key: z.string(),
-  category: z.enum(['safety', 'privacy', 'quality', 'format', 'policy']),
+  category: z.enum(["safety", "privacy", "quality", "format", "policy"]),
   passed: z.boolean(),
   score: z.number().min(0).max(1).optional(),
-  severity: z.enum(['low', 'med', 'high']).optional(),
+  severity: z.enum(["low", "med", "high"]).optional(),
   details: z.string().optional(),
 });
 
 // Individual test result from SDK
 export const SDKTestResultSchema = z.object({
   testCaseId: z.number(),
-  status: z.enum(['pending', 'running', 'passed', 'failed', 'error']),
+  status: z.enum(["pending", "running", "passed", "failed", "error"]),
   output: z.string().nullable(),
   score: z.number().min(0).max(100).nullable(),
   error: z.string().nullable(),
@@ -34,7 +34,7 @@ export const SDKTestResultSchema = z.object({
 export const SDKEvaluationResultSchema = z.object({
   evaluationId: z.number(),
   runId: z.string(),
-  status: z.enum(['pending', 'running', 'completed', 'failed', 'cancelled']),
+  status: z.enum(["pending", "running", "completed", "failed", "cancelled"]),
   totalCases: z.number(),
   processedCases: z.number(),
   passedCases: z.number(),
@@ -48,7 +48,7 @@ export const SDKEvaluationResultSchema = z.object({
 
 // LLM message structure
 export const SDKMessageSchema = z.object({
-  role: z.enum(['system', 'user', 'assistant', 'tool', 'function_call', 'function_result']),
+  role: z.enum(["system", "user", "assistant", "tool", "function_call", "function_result"]),
   content: z.string(),
   timestamp: z.string().optional(),
   tool_calls: z.array(z.any()).optional(),
@@ -87,7 +87,7 @@ export const SDKTraceSchema = z.object({
   traceId: z.string(),
   evaluationId: z.number(),
   runId: z.string(),
-  status: z.enum(['pending', 'running', 'completed', 'failed', 'cancelled']),
+  status: z.enum(["pending", "running", "completed", "failed", "cancelled"]),
   startTime: z.string(),
   endTime: z.string().nullable(),
   durationMs: z.number().nullable(),

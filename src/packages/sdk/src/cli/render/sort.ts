@@ -18,8 +18,8 @@ export interface SortableCase {
 
 export function sortFailedCases<T extends SortableCase>(cases: T[]): T[] {
   return [...cases].sort((a, b) => {
-    const sevA = STATUS_SEVERITY[a.status?.toLowerCase() ?? ''] ?? 4;
-    const sevB = STATUS_SEVERITY[b.status?.toLowerCase() ?? ''] ?? 4;
+    const sevA = STATUS_SEVERITY[a.status?.toLowerCase() ?? ""] ?? 4;
+    const sevB = STATUS_SEVERITY[b.status?.toLowerCase() ?? ""] ?? 4;
     if (sevA !== sevB) return sevA - sevB;
     const idA = a.testCaseId ?? 0;
     const idB = b.testCaseId ?? 0;

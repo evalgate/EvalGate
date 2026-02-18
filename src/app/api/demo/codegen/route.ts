@@ -4,8 +4,8 @@
  * No authentication required - public endpoint
  */
 
-import { NextResponse } from 'next/server';
-import codegenData from '../../../../../public/demo/codegen.json';
+import { NextResponse } from "next/server";
+import codegenData from "../../../../../public/demo/codegen.json";
 
 /**
  * GET /api/demo/codegen

@@ -1,9 +1,10 @@
 // src/lib/gateway/eval-gateway.ts
-import { db } from '@/db';
-import { evaluations, evaluationRuns, testCases } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
-import { logger } from '@/lib/logger';
-import { evalWorker } from '@/lib/workers/eval-worker';
+
+import { and, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { evaluationRuns, evaluations, testCases } from "@/db/schema";
+import { logger } from "@/lib/logger";
+import { evalWorker } from "@/lib/workers/eval-worker";
 
 interface StartRunOptions {
   testCases?: string[];
@@ -32,9 +33,9 @@ class EvalGateway {
     evaluationId: number,
     organizationId: number,
     userId: string,
-    options: StartRunOptions = {}
+    options: StartRunOptions = {},
   ): Promise<RunStatus> {
-    logger.info('Gateway: Starting evaluation run', { evaluationId, organizationId, userId });
+    logger.info("Gateway: Starting evaluation run", { evaluationId, organizationId, userId });
 
     // 1. Verify evaluation exists and belongs to organization
     const [evaluation] = await db
@@ -44,7 +45,7 @@ class EvalGateway {
       .limit(1);
 
     if (!evaluation) {
-      throw new Error('Evaluation not found or access denied');
+      throw new Error("Evaluation not found or access denied");
     }
 
     // 2. Get test cases (either specified or all for evaluation)
@@ -54,22 +55,24 @@ class EvalGateway {
       const cases = await db
         .select({ id: testCases.id })
         .from(testCases)
-        .where(and(
-          eq(testCases.evaluationId, evaluationId),
-          // TODO: Add filter for provided test case IDs when they're strings
-        ));
-      testCaseIds = cases.map(c => c.id);
+        .where(
+          and(
+            eq(testCases.evaluationId, evaluationId),
+            // TODO: Add filter for provided test case IDs when they're strings
+          ),
+        );
+      testCaseIds = cases.map((c) => c.id);
     } else {
       // Use all test cases for evaluation
       const cases = await db
         .select({ id: testCases.id })
         .from(testCases)
         .where(eq(testCases.evaluationId, evaluationId));
-      testCaseIds = cases.map(c => c.id);
+      testCaseIds = cases.map((c) => c.id);
     }
 
     if (testCaseIds.length === 0) {
-      throw new Error('No test cases found for evaluation');
+      throw new Error("No test cases found for evaluation");
     }
 
     // 2b. Idempotency check: if an idempotencyKey is provided, return existing run
@@ -81,7 +84,7 @@ class EvalGateway {
         .limit(1);
 
       if (existing) {
-        logger.info('Gateway: Returning existing run for idempotency key', {
+        logger.info("Gateway: Returning existing run for idempotency key", {
           runId: existing.id,
           idempotencyKey: options.idempotencyKey,
         });
@@ -101,47 +104,55 @@ class EvalGateway {
 
     // 3. Create evaluation run with PENDING status
     const now = new Date().toISOString();
-    const [run] = await db.insert(evaluationRuns).values({
-      evaluationId,
-      organizationId,
-      idempotencyKey: options.idempotencyKey ?? null,
-      status: 'pending',
-      totalCases: testCaseIds.length,
-      processedCount: 0,
-      passedCases: 0,
-      failedCases: 0,
-      environment: 'dev',
-      startedAt: now,
-      traceLog: JSON.stringify({
-        startedAt: now,
+    const [run] = await db
+      .insert(evaluationRuns)
+      .values({
         evaluationId,
         organizationId,
-        userId,
-        settings: options.settings,
-        testCases: testCaseIds.length,
-      }),
-      createdAt: now,
-    }).returning();
+        idempotencyKey: options.idempotencyKey ?? null,
+        status: "pending",
+        totalCases: testCaseIds.length,
+        processedCount: 0,
+        passedCases: 0,
+        failedCases: 0,
+        environment: "dev",
+        startedAt: now,
+        traceLog: JSON.stringify({
+          startedAt: now,
+          evaluationId,
+          organizationId,
+          userId,
+          settings: options.settings,
+          testCases: testCaseIds.length,
+        }),
+        createdAt: now,
+      })
+      .returning();
 
-    logger.info('Gateway: Created evaluation run', { runId: run.id, totalCases: testCaseIds.length });
+    logger.info("Gateway: Created evaluation run", {
+      runId: run.id,
+      totalCases: testCaseIds.length,
+    });
 
     // 4. Fire-and-forget: trigger background worker
     // This runs asynchronously and doesn't block the response
-    this.triggerWorker(run.id, evaluationId, organizationId, userId, testCaseIds, options).catch(error => {
-      logger.error('Gateway: Failed to trigger worker', { runId: run.id, error });
-      // Update run status to failed if worker can't be triggered
-      db.update(evaluationRuns)
-        .set({ 
-          status: 'failed',
-          completedAt: new Date().toISOString(),
-          traceLog: JSON.stringify({
-            ...(run.traceLog ? JSON.parse(run.traceLog as string) : {}),
-            error: 'Failed to start background worker',
-            failedAt: new Date().toISOString(),
+    this.triggerWorker(run.id, evaluationId, organizationId, userId, testCaseIds, options).catch(
+      (error) => {
+        logger.error("Gateway: Failed to trigger worker", { runId: run.id, error });
+        // Update run status to failed if worker can't be triggered
+        db.update(evaluationRuns)
+          .set({
+            status: "failed",
+            completedAt: new Date().toISOString(),
+            traceLog: JSON.stringify({
+              ...(run.traceLog ? JSON.parse(run.traceLog as string) : {}),
+              error: "Failed to start background worker",
+              failedAt: new Date().toISOString(),
+            }),
           })
-        })
-        .where(eq(evaluationRuns.id, run.id));
-    });
+          .where(eq(evaluationRuns.id, run.id));
+      },
+    );
 
     return {
       id: run.id,
@@ -166,7 +177,7 @@ class EvalGateway {
       .limit(1);
 
     if (!run) {
-      throw new Error('Evaluation run not found or access denied');
+      throw new Error("Evaluation run not found or access denied");
     }
 
     return {
@@ -194,26 +205,29 @@ class EvalGateway {
       .limit(1);
 
     if (!run) {
-      throw new Error('Evaluation run not found or access denied');
+      throw new Error("Evaluation run not found or access denied");
     }
 
     // Only allow cancellation if run is pending or running
-    if (!['pending', 'running'].includes(run.evaluation_runs.status)) {
-      throw new Error('Cannot cancel evaluation run in current status');
+    if (!["pending", "running"].includes(run.evaluation_runs.status)) {
+      throw new Error("Cannot cancel evaluation run in current status");
     }
 
-    await db.update(evaluationRuns)
+    await db
+      .update(evaluationRuns)
       .set({
-        status: 'cancelled',
+        status: "cancelled",
         completedAt: new Date().toISOString(),
         traceLog: JSON.stringify({
-          ...(run.evaluation_runs.traceLog ? JSON.parse(run.evaluation_runs.traceLog as string) : {}),
+          ...(run.evaluation_runs.traceLog
+            ? JSON.parse(run.evaluation_runs.traceLog as string)
+            : {}),
           cancelledAt: new Date().toISOString(),
         }),
       })
       .where(eq(evaluationRuns.id, runId));
 
-    logger.info('Gateway: Cancelled evaluation run', { runId });
+    logger.info("Gateway: Cancelled evaluation run", { runId });
   }
 
   /**
@@ -226,12 +240,10 @@ class EvalGateway {
     organizationId: number,
     userId: string,
     testCaseIds: number[],
-    options: StartRunOptions
+    options: StartRunOptions,
   ): Promise<void> {
     // Update run status to running
-    await db.update(evaluationRuns)
-      .set({ status: 'running' })
-      .where(eq(evaluationRuns.id, runId));
+    await db.update(evaluationRuns).set({ status: "running" }).where(eq(evaluationRuns.id, runId));
 
     // Trigger the background worker
     // In a real implementation, this could use a job queue (Bull, Agenda, etc.)

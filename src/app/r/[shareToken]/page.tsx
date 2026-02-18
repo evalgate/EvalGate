@@ -3,16 +3,16 @@
  * Public /r/:shareToken — stakeholder can open and understand risk in 30 seconds.
  */
 
-import { notFound } from 'next/navigation';
-import { headers } from 'next/headers';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Shield, AlertTriangle, CheckCircle, Hash } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Hash, Shield } from "lucide-react";
+import { headers } from "next/headers";
+import { notFound } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 async function fetchReport(shareToken: string, baseUrl: string) {
   const res = await fetch(`${baseUrl}/api/r/${shareToken}`, {
-    cache: 'no-store',
-    headers: { Accept: 'application/json' },
+    cache: "no-store",
+    headers: { Accept: "application/json" },
   });
   if (!res.ok) return null;
   const data = await res.json();
@@ -26,8 +26,8 @@ export default async function AuditLinkPage({
 }) {
   const { shareToken } = await params;
   const headersList = await headers();
-  const host = headersList.get('host') || 'localhost:3000';
-  const protocol = headersList.get('x-forwarded-proto') || 'http';
+  const host = headersList.get("host") || "localhost:3000";
+  const protocol = headersList.get("x-forwarded-proto") || "http";
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
 
   const report = await fetchReport(shareToken, baseUrl);
@@ -50,17 +50,15 @@ export default async function AuditLinkPage({
           </span>
         </div>
 
-        <h1 className="text-2xl font-bold mb-1">{eval_.name ?? 'Evaluation'}</h1>
-        {org.name && (
-          <p className="text-zinc-400 text-sm mb-6">{org.name}</p>
-        )}
+        <h1 className="text-2xl font-bold mb-1">{eval_.name ?? "Evaluation"}</h1>
+        {org.name && <p className="text-zinc-400 text-sm mb-6">{org.name}</p>}
 
         {/* Quality Score + Flags */}
         <Card className="bg-zinc-900/50 border-zinc-800 mb-6">
           <CardContent className="pt-6 pb-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-4xl font-bold text-green-400">{qs.score ?? '—'}</div>
+                <div className="text-4xl font-bold text-green-400">{qs.score ?? "—"}</div>
                 <div className="text-sm text-zinc-500">Quality Score</div>
               </div>
               {flags.length > 0 && (
@@ -68,7 +66,7 @@ export default async function AuditLinkPage({
                   {flags.map((f: string) => (
                     <Badge
                       key={f}
-                      variant={f === 'SAFETY_RISK' ? 'destructive' : 'secondary'}
+                      variant={f === "SAFETY_RISK" ? "destructive" : "secondary"}
                       className="text-xs"
                     >
                       {f}
@@ -84,7 +82,9 @@ export default async function AuditLinkPage({
         {baseline && (
           <Card
             className={`mb-6 border ${
-              baseline.regressionDetected ? 'border-red-500/50 bg-red-500/5' : 'border-zinc-800 bg-zinc-900/50'
+              baseline.regressionDetected
+                ? "border-red-500/50 bg-red-500/5"
+                : "border-zinc-800 bg-zinc-900/50"
             }`}
           >
             <CardContent className="pt-6 pb-6">
@@ -95,11 +95,12 @@ export default async function AuditLinkPage({
                   <CheckCircle className="h-5 w-5 text-green-500" />
                 )}
                 <span className="font-medium">
-                  {baseline.regressionDetected ? 'Regression detected' : 'No regression'}
+                  {baseline.regressionDetected ? "Regression detected" : "No regression"}
                 </span>
               </div>
               <div className="text-sm text-zinc-400">
-                Baseline: {baseline.baselineScore} · Delta: {baseline.regressionDelta >= 0 ? '+' : ''}
+                Baseline: {baseline.baselineScore} · Delta:{" "}
+                {baseline.regressionDelta >= 0 ? "+" : ""}
                 {baseline.regressionDelta} pts
               </div>
             </CardContent>
@@ -123,23 +124,23 @@ export default async function AuditLinkPage({
               </div>
             )}
             <div className="space-y-2 text-xs font-mono text-zinc-400">
-            {qs.scoringSpecHash && (
-              <div>
-                <span className="text-zinc-500">scoringSpecHash:</span>{' '}
-                <span className="break-all">{qs.scoringSpecHash}</span>
-              </div>
-            )}
-            {qs.scoringCommit && (
-              <div>
-                <span className="text-zinc-500">scoringCommit:</span> {qs.scoringCommit}
-              </div>
-            )}
-            {qs.inputsHash && (
-              <div>
-                <span className="text-zinc-500">inputsHash:</span>{' '}
-                <span className="break-all">{qs.inputsHash}</span>
-              </div>
-            )}
+              {qs.scoringSpecHash && (
+                <div>
+                  <span className="text-zinc-500">scoringSpecHash:</span>{" "}
+                  <span className="break-all">{qs.scoringSpecHash}</span>
+                </div>
+              )}
+              {qs.scoringCommit && (
+                <div>
+                  <span className="text-zinc-500">scoringCommit:</span> {qs.scoringCommit}
+                </div>
+              )}
+              {qs.inputsHash && (
+                <div>
+                  <span className="text-zinc-500">inputsHash:</span>{" "}
+                  <span className="break-all">{qs.inputsHash}</span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -165,7 +166,8 @@ export default async function AuditLinkPage({
         </Card>
 
         <p className="text-center text-xs text-zinc-600 mt-8">
-          Verified by EvalAI · {report.generatedAt ? new Date(report.generatedAt).toLocaleString() : ''}
+          Verified by EvalAI ·{" "}
+          {report.generatedAt ? new Date(report.generatedAt).toLocaleString() : ""}
         </p>
       </div>
     </div>

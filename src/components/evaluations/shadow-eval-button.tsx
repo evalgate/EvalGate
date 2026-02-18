@@ -1,16 +1,16 @@
 // src/components/evaluations/shadow-eval-button.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Play, CalendarDays, Filter, TrendingUp } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { format } from "date-fns";
+import { CalendarDays, Filter, Loader2, Play, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface ShadowEvalButtonProps {
   evaluationId: number;
@@ -39,13 +39,15 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
     durationMin: undefined,
     durationMax: undefined,
   });
-  const [availableTraces, setAvailableTraces] = useState<Array<{
-    id: string;
-    traceId: string;
-    status: string;
-    duration: number;
-    createdAt: string;
-  }>>([]);
+  const [availableTraces, setAvailableTraces] = useState<
+    Array<{
+      id: string;
+      traceId: string;
+      status: string;
+      duration: number;
+      createdAt: string;
+    }>
+  >([]);
 
   const handleRunShadowEval = async () => {
     if (selectedTraces.length === 0) {
@@ -54,38 +56,40 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/shadow-evals', {
-        method: 'POST',
+      const response = await fetch("/api/shadow-evals", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           evaluationId,
           traceIds: selectedTraces,
-          dateRange: dateRange.from && dateRange.to ? {
-            start: dateRange.from.toISOString(),
-            end: dateRange.to.toISOString(),
-          } : undefined,
+          dateRange:
+            dateRange.from && dateRange.to
+              ? {
+                  start: dateRange.from.toISOString(),
+                  end: dateRange.to.toISOString(),
+                }
+              : undefined,
           filters: Object.keys(filters).length > 0 ? filters : undefined,
         }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to create shadow evaluation');
+        throw new Error(error.error || "Failed to create shadow evaluation");
       }
 
       const result = await response.json();
       onShadowEvalCreated?.(result.id);
       setIsOpen(false);
-      
+
       // Reset state
       setSelectedTraces([]);
       setDateRange({ from: undefined, to: undefined });
       setFilters({ status: [] });
-
     } catch (error: any) {
-      console.error('Shadow eval error:', error);
+      console.error("Shadow eval error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -96,24 +100,54 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
       // This would load traces from your traces API
       // For now, we'll use mock data
       const mockTraces = [
-        { id: '1', traceId: 'trace_123', status: 'completed', duration: 1500, createdAt: '2024-01-15T10:30:00Z' },
-        { id: '2', traceId: 'trace_456', status: 'completed', duration: 2300, createdAt: '2024-01-15T11:15:00Z' },
-        { id: '3', traceId: 'trace_789', status: 'failed', duration: 800, createdAt: '2024-01-15T12:00:00Z' },
-        { id: '4', traceId: 'trace_012', status: 'completed', duration: 1800, createdAt: '2024-01-15T13:45:00Z' },
-        { id: '5', traceId: 'trace_345', status: 'completed', duration: 1200, createdAt: '2024-01-15T14:30:00Z' },
+        {
+          id: "1",
+          traceId: "trace_123",
+          status: "completed",
+          duration: 1500,
+          createdAt: "2024-01-15T10:30:00Z",
+        },
+        {
+          id: "2",
+          traceId: "trace_456",
+          status: "completed",
+          duration: 2300,
+          createdAt: "2024-01-15T11:15:00Z",
+        },
+        {
+          id: "3",
+          traceId: "trace_789",
+          status: "failed",
+          duration: 800,
+          createdAt: "2024-01-15T12:00:00Z",
+        },
+        {
+          id: "4",
+          traceId: "trace_012",
+          status: "completed",
+          duration: 1800,
+          createdAt: "2024-01-15T13:45:00Z",
+        },
+        {
+          id: "5",
+          traceId: "trace_345",
+          status: "completed",
+          duration: 1200,
+          createdAt: "2024-01-15T14:30:00Z",
+        },
       ];
       setAvailableTraces(mockTraces);
     } catch (error) {
-      console.error('Failed to load traces:', error);
+      console.error("Failed to load traces:", error);
     }
   };
 
-  const filteredTraces = availableTraces.filter(trace => {
+  const filteredTraces = availableTraces.filter((trace) => {
     // Status filter
     if (filters.status.length > 0 && !filters.status.includes(trace.status)) {
       return false;
     }
-    
+
     // Duration filter
     if (filters.durationMin !== undefined && trace.duration < filters.durationMin) {
       return false;
@@ -121,7 +155,7 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
     if (filters.durationMax !== undefined && trace.duration > filters.durationMax) {
       return false;
     }
-    
+
     // Date range filter
     if (dateRange.from && new Date(trace.createdAt) < dateRange.from) {
       return false;
@@ -129,36 +163,29 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
     if (dateRange.to && new Date(trace.createdAt) > dateRange.to) {
       return false;
     }
-    
+
     return true;
   });
 
   const toggleTraceSelection = (traceId: string) => {
-    setSelectedTraces(prev => 
-      prev.includes(traceId) 
-        ? prev.filter(id => id !== traceId)
-        : [...prev, traceId]
+    setSelectedTraces((prev) =>
+      prev.includes(traceId) ? prev.filter((id) => id !== traceId) : [...prev, traceId],
     );
   };
 
   const toggleStatusFilter = (status: string) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       status: prev.status.includes(status)
-        ? prev.status.filter(s => s !== status)
-        : [...prev.status, status]
+        ? prev.status.filter((s) => s !== status)
+        : [...prev.status, status],
     }));
   };
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={loadAvailableTraces}
-        >
+        <Button variant="outline" size="sm" className="gap-2" onClick={loadAvailableTraces}>
           <TrendingUp className="h-4 w-4" />
           Run against Production Logs
         </Button>
@@ -169,9 +196,10 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
             <h3 className="font-semibold">Shadow Evaluation</h3>
             <Badge variant="secondary">Beta</Badge>
           </div>
-          
+
           <p className="text-sm text-muted-foreground">
-            Compare your current prompt against production traces to measure performance improvements.
+            Compare your current prompt against production traces to measure performance
+            improvements.
           </p>
 
           {/* Date Range Filter */}
@@ -187,7 +215,7 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
                     variant="outline"
                     className={cn(
                       "justify-start text-left font-normal",
-                      !dateRange.from && "text-muted-foreground"
+                      !dateRange.from && "text-muted-foreground",
                     )}
                   >
                     {dateRange.from ? format(dateRange.from, "MMM dd, yyyy") : "Start date"}
@@ -197,19 +225,19 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
                   <Calendar
                     mode="single"
                     selected={dateRange.from}
-                    onSelect={(date) => setDateRange(prev => ({ ...prev, from: date }))}
+                    onSelect={(date) => setDateRange((prev) => ({ ...prev, from: date }))}
                     initialFocus
                   />
                 </PopoverContent>
               </Popover>
-              
+
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
                       "justify-start text-left font-normal",
-                      !dateRange.to && "text-muted-foreground"
+                      !dateRange.to && "text-muted-foreground",
                     )}
                   >
                     {dateRange.to ? format(dateRange.to, "MMM dd, yyyy") : "End date"}
@@ -219,7 +247,7 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
                   <Calendar
                     mode="single"
                     selected={dateRange.to}
-                    onSelect={(date) => setDateRange(prev => ({ ...prev, to: date }))}
+                    onSelect={(date) => setDateRange((prev) => ({ ...prev, to: date }))}
                     initialFocus
                   />
                 </PopoverContent>
@@ -234,7 +262,7 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
               Status Filter
             </label>
             <div className="flex gap-3">
-              {['completed', 'failed', 'running'].map(status => (
+              {["completed", "failed", "running"].map((status) => (
                 <div key={status} className="flex items-center space-x-2">
                   <Checkbox
                     id={status}
@@ -260,22 +288,26 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
                 type="number"
                 placeholder="Min"
                 className="flex h-10 w-24 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={filters.durationMin || ''}
-                onChange={(e) => setFilters(prev => ({ 
-                  ...prev, 
-                  durationMin: e.target.value ? parseInt(e.target.value) : undefined 
-                }))}
+                value={filters.durationMin || ""}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    durationMin: e.target.value ? parseInt(e.target.value, 10) : undefined,
+                  }))
+                }
               />
               <span className="text-sm text-muted-foreground">to</span>
               <input
                 type="number"
                 placeholder="Max"
                 className="flex h-10 w-24 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={filters.durationMax || ''}
-                onChange={(e) => setFilters(prev => ({ 
-                  ...prev, 
-                  durationMax: e.target.value ? parseInt(e.target.value) : undefined 
-                }))}
+                value={filters.durationMax || ""}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    durationMax: e.target.value ? parseInt(e.target.value, 10) : undefined,
+                  }))
+                }
               />
             </div>
           </div>
@@ -287,12 +319,10 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
                 Production Traces ({filteredTraces.length})
               </label>
               {selectedTraces.length > 0 && (
-                <Badge variant="secondary">
-                  {selectedTraces.length} selected
-                </Badge>
+                <Badge variant="secondary">{selectedTraces.length} selected</Badge>
               )}
             </div>
-            
+
             <div className="max-h-40 overflow-y-auto border rounded-md">
               {filteredTraces.length === 0 ? (
                 <div className="p-4 text-center text-sm text-muted-foreground">
@@ -300,23 +330,24 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
                 </div>
               ) : (
                 <div className="divide-y">
-                  {filteredTraces.map(trace => (
+                  {filteredTraces.map((trace) => (
                     <div
                       key={trace.id}
                       className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer"
                       onClick={() => toggleTraceSelection(trace.traceId)}
                     >
-                      <Checkbox
-                        checked={selectedTraces.includes(trace.traceId)}
-                      />
+                      <Checkbox checked={selectedTraces.includes(trace.traceId)} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium truncate">
-                            {trace.traceId}
-                          </span>
-                          <Badge 
-                            variant={trace.status === 'completed' ? 'default' : 
-                                   trace.status === 'failed' ? 'destructive' : 'secondary'}
+                          <span className="text-sm font-medium truncate">{trace.traceId}</span>
+                          <Badge
+                            variant={
+                              trace.status === "completed"
+                                ? "default"
+                                : trace.status === "failed"
+                                  ? "destructive"
+                                  : "secondary"
+                            }
                             className="text-xs"
                           >
                             {trace.status}
@@ -335,11 +366,7 @@ export function ShadowEvalButton({ evaluationId, onShadowEvalCreated }: ShadowEv
 
           {/* Action Buttons */}
           <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              disabled={isLoading}
-            >
+            <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
               Cancel
             </Button>
             <Button

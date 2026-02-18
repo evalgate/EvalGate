@@ -12,13 +12,13 @@
  * and non-error payloads.
  */
 
-import { describe, it, expect } from 'vitest';
-import { Project, SyntaxKind } from 'ts-morph';
-import path from 'path';
-import { globSync } from 'glob';
-import { readFileSync } from 'fs';
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { globSync } from "glob";
+import { Project, SyntaxKind } from "ts-morph";
+import { describe, expect, it } from "vitest";
 
-const API_DIR = path.resolve(__dirname, '../../app/api');
+const API_DIR = path.resolve(__dirname, "../../app/api");
 
 /**
  * Check if a route file uses canonical error helpers (apiError, validationError, etc.)
@@ -37,19 +37,19 @@ function hasAdHocErrorPattern(content: string): boolean {
   return false;
 }
 
-describe('API Error Envelope Audit', () => {
-  const routeFiles = globSync('**/route.ts', { cwd: API_DIR });
+describe("API Error Envelope Audit", () => {
+  const routeFiles = globSync("**/route.ts", { cwd: API_DIR });
 
-  it('should find route files', () => {
+  it("should find route files", () => {
     expect(routeFiles.length).toBeGreaterThan(0);
   });
 
-  it('no route should use ad-hoc error responses (flat error/code)', () => {
+  it("no route should use ad-hoc error responses (flat error/code)", () => {
     const violations: { file: string; line?: number }[] = [];
 
     for (const routeFile of routeFiles) {
       const fullPath = path.join(API_DIR, routeFile);
-      const content = readFileSync(fullPath, 'utf-8');
+      const content = readFileSync(fullPath, "utf-8");
 
       if (hasAdHocErrorPattern(content)) {
         violations.push({ file: routeFile });
@@ -59,8 +59,8 @@ describe('API Error Envelope Audit', () => {
     expect(
       violations,
       violations.length > 0
-        ? `Routes with ad-hoc error format: ${violations.map((v) => v.file).join(', ')}`
-        : undefined
+        ? `Routes with ad-hoc error format: ${violations.map((v) => v.file).join(", ")}`
+        : undefined,
     ).toHaveLength(0);
   });
 
@@ -80,7 +80,7 @@ describe('API Error Envelope Audit', () => {
         sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression).forEach((call) => {
           const expr = call.getExpression();
           const text = expr.getText();
-          if (!text.includes('NextResponse.json')) return;
+          if (!text.includes("NextResponse.json")) return;
 
           const args = call.getArguments();
           if (args.length === 0) return;
@@ -104,8 +104,8 @@ describe('API Error Envelope Audit', () => {
     expect(
       violations,
       violations.length > 0
-        ? `Routes with error as string: ${violations.map((v) => `${v.file}:${v.line}`).join(', ')}`
-        : undefined
+        ? `Routes with error as string: ${violations.map((v) => `${v.file}:${v.line}`).join(", ")}`
+        : undefined,
     ).toHaveLength(0);
   });
 });

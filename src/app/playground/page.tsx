@@ -4,9 +4,9 @@
  * Try AI evaluations in < 30 seconds
  */
 
-'use client';
+"use client";
 
-import { InteractivePlayground } from '@/components/interactive-playground';
+import { InteractivePlayground } from "@/components/interactive-playground";
 
 export default function PlaygroundPage() {
   return (
@@ -23,8 +23,8 @@ export default function PlaygroundPage() {
               <a href="/auth/login" className="text-sm hover:underline">
                 Sign In
               </a>
-              <a 
-                href="/auth/sign-up" 
+              <a
+                href="/auth/sign-up"
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90"
               >
                 Start Free Trial
@@ -38,7 +38,7 @@ export default function PlaygroundPage() {
       <main className="container mx-auto px-4 py-12">
         <InteractivePlayground
           onSignupPrompt={() => {
-            window.location.href = '/auth/sign-up?source=playground';
+            window.location.href = "/auth/sign-up?source=playground";
           }}
         />
       </main>
@@ -65,4 +65,3 @@ export default function PlaygroundPage() {
     </div>
   );
 }
-

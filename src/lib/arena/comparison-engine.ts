@@ -1,6 +1,6 @@
 // src/lib/arena/comparison-engine.ts
-import { logger } from '@/lib/logger';
-import { providerKeysService } from '@/lib/services/provider-keys.service';
+import { logger } from "@/lib/logger";
+import { providerKeysService } from "@/lib/services/provider-keys.service";
 
 export interface ComparisonRequest {
   prompt: string;
@@ -29,18 +29,18 @@ export interface ComparisonResult {
  */
 export class ComparisonEngine {
   private providerEndpoints: Record<string, { url: string; headerKey: string }> = {
-    openai: { url: 'https://api.openai.com/v1/chat/completions', headerKey: 'Authorization' },
-    anthropic: { url: 'https://api.anthropic.com/v1/messages', headerKey: 'x-api-key' },
+    openai: { url: "https://api.openai.com/v1/chat/completions", headerKey: "Authorization" },
+    anthropic: { url: "https://api.anthropic.com/v1/messages", headerKey: "x-api-key" },
   };
 
   private modelToProvider: Record<string, { provider: string; model: string }> = {
-    'gpt-4': { provider: 'openai', model: 'gpt-4' },
-    'gpt-4o': { provider: 'openai', model: 'gpt-4o' },
-    'gpt-4o-mini': { provider: 'openai', model: 'gpt-4o-mini' },
-    'gpt-4-turbo': { provider: 'openai', model: 'gpt-4-turbo' },
-    'claude-3.5-sonnet': { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022' },
-    'claude-3-opus': { provider: 'anthropic', model: 'claude-3-opus-20240229' },
-    'claude-3-haiku': { provider: 'anthropic', model: 'claude-3-haiku-20240307' },
+    "gpt-4": { provider: "openai", model: "gpt-4" },
+    "gpt-4o": { provider: "openai", model: "gpt-4o" },
+    "gpt-4o-mini": { provider: "openai", model: "gpt-4o-mini" },
+    "gpt-4-turbo": { provider: "openai", model: "gpt-4-turbo" },
+    "claude-3.5-sonnet": { provider: "anthropic", model: "claude-3-5-sonnet-20241022" },
+    "claude-3-opus": { provider: "anthropic", model: "claude-3-opus-20240229" },
+    "claude-3-haiku": { provider: "anthropic", model: "claude-3-haiku-20240307" },
   };
 
   /**
@@ -49,18 +49,20 @@ export class ComparisonEngine {
    */
   async compare(request: ComparisonRequest): Promise<ComparisonResult> {
     const responses = await Promise.allSettled(
-      request.models.map((modelId) => this.callModel(modelId, request.prompt, request.organizationId))
+      request.models.map((modelId) =>
+        this.callModel(modelId, request.prompt, request.organizationId),
+      ),
     );
 
     const results: ModelResponse[] = responses.map((res, i) => {
-      if (res.status === 'fulfilled') return res.value;
+      if (res.status === "fulfilled") return res.value;
       return {
         modelId: request.models[i],
-        output: '',
+        output: "",
         latencyMs: 0,
         tokenCount: 0,
         cost: 0,
-        error: res.reason?.message ?? 'Unknown error',
+        error: res.reason?.message ?? "Unknown error",
       };
     });
 
@@ -74,7 +76,11 @@ export class ComparisonEngine {
   /**
    * Call a single model via its provider's API.
    */
-  private async callModel(modelId: string, prompt: string, organizationId: number): Promise<ModelResponse> {
+  private async callModel(
+    modelId: string,
+    prompt: string,
+    organizationId: number,
+  ): Promise<ModelResponse> {
     const mapping = this.modelToProvider[modelId];
     if (!mapping) throw new Error(`Unknown model: ${modelId}`);
 
@@ -84,40 +90,40 @@ export class ComparisonEngine {
     const start = Date.now();
 
     try {
-      let output = '';
+      let output = "";
       let tokenCount = 0;
 
-      if (mapping.provider === 'openai') {
+      if (mapping.provider === "openai") {
         const res = await fetch(this.providerEndpoints.openai.url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
           body: JSON.stringify({
             model: mapping.model,
-            messages: [{ role: 'user', content: prompt }],
+            messages: [{ role: "user", content: prompt }],
             max_tokens: 1024,
           }),
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error?.message ?? JSON.stringify(json));
-        output = json.choices?.[0]?.message?.content ?? '';
+        output = json.choices?.[0]?.message?.content ?? "";
         tokenCount = json.usage?.total_tokens ?? 0;
-      } else if (mapping.provider === 'anthropic') {
+      } else if (mapping.provider === "anthropic") {
         const res = await fetch(this.providerEndpoints.anthropic.url, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
             model: mapping.model,
             max_tokens: 1024,
-            messages: [{ role: 'user', content: prompt }],
+            messages: [{ role: "user", content: prompt }],
           }),
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error?.message ?? JSON.stringify(json));
-        output = json.content?.[0]?.text ?? '';
+        output = json.content?.[0]?.text ?? "";
         tokenCount = (json.usage?.input_tokens ?? 0) + (json.usage?.output_tokens ?? 0);
       }
 
@@ -129,7 +135,7 @@ export class ComparisonEngine {
       logger.error(`ComparisonEngine: ${modelId} failed`, { error: error.message });
       return {
         modelId,
-        output: '',
+        output: "",
         latencyMs: Date.now() - start,
         tokenCount: 0,
         cost: 0,
@@ -148,13 +154,13 @@ export class ComparisonEngine {
 
   private estimateCost(modelId: string, tokenCount: number): number {
     const prices: Record<string, number> = {
-      'gpt-4': 0.03,
-      'gpt-4o': 0.005,
-      'gpt-4o-mini': 0.00015,
-      'gpt-4-turbo': 0.01,
-      'claude-3.5-sonnet': 0.015,
-      'claude-3-opus': 0.075,
-      'claude-3-haiku': 0.00025,
+      "gpt-4": 0.03,
+      "gpt-4o": 0.005,
+      "gpt-4o-mini": 0.00015,
+      "gpt-4-turbo": 0.01,
+      "claude-3.5-sonnet": 0.015,
+      "claude-3-opus": 0.075,
+      "claude-3-haiku": 0.00025,
     };
     return (tokenCount / 1000) * (prices[modelId] ?? 0.01);
   }
