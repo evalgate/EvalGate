@@ -122,6 +122,7 @@ export class ShadowEvalService {
       processedCount: 0,
       passedCases: 0,
       failedCases: 0,
+      environment: 'dev',
       startedAt: now,
       traceLog: JSON.stringify({
         type: 'shadow_eval',

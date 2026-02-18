@@ -228,6 +228,9 @@ export type {
   Organization,
 } from './types'
 
+// CLI (programmatic use)
+export { parseArgs, runCheck, EXIT, type CheckArgs } from './cli/check';
+
 // Default export for convenience
 import { AIEvalClient } from './client';
 export default AIEvalClient;

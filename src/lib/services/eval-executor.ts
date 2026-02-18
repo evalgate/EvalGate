@@ -184,10 +184,11 @@ export class TraceLinkedExecutor implements EvalExecutor {
       eq(spans.inputHash, inputHash),
     ];
 
-    // Prefer strict run binding; use runId OR time window, never both
+    // Prefer strict run binding; use both when both exist (prevents old spans from matching)
     if (this.evaluationRunId) {
       conditions.push(eq(spans.evaluationRunId, this.evaluationRunId));
-    } else if (this.runStartedAt) {
+    }
+    if (this.runStartedAt) {
       conditions.push(gte(spans.createdAt, this.runStartedAt));
     }
 

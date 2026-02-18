@@ -11,6 +11,7 @@ export type ScoreInputs = {
   safetyPassRate?: number;   // 0..1
   safetyFromProxy?: boolean; // true when using keyword proxy instead of assertions
   traceCoverageRate?: number; // 0..1 for trace-linked runs
+  hasProvenance?: boolean;   // false when trace-linked but no cost records (model/provider not captured)
   judgeAvg?: number;         // 0..1
   schemaPassRate?: number;   // 0..1
   avgLatencyMs?: number;
@@ -87,6 +88,7 @@ export function computeQualityScore(i: ScoreInputs): QualityScoreResult {
   if (n < 10) flags.push('LOW_N');
   if (i.safetyFromProxy) flags.push('SAFETY_WEAK_EVIDENCE');
   if (i.traceCoverageRate != null && i.traceCoverageRate < 0.8) flags.push('TRACE_COVERAGE_LOW');
+  if (i.traceCoverageRate != null && !i.hasProvenance) flags.push('MISSING_PROVENANCE');
 
   // Evidence level: strong (all key metrics + N>=10), medium (some metrics + N>=5), weak
   let evidenceLevel: EvidenceLevel;

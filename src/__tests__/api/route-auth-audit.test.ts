@@ -19,7 +19,7 @@ const PUBLIC_ROUTE_ALLOWLIST = [
   'api/docs',
   'api/auth',
   'api/demo',
-  'api/evaluation-templates',
+  // api/evaluation-templates: migrated to secureRoute({ allowAnonymous: true })
   'api/subscribers',
   'api/sentry-example-api',
   'api/autumn',

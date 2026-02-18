@@ -48,6 +48,17 @@ export interface AuthOnlyContext {
   authType: Exclude<AuthType, 'anonymous'>;
 }
 
+/** Explicit context for anonymous or authed handlers — never return empty {} */
+export type AnyAuthContext =
+  | { authType: 'anonymous' }
+  | {
+      authType: 'session' | 'apiKey';
+      userId: string;
+      organizationId?: number;
+      role?: Role;
+      scopes?: string[];
+    };
+
 export type SecureRouteOptions = {
   /** Require org membership (default: true). Set false for user-only auth. */
   requireOrg?: boolean;
@@ -103,9 +114,9 @@ export function secureRoute(
   options: SecureRouteOptions & { requireOrg: false; allowAnonymous?: false | undefined },
 ): (req: NextRequest, props: { params: Promise<Record<string, string>> }) => Promise<NextResponse>;
 
-/** Anonymous / public handler — context may be empty */
+/** Anonymous / public handler — ctx always has authType ('anonymous' or full auth) */
 export function secureRoute(
-  handler: (req: NextRequest, ctx: Partial<AuthContext>, params: Record<string, string>) => Promise<NextResponse>,
+  handler: (req: NextRequest, ctx: AnyAuthContext, params: Record<string, string>) => Promise<NextResponse>,
   options: SecureRouteOptions & { allowAnonymous: true },
 ): (req: NextRequest, props: { params: Promise<Record<string, string>> }) => Promise<NextResponse>;
 
@@ -125,16 +136,25 @@ export function secureRoute(
   return async (req: NextRequest, props: { params: Promise<Record<string, string>> }) => {
     const resolvedParams = await props.params;
 
+    // ── Anonymous path: check first, before auth; always apply rate limit ──
+    if (allowAnonymous) {
+      const hasAuth = !!req.headers.get('authorization');
+      if (!hasAuth) {
+        return withRateLimit(
+          req,
+          async () => handler(req, { authType: 'anonymous' }, resolvedParams),
+          { customTier: tier ?? 'anonymous' },
+        );
+      }
+      // Auth header exists — fall through to authed path
+    }
+
     // Wrap the core logic so rate limiting can wrap it too
     const coreHandler = async (request: NextRequest): Promise<NextResponse> => {
       try {
-        // ── Anonymous path ──
-        if (allowAnonymous && !needsAuth) {
-          return await handler(request, {}, resolvedParams);
-        }
-
-        // ── Auth path ──
-        if (needsAuth) {
+        // ── Auth path (required auth, or optional auth when allowAnonymous + header present) ──
+        const hasAuthHeader = !!request.headers.get('authorization');
+        if (needsAuth || (allowAnonymous && hasAuthHeader)) {
           if (needsOrg) {
             const authResult = await requireAuthWithOrg(request);
             if (!authResult.authenticated) {
@@ -185,8 +205,8 @@ export function secureRoute(
           }
         }
 
-        // fallback (shouldn't reach here)
-        return await handler(request, {}, resolvedParams);
+        // fallback: no auth required (requireAuth: false, no allowAnonymous) — use anonymous ctx for consistency
+        return await handler(request, { authType: 'anonymous' }, resolvedParams);
       } catch (err) {
         if (err instanceof ZodError) {
           return zodValidationError(err);

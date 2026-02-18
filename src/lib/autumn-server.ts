@@ -91,8 +91,13 @@ export async function validateSession(token: string | null, requiredScope?: stri
       }
     }
 
-    // Enforce scope check if a required scope was specified (no * wildcard)
+    // Reject wildcard scope at runtime (legacy keys)
     const keyScopes = Array.isArray(apiKey.scopes) ? apiKey.scopes as string[] : [];
+    if (keyScopes.includes('*')) {
+      return { valid: false, error: "Wildcard scope '*' is not allowed" };
+    }
+
+    // Enforce scope check if a required scope was specified
     if (requiredScope && !keyScopes.includes(requiredScope)) {
       return {
         valid: false,

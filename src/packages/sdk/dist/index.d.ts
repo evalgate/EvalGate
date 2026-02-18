@@ -31,5 +31,6 @@ export { WorkflowTracer, createWorkflowTracer, traceWorkflowStep, traceLangChain
 export type { ClientConfig as AIEvalConfig, Trace as TraceData, Span as SpanData, Evaluation as EvaluationData, LLMJudgeResult as LLMJudgeData, RetryConfig, GenericMetadata as AnnotationData, TracedResponse, TestCase, TestResult, SnapshotData, ExportOptions, ImportOptions, StreamOptions, BatchOptions } from './types';
 export { EvaluationTemplates, type EvaluationTemplateType, type FeatureUsage, type OrganizationLimits } from './types';
 export type { Annotation, CreateAnnotationParams, ListAnnotationsParams, AnnotationTask, CreateAnnotationTaskParams, ListAnnotationTasksParams, AnnotationItem, CreateAnnotationItemParams, ListAnnotationItemsParams, APIKey, APIKeyWithSecret, CreateAPIKeyParams, UpdateAPIKeyParams, ListAPIKeysParams, APIKeyUsage, Webhook, CreateWebhookParams, UpdateWebhookParams, ListWebhooksParams, WebhookDelivery, ListWebhookDeliveriesParams, UsageStats, GetUsageParams, UsageSummary, LLMJudgeConfig, CreateLLMJudgeConfigParams, ListLLMJudgeConfigsParams, ListLLMJudgeResultsParams, LLMJudgeAlignment, GetLLMJudgeAlignmentParams, Organization, } from './types';
+export { parseArgs, runCheck, EXIT, type CheckArgs } from './cli/check';
 import { AIEvalClient } from './client';
 export default AIEvalClient;

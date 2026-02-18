@@ -220,6 +220,7 @@ export class EvaluationService {
       totalCases: cases.length,
       passedCases: 0,
       failedCases: 0,
+      environment: 'dev',
       createdAt: new Date().toISOString(),
     }).returning();
 

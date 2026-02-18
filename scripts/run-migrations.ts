@@ -33,8 +33,12 @@ function parseStatements(sql: string): string[] {
     ? sql.split(/--> statement-breakpoint/)
     : sql.split(/;\s*\n/);
   return parts
-    .map((s) => s.trim().replace(/\s*;\s*$/, ''))
-    .filter((s) => s.length > 0 && !s.startsWith('--'));
+    .map((s) => {
+      const trimmed = s.trim().replace(/\s*;\s*$/, '');
+      // Strip leading comment lines so statements like "-- comment\nCREATE ..." are kept
+      return trimmed.replace(/^\s*--[^\n]*\n?/gm, '').trim();
+    })
+    .filter((s) => s.length > 0);
 }
 
 async function main() {
@@ -81,22 +85,35 @@ async function main() {
       continue;
     }
 
-    try {
-      for (const stmt of statements) {
-        const s = stmt.trim();
-        if (!s || s.startsWith('--')) continue;
-        const sql = s.endsWith(';') ? s : s + ';';
+    let applied = 0;
+    let skipped = 0;
+    for (const stmt of statements) {
+      const s = stmt.trim();
+      if (!s || s.startsWith('--')) continue;
+      const sql = s.endsWith(';') ? s : s + ';';
+      try {
         await client.execute(sql);
+        applied++;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const isSkip =
+          msg.includes('duplicate column') ||
+          msg.includes('already exists') ||
+          msg.includes('no such table') ||
+          msg.includes('UNIQUE constraint failed');
+        if (isSkip) {
+          if (msg.includes('UNIQUE constraint failed')) {
+            console.warn(`  [skip] ${file}: ${msg} (fix duplicate data and re-run to apply constraint)`);
+          }
+          skipped++;
+        } else {
+          console.error(`  [fail] ${file}: ${msg}`);
+          throw err;
+        }
       }
-      console.log(`  [ok]   ${file}`);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes('duplicate column') || msg.includes('already exists')) {
-        console.log(`  [skip] ${file} (already applied)`);
-      } else {
-        console.error(`  [fail] ${file}: ${msg}`);
-        throw err;
-      }
+    }
+    if (applied > 0 || skipped > 0) {
+      console.log(`  [ok]   ${file} (${applied} applied${skipped > 0 ? `, ${skipped} skipped` : ''})`);
     }
   }
 

@@ -15,7 +15,7 @@
  *   --minN <n>           Fail if total test cases < n (low sample size)
  *   --allowWeakEvidence  If false (default), fail when evidenceLevel is 'weak'
  *   --policy <name>      Enforce a compliance policy (e.g. HIPAA, SOC2, GDPR)
- *   --baseline <mode>    Baseline comparison mode: "published" (default) or "previous"
+ *   --baseline <mode>    Baseline comparison mode: "published" (default), "previous", or "production"
  *   --evaluationId <id>  Required. The evaluation to gate on.
  *   --baseUrl <url>      API base URL (default: EVALAI_BASE_URL or http://localhost:3000)
  *   --apiKey <key>       API key (default: EVALAI_API_KEY env var)
@@ -73,7 +73,11 @@ function parseArgs(argv) {
     const allowWeakEvidence = args.allowWeakEvidence === 'true' || args.allowWeakEvidence === '1';
     const evaluationId = args.evaluationId || '';
     const policy = args.policy || undefined;
-    const baseline = (args.baseline === 'previous' ? 'previous' : 'published');
+    const baseline = (args.baseline === 'previous'
+        ? 'previous'
+        : args.baseline === 'production'
+            ? 'production'
+            : 'published');
     if (!apiKey) {
         console.error('Error: --apiKey or EVALAI_API_KEY is required');
         process.exit(exports.EXIT.BAD_ARGS);
@@ -95,7 +99,7 @@ function parseArgs(argv) {
 async function runCheck(args) {
     const headers = { Authorization: `Bearer ${args.apiKey}` };
     // ── 1. Fetch latest quality score ──
-    const scoreUrl = `${args.baseUrl}/api/quality?evaluationId=${args.evaluationId}&action=latest`;
+    const scoreUrl = `${args.baseUrl}/api/quality?evaluationId=${args.evaluationId}&action=latest&baseline=${args.baseline}`;
     let scoreRes;
     try {
         scoreRes = await fetch(scoreUrl, { headers });
@@ -115,7 +119,14 @@ async function runCheck(args) {
     const evidenceLevel = data?.evidenceLevel ?? null;
     const baselineScore = data?.baselineScore ?? null;
     const regressionDelta = data?.regressionDelta ?? null;
+    const baselineMissing = data?.baselineMissing === true;
     const breakdown = data?.breakdown ?? {};
+    // ── Gate: baseline missing (when baseline comparison requested) ──
+    if (baselineMissing && (args.baseline !== 'published' || args.maxDrop !== undefined)) {
+        console.error(`\n✗ FAILED: baseline (${args.baseline}) not found. ` +
+            `Ensure a baseline run exists (e.g. published run, previous run, or prod-tagged run).`);
+        return exports.EXIT.API_ERROR;
+    }
     // ── Gate: minN (low sample size) ──
     if (args.minN !== undefined && total !== null && total < args.minN) {
         console.error(`\n✗ FAILED: total test cases (${total}) < minN (${args.minN})`);

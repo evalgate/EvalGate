@@ -501,9 +501,60 @@ console.log("Plan:", org.plan);
 console.log("Status:", org.status);
 ```
 
+## evalai CLI (v1.4.1)
+
+The SDK includes a CLI for CI/CD evaluation gates. Install globally or use via `npx`:
+
+```bash
+# Via npx (no global install)
+npx @pauly4010/evalai-sdk check --minScore 92 --evaluationId 42 --apiKey $EVALAI_API_KEY
+
+# Or install globally
+npm install -g @pauly4010/evalai-sdk
+evalai check --minScore 92 --evaluationId 42
+```
+
+### evalai check
+
+Gate deployments on quality scores, regression, and compliance:
+
+| Option | Description |
+|--------|-------------|
+| `--evaluationId <id>` | **Required.** Evaluation to gate on |
+| `--apiKey <key>` | API key (or `EVALAI_API_KEY` env) |
+| `--minScore <n>` | Fail if score &lt; n (0–100) |
+| `--maxDrop <n>` | Fail if score dropped &gt; n from baseline |
+| `--minN <n>` | Fail if total test cases &lt; n |
+| `--allowWeakEvidence` | Permit weak evidence level |
+| `--policy <name>` | Enforce HIPAA, SOC2, GDPR, PCI_DSS, FINRA_4511 |
+| `--baseline <mode>` | `published`, `previous`, or `production` |
+| `--baseUrl <url>` | API base URL |
+
+**Exit codes:** 0=pass, 1=score below, 2=regression, 3=policy violation, 4=API error, 5=bad args, 6=low N, 7=weak evidence
+
 ## Changelog
 
-### v1.3.0 (Latest)
+### v1.4.1 (Latest)
+
+- **evalai check `--baseline production`** — Compare against latest prod-tagged run
+- **Package hardening** — Leaner npm publish with `files`, `sideEffects: false`
+
+### v1.4.0
+
+- **evalai CLI** — Command-line tool for CI/CD evaluation gates
+  - `evalai check` — Gate deployments on quality scores, regression, and compliance
+  - `--minScore <n>` — Fail if quality score &lt; n (0–100)
+  - `--maxDrop <n>` — Fail if score dropped &gt; n points from baseline
+  - `--minN <n>` — Fail if total test cases &lt; n
+  - `--allowWeakEvidence` — Permit weak evidence level (default: fail)
+  - `--policy <name>` — Enforce compliance (HIPAA, SOC2, GDPR, PCI_DSS, FINRA_4511)
+  - `--baseline <mode>` — Compare to `published` or `previous` run
+  - `--evaluationId <id>` — Required. Evaluation to gate on
+  - Environment: `EVALAI_API_KEY`, `EVALAI_BASE_URL`
+  - Exit codes: 0=pass, 1=score below, 2=regression, 3=policy violation, 4=API error, 5=bad args, 6=low N, 7=weak evidence
+- **CLI Exports** — `parseArgs`, `runCheck`, `EXIT` from `@pauly4010/evalai-sdk` for programmatic use
+
+### v1.3.0
 
 - **Workflow Tracing** — Multi-agent orchestration with full lifecycle instrumentation
   - `WorkflowTracer` class with `startWorkflow`, `endWorkflow`, `startAgentSpan`, `endAgentSpan`

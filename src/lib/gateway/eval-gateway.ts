@@ -110,6 +110,7 @@ class EvalGateway {
       processedCount: 0,
       passedCases: 0,
       failedCases: 0,
+      environment: 'dev',
       startedAt: now,
       traceLog: JSON.stringify({
         startedAt: now,

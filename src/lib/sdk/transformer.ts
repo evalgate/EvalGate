@@ -1,23 +1,38 @@
 // src/lib/sdk/transformer.ts
-import { 
-  SDKTestResult, 
-  SDKEvaluationResult, 
-  SDKMessage, 
-  SDKToolCall, 
-  SDKTraceSpan, 
-  SDKTrace 
+import {
+  SDKTestResult,
+  SDKEvaluationResult,
+  SDKMessage,
+  SDKToolCall,
+  SDKTraceSpan,
+  SDKTrace,
 } from './mapper';
 import { testResults, evaluationRuns } from '@/db/schema';
+import type { AssertionResult, AssertionsEnvelope } from '@/lib/eval/assertions';
 
 /**
  * Transform SDK test result to database format.
  * Handles type conversion and data mapping.
+ * When SDK provides assertions, converts to canonical envelope.
  */
 export function transformTestResultToDB(
   sdkResult: SDKTestResult,
   evaluationRunId: number,
   organizationId: number
 ): Omit<typeof testResults.$inferInsert, 'id' | 'createdAt'> {
+  let assertionsJson: AssertionsEnvelope | null = null;
+  if (sdkResult.assertions?.length) {
+    const assertions: AssertionResult[] = sdkResult.assertions.map((a) => ({
+      key: a.key as AssertionResult['key'],
+      category: a.category,
+      passed: a.passed,
+      score: a.score,
+      severity: a.severity,
+      details: a.details,
+    }));
+    assertionsJson = { version: 'v1', assertions };
+  }
+
   return {
     evaluationRunId,
     testCaseId: sdkResult.testCaseId,
@@ -29,6 +44,7 @@ export function transformTestResultToDB(
     durationMs: sdkResult.durationMs,
     messages: JSON.stringify(sdkResult.messages || []),
     toolCalls: JSON.stringify(sdkResult.toolCalls || []),
+    ...(assertionsJson && { assertionsJson }),
   };
 }
 

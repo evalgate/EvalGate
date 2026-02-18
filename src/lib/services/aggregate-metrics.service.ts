@@ -2,7 +2,7 @@
  * Aggregate Metrics Service
  *
  * Computes exact aggregates for quality score inputs from real DB data:
- * passRate, safetyPassRate, judgeAvg, avgLatencyMs, avgCostUsd.
+ * passRate, safetyPassRate, judgeAvg, avgLatencyMs, runTotalCostUsd, avgCostPerTestCaseUsd.
  *
  * Also provides confidence bands for trend data based on sample size.
  */
@@ -18,6 +18,10 @@ import {
 import { eq, and, sql, desc, isNotNull } from 'drizzle-orm';
 import { computeQualityScore, type ScoreInputs, type QualityScoreResult } from '@/lib/scoring/quality-score';
 import { logger } from '@/lib/logger';
+import { parseAssertionsJson, computeSafetyPassRate } from '@/lib/eval/assertions';
+import { SCORING_SPEC_V1 } from '@/lib/scoring/scoring-spec';
+import { canonicalizeJson } from '@/lib/crypto/canonical-json';
+import { sha256Hex } from '@/lib/crypto/hash';
 
 export interface AggregateMetrics {
   total: number;
@@ -29,7 +33,14 @@ export interface AggregateMetrics {
   traceCoverageRate: number | null; // for trace-linked runs: matched/total
   judgeAvg: number | null;
   avgLatencyMs: number | null;
+  /** Sum of all cost records for the run */
+  runTotalCostUsd: number | null;
+  /** runTotalCostUsd / total (cost per test case) */
+  avgCostPerTestCaseUsd: number | null;
+  /** @deprecated Use avgCostPerTestCaseUsd */
   avgCostUsd: number | null;
+  /** Count of cost_records for this run (for hasProvenance) */
+  costRecordCount: number;
 }
 
 export interface ConfidenceBand {
@@ -69,7 +80,7 @@ export async function computeRunAggregates(
   const passRate = total > 0 ? passed / total : 0;
   const avgLatencyMs = row.avgLatency != null ? Number(row.avgLatency) : null;
 
-  // Safety pass rate: prefer structured assertionsJson when available; fall back to keyword proxy
+  // Safety pass rate: prefer structured assertionsJson (envelope or legacy); fall back to keyword proxy
   let safetyPassRate: number | null = null;
   let safetyFromProxy = false;
   if (total > 0) {
@@ -88,12 +99,17 @@ export async function computeRunAggregates(
     );
 
     if (withAssertions.length > 0) {
-      const safetyPassed = withAssertions.filter((r) => {
-        const a = r.assertionsJson as Record<string, unknown>;
-        return !a.pii && !a.toxicity && !a.harmful;
-      }).length;
-      safetyPassRate = safetyPassed / withAssertions.length;
-    } else {
+      const rates: number[] = [];
+      for (const r of withAssertions) {
+        const parsed = parseAssertionsJson(r.assertionsJson);
+        const rate = computeSafetyPassRate(parsed);
+        if (rate !== null) rates.push(rate);
+      }
+      if (rates.length > 0) {
+        safetyPassRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+      }
+    }
+    if (safetyPassRate === null) {
       safetyFromProxy = true;
       const safetyFailures = await db
         .select({ count: sql<number>`count(*)` })
@@ -130,11 +146,13 @@ export async function computeRunAggregates(
     judgeAvg = Number(judgeRows[0].avgScore) / 100;
   }
 
-  // Average cost from cost_records scoped to this run (not org-wide)
-  let avgCostUsd: number | null = null;
+  // Cost from cost_records: sum for run total, count for provenance
+  let runTotalCostUsd: number | null = null;
+  let costRecordCount = 0;
   const costRows = await db
     .select({
-      avgCost: sql<number>`avg(cast(${costRecords.totalCost} as real))`,
+      totalCost: sql<number>`sum(cast(${costRecords.totalCost} as real))`,
+      count: sql<number>`count(*)`,
     })
     .from(costRecords)
     .where(
@@ -144,9 +162,14 @@ export async function computeRunAggregates(
       ),
     );
 
-  if (costRows[0]?.avgCost != null) {
-    avgCostUsd = Number(costRows[0].avgCost);
+  if (costRows[0]) {
+    costRecordCount = Number(costRows[0].count ?? 0);
+    if (costRows[0].totalCost != null) {
+      runTotalCostUsd = Number(costRows[0].totalCost);
+    }
   }
+  const avgCostPerTestCaseUsd =
+    runTotalCostUsd != null && total > 0 ? runTotalCostUsd / total : null;
 
   // Trace coverage: for trace-linked runs, matchedCount / total
   let traceCoverageRate: number | null = null;
@@ -178,7 +201,10 @@ export async function computeRunAggregates(
     traceCoverageRate,
     judgeAvg,
     avgLatencyMs,
-    avgCostUsd,
+    runTotalCostUsd,
+    avgCostPerTestCaseUsd,
+    avgCostUsd: avgCostPerTestCaseUsd,
+    costRecordCount,
   };
 }
 
@@ -194,18 +220,30 @@ export async function computeAndStoreQualityScore(
 ): Promise<QualityScoreResult> {
   const metrics = await computeRunAggregates(evaluationRunId, organizationId);
 
+  const hasProvenance =
+    metrics.traceCoverageRate == null || metrics.costRecordCount > 0;
+
   const inputs: ScoreInputs = {
     total: metrics.total,
     passed: metrics.passed,
     safetyPassRate: metrics.safetyPassRate ?? undefined,
     safetyFromProxy: metrics.safetyFromProxy,
     traceCoverageRate: metrics.traceCoverageRate ?? undefined,
+    hasProvenance,
     judgeAvg: metrics.judgeAvg ?? undefined,
     avgLatencyMs: metrics.avgLatencyMs ?? undefined,
     avgCostUsd: metrics.avgCostUsd ?? undefined,
   };
 
   const result = computeQualityScore(inputs);
+
+  // Reproducible scoring: canonical inputs + spec + hashes
+  const inputsJson = JSON.stringify(inputs);
+  const scoringSpecJson = JSON.stringify(SCORING_SPEC_V1);
+  const inputsHash = sha256Hex(canonicalizeJson(inputs));
+  const scoringSpecHash = sha256Hex(canonicalizeJson(SCORING_SPEC_V1));
+  const scoringCommit =
+    process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GIT_SHA ?? null;
 
   // Persist to quality_scores table
   await db.insert(qualityScores).values({
@@ -220,6 +258,11 @@ export async function computeAndStoreQualityScore(
     evidenceLevel: result.evidenceLevel,
     scoringVersion: 'v1',
     model: model ?? null,
+    inputsJson: inputs,
+    scoringSpecJson: SCORING_SPEC_V1,
+    inputsHash,
+    scoringSpecHash,
+    scoringCommit,
     createdAt: new Date().toISOString(),
   });
 

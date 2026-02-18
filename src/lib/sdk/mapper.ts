@@ -6,6 +6,16 @@ import { z } from 'zod';
  * Ensures data consistency and type safety.
  */
 
+// Assertion result for envelope (optional from SDK)
+export const SDKAssertionResultSchema = z.object({
+  key: z.string(),
+  category: z.enum(['safety', 'privacy', 'quality', 'format', 'policy']),
+  passed: z.boolean(),
+  score: z.number().min(0).max(1).optional(),
+  severity: z.enum(['low', 'med', 'high']).optional(),
+  details: z.string().optional(),
+});
+
 // Individual test result from SDK
 export const SDKTestResultSchema = z.object({
   testCaseId: z.number(),
@@ -17,6 +27,7 @@ export const SDKTestResultSchema = z.object({
   messages: z.array(z.any()).optional(),
   toolCalls: z.array(z.any()).optional(),
   metadata: z.record(z.any()).optional(),
+  assertions: z.array(SDKAssertionResultSchema).optional(),
 });
 
 // Batch evaluation result from SDK

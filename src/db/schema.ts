@@ -131,6 +131,7 @@ export const evaluationRuns = sqliteTable('evaluation_runs', {
   traceLog: text('trace_log', { mode: 'json' }), // Full journey JSON with messages array
   startedAt: text('started_at'),
   completedAt: text('completed_at'),
+  environment: text('environment').default('dev'), // dev | staging | prod (for baseline=production)
   createdAt: text('created_at').notNull(),
 });
 
@@ -597,6 +598,11 @@ export const qualityScores = sqliteTable('quality_scores', {
   scoringVersion: text('scoring_version').notNull().default('v1'),
   model: text('model'),
   isBaseline: integer('is_baseline', { mode: 'boolean' }).default(false),
+  inputsJson: text('inputs_json', { mode: 'json' }),
+  scoringSpecJson: text('scoring_spec_json', { mode: 'json' }),
+  inputsHash: text('inputs_hash'),
+  scoringSpecHash: text('scoring_spec_hash'),
+  scoringCommit: text('scoring_commit'),
   createdAt: text('created_at').notNull(),
 });
 

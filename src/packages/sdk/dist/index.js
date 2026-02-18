@@ -9,7 +9,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.decodeCursor = exports.encodeCursor = exports.autoPaginate = exports.createPaginatedIterator = exports.PaginatedIterator = exports.CacheTTL = exports.RequestCache = exports.RateLimiter = exports.batchRead = exports.streamEvaluation = exports.batchProcess = exports.importData = exports.exportData = exports.compareSnapshots = exports.saveSnapshot = exports.compareWithSnapshot = exports.snapshot = exports.TestSuite = exports.createTestSuite = exports.ContextManager = exports.withContext = exports.getContext = exports.createContext = exports.hasValidCodeSyntax = exports.containsAllRequiredFields = exports.followsInstructions = exports.hasNoToxicity = exports.respondedWithinTime = exports.hasFactualAccuracy = exports.containsLanguage = exports.hasReadabilityScore = exports.matchesSchema = exports.hasNoHallucinations = exports.isValidURL = exports.isValidEmail = exports.withinRange = exports.similarTo = exports.hasSentiment = exports.notContainsPII = exports.containsJSON = exports.hasLength = exports.matchesPattern = exports.containsKeywords = exports.expect = exports.NetworkError = exports.ValidationError = exports.AuthenticationError = exports.RateLimitError = exports.EvalAIError = exports.AIEvalClient = void 0;
-exports.EvaluationTemplates = exports.traceAutoGen = exports.traceCrewAI = exports.traceLangChainAgent = exports.traceWorkflowStep = exports.createWorkflowTracer = exports.WorkflowTracer = exports.traceAnthropic = exports.traceOpenAI = exports.Logger = exports.RequestBatcher = void 0;
+exports.EXIT = exports.runCheck = exports.parseArgs = exports.EvaluationTemplates = exports.traceAutoGen = exports.traceCrewAI = exports.traceLangChainAgent = exports.traceWorkflowStep = exports.createWorkflowTracer = exports.WorkflowTracer = exports.traceAnthropic = exports.traceOpenAI = exports.Logger = exports.RequestBatcher = void 0;
 // Main SDK exports
 var client_1 = require("./client");
 Object.defineProperty(exports, "AIEvalClient", { enumerable: true, get: function () { return client_1.AIEvalClient; } });
@@ -106,6 +106,11 @@ Object.defineProperty(exports, "traceAutoGen", { enumerable: true, get: function
 // New exports for v1.1.0
 var types_1 = require("./types");
 Object.defineProperty(exports, "EvaluationTemplates", { enumerable: true, get: function () { return types_1.EvaluationTemplates; } });
+// CLI (programmatic use)
+var check_1 = require("./cli/check");
+Object.defineProperty(exports, "parseArgs", { enumerable: true, get: function () { return check_1.parseArgs; } });
+Object.defineProperty(exports, "runCheck", { enumerable: true, get: function () { return check_1.runCheck; } });
+Object.defineProperty(exports, "EXIT", { enumerable: true, get: function () { return check_1.EXIT; } });
 // Default export for convenience
 const client_2 = require("./client");
 exports.default = client_2.AIEvalClient;

@@ -14,7 +14,7 @@
  *   --minN <n>           Fail if total test cases < n (low sample size)
  *   --allowWeakEvidence  If false (default), fail when evidenceLevel is 'weak'
  *   --policy <name>      Enforce a compliance policy (e.g. HIPAA, SOC2, GDPR)
- *   --baseline <mode>    Baseline comparison mode: "published" (default) or "previous"
+ *   --baseline <mode>    Baseline comparison mode: "published" (default), "previous", or "production"
  *   --evaluationId <id>  Required. The evaluation to gate on.
  *   --baseUrl <url>      API base URL (default: EVALAI_BASE_URL or http://localhost:3000)
  *   --apiKey <key>       API key (default: EVALAI_API_KEY env var)
@@ -52,7 +52,7 @@ export interface CheckArgs {
     allowWeakEvidence: boolean;
     evaluationId: string;
     policy?: string;
-    baseline: 'published' | 'previous';
+    baseline: 'published' | 'previous' | 'production';
 }
 export declare function parseArgs(argv: string[]): CheckArgs;
 export declare function runCheck(args: CheckArgs): Promise<number>;

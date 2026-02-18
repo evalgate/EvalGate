@@ -15,7 +15,7 @@
  *   --minN <n>           Fail if total test cases < n (low sample size)
  *   --allowWeakEvidence  If false (default), fail when evidenceLevel is 'weak'
  *   --policy <name>      Enforce a compliance policy (e.g. HIPAA, SOC2, GDPR)
- *   --baseline <mode>    Baseline comparison mode: "published" (default) or "previous"
+ *   --baseline <mode>    Baseline comparison mode: "published" (default), "previous", or "production"
  *   --evaluationId <id>  Required. The evaluation to gate on.
  *   --baseUrl <url>      API base URL (default: EVALAI_BASE_URL or http://localhost:3000)
  *   --apiKey <key>       API key (default: EVALAI_API_KEY env var)
@@ -56,7 +56,7 @@ export interface CheckArgs {
   allowWeakEvidence: boolean;
   evaluationId: string;
   policy?: string;
-  baseline: 'published' | 'previous';
+  baseline: 'published' | 'previous' | 'production';
 }
 
 export function parseArgs(argv: string[]): CheckArgs {
@@ -83,7 +83,13 @@ export function parseArgs(argv: string[]): CheckArgs {
   const allowWeakEvidence = args.allowWeakEvidence === 'true' || args.allowWeakEvidence === '1';
   const evaluationId = args.evaluationId || '';
   const policy = args.policy || undefined;
-  const baseline = (args.baseline === 'previous' ? 'previous' : 'published') as CheckArgs['baseline'];
+  const baseline = (
+    args.baseline === 'previous'
+      ? 'previous'
+      : args.baseline === 'production'
+        ? 'production'
+        : 'published'
+  ) as CheckArgs['baseline'];
 
   if (!apiKey) {
     console.error('Error: --apiKey or EVALAI_API_KEY is required');
@@ -112,7 +118,7 @@ export async function runCheck(args: CheckArgs): Promise<number> {
   const headers = { Authorization: `Bearer ${args.apiKey}` };
 
   // ── 1. Fetch latest quality score ──
-  const scoreUrl = `${args.baseUrl}/api/quality?evaluationId=${args.evaluationId}&action=latest`;
+  const scoreUrl = `${args.baseUrl}/api/quality?evaluationId=${args.evaluationId}&action=latest&baseline=${args.baseline}`;
   let scoreRes: Response;
   try {
     scoreRes = await fetch(scoreUrl, { headers });
@@ -133,6 +139,7 @@ export async function runCheck(args: CheckArgs): Promise<number> {
     evidenceLevel?: string | null;
     baselineScore?: number | null;
     regressionDelta?: number | null;
+    baselineMissing?: boolean | null;
     breakdown?: { passRate?: number; safety?: number; judge?: number };
     flags?: string[];
   };
@@ -141,7 +148,17 @@ export async function runCheck(args: CheckArgs): Promise<number> {
   const evidenceLevel: string | null = data?.evidenceLevel ?? null;
   const baselineScore: number | null = data?.baselineScore ?? null;
   const regressionDelta: number | null = data?.regressionDelta ?? null;
+  const baselineMissing: boolean = data?.baselineMissing === true;
   const breakdown = data?.breakdown ?? {};
+
+  // ── Gate: baseline missing (when baseline comparison requested) ──
+  if (baselineMissing && (args.baseline !== 'published' || args.maxDrop !== undefined)) {
+    console.error(
+      `\n✗ FAILED: baseline (${args.baseline}) not found. ` +
+      `Ensure a baseline run exists (e.g. published run, previous run, or prod-tagged run).`
+    );
+    return EXIT.API_ERROR;
+  }
 
   // ── Gate: minN (low sample size) ──
   if (args.minN !== undefined && total !== null && total < args.minN) {
