@@ -70,6 +70,7 @@ export class AuditService {
     options?: {
       action?: string;
       resourceType?: string;
+      resourceId?: string;
       since?: string;
       until?: string;
       limit?: number;
@@ -86,6 +87,9 @@ export class AuditService {
     }
     if (options?.resourceType) {
       conditions.push(eq(auditLogs.resourceType, options.resourceType));
+    }
+    if (options?.resourceId) {
+      conditions.push(eq(auditLogs.resourceId, options.resourceId));
     }
     if (options?.since) {
       conditions.push(gte(auditLogs.createdAt, options.since));

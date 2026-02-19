@@ -11,6 +11,7 @@ describe("profiles", () => {
     expect(PROFILES.strict).toEqual({
       minScore: 95,
       maxDrop: 0,
+      warnDrop: 0,
       minN: 30,
       allowWeakEvidence: false,
     });
@@ -20,6 +21,7 @@ describe("profiles", () => {
     expect(PROFILES.balanced).toEqual({
       minScore: 90,
       maxDrop: 2,
+      warnDrop: 1,
       minN: 10,
       allowWeakEvidence: false,
     });
@@ -29,6 +31,7 @@ describe("profiles", () => {
     expect(PROFILES.fast).toEqual({
       minScore: 85,
       maxDrop: 5,
+      warnDrop: 2,
       minN: 5,
       allowWeakEvidence: true,
     });

@@ -114,11 +114,13 @@ describe("AIEvalClient", () => {
           ok: false,
           json: async () => ({ error: "Rate limited", code: "RATE_LIMIT_EXCEEDED" }),
           status: 429,
+          headers: new Headers({ "Retry-After": "1" }),
         })
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ result: "success" }),
           status: 200,
+          headers: new Headers(),
         });
 
       const client = new AIEvalClient({
