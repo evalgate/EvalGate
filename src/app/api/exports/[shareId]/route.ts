@@ -13,6 +13,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { sharedExports } from "@/db/schema";
 import { secureRoute } from "@/lib/api/secure-route";
+import { HASH_VERSION } from "@/lib/shared-exports/hash";
 
 type ShareExportDTO = Record<string, unknown>;
 
@@ -40,6 +41,7 @@ function normalizeToShareExportDTO(
     runId: evaluationRunId ?? undefined,
     evaluationId: evaluationId ?? undefined,
     exportHash,
+    hashVersion: HASH_VERSION,
     privacyScrubbed: true,
     createdAt,
     updatedAt: updatedAt ?? createdAt,
@@ -121,7 +123,8 @@ export const GET = secureRoute(
       return res304;
     }
 
-    // Atomic view count increment (avoid lost updates under concurrency)
+    // Atomic view count increment: SET view_count = coalesce(view_count, 0) + 1
+    // Single UPDATE is atomic in SQLite/libsql; parallel GETs increment correctly.
     try {
       await db
         .update(sharedExports)

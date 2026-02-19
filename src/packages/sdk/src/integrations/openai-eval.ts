@@ -39,6 +39,8 @@ export interface OpenAIChatEvalOptions {
   model?: string;
   apiKey?: string;
   cases: OpenAIChatEvalCase[];
+  /** Retry failing cases N times (default: 0). Only failing cases are retried. */
+  retries?: number;
   /** v1.5: Upload results to EvalAI platform for an existing evaluation. Requires evaluationId and EVALAI_API_KEY. */
   reportToEvalAI?: boolean;
   /** Evaluation ID (from config or arg). Required when reportToEvalAI is true. */
@@ -55,6 +57,8 @@ export interface OpenAIChatEvalResult {
   score: number;
   results: TestSuiteCaseResult[];
   durationMs: number;
+  /** Case IDs that were retried (flaky recovery) */
+  retriedCases?: string[];
 }
 
 function getOpenAI(): any {
@@ -116,7 +120,7 @@ function printSummary(result: OpenAIChatEvalResult): void {
 export async function openAIChatEval(
   options: OpenAIChatEvalOptions,
 ): Promise<OpenAIChatEvalResult> {
-  const { name, model = "gpt-4o-mini", apiKey, cases } = options;
+  const { name, model = "gpt-4o-mini", apiKey, cases, retries = 0 } = options;
 
   const resolvedApiKey = apiKey ?? (typeof process !== "undefined" && process.env?.OPENAI_API_KEY);
   if (!resolvedApiKey) {
@@ -147,6 +151,7 @@ export async function openAIChatEval(
     cases: suiteCases,
     executor,
     parallel: true,
+    retries,
   });
 
   const result = await suite.run();
@@ -158,6 +163,8 @@ export async function openAIChatEval(
     score,
     results: result.results,
     durationMs: result.durationMs,
+    ...(result.retriedCases &&
+      result.retriedCases.length > 0 && { retriedCases: result.retriedCases }),
   };
 
   printSummary(evalResult);

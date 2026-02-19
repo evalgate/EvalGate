@@ -1,12 +1,13 @@
 "use client";
 
-import { ArrowLeft, Copy, Download, FileText, Play, Plus } from "lucide-react";
+import { ArrowLeft, ChevronRight, Copy, Download, FileText, Play, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react"; // Add this import
+import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AIQualityScoreCard } from "@/components/ai-quality-score-card";
 import { ExportModal, type ExportOptions } from "@/components/export-modal";
+import { RunDiffView } from "@/components/run-diff-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +35,7 @@ export default function EvaluationDetailPage({ params }: PageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [qualityScore, setQualityScore] = useState<any>(null);
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [openDiffRunId, setOpenDiffRunId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -498,7 +500,7 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
         {runs.length > 0 ? (
           <div className="space-y-3">
             {runs.map((run: any) => (
-              <Card key={run.id}>
+              <Card key={run.id} id={`run-${run.id}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -529,6 +531,96 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
                           {run.totalCases || run.total_cases || 0} tests passed
                         </p>
                       )}
+                      {(() => {
+                        const tl =
+                          typeof run.traceLog === "string"
+                            ? (() => {
+                                try {
+                                  return JSON.parse(run.traceLog);
+                                } catch {
+                                  return {};
+                                }
+                              })()
+                            : (run.traceLog ?? {});
+                        const checkReport = tl?.import?.checkReport;
+                        if (!checkReport) return null;
+                        return (
+                          <details className="group mt-2 text-xs">
+                            <summary className="cursor-pointer flex items-center gap-1 text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+                              <ChevronRight className="h-3 w-3 transition-transform group-open:rotate-90" />
+                              CI Check Report
+                            </summary>
+                            <div className="mt-1 space-y-1">
+                              {checkReport.baselineRunId && (
+                                <p className="text-muted-foreground">
+                                  Compares to baseline{" "}
+                                  <Link
+                                    href={`/evaluations/${id}#run-${checkReport.baselineRunId}`}
+                                    className="text-primary hover:underline"
+                                  >
+                                    run #{checkReport.baselineRunId}
+                                  </Link>
+                                </p>
+                              )}
+                              {checkReport.ciRunUrl && (
+                                <p className="text-muted-foreground">
+                                  <a
+                                    href={checkReport.ciRunUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline"
+                                  >
+                                    CI run
+                                  </a>
+                                </p>
+                              )}
+                              {checkReport.baselineRunId && (
+                                <details
+                                  className="group/diff mt-1"
+                                  onToggle={(e) =>
+                                    setOpenDiffRunId(
+                                      (e.target as HTMLDetailsElement).open ? run.id : null,
+                                    )
+                                  }
+                                >
+                                  <summary className="cursor-pointer flex items-center gap-1 text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+                                    <ChevronRight className="h-3 w-3 transition-transform group-open/diff:rotate-90" />
+                                    View diff (baseline vs current)
+                                  </summary>
+                                  {openDiffRunId === run.id && (
+                                    <div className="mt-1">
+                                      <RunDiffView
+                                        evaluationId={id}
+                                        runId={run.id}
+                                        compareRunId={checkReport.baselineRunId}
+                                        token={
+                                          typeof window !== "undefined"
+                                            ? localStorage.getItem("bearer_token")
+                                            : null
+                                        }
+                                      />
+                                    </div>
+                                  )}
+                                </details>
+                              )}
+                              <pre className="p-2 rounded bg-muted overflow-x-auto max-h-32 overflow-y-auto">
+                                {JSON.stringify(
+                                  {
+                                    verdict: checkReport.verdict,
+                                    reasonCode: checkReport.reasonCode,
+                                    reasonMessage: checkReport.reasonMessage,
+                                    score: checkReport.score,
+                                    baselineScore: checkReport.baselineScore,
+                                    delta: checkReport.delta,
+                                  },
+                                  null,
+                                  2,
+                                )}
+                              </pre>
+                            </div>
+                          </details>
+                        );
+                      })()}
                     </div>
                     <Button variant="outline" size="sm">
                       View Results

@@ -100,6 +100,28 @@ describe("runs import", () => {
     }
   });
 
+  it("importRunBodySchema accepts checkReport", async () => {
+    const { importRunBodySchema } = await import("@/lib/validation");
+    const result = importRunBodySchema.safeParse({
+      results: [{ testCaseId: 1, status: "passed", output: "ok" }],
+      checkReport: {
+        evaluationId: "42",
+        verdict: "fail",
+        reasonCode: "SCORE_TOO_LOW",
+        score: 85,
+      },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.checkReport).toEqual({
+        evaluationId: "42",
+        verdict: "fail",
+        reasonCode: "SCORE_TOO_LOW",
+        score: 85,
+      });
+    }
+  });
+
   it("traceLog.import includes serverReceivedAt, requestId, and ci", () => {
     const now = new Date().toISOString();
     const requestId = "test-request-id-123";

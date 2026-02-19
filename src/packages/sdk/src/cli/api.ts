@@ -14,6 +14,10 @@ export type QualityLatestData = {
   flags?: string[];
   evaluationRunId?: number;
   evaluationId?: number;
+  avgLatencyMs?: number | null;
+  costUsd?: number | null;
+  baselineCostUsd?: number | null;
+  baselineRunId?: number | null;
 };
 
 export type RunDetailsData = {
@@ -129,6 +133,7 @@ export async function publishShare(
   evaluationId: string,
   exportData: Record<string, unknown>,
   evaluationRunId: number,
+  options?: { expiresInDays?: number },
 ): Promise<{ ok: true; data: PublishShareResult } | { ok: false; status: number; body: string }> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${apiKey}`,
@@ -138,6 +143,7 @@ export async function publishShare(
     exportData,
     shareScope: "run",
     evaluationRunId,
+    ...(options?.expiresInDays != null && { expiresInDays: options.expiresInDays }),
   };
   const url = `${baseUrl.replace(/\/$/, "")}/api/evaluations/${evaluationId}/publish`;
 
@@ -166,6 +172,7 @@ export async function importRunOnFail(
     idempotencyKey?: string;
     ci?: CiContext;
     importClientVersion?: string;
+    checkReport?: Record<string, unknown>;
   },
 ): Promise<{ ok: true; runId: number } | { ok: false; status: number; body: string }> {
   const headers: Record<string, string> = {
@@ -181,6 +188,7 @@ export async function importRunOnFail(
     results,
     importClientVersion: options.importClientVersion ?? "evalai-cli",
     ci: options.ci,
+    ...(options.checkReport != null && { checkReport: options.checkReport }),
   };
 
   const url = `${baseUrl.replace(/\/$/, "")}/api/evaluations/${evaluationId}/runs/import`;

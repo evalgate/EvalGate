@@ -1,6 +1,6 @@
 # Stability Matrix
 
-> Last updated: 2026-02-17
+> Last updated: 2026-02-18
 
 This document classifies every major feature by maturity level and provides API compatibility guarantees for each tier.
 
@@ -50,10 +50,12 @@ This document classifies every major feature by maturity level and provides API 
 
 | Feature | Tier | Since | Notes |
 |---------|------|-------|-------|
-| `evalai check` CLI | **Stable** | v1.1 | `--minScore`, `--maxDrop` |
+| `evalai check` CLI | **Stable** | v1.1 | `--minScore`, `--maxDrop`, `--format github|json|human`, `--onFail import`, `--explain` |
+| `evalai init` CLI | **Stable** | v1.4 | Creates `evalai.config.json` |
+| `evalai doctor` CLI | **Stable** | v1.5 | Verify CI setup (config, API key, quality endpoint) |
 | `--policy` flag | **Beta** | v1.2 | HIPAA, SOC2, GDPR, PCI_DSS, FINRA_4511 |
-| `--baseline` flag | **Beta** | v1.2 | `published` or `previous` |
-| Standardized exit codes | **Stable** | v1.2 | 0-5 range, documented |
+| `--baseline` flag | **Stable** | v1.4 | `published`, `previous`, or `production` |
+| Standardized exit codes | **Stable** | v1.2 | 0-7 range, documented |
 
 ### Evaluation Executors
 

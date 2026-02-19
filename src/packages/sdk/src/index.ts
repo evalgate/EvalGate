@@ -112,6 +112,8 @@ export {
 } from "./integrations/openai-eval";
 // Debug logger (Tier 4.17)
 export { Logger } from "./logger";
+// Vitest matcher: expect(await openAIChatEval(...)).toPassGate()
+export { extendExpectWithToPassGate } from "./matchers";
 export {
   autoPaginate,
   createPaginatedIterator,

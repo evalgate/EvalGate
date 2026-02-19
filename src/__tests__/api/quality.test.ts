@@ -30,6 +30,10 @@ vi.mock("@/lib/services/quality.service", () => ({
 vi.mock("@/lib/services/aggregate-metrics.service", () => ({
   recomputeAndStoreQualityScore: vi.fn(),
   computeAndStoreQualityScore: vi.fn(),
+  computeRunAggregates: vi.fn().mockResolvedValue({
+    avgLatencyMs: 150,
+    runTotalCostUsd: 0.05,
+  }),
 }));
 
 vi.mock("@/lib/autumn-server", () => ({

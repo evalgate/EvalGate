@@ -6,6 +6,7 @@
 const MAX_SIZE_BYTES = 512 * 1024; // 512KB
 const MAX_STRING_LENGTH = 10_000;
 const MAX_DEPTH = 50;
+const MAX_OBJECT_KEYS = 500; // Guard against DoS from huge objects
 
 /** Top-level keys allowed in sanitized export data (no share metadata — that lives in DB/DTO) */
 const ALLOWED_TOP_LEVEL_KEYS = new Set([
@@ -105,10 +106,14 @@ function sanitizeValue(value: unknown, depth: number, seen: WeakSet<object>): un
   }
   if (typeof value === "object") {
     if (seen.has(value as object)) return null; // Cycle: skip
+    const entries = Object.entries(value);
+    if (entries.length > MAX_OBJECT_KEYS) {
+      throw new Error(`Object has ${entries.length} keys (max ${MAX_OBJECT_KEYS})`);
+    }
     seen.add(value as object);
     try {
       const out: Record<string, unknown> = {};
-      for (const [k, v] of Object.entries(value)) {
+      for (const [k, v] of entries) {
         out[k] = sanitizeValue(v, depth + 1, seen);
       }
       return out;
@@ -139,9 +144,11 @@ function hasSecrets(obj: unknown, path = "", depth = 0, seen = new WeakSet<objec
   }
   if (typeof obj === "object") {
     if (seen.has(obj as object)) return true; // Cycle detected
+    const entries = Object.entries(obj);
+    if (entries.length > MAX_OBJECT_KEYS) return true; // Suspicious: too many keys
     seen.add(obj as object);
     try {
-      for (const [key, value] of Object.entries(obj)) {
+      for (const [key, value] of entries) {
         const keyLower = key.toLowerCase();
         if (
           SECRET_KEYS.has(keyLower) ||
@@ -170,6 +177,10 @@ export function sanitizeExportData(exportData: unknown): Record<string, unknown>
     throw new Error("Export data must be a non-null object");
   }
   const obj = exportData as Record<string, unknown>;
+  const topKeys = Object.keys(obj).length;
+  if (topKeys > MAX_OBJECT_KEYS) {
+    throw new Error(`Object has ${topKeys} keys (max ${MAX_OBJECT_KEYS})`);
+  }
   let sanitized = whitelistAndSanitize(obj);
   sanitized = truncateStrings(sanitized, MAX_STRING_LENGTH) as Record<string, unknown>;
   const json = JSON.stringify(sanitized);

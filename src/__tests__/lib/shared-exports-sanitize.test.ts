@@ -58,6 +58,20 @@ describe("sanitizeExportData + assertNoSecrets", () => {
     }).toThrow(/disallowed keys/);
   });
 
+  it("rejects authorization nested 5 levels deep (CLI share publish rejects)", () => {
+    const withAuthDeep = {
+      ...baseExport,
+      evaluation: {
+        ...baseExport.evaluation,
+        a: { b: { c: { d: { authorization: "Bearer secret-token" } } } },
+      },
+    };
+    expect(() => {
+      const s = sanitizeExportData(withAuthDeep);
+      assertNoSecrets(s);
+    }).toThrow(/disallowed keys/);
+  });
+
   it("rejects internalNotes nested", () => {
     const withNotes = {
       ...baseExport,
@@ -67,6 +81,14 @@ describe("sanitizeExportData + assertNoSecrets", () => {
       const s = sanitizeExportData(withNotes);
       assertNoSecrets(s);
     }).toThrow(/disallowed keys/);
+  });
+
+  it("rejects object with too many keys (max object keys guard)", () => {
+    const manyKeys: Record<string, unknown> = { ...baseExport };
+    for (let i = 0; i < 600; i++) {
+      manyKeys[`key${i}`] = "value";
+    }
+    expect(() => sanitizeExportData(manyKeys)).toThrow(/max 500/);
   });
 
   it("whitelists only allowed top-level keys", () => {
@@ -149,5 +171,29 @@ describe("stableStringify + computeExportHash", () => {
     const a = { evaluation: { name: "Test" } };
     const b = { evaluation: { name: "Other" } };
     expect(computeExportHash(a)).not.toBe(computeExportHash(b));
+  });
+
+  it("republish with only published_at changed does NOT change exportHash", () => {
+    const coreExport = {
+      evaluation: { id: "1", name: "Test" },
+      summary: { totalTests: 10, passed: 8 },
+    };
+    const withMetadata1 = { ...coreExport, published_at: "2024-01-01T00:00:00Z", share_id: "abc" };
+    const withMetadata2 = { ...coreExport, published_at: "2024-06-15T12:00:00Z", public: true };
+    const sanitized1 = sanitizeExportData(withMetadata1);
+    const sanitized2 = sanitizeExportData(withMetadata2);
+    expect(computeExportHash(sanitized1)).toBe(computeExportHash(sanitized2));
+  });
+
+  it("hash stability across deep nested key order changes", () => {
+    const deep1 = {
+      a: { z: 1, y: { c: 3, b: 2 }, x: [1, 2, 3] },
+      b: { nested: { f: 6, e: 5, d: 4 } },
+    };
+    const deep2 = {
+      b: { nested: { d: 4, e: 5, f: 6 } },
+      a: { x: [1, 2, 3], y: { b: 2, c: 3 }, z: 1 },
+    };
+    expect(computeExportHash(deep1)).toBe(computeExportHash(deep2));
   });
 });

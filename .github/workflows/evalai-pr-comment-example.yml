@@ -1,8 +1,10 @@
-name: EvalAI CI Gate
+# Example: EvalAI CI gate with sticky PR comment
+# Requires secrets: EVALAI_API_KEY
+# Set evaluationId in evalai.config.json or pass --evaluationId
+# Re-run 5x on same PR ⇒ still 1 comment (sticky update via <!-- evalai-gate-comment --> marker)
+name: EvalAI Gate + PR Comment
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -11,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write  # Required for sticky PR comment
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -20,31 +22,32 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install quickstart-ci dependencies
+        run: npm install
         working-directory: examples/quickstart-ci
 
-      - name: Run evaluation and gate
+      - name: Run gate and write PR comment
         env:
           EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
         run: npx -y @pauly4010/evalai-sdk@^1 check --format github --pr-comment-out .evalai-pr-comment.md
         working-directory: examples/quickstart-ci
 
       - name: Post or update PR comment (sticky)
-        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
             const path = require('path');
             const marker = '<!-- evalai-gate-comment -->';
-            const body = fs.readFileSync(path.join(process.env.GITHUB_WORKSPACE, 'examples/quickstart-ci/.evalai-pr-comment.md'), 'utf8');
+            const filePath = path.join(process.env.GITHUB_WORKSPACE, 'examples/quickstart-ci/.evalai-pr-comment.md');
+            if (!fs.existsSync(filePath)) return;
+            const body = fs.readFileSync(filePath, 'utf8');
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
             });
-            const existing = comments.find(c => c.body && c.body.includes(marker) && c.user.type === 'Bot');
+            const existing = comments.find(c => c.body && c.body.includes(marker));
             if (existing) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,

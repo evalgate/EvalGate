@@ -51,7 +51,10 @@ export function formatHuman(report: CheckReport): string {
     );
   }
 
-  if (report.explain && (report.breakdown01 || report.contribPts || report.flags?.length)) {
+  if (
+    report.explain &&
+    (report.breakdown01 || report.contribPts || report.flags?.length || report.policyEvidence)
+  ) {
     lines.push("");
     lines.push("--- Explain ---");
     if (report.contribPts) {
@@ -84,6 +87,14 @@ export function formatHuman(report: CheckReport): string {
       if (t.maxDrop != null) parts.push(`maxDrop=${t.maxDrop}`);
       if (t.minN != null) parts.push(`minN=${t.minN}`);
       if (parts.length) lines.push(`Thresholds: ${parts.join(", ")}`);
+    }
+    if (report.policyEvidence) {
+      const pe = report.policyEvidence;
+      lines.push(`Policy sub-check failed: ${pe.failedCheck ?? "unknown"}`);
+      if (pe.remediation) lines.push(`Remediation: ${pe.remediation}`);
+      if (pe.snapshot && Object.keys(pe.snapshot).length > 0) {
+        lines.push(`Snapshot: ${JSON.stringify(pe.snapshot)}`);
+      }
     }
   }
 

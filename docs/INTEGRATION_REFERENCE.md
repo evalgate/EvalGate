@@ -21,7 +21,7 @@
 | Field | Value |
 |-------|-------|
 | **npm package** | `@pauly4010/evalai-sdk` |
-| **Version** | `1.3.0` |
+| **Version** | `1.5.0` |
 | **Source** | `src/packages/sdk/` |
 | **Exports** | `.` (main), `./assertions`, `./testing`, `./integrations/openai`, `./integrations/anthropic` |
 | **Peer deps** | `openai ^4.0.0` (optional), `@anthropic-ai/sdk ^0.20.0` (optional) |

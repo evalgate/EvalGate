@@ -108,8 +108,52 @@ describe("GET /api/exports/[shareId] contract", () => {
     await db
       .delete(sharedExports)
       .where(
-        inArray(sharedExports.shareId, ["contract-test-share", "revoked-share", "expired-share"]),
+        inArray(sharedExports.shareId, [
+          "contract-test-share",
+          "revoked-share",
+          "expired-share",
+          "view-count-test",
+        ]),
       );
+  });
+
+  it("viewCount increments correctly under parallel GETs (no lost updates)", async () => {
+    if (!dbReady) return;
+
+    const shareId = "view-count-test";
+    const exportHash = computeHash(validExportData);
+
+    await db.insert(sharedExports).values({
+      shareId,
+      organizationId: ORG_ID,
+      evaluationId: EVAL_ID,
+      evaluationRunId: null,
+      shareScope: "evaluation",
+      exportData: validExportData,
+      exportHash,
+      isPublic: true,
+      revokedAt: null,
+      viewCount: 0,
+      createdAt: new Date().toISOString(),
+      expiresAt: null,
+    });
+
+    const concurrency = 10;
+    const requests = Array.from({ length: concurrency }, () =>
+      GET(new NextRequest(`http://localhost:3000/api/exports/${shareId}`), {
+        params: Promise.resolve({ shareId }),
+      }),
+    );
+    const responses = await Promise.all(requests);
+
+    expect(responses.every((r) => r.status === 200)).toBe(true);
+
+    const [row] = await db
+      .select({ viewCount: sharedExports.viewCount })
+      .from(sharedExports)
+      .where(eq(sharedExports.shareId, shareId));
+    expect(row).toBeDefined();
+    expect(row!.viewCount).toBe(concurrency);
   });
 
   it("returns 304 when If-None-Match matches ETag (exportHash)", async () => {

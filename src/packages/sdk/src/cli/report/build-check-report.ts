@@ -41,6 +41,9 @@ export type BuildReportInput = {
   runDetails?: RunDetailsData | null;
   gateResult: GateResult;
   requestId?: string;
+  shareUrl?: string;
+  baselineRunId?: number | null;
+  ciRunUrl?: string | null;
 };
 
 export function buildCheckReport(input: BuildReportInput): CheckReport {
@@ -87,10 +90,24 @@ export function buildCheckReport(input: BuildReportInput): CheckReport {
     Object.keys(breakdown).length > 0 ? (breakdown as CheckReport["breakdown01"]) : undefined;
   const contribPts = args.explain && breakdown01 ? computeContribPts(breakdown01) : undefined;
 
+  const gateSkipped = gateResult.gateSkipped === true;
+  const gateApplied = !gateSkipped;
+  const gateMode = gateSkipped ? "neutral" : "enforced";
+  const actionableMessage = gateSkipped
+    ? "Gate not applied: baseline missing. Publish a baseline from the dashboard, or run with --baseline previous once you have runs."
+    : (gateResult.reasonMessage ?? undefined);
+
   const report: CheckReport = {
     evaluationId: args.evaluationId,
     runId: evaluationRunId,
     verdict: gateResult.passed ? "pass" : "fail",
+    gateApplied,
+    gateMode,
+    actionableMessage,
+    shareUrl: input.shareUrl,
+    policy: args.policy,
+    baselineRunId: input.baselineRunId ?? quality?.baselineRunId ?? undefined,
+    ciRunUrl: input.ciRunUrl ?? undefined,
     reasonCode: gateResult.reasonCode as CheckReport["reasonCode"],
     reasonMessage: gateResult.reasonMessage ?? undefined,
     score,
@@ -99,6 +116,12 @@ export function buildCheckReport(input: BuildReportInput): CheckReport {
     n: total ?? undefined,
     evidenceLevel: (quality?.evidenceLevel as CheckReport["evidenceLevel"]) ?? undefined,
     baselineMissing: quality?.baselineMissing === true,
+    baselineStatus:
+      quality?.baselineMissing === true
+        ? "missing"
+        : quality?.baselineScore != null
+          ? "found"
+          : undefined,
     flags: flags.length > 0 ? [...flags].sort() : undefined,
     breakdown01,
     contribPts,
@@ -108,6 +131,9 @@ export function buildCheckReport(input: BuildReportInput): CheckReport {
       minN: args.minN,
       allowWeakEvidence: args.allowWeakEvidence,
       baseline: args.baseline,
+      maxCostUsd: args.maxCostUsd,
+      maxLatencyMs: args.maxLatencyMs,
+      maxCostDeltaUsd: args.maxCostDeltaUsd,
     },
     dashboardUrl,
     failedCases,
@@ -115,6 +141,14 @@ export function buildCheckReport(input: BuildReportInput): CheckReport {
     failedCasesMore: failedCasesMore > 0 ? failedCasesMore : undefined,
     requestId,
     explain: args.explain,
+    policyEvidence:
+      args.explain && gateResult.policyEvidence
+        ? {
+            failedCheck: gateResult.policyEvidence.failedCheck,
+            remediation: gateResult.policyEvidence.remediation,
+            snapshot: gateResult.policyEvidence.snapshot,
+          }
+        : undefined,
   };
 
   return report;

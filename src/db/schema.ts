@@ -825,6 +825,7 @@ export const sharedExports = sqliteTable(
     isPublic: integer("is_public", { mode: "boolean" }).default(true),
     revokedAt: text("revoked_at"),
     revokedBy: text("revoked_by"),
+    revokedReason: text("revoked_reason"), // Admin only; never exposed in public 410 response
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at"),
     expiresAt: text("expires_at"),

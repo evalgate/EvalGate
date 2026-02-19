@@ -14,7 +14,10 @@ import { SCOPES } from "@/lib/auth/scopes";
 import { canonicalizeJson } from "@/lib/crypto/canonical-json";
 import { sha256Hex } from "@/lib/crypto/hash";
 import { SCORING_SPEC_V1, SCORING_SPEC_VERSION } from "@/lib/scoring/scoring-spec";
-import { recomputeAndStoreQualityScore } from "@/lib/services/aggregate-metrics.service";
+import {
+  computeRunAggregates,
+  recomputeAndStoreQualityScore,
+} from "@/lib/services/aggregate-metrics.service";
 import { type BaselineMode, qualityService } from "@/lib/services/quality.service";
 import { parsePaginationParams, recomputeQualityBodySchema } from "@/lib/validation";
 
@@ -25,7 +28,11 @@ export const GET = secureRoute(
     const action = searchParams.get("action") || "latest";
     const baselineParam = searchParams.get("baseline") || "published";
     const baseline: BaselineMode =
-      baselineParam === "previous" || baselineParam === "production" ? baselineParam : "published";
+      baselineParam === "auto"
+        ? "auto"
+        : baselineParam === "previous" || baselineParam === "production"
+          ? baselineParam
+          : "published";
 
     if (Number.isNaN(evaluationId)) {
       return validationError("evaluationId query parameter is required");
@@ -34,7 +41,29 @@ export const GET = secureRoute(
     if (action === "latest") {
       const result = await qualityService.latest(ctx.organizationId, evaluationId, { baseline });
       if (result === null) return notFound("Evaluation not found");
-      return NextResponse.json(result);
+      const out = { ...result } as Record<string, unknown>;
+      if (
+        "evaluationRunId" in result &&
+        result.evaluationRunId != null &&
+        "score" in result &&
+        result.score != null
+      ) {
+        const aggregates = await computeRunAggregates(result.evaluationRunId, ctx.organizationId);
+        out.avgLatencyMs = aggregates.avgLatencyMs;
+        out.costUsd = aggregates.runTotalCostUsd;
+        if (
+          "baselineRunId" in result &&
+          result.baselineRunId != null &&
+          typeof result.baselineRunId === "number"
+        ) {
+          const baselineAggregates = await computeRunAggregates(
+            result.baselineRunId,
+            ctx.organizationId,
+          );
+          out.baselineCostUsd = baselineAggregates.runTotalCostUsd;
+        }
+      }
+      return NextResponse.json(out);
     }
 
     if (action === "trend") {

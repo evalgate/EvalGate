@@ -93,6 +93,10 @@
     "./integrations/openai-eval": {
       "import": "./dist/integrations/openai-eval.js",
       "types": "./dist/integrations/openai-eval.d.ts"
+    },
+    "./matchers": {
+      "import": "./dist/matchers/index.js",
+      "types": "./dist/matchers/index.d.ts"
     }
   }
 }

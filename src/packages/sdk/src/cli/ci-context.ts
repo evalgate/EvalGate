@@ -3,7 +3,27 @@
  */
 
 import { createHash } from "node:crypto";
+import * as fs from "node:fs";
 import type { CiContext } from "./api";
+
+function readPrFromEventPath(): number | undefined {
+  const path = process.env.GITHUB_EVENT_PATH;
+  if (!path) return undefined;
+  try {
+    const raw = fs.readFileSync(path, "utf8");
+    const event = JSON.parse(raw) as { pull_request?: { number?: number } };
+    return event.pull_request?.number;
+  } catch {
+    return undefined;
+  }
+}
+
+function readPrFromRef(): number | undefined {
+  const ref = process.env.GITHUB_REF;
+  if (!ref) return undefined;
+  const m = ref.match(/^refs\/pull\/(\d+)\/merge$/);
+  return m ? parseInt(m[1], 10) : undefined;
+}
 
 export function captureCiContext(): CiContext | undefined {
   const repo = process.env.GITHUB_REPOSITORY;
@@ -26,6 +46,11 @@ export function captureCiContext(): CiContext | undefined {
     runUrl = `https://github.com/${repo}/actions/runs/${runId}`;
   }
 
+  let pr: number | undefined;
+  if (process.env.GITHUB_EVENT_NAME === "pull_request") {
+    pr = readPrFromEventPath() ?? readPrFromRef();
+  }
+
   return {
     provider,
     repo,
@@ -33,6 +58,7 @@ export function captureCiContext(): CiContext | undefined {
     branch: ref?.startsWith("refs/heads/") ? ref.slice("refs/heads/".length) : ref,
     runUrl,
     actor,
+    pr,
   };
 }
 

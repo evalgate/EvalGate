@@ -34,7 +34,7 @@ export const POST = secureRoute(
     const parsed = await parseBody(req, importRunBodySchema);
     if (!parsed.ok) return parsed.response;
 
-    const { environment, results, importClientVersion, ci } = parsed.data;
+    const { environment, results, importClientVersion, ci, checkReport } = parsed.data;
     const idempotencyKey =
       req.headers.get("Idempotency-Key") ?? req.headers.get("X-EvalAI-Idempotency-Key");
 
@@ -127,6 +127,7 @@ export const POST = secureRoute(
         importedAt: now,
         clientReportedVersion: importClientVersion ?? null,
         ci: ci ?? undefined,
+        checkReport: checkReport ?? undefined,
         serverReceivedAt: now,
         requestId,
       },

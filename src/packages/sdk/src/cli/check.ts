@@ -21,6 +21,8 @@
  *   --apiKey <key>       API key (default: EVALAI_API_KEY env var)
  *   --share <mode>       Share link: "always" | "fail" | "never" (default: never)
  *                        fail = create public share link only when gate fails (CI-friendly)
+ *   --pr-comment-out <file>  Write PR comment markdown to file (for GitHub Action to post)
+ *   --profile <name>         Preset: strict (95/0/30), balanced (90/2/10), fast (85/5/5). Explicit flags override.
  *
  * Exit codes:
  *   0  — Gate passed
@@ -37,6 +39,7 @@
  *   EVALAI_API_KEY   — API key for authentication
  */
 
+import * as fs from "node:fs";
 import {
   fetchQualityLatest,
   fetchRunDetails,
@@ -51,6 +54,7 @@ import { EXIT } from "./constants";
 import { formatGitHub } from "./formatters/github";
 import { formatHuman } from "./formatters/human";
 import { formatJson } from "./formatters/json";
+import { buildPrComment } from "./formatters/pr-comment";
 import { evaluateGate } from "./gate";
 import { buildCheckReport } from "./report/build-check-report";
 
@@ -69,11 +73,15 @@ export interface CheckArgs {
   allowWeakEvidence: boolean;
   evaluationId: string;
   policy?: string;
-  baseline: "published" | "previous" | "production";
+  baseline: "published" | "previous" | "production" | "auto";
   format: FormatType;
   explain: boolean;
   onFail?: "import";
   share: ShareMode;
+  prCommentOut?: string;
+  maxCostUsd?: number;
+  maxLatencyMs?: number;
+  maxCostDeltaUsd?: number;
 }
 
 export type ParseArgsResult =
@@ -99,7 +107,7 @@ export function parseArgs(argv: string[]): ParseArgsResult {
   let baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || "http://localhost:3000";
   const apiKey = args.apiKey || process.env.EVALAI_API_KEY || "";
   let minScore = parseInt(args.minScore || "0", 10);
-  const maxDrop = args.maxDrop ? parseInt(args.maxDrop, 10) : undefined;
+  let maxDrop = args.maxDrop ? parseInt(args.maxDrop, 10) : undefined;
   let minN = args.minN ? parseInt(args.minN, 10) : undefined;
   let allowWeakEvidence = args.allowWeakEvidence === "true" || args.allowWeakEvidence === "1";
   let evaluationId = args.evaluationId || "";
@@ -112,32 +120,50 @@ export function parseArgs(argv: string[]): ParseArgsResult {
   const shareRaw = args.share || "never";
   const share: CheckArgs["share"] =
     shareRaw === "always" ? "always" : shareRaw === "fail" ? "fail" : "never";
+  const prCommentOut = args["pr-comment-out"] || args.prCommentOut || undefined;
+  const maxCostUsd =
+    args["max-cost-usd"] || args.maxCostUsd
+      ? parseFloat(args["max-cost-usd"] || args.maxCostUsd || "0")
+      : undefined;
+  const maxLatencyMs =
+    args["max-latency-ms"] || args.maxLatencyMs
+      ? parseInt(args["max-latency-ms"] || args.maxLatencyMs || "0", 10)
+      : undefined;
+  const maxCostDeltaUsd =
+    args["max-cost-delta-usd"] || args.maxCostDeltaUsd
+      ? parseFloat(args["max-cost-delta-usd"] || args.maxCostDeltaUsd || "0")
+      : undefined;
+  const profile = (args.profile || args.profile) as "strict" | "balanced" | "fast" | undefined;
   let baseline = (
-    args.baseline === "previous"
-      ? "previous"
-      : args.baseline === "production"
-        ? "production"
-        : "published"
+    args.baseline === "auto"
+      ? "auto"
+      : args.baseline === "previous"
+        ? "previous"
+        : args.baseline === "production"
+          ? "production"
+          : "published"
   ) as CheckArgs["baseline"];
 
-  if (!evaluationId) {
-    const config = loadConfig(process.cwd());
-    const merged = mergeConfigWithArgs(config, {
-      evaluationId: args.evaluationId,
-      baseUrl: args.baseUrl || process.env.EVALAI_BASE_URL,
-      minScore: args.minScore,
-      minN: args.minN,
-      allowWeakEvidence: args.allowWeakEvidence,
-      baseline: args.baseline,
-    });
-    if (merged.evaluationId) evaluationId = merged.evaluationId;
-    if (merged.baseUrl) baseUrl = merged.baseUrl;
-    if (merged.minScore != null && !args.minScore) minScore = merged.minScore ?? 0;
-    if (merged.minN != null && !args.minN) minN = merged.minN;
-    if (merged.allowWeakEvidence != null && !args.allowWeakEvidence)
-      allowWeakEvidence = merged.allowWeakEvidence ?? false;
-    if (merged.baseline && !args.baseline) baseline = merged.baseline;
-  }
+  const config = loadConfig(process.cwd());
+  const merged = mergeConfigWithArgs(config, {
+    evaluationId: args.evaluationId,
+    baseUrl: args.baseUrl || process.env.EVALAI_BASE_URL,
+    minScore: args.minScore,
+    maxDrop: args.maxDrop,
+    minN: args.minN,
+    allowWeakEvidence: args.allowWeakEvidence,
+    baseline: args.baseline,
+    profile: profile,
+    prCommentOut: args["pr-comment-out"] ?? args.prCommentOut,
+  });
+  if (!evaluationId && merged.evaluationId) evaluationId = merged.evaluationId;
+  if (merged.baseUrl) baseUrl = merged.baseUrl;
+  if (merged.minScore != null && args.minScore === undefined) minScore = merged.minScore ?? 0;
+  if (merged.maxDrop != null && args.maxDrop === undefined) maxDrop = merged.maxDrop;
+  if (merged.minN != null && args.minN === undefined) minN = merged.minN;
+  if (merged.allowWeakEvidence != null && args.allowWeakEvidence === undefined)
+    allowWeakEvidence = merged.allowWeakEvidence ?? false;
+  if (merged.baseline && !args.baseline) baseline = merged.baseline;
 
   if (!apiKey) {
     return {
@@ -183,6 +209,11 @@ export function parseArgs(argv: string[]): ParseArgsResult {
       explain,
       onFail,
       share,
+      prCommentOut,
+      maxCostUsd: maxCostUsd != null && !Number.isNaN(maxCostUsd) ? maxCostUsd : undefined,
+      maxLatencyMs: maxLatencyMs != null && !Number.isNaN(maxLatencyMs) ? maxLatencyMs : undefined,
+      maxCostDeltaUsd:
+        maxCostDeltaUsd != null && !Number.isNaN(maxCostDeltaUsd) ? maxCostDeltaUsd : undefined,
     },
   };
 }
@@ -222,23 +253,8 @@ export async function runCheck(args: CheckArgs): Promise<number> {
 
   const gateResult = evaluateGate(args, quality);
 
-  const report = buildCheckReport({
-    args,
-    quality,
-    runDetails,
-    gateResult,
-    requestId,
-  });
-
-  const formatted =
-    args.format === "json"
-      ? formatJson(report)
-      : args.format === "github"
-        ? formatGitHub(report)
-        : formatHuman(report);
-  console.log(formatted);
-
-  // --share: create public share link when (fail + gate failed) or (always)
+  // Create share before report when PR comment needs shareUrl (--pr-comment-out + --share fail + gate failed)
+  let shareUrl: string | undefined;
   const shouldCreateShare =
     quality?.evaluationRunId != null &&
     (args.share === "always" || (args.share === "fail" && !gateResult.passed));
@@ -258,8 +274,41 @@ export async function runCheck(args: CheckArgs): Promise<number> {
         quality.evaluationRunId!,
       );
       if (publishRes.ok) {
-        console.error(`\nPublic share link created: ${publishRes.data.shareUrl}`);
+        shareUrl = publishRes.data.shareUrl;
+        console.error(`\nPublic share link created: ${shareUrl}`);
       }
+    }
+  }
+
+  const ci = captureCiContext();
+  const report = buildCheckReport({
+    args,
+    quality,
+    runDetails,
+    gateResult,
+    requestId,
+    shareUrl,
+    baselineRunId: quality?.baselineRunId ?? undefined,
+    ciRunUrl: ci?.runUrl ?? undefined,
+  });
+
+  const formatted =
+    args.format === "json"
+      ? formatJson(report)
+      : args.format === "github"
+        ? formatGitHub(report)
+        : formatHuman(report);
+  console.log(formatted);
+
+  // --pr-comment-out: write markdown to file for GitHub Action to post
+  if (args.prCommentOut) {
+    try {
+      const markdown = buildPrComment(report);
+      fs.writeFileSync(args.prCommentOut, markdown, "utf8");
+    } catch (err) {
+      console.error(
+        `EvalAI: failed to write PR comment to ${args.prCommentOut}: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 
@@ -280,14 +329,18 @@ export async function runCheck(args: CheckArgs): Promise<number> {
         assertionsJson: r.assertionsJson,
       }));
     if (importResults.length > 0) {
-      const ci = captureCiContext();
       const idempotencyKey = ci ? computeIdempotencyKey(args.evaluationId, ci) : undefined;
       const importRes = await importRunOnFail(
         args.baseUrl,
         args.apiKey,
         args.evaluationId,
         importResults,
-        { idempotencyKey, ci, importClientVersion: "evalai-cli" },
+        {
+          idempotencyKey,
+          ci,
+          importClientVersion: "evalai-cli",
+          checkReport: report as unknown as Record<string, unknown>,
+        },
       );
       if (!importRes.ok) {
         console.error(`EvalAI import (onFail): ${importRes.status} — ${importRes.body}`);

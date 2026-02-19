@@ -35,7 +35,7 @@ No account required. No dashboard required. Just a score.
 ## 2) Gate regressions in CI (2 more minutes)
 
 ```bash
-npx evalai init
+npx -y @pauly4010/evalai-sdk@^1 init
 ```
 
 Then paste your evaluation ID into `evalai.config.json`:
@@ -47,7 +47,7 @@ Then paste your evaluation ID into `evalai.config.json`:
 Now add to CI:
 
 ```bash
-npx evalai check
+npx -y @pauly4010/evalai-sdk@^1 check --format github --onFail import
 ```
 
 If your score drops below the baseline, CI fails. That's your regression gate.
@@ -85,7 +85,7 @@ EvalAI is just a regression gate.
 
 ### Developer Experience
 - **Full TypeScript SDK** — `@pauly4010/evalai-sdk` with `openAIChatEval`, traces, evaluations, LLM judge, webhooks
-- **CLI** — `evalai init` and `evalai check` for CI gates
+- **CLI** — `evalai init` and `evalai check` for CI gates (use `npx -y @pauly4010/evalai-sdk@^1` for pinned CI)
 - **API keys** — scoped keys for CI/CD and production
 
 ## Local Development

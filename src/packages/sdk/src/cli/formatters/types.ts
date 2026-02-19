@@ -4,17 +4,29 @@
 
 export type GateVerdict = "pass" | "fail";
 
+/** "neutral" = exit 0 but gate not applied (e.g. baseline missing with --baseline auto) */
+export type GateMode = "enforced" | "neutral";
+
+/** Canonical reason codes. Import REASON_CODES from ../reason-codes for constants. */
 export type FailureReasonCode =
+  | "PASS"
+  | "LOW_SAMPLE_SIZE"
+  | "BASELINE_MISSING"
+  | "SCORE_TOO_LOW"
+  | "DELTA_TOO_HIGH"
+  | "COST_BUDGET_EXCEEDED"
+  | "LATENCY_BUDGET_EXCEEDED"
+  | "POLICY_FAILED"
+  | "UNKNOWN"
+  /* Legacy aliases for backward compat */
   | "LOW_SCORE"
   | "LOW_PASS_RATE"
   | "SAFETY_RISK"
   | "LATENCY_RISK"
   | "COST_RISK"
-  | "BASELINE_MISSING"
   | "MAX_DROP_EXCEEDED"
   | "INSUFFICIENT_EVIDENCE"
-  | "POLICY_VIOLATION"
-  | "UNKNOWN";
+  | "POLICY_VIOLATION";
 
 export type ScoreBreakdown01 = {
   passRate?: number;
@@ -39,7 +51,10 @@ export type GateThresholds = {
   maxDrop?: number;
   minN?: number;
   allowWeakEvidence?: boolean;
-  baseline?: "published" | "previous" | "production";
+  baseline?: "published" | "previous" | "production" | "auto";
+  maxCostUsd?: number;
+  maxLatencyMs?: number;
+  maxCostDeltaUsd?: number;
 };
 
 export type FailedCase = {
@@ -69,7 +84,13 @@ export type CheckReport = {
   evaluationId: string;
   runId?: number;
   verdict: GateVerdict;
+  /** false when gate not applied (e.g. baseline missing, exit 0) — prevents false confidence */
+  gateApplied: boolean;
+  /** "enforced" = gate ran; "neutral" = exit 0, gate skipped */
+  gateMode: GateMode;
   reasonCode: FailureReasonCode;
+  /** Actionable message for PR comment / UX */
+  actionableMessage?: string;
   reasonMessage?: string;
   score?: number;
   baselineScore?: number;
@@ -83,6 +104,7 @@ export type CheckReport = {
   n?: number;
   evidenceLevel?: "strong" | "medium" | "weak";
   baselineMissing?: boolean;
+  baselineStatus?: "found" | "missing";
   dashboardUrl?: string;
   failedCases?: FailedCase[];
   failedCasesShown?: number;
@@ -91,4 +113,14 @@ export type CheckReport = {
   durationMs?: number;
   ci?: CiContext;
   explain?: boolean;
+  shareUrl?: string;
+  policy?: string;
+  baselineRunId?: number;
+  ciRunUrl?: string;
+  /** When --explain and policy failed: which sub-check failed, remediation, snapshot */
+  policyEvidence?: {
+    failedCheck?: string;
+    remediation?: string;
+    snapshot?: Record<string, unknown>;
+  };
 };

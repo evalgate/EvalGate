@@ -8,7 +8,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { evaluationRuns, evaluations, qualityScores } from "@/db/schema";
 
-export type BaselineMode = "published" | "previous" | "production";
+export type BaselineMode = "published" | "previous" | "production" | "auto";
 
 export type QualityLatestResult =
   | {
@@ -66,7 +66,7 @@ export const qualityService = {
     evaluationId: number,
     opts?: { baseline?: BaselineMode },
   ): Promise<QualityLatestResult | null> {
-    const baseline = opts?.baseline ?? "published";
+    let baseline = opts?.baseline ?? "published";
 
     const [evaluation] = await db
       .select()
@@ -93,6 +93,11 @@ export const qualityService = {
     }
 
     let baselineRunId: number | null = null;
+
+    // "auto": try published first, then previous
+    if (baseline === "auto") {
+      baseline = "published";
+    }
 
     if (baseline === "published" && evaluation.publishedRunId) {
       baselineRunId = evaluation.publishedRunId;
@@ -156,12 +161,48 @@ export const qualityService = {
       }
     }
 
+    // "auto" fallback: if published missing, retry with previous
+    if (opts?.baseline === "auto" && baselineMissing && baseline === "published") {
+      const prevRuns = await db
+        .select({ id: evaluationRuns.id })
+        .from(evaluationRuns)
+        .where(
+          and(
+            eq(evaluationRuns.evaluationId, evaluationId),
+            eq(evaluationRuns.organizationId, organizationId),
+            sql`${evaluationRuns.id} != ${latest.evaluationRunId}`,
+          ),
+        )
+        .orderBy(desc(evaluationRuns.createdAt), desc(evaluationRuns.id))
+        .limit(1);
+      const prevRunId = prevRuns[0]?.id ?? null;
+      if (prevRunId != null) {
+        const [baselineQs] = await db
+          .select()
+          .from(qualityScores)
+          .where(
+            and(
+              eq(qualityScores.evaluationRunId, prevRunId),
+              eq(qualityScores.organizationId, organizationId),
+            ),
+          )
+          .limit(1);
+        if (baselineQs) {
+          baselineRunId = prevRunId;
+          baselineScore = baselineQs.score;
+          regressionDelta = latest.score - baselineQs.score;
+          baselineMissing = false;
+        }
+      }
+    }
+
     return {
       ...latest,
       baselineScore,
       regressionDelta,
       regressionDetected: regressionDelta !== null && regressionDelta <= -5,
       ...(baselineMissing && { baselineMissing: true }),
+      ...(baselineRunId != null && { baselineRunId }),
     };
   },
 

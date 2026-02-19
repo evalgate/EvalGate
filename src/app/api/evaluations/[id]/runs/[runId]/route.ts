@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { evaluationRuns, evaluations, testCases, testResults } from "@/db/schema";
@@ -7,9 +7,11 @@ import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { SCOPES } from "@/lib/auth/scopes";
 
 export const GET = secureRoute(
-  async (_req: NextRequest, ctx: AuthContext, params) => {
+  async (req: NextRequest, ctx: AuthContext, params) => {
     const evaluationId = parseInt(params.id, 10);
     const runId = parseInt(params.runId, 10);
+    const compareRunIdParam = req.nextUrl.searchParams.get("compareRunId");
+    const compareRunId = compareRunIdParam ? parseInt(compareRunIdParam, 10) : null;
 
     // Verify the evaluation exists and belongs to this org
     const evalData = await db
@@ -53,7 +55,55 @@ export const GET = secureRoute(
       test_cases: r.testCase,
     }));
 
-    return NextResponse.json({ run: runData[0], results: formattedResults });
+    let baselineResults: typeof formattedResults | undefined;
+    if (
+      compareRunId != null &&
+      !Number.isNaN(compareRunId) &&
+      compareRunId !== runId &&
+      compareRunId > 0
+    ) {
+      const [baselineRun] = await db
+        .select()
+        .from(evaluationRuns)
+        .where(
+          and(
+            eq(evaluationRuns.id, compareRunId),
+            eq(evaluationRuns.evaluationId, evaluationId),
+            eq(evaluationRuns.organizationId, ctx.organizationId),
+          ),
+        )
+        .limit(1);
+      if (baselineRun) {
+        const baseline = await db
+          .select({
+            result: testResults,
+            testCase: {
+              name: testCases.name,
+              input: testCases.input,
+              expectedOutput: testCases.expectedOutput,
+            },
+          })
+          .from(testResults)
+          .leftJoin(testCases, eq(testResults.testCaseId, testCases.id))
+          .where(eq(testResults.evaluationRunId, compareRunId))
+          .orderBy(asc(testResults.createdAt));
+        baselineResults = baseline.map((r) => ({
+          ...r.result,
+          test_cases: r.testCase,
+        }));
+      }
+    }
+
+    const payload: Record<string, unknown> = {
+      run: runData[0],
+      results: formattedResults,
+    };
+    if (baselineResults) {
+      payload.baselineResults = baselineResults;
+      payload.compareRunId = compareRunId;
+    }
+
+    return NextResponse.json(payload);
   },
   { requiredScopes: [SCOPES.RUNS_READ] },
 );

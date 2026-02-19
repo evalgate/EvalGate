@@ -56,6 +56,8 @@ export interface TestSuiteConfig {
   stopOnFailure?: boolean;
   /** Timeout per test case in ms (default: 30000) */
   timeout?: number;
+  /** Retry failing cases N times (default: 0). Only failing cases are retried. */
+  retries?: number;
 }
 
 export interface TestSuiteCaseResult {
@@ -94,6 +96,8 @@ export interface TestSuiteResult {
   durationMs: number;
   /** Individual test results */
   results: TestSuiteCaseResult[];
+  /** Case IDs that were retried (flaky recovery) */
+  retriedCases?: string[];
 }
 
 /**
@@ -201,6 +205,26 @@ export class TestSuite {
       }
     }
 
+    const retriedCases: string[] = [];
+    const retries = this.config.retries ?? 0;
+    if (retries > 0 && results.length > 0) {
+      const failingIndices = results.map((r, i) => (r.passed ? -1 : i)).filter((i) => i >= 0);
+      for (let attempt = 0; attempt < retries && failingIndices.length > 0; attempt++) {
+        const toRetry = [...failingIndices];
+        failingIndices.length = 0;
+        for (const i of toRetry) {
+          const tc = this.config.cases[i];
+          const retryResult = await runTestCase(tc, i);
+          if (retryResult.passed) {
+            results[i] = retryResult;
+            retriedCases.push(retryResult.id);
+          } else {
+            failingIndices.push(i);
+          }
+        }
+      }
+    }
+
     const durationMs = Date.now() - startTime;
     const passed = results.filter((r) => r.passed).length;
     const failed = results.filter((r) => !r.passed).length;
@@ -212,6 +236,7 @@ export class TestSuite {
       failed,
       durationMs,
       results,
+      ...(retriedCases.length > 0 && { retriedCases }),
     };
   }
 

@@ -161,7 +161,7 @@ Import local run results for an existing evaluation. Creates run, inserts test_r
 ```json
 {
   "environment": "dev",
-  "importClientVersion": "1.4.1",
+  "importClientVersion": "1.5.0",
   "results": [
     { "testCaseId": 1, "status": "passed", "output": "...", "latencyMs": 100 }
   ]

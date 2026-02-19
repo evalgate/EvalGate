@@ -27,7 +27,27 @@ await openAIChatEval({
 });
 ```
 
-Set `OPENAI_API_KEY` in your environment. You'll see something like:
+Set `OPENAI_API_KEY` in your environment. For Vitest integration, use the `toPassGate()` matcher:
+
+```typescript
+import { openAIChatEval, extendExpectWithToPassGate } from "@pauly4010/evalai-sdk";
+import { expect } from "vitest";
+
+extendExpectWithToPassGate(expect);
+
+it("passes gate", async () => {
+  const result = await openAIChatEval({
+    name: "chat-regression",
+    cases: [
+      { input: "Hello", expectedOutput: "greeting" },
+      { input: "2 + 2 = ?", expectedOutput: "4" },
+    ],
+  });
+  expect(result).toPassGate();
+});
+```
+
+You'll see something like:
 
 ```
 PASS 2/2  (score: 100)

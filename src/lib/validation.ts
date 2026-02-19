@@ -147,6 +147,8 @@ export const importRunBodySchema = z
     environment: z.enum(["dev", "staging", "prod"]).optional().default("dev"),
     importClientVersion: z.string().optional(),
     ci: ciContextSchema,
+    /** CheckReport from evalai check --onFail import; stored in traceLog.import.checkReport */
+    checkReport: z.record(z.any()).optional(),
     results: z
       .array(
         z.object({

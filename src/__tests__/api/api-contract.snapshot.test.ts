@@ -52,6 +52,14 @@ vi.mock("@/lib/autumn-server", () => ({
   }),
 }));
 
+vi.mock("@/lib/services/aggregate-metrics.service", () => ({
+  computeRunAggregates: vi.fn().mockResolvedValue({
+    avgLatencyMs: 120,
+    runTotalCostUsd: 0.05,
+  }),
+  recomputeAndStoreQualityScore: vi.fn(),
+}));
+
 vi.mock("@/lib/services/quality.service", () => ({
   qualityService: {
     latest: vi.fn().mockResolvedValue({

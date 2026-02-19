@@ -69,6 +69,47 @@ describe("TestSuite", () => {
     });
   });
 
+  describe("retries (flake guard)", () => {
+    it("retries only failing cases and merges best result", async () => {
+      const bAttempts: number[] = [];
+      const suite = createTestSuite("flake-tests", {
+        cases: [
+          { id: "a", input: "a", expected: "a" },
+          { id: "b", input: "b", expected: "b" },
+        ],
+        executor: async (input) => {
+          if (input === "b") {
+            bAttempts.push(1);
+            return bAttempts.length === 1 ? "wrong" : "b";
+          }
+          return input;
+        },
+        parallel: false,
+        retries: 1,
+      });
+
+      const result = await suite.run();
+      vitestExpect(result.passed).toBe(2);
+      vitestExpect(result.retriedCases).toEqual(["b"]);
+    });
+
+    it("includes retry count in result when retries resolve", async () => {
+      let attempts = 0;
+      const suite = createTestSuite("retry-resolve", {
+        cases: [{ id: "flaky", input: "x", expected: "x" }],
+        executor: async () => {
+          attempts++;
+          return attempts >= 2 ? "x" : "y";
+        },
+        retries: 1,
+      });
+
+      const result = await suite.run();
+      vitestExpect(result.passed).toBe(1);
+      vitestExpect(result.retriedCases).toContain("flaky");
+    });
+  });
+
   describe("parallel execution", () => {
     it("should run tests in parallel", async () => {
       const order: number[] = [];

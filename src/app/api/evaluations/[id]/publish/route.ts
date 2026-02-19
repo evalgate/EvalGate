@@ -38,6 +38,7 @@ export const POST = secureRoute(
       customShareId,
       shareScope: rawShareScope,
       evaluationRunId: bodyRunId,
+      expiresInDays,
     } = body;
 
     if (!exportData) {
@@ -45,6 +46,11 @@ export const POST = secureRoute(
     }
 
     const shareScope = rawShareScope === "run" ? "run" : "evaluation";
+
+    const expiresAt =
+      typeof expiresInDays === "number" && expiresInDays > 0
+        ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
+        : undefined;
 
     // Sanitize and assert no secrets
     let sanitized: Record<string, unknown>;
@@ -167,6 +173,7 @@ export const POST = secureRoute(
         exportHash,
         isPublic: true,
         createdAt: new Date().toISOString(),
+        expiresAt: expiresAt ?? undefined,
       });
     }
 
@@ -200,6 +207,7 @@ export const DELETE = secureRoute(
 
     const { searchParams } = new URL(request.url);
     const shareId = searchParams.get("shareId");
+    const revokedReason = searchParams.get("revokedReason") || undefined;
 
     if (!shareId) {
       return validationError("Share ID is required");
@@ -224,7 +232,11 @@ export const DELETE = secureRoute(
     const revokedBy = ctx.userId ?? undefined;
     await db
       .update(sharedExports)
-      .set({ revokedAt: now, revokedBy: revokedBy ?? undefined })
+      .set({
+        revokedAt: now,
+        revokedBy: revokedBy ?? undefined,
+        ...(revokedReason && { revokedReason }),
+      })
       .where(eq(sharedExports.id, row.id));
 
     logger.info("Share revoked", { shareId, evaluationId: id, revokedBy });

@@ -10,6 +10,7 @@
 import { parseArgs, runCheck } from "./check";
 import { runDoctor } from "./doctor";
 import { runInit } from "./init";
+import { parseShareArgs, runShare } from "./share";
 
 const argv = process.argv.slice(2);
 const subcommand = argv[0];
@@ -37,6 +38,18 @@ if (subcommand === "init") {
       console.error(`EvalAI ERROR: ${err instanceof Error ? err.message : String(err)}`);
       process.exit(4);
     });
+} else if (subcommand === "share") {
+  const parsed = parseShareArgs(argv.slice(1));
+  if ("error" in parsed) {
+    console.error(parsed.error);
+    process.exit(1);
+  }
+  runShare(parsed)
+    .then((code) => process.exit(code))
+    .catch((err) => {
+      console.error(`EvalAI ERROR: ${err instanceof Error ? err.message : String(err)}`);
+      process.exit(1);
+    });
 } else {
   console.log(`EvalAI CLI
 
@@ -44,6 +57,7 @@ Usage:
   evalai init              Create evalai.config.json
   evalai doctor [options]  Verify CI/CD setup (same endpoint as check)
   evalai check [options]   CI/CD evaluation gate
+  evalai share [options]   Create share link for a run
 
 Options for check:
   --evaluationId <id>  Evaluation to gate on (or from config)
@@ -64,6 +78,7 @@ Examples:
   evalai init
   evalai check --minScore 92 --evaluationId 42 --apiKey $EVALAI_API_KEY
   evalai check --policy HIPAA --evaluationId 42 --apiKey $EVALAI_API_KEY
+  evalai share --scope run --evaluationId 42 --runId 123 --expires 7d --apiKey $EVALAI_API_KEY
 `);
   process.exit(subcommand === "--help" || subcommand === "-h" ? 0 : 1);
 }

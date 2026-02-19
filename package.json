@@ -25,6 +25,7 @@
     "db:migrate:new": "npx dotenv-cli -e .env.local -- npx tsx scripts/run-migrations.ts 0021 0022",
     "db:migrate-share-links": "npx dotenv-cli -e .env.local -- npx tsx scripts/migrate-share-links-to-db.ts",
     "audit:openapi": "npx tsx scripts/audit-openapi-coverage.ts",
+    "audit:coverage": "npx tsx scripts/coverage-audit.ts",
     "openapi:generate-paths": "npx tsx scripts/generate-openapi-paths.ts",
     "prepare": "husky"
   },
