@@ -16,7 +16,7 @@ class RequestCache {
      * Generate cache key from request parameters
      */
     generateKey(method, url, params) {
-        const paramString = params ? JSON.stringify(params) : '';
+        const paramString = params ? JSON.stringify(params) : "";
         return `${method}:${url}:${paramString}`;
     }
     /**
@@ -107,28 +107,24 @@ exports.CacheTTL = {
  * Determine if a request should be cached based on method and endpoint
  */
 function shouldCache(method, endpoint) {
-    if (method !== 'GET') {
+    if (method !== "GET") {
         return false;
     }
-    const noCacheEndpoints = [
-        '/health',
-        '/usage',
-        '/deliveries',
-    ];
-    return !noCacheEndpoints.some(pattern => endpoint.includes(pattern));
+    const noCacheEndpoints = ["/health", "/usage", "/deliveries"];
+    return !noCacheEndpoints.some((pattern) => endpoint.includes(pattern));
 }
 /**
  * @internal - Internal SDK logic, not part of public API
  * Get appropriate TTL for an endpoint
  */
 function getTTL(endpoint) {
-    if (endpoint.includes('/api-keys') || endpoint.includes('/webhooks')) {
+    if (endpoint.includes("/api-keys") || endpoint.includes("/webhooks")) {
         return exports.CacheTTL.LONG;
     }
-    if (endpoint.includes('/evaluations') || endpoint.includes('/configs')) {
+    if (endpoint.includes("/evaluations") || endpoint.includes("/configs")) {
         return exports.CacheTTL.MEDIUM;
     }
-    if (endpoint.includes('/traces') || endpoint.includes('/results')) {
+    if (endpoint.includes("/traces") || endpoint.includes("/results")) {
         return exports.CacheTTL.SHORT;
     }
     return exports.CacheTTL.MEDIUM;

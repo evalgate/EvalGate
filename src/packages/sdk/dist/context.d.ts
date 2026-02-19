@@ -131,4 +131,4 @@ export declare function withContextSync<T>(metadata: ContextMetadata, fn: () => 
  * }
  * ```
  */
-export declare function WithContext(metadata: ContextMetadata): (target: any, propertyKey: string, descriptor: PropertyDescriptor) => PropertyDescriptor;
+export declare function WithContext(metadata: ContextMetadata): (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) => PropertyDescriptor;

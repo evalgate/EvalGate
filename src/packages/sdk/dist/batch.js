@@ -57,7 +57,7 @@ class RequestBatcher {
      */
     async processBatch() {
         if (this.batchTimer) {
-            if (typeof this.batchTimer === 'number') {
+            if (typeof this.batchTimer === "number") {
                 clearTimeout(this.batchTimer);
             }
             else {
@@ -70,12 +70,12 @@ class RequestBatcher {
         }
         // Take items from queue
         const batch = this.queue.splice(0, this.maxBatchSize);
-        const requests = batch.map(item => item.request);
+        const requests = batch.map((item) => item.request);
         try {
             const responses = await this.executeBatch(requests);
             // Match responses to requests and resolve/reject
             for (const response of responses) {
-                const pendingRequest = batch.find(item => item.id === response.id);
+                const pendingRequest = batch.find((item) => item.id === response.id);
                 if (pendingRequest) {
                     if (response.status >= 200 && response.status < 300) {
                         pendingRequest.resolve(response.data);
@@ -87,8 +87,8 @@ class RequestBatcher {
             }
             // Handle any requests that didn't get a response
             for (const item of batch) {
-                if (!responses.find(r => r.id === item.id)) {
-                    item.reject(new Error('No response received for request'));
+                if (!responses.find((r) => r.id === item.id)) {
+                    item.reject(new Error("No response received for request"));
                 }
             }
         }
@@ -116,7 +116,7 @@ class RequestBatcher {
      */
     clear() {
         if (this.batchTimer) {
-            if (typeof this.batchTimer === 'number') {
+            if (typeof this.batchTimer === "number") {
                 clearTimeout(this.batchTimer);
             }
             else {
@@ -126,7 +126,7 @@ class RequestBatcher {
         }
         // Reject all pending requests
         for (const item of this.queue) {
-            item.reject(new Error('Batch queue cleared'));
+            item.reject(new Error("Batch queue cleared"));
         }
         this.queue = [];
     }
@@ -146,16 +146,11 @@ exports.RequestBatcher = RequestBatcher;
  * Check if requests can be batched together
  */
 function canBatch(method, endpoint) {
-    if (method !== 'GET') {
+    if (method !== "GET") {
         return false;
     }
-    const batchableEndpoints = [
-        '/traces',
-        '/evaluations',
-        '/annotations',
-        '/results',
-    ];
-    return batchableEndpoints.some(pattern => endpoint.includes(pattern));
+    const batchableEndpoints = ["/traces", "/evaluations", "/annotations", "/results"];
+    return batchableEndpoints.some((pattern) => endpoint.includes(pattern));
 }
 /**
  * Batch multiple async operations with concurrency limit
@@ -164,13 +159,13 @@ async function batchProcess(items, processor, concurrency = 5) {
     const results = [];
     const executing = [];
     for (const item of items) {
-        const promise = processor(item).then(result => {
+        const promise = processor(item).then((result) => {
             results.push(result);
         });
         executing.push(promise);
         if (executing.length >= concurrency) {
             await Promise.race(executing);
-            executing.splice(executing.findIndex(p => p === promise), 1);
+            executing.splice(executing.indexOf(promise), 1);
         }
     }
     await Promise.all(executing);

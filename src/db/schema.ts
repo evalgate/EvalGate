@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 // Auth tables for better-auth
@@ -791,3 +792,39 @@ export const sharedReports = sqliteTable("shared_reports", {
     .notNull(),
   createdAt: text("created_at").notNull(),
 });
+
+// ============================================
+// SHARED EXPORTS (Public share links)
+// ============================================
+
+export const sharedExports = sqliteTable(
+  "shared_exports",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    shareId: text("share_id").notNull().unique(),
+    organizationId: integer("organization_id")
+      .references(() => organizations.id)
+      .notNull(),
+    evaluationId: integer("evaluation_id").references(() => evaluations.id),
+    evaluationRunId: integer("evaluation_run_id").references(() => evaluationRuns.id),
+    shareScope: text("share_scope").notNull().default("evaluation"), // "evaluation" | "run"
+    exportData: text("export_data", { mode: "json" }).notNull(),
+    exportHash: text("export_hash").notNull(),
+    isPublic: integer("is_public", { mode: "boolean" }).default(true),
+    revokedAt: text("revoked_at"),
+    revokedBy: text("revoked_by"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at"),
+    expiresAt: text("expires_at"),
+    viewCount: integer("view_count").default(0),
+  },
+  (table) => ({
+    sharedExportsShareIdUnique: uniqueIndex("shared_exports_share_id_unique").on(table.shareId),
+    sharedExportsOrgEvalUnique: uniqueIndex("shared_exports_org_eval_unique")
+      .on(table.organizationId, table.evaluationId)
+      .where(sql`${table.shareScope} = 'evaluation'`),
+    sharedExportsOrgRunUnique: uniqueIndex("shared_exports_org_run_unique")
+      .on(table.organizationId, table.evaluationRunId)
+      .where(sql`${table.shareScope} = 'run'`),
+  }),
+);

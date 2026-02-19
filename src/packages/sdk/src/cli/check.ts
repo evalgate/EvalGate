@@ -19,6 +19,8 @@
  *   --evaluationId <id>  Required. The evaluation to gate on.
  *   --baseUrl <url>      API base URL (default: EVALAI_BASE_URL or http://localhost:3000)
  *   --apiKey <key>       API key (default: EVALAI_API_KEY env var)
+ *   --share <mode>       Share link: "always" | "fail" | "never" (default: never)
+ *                        fail = create public share link only when gate fails (CI-friendly)
  *
  * Exit codes:
  *   0  — Gate passed
@@ -35,7 +37,14 @@
  *   EVALAI_API_KEY   — API key for authentication
  */
 
-import { fetchQualityLatest, fetchRunDetails, type ImportResult, importRunOnFail } from "./api";
+import {
+  fetchQualityLatest,
+  fetchRunDetails,
+  fetchRunExport,
+  type ImportResult,
+  importRunOnFail,
+  publishShare,
+} from "./api";
 import { captureCiContext, computeIdempotencyKey } from "./ci-context";
 import { loadConfig, mergeConfigWithArgs } from "./config";
 import { EXIT } from "./constants";
@@ -48,6 +57,8 @@ import { buildCheckReport } from "./report/build-check-report";
 export { EXIT } from "./constants";
 
 export type FormatType = "human" | "json" | "github";
+
+export type ShareMode = "always" | "fail" | "never";
 
 export interface CheckArgs {
   baseUrl: string;
@@ -62,6 +73,7 @@ export interface CheckArgs {
   format: FormatType;
   explain: boolean;
   onFail?: "import";
+  share: ShareMode;
 }
 
 export type ParseArgsResult =
@@ -97,6 +109,9 @@ export function parseArgs(argv: string[]): ParseArgsResult {
     formatRaw === "json" ? "json" : formatRaw === "github" ? "github" : "human";
   const explain = args.explain === "true" || args.explain === "1";
   const onFail = args.onFail === "import" ? ("import" as const) : undefined;
+  const shareRaw = args.share || "never";
+  const share: CheckArgs["share"] =
+    shareRaw === "always" ? "always" : shareRaw === "fail" ? "fail" : "never";
   let baseline = (
     args.baseline === "previous"
       ? "previous"
@@ -167,6 +182,7 @@ export function parseArgs(argv: string[]): ParseArgsResult {
       format,
       explain,
       onFail,
+      share,
     },
   };
 }
@@ -221,6 +237,31 @@ export async function runCheck(args: CheckArgs): Promise<number> {
         ? formatGitHub(report)
         : formatHuman(report);
   console.log(formatted);
+
+  // --share: create public share link when (fail + gate failed) or (always)
+  const shouldCreateShare =
+    quality?.evaluationRunId != null &&
+    (args.share === "always" || (args.share === "fail" && !gateResult.passed));
+  if (shouldCreateShare) {
+    const exportRes = await fetchRunExport(
+      args.baseUrl,
+      args.apiKey,
+      args.evaluationId,
+      quality.evaluationRunId!,
+    );
+    if (exportRes.ok) {
+      const publishRes = await publishShare(
+        args.baseUrl,
+        args.apiKey,
+        args.evaluationId,
+        exportRes.exportData,
+        quality.evaluationRunId!,
+      );
+      if (publishRes.ok) {
+        console.error(`\nPublic share link created: ${publishRes.data.shareUrl}`);
+      }
+    }
+  }
 
   // --onFail import: when gate fails, import run with CI context
   if (

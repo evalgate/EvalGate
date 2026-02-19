@@ -57,6 +57,7 @@ Options for check:
   --allowWeakEvidence Allow weak evidence level
   --policy <name>     Enforce policy (HIPAA, SOC2, GDPR, etc.)
   --baseline <mode>   "published", "previous", or "production"
+  --share <mode>      Share link: always | fail | never (fail = only when gate fails)
   --baseUrl <url>     API base URL
 
 Examples:

@@ -76,7 +76,7 @@ export declare class Expectation {
      * Assert value has expected sentiment
      * @example expect(output).toHaveSentiment('positive')
      */
-    toHaveSentiment(expected: 'positive' | 'negative' | 'neutral', message?: string): AssertionResult;
+    toHaveSentiment(expected: "positive" | "negative" | "neutral", message?: string): AssertionResult;
     /**
      * Assert string length is within range
      * @example expect(output).toHaveLength({ min: 10, max: 100 })
@@ -172,7 +172,7 @@ export declare function hasLength(text: string, range: {
 }): boolean;
 export declare function containsJSON(text: string): boolean;
 export declare function notContainsPII(text: string): boolean;
-export declare function hasSentiment(text: string, expected: 'positive' | 'negative' | 'neutral'): boolean;
+export declare function hasSentiment(text: string, expected: "positive" | "negative" | "neutral"): boolean;
 export declare function similarTo(text1: string, text2: string, threshold?: number): boolean;
 export declare function withinRange(value: number, min: number, max: number): boolean;
 export declare function isValidEmail(email: string): boolean;

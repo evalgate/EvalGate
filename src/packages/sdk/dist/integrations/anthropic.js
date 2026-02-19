@@ -43,7 +43,7 @@ const context_1 = require("../context");
  * ```
  */
 function traceAnthropic(anthropic, evalClient, options = {}) {
-    const { captureInput = true, captureOutput = true, captureMetadata = true, organizationId, tracePrefix = 'anthropic' } = options;
+    const { captureInput = true, captureOutput = true, captureMetadata = true, organizationId, tracePrefix = "anthropic", } = options;
     // Create proxy for messages.create
     const originalCreate = anthropic.messages.create.bind(anthropic.messages);
     anthropic.messages.create = async (params, requestOptions) => {
@@ -60,18 +60,20 @@ function traceAnthropic(anthropic, evalClient, options = {}) {
                 max_tokens: params.max_tokens,
                 ...(captureInput ? { input: params.messages } : {}),
                 ...(captureOutput ? { output: message.content } : {}),
-                ...(captureMetadata ? {
-                    usage: message.usage,
-                    stop_reason: message.stop_reason
-                } : {})
+                ...(captureMetadata
+                    ? {
+                        usage: message.usage,
+                        stop_reason: message.stop_reason,
+                    }
+                    : {}),
             });
             await evalClient.traces.create({
                 name: `Anthropic: ${params.model}`,
                 traceId,
                 organizationId: organizationId || evalClient.getOrganizationId(),
-                status: 'success',
+                status: "success",
                 durationMs,
-                metadata: traceMetadata
+                metadata: traceMetadata,
             });
             return message;
         }
@@ -84,16 +86,18 @@ function traceAnthropic(anthropic, evalClient, options = {}) {
                 max_tokens: params.max_tokens,
                 ...(captureInput ? { input: params.messages } : {}),
                 ...(captureMetadata ? { params } : {}),
-                error: error instanceof Error ? error.message : String(error)
+                error: error instanceof Error ? error.message : String(error),
             });
-            await evalClient.traces.create({
+            await evalClient.traces
+                .create({
                 name: `Anthropic: ${params.model}`,
                 traceId,
                 organizationId: organizationId || evalClient.getOrganizationId(),
-                status: 'error',
+                status: "error",
                 durationMs,
-                metadata: errorMetadata
-            }).catch(() => {
+                metadata: errorMetadata,
+            })
+                .catch(() => {
                 // Ignore errors in trace creation to avoid masking the original error
             });
             throw error;
@@ -127,8 +131,8 @@ async function traceAnthropicCall(evalClient, name, fn, options = {}) {
             name,
             traceId,
             organizationId: options.organizationId || evalClient.getOrganizationId(),
-            status: 'pending',
-            metadata: (0, context_1.mergeWithContext)({})
+            status: "pending",
+            metadata: (0, context_1.mergeWithContext)({}),
         });
         const result = await fn();
         const durationMs = Date.now() - startTime;
@@ -136,9 +140,9 @@ async function traceAnthropicCall(evalClient, name, fn, options = {}) {
             name,
             traceId,
             organizationId: options.organizationId || evalClient.getOrganizationId(),
-            status: 'success',
+            status: "success",
             durationMs,
-            metadata: (0, context_1.mergeWithContext)({})
+            metadata: (0, context_1.mergeWithContext)({}),
         });
         return result;
     }
@@ -148,11 +152,11 @@ async function traceAnthropicCall(evalClient, name, fn, options = {}) {
             name,
             traceId,
             organizationId: options.organizationId || evalClient.getOrganizationId(),
-            status: 'error',
+            status: "error",
             durationMs,
             metadata: (0, context_1.mergeWithContext)({
-                error: error instanceof Error ? error.message : String(error)
-            })
+                error: error instanceof Error ? error.message : String(error),
+            }),
         });
         throw error;
     }

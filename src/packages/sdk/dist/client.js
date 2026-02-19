@@ -1,16 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AIEvalClient = void 0;
+const batch_1 = require("./batch");
+const cache_1 = require("./cache");
+const context_1 = require("./context");
 const errors_1 = require("./errors");
 const logger_1 = require("./logger");
-const context_1 = require("./context");
-const cache_1 = require("./cache");
-const batch_1 = require("./batch");
 /**
  * Safe environment variable access (works in both Node.js and browsers)
  */
 function getEnvVar(name) {
-    if (typeof process !== 'undefined' && process.env) {
+    if (typeof process !== "undefined" && process.env) {
         return process.env[name];
     }
     return undefined;
@@ -42,35 +42,37 @@ function getEnvVar(name) {
 class AIEvalClient {
     constructor(config = {}) {
         // Tier 1.1: Zero-config with env variable detection (works in Node.js and browsers)
-        this.apiKey = config.apiKey || getEnvVar('EVALAI_API_KEY') || getEnvVar('AI_EVAL_API_KEY') || '';
+        this.apiKey =
+            config.apiKey || getEnvVar("EVALAI_API_KEY") || getEnvVar("AI_EVAL_API_KEY") || "";
         if (!this.apiKey) {
-            throw new errors_1.EvalAIError('API key is required. Provide via config.apiKey or EVALAI_API_KEY environment variable.', 'MISSING_API_KEY', 0);
+            throw new errors_1.EvalAIError("API key is required. Provide via config.apiKey or EVALAI_API_KEY environment variable.", "MISSING_API_KEY", 0);
         }
         // Auto-detect organization ID from env
-        const orgIdFromEnv = getEnvVar('EVALAI_ORGANIZATION_ID') || getEnvVar('AI_EVAL_ORGANIZATION_ID');
-        this.organizationId = config.organizationId || (orgIdFromEnv ? parseInt(orgIdFromEnv, 10) : undefined);
+        const orgIdFromEnv = getEnvVar("EVALAI_ORGANIZATION_ID") || getEnvVar("AI_EVAL_ORGANIZATION_ID");
+        this.organizationId =
+            config.organizationId || (orgIdFromEnv ? parseInt(orgIdFromEnv, 10) : undefined);
         // Default to relative URLs for browser, or allow custom baseUrl
-        const isBrowser = typeof globalThis.window !== 'undefined';
-        this.baseUrl = config.baseUrl || (isBrowser ? '' : 'http://localhost:3000');
+        const isBrowser = typeof globalThis.window !== "undefined";
+        this.baseUrl = config.baseUrl || (isBrowser ? "" : "http://localhost:3000");
         this.timeout = config.timeout || 30000;
         // Tier 4.17: Debug mode with request logging
-        const logLevel = config.logLevel || (config.debug ? 'debug' : 'info');
+        const logLevel = config.logLevel || (config.debug ? "debug" : "info");
         this.logger = (0, logger_1.createLogger)({
             level: logLevel,
             pretty: config.debug,
-            prefix: 'EvalAI'
+            prefix: "EvalAI",
         });
         this.requestLogger = new logger_1.RequestLogger(this.logger);
         // Retry configuration
         this.retryConfig = {
             maxAttempts: config.retry?.maxAttempts || 3,
-            backoff: config.retry?.backoff || 'exponential',
+            backoff: config.retry?.backoff || "exponential",
             retryableErrors: config.retry?.retryableErrors || [
-                'RATE_LIMIT_EXCEEDED',
-                'TIMEOUT',
-                'NETWORK_ERROR',
-                'INTERNAL_SERVER_ERROR'
-            ]
+                "RATE_LIMIT_EXCEEDED",
+                "TIMEOUT",
+                "NETWORK_ERROR",
+                "INTERNAL_SERVER_ERROR",
+            ],
         };
         // Initialize cache for GET requests
         this.cache = new cache_1.RequestCache(config.cacheSize || 1000);
@@ -95,7 +97,7 @@ class AIEvalClient {
                                 id: req.id,
                                 status: err?.statusCode || 500,
                                 data: null,
-                                error: err?.message || 'Unknown error',
+                                error: err?.message || "Unknown error",
                             });
                         }
                     })();
@@ -130,9 +132,9 @@ class AIEvalClient {
         this.annotations = new AnnotationsAPI(this);
         this.developer = new DeveloperAPI(this);
         this.organizations = new OrganizationsAPI(this);
-        this.logger.info('SDK initialized', {
+        this.logger.info("SDK initialized", {
             hasOrganizationId: !!this.organizationId,
-            baseUrl: this.baseUrl
+            baseUrl: this.baseUrl,
         });
     }
     /**
@@ -162,21 +164,21 @@ class AIEvalClient {
      */
     static init(config = {}) {
         return new AIEvalClient({
-            baseUrl: getEnvVar('EVALAI_BASE_URL'),
-            ...config
+            baseUrl: getEnvVar("EVALAI_BASE_URL"),
+            ...config,
         });
     }
     /**
      * Internal method to make HTTP requests with retry logic and error handling
      */
     async request(endpoint, options = {}, attempt = 1) {
-        const method = (options.method || 'GET').toUpperCase();
+        const method = (options.method || "GET").toUpperCase();
         const url = `${this.baseUrl}${endpoint}`;
         // Check cache for GET requests
-        if (method === 'GET' && (0, cache_1.shouldCache)(method, endpoint)) {
+        if (method === "GET" && (0, cache_1.shouldCache)(method, endpoint)) {
             const cached = this.cache.get(method, endpoint, options.body);
             if (cached !== null) {
-                this.logger.debug('Cache hit', { endpoint });
+                this.logger.debug("Cache hit", { endpoint });
                 return cached;
             }
         }
@@ -185,17 +187,17 @@ class AIEvalClient {
         const startTime = Date.now();
         // Log request
         this.requestLogger.logRequest({
-            method: options.method || 'GET',
+            method: options.method || "GET",
             url,
             headers: options.headers,
-            body: options.body
+            body: options.body,
         });
         try {
             const response = await fetch(url, {
                 ...options,
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.apiKey}`,
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${this.apiKey}`,
                     ...options.headers,
                 },
                 signal: controller.signal,
@@ -206,16 +208,16 @@ class AIEvalClient {
             try {
                 data = await response.json();
             }
-            catch (e) {
+            catch (_e) {
                 data = {};
             }
             // Log response
             this.requestLogger.logResponse({
-                method: options.method || 'GET',
+                method: options.method || "GET",
                 url,
                 status: response.status,
                 duration,
-                body: data
+                body: data,
             });
             if (!response.ok) {
                 const error = (0, errors_1.createErrorFromResponse)(response, data);
@@ -225,21 +227,21 @@ class AIEvalClient {
                     const delay = this.calculateBackoff(attempt);
                     this.logger.warn(`Retrying request (attempt ${attempt + 1}/${this.retryConfig.maxAttempts}) after ${delay}ms`, {
                         error: error.code,
-                        url
+                        url,
                     });
-                    await new Promise(resolve => setTimeout(resolve, delay));
+                    await new Promise((resolve) => setTimeout(resolve, delay));
                     return this.request(endpoint, options, attempt + 1);
                 }
                 throw error;
             }
             // Cache successful GET responses
-            if (method === 'GET' && (0, cache_1.shouldCache)(method, endpoint)) {
+            if (method === "GET" && (0, cache_1.shouldCache)(method, endpoint)) {
                 const ttl = (0, cache_1.getTTL)(endpoint);
                 this.cache.set(method, endpoint, data, ttl, options.body);
-                this.logger.debug('Cached response', { endpoint, ttl });
+                this.logger.debug("Cached response", { endpoint, ttl });
             }
             // Invalidate cache for mutation operations
-            if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+            if (["POST", "PUT", "DELETE", "PATCH"].includes(method)) {
                 // Invalidate related cached entries
                 const resourceMatch = endpoint.match(/\/api\/(\w+)/);
                 if (resourceMatch) {
@@ -254,10 +256,10 @@ class AIEvalClient {
                 throw error;
             }
             if (error instanceof Error) {
-                if (error.name === 'AbortError') {
-                    throw new errors_1.EvalAIError('Request timeout', 'TIMEOUT', 408);
+                if (error.name === "AbortError") {
+                    throw new errors_1.EvalAIError("Request timeout", "TIMEOUT", 408);
                 }
-                throw new errors_1.EvalAIError(error.message, 'NETWORK_ERROR', 0);
+                throw new errors_1.EvalAIError(error.message, "NETWORK_ERROR", 0);
             }
             throw error;
         }
@@ -268,11 +270,10 @@ class AIEvalClient {
     calculateBackoff(attempt) {
         const baseDelay = 1000; // 1 second
         switch (this.retryConfig.backoff) {
-            case 'exponential':
-                return baseDelay * Math.pow(2, attempt - 1);
-            case 'linear':
+            case "exponential":
+                return baseDelay * 2 ** (attempt - 1);
+            case "linear":
                 return baseDelay * attempt;
-            case 'fixed':
             default:
                 return baseDelay;
         }
@@ -300,7 +301,7 @@ class AIEvalClient {
     async getOrganizationLimits() {
         const orgId = this.getOrganizationId();
         if (!orgId) {
-            throw new errors_1.EvalAIError('Organization ID is required', 'MISSING_ORGANIZATION_ID', 0);
+            throw new errors_1.EvalAIError("Organization ID is required", "MISSING_ORGANIZATION_ID", 0);
         }
         return this.request(`/api/organizations/${orgId}/limits`);
     }
@@ -328,12 +329,12 @@ class TraceAPI {
     async create(params) {
         const orgId = params.organizationId || this.client.getOrganizationId();
         if (!orgId) {
-            throw new errors_1.EvalAIError('Organization ID is required', 'MISSING_ORGANIZATION_ID', 0);
+            throw new errors_1.EvalAIError("Organization ID is required", "MISSING_ORGANIZATION_ID", 0);
         }
         // Merge with context
         const metadata = (0, context_1.mergeWithContext)(params.metadata || {});
-        return this.client.request('/api/traces', {
-            method: 'POST',
+        return this.client.request("/api/traces", {
+            method: "POST",
             body: JSON.stringify({ ...params, organizationId: orgId, metadata }),
         });
     }
@@ -343,17 +344,17 @@ class TraceAPI {
     async list(params = {}) {
         const searchParams = new URLSearchParams();
         if (params.limit)
-            searchParams.set('limit', params.limit.toString());
+            searchParams.set("limit", params.limit.toString());
         if (params.offset)
-            searchParams.set('offset', params.offset.toString());
+            searchParams.set("offset", params.offset.toString());
         if (params.organizationId)
-            searchParams.set('organizationId', params.organizationId.toString());
+            searchParams.set("organizationId", params.organizationId.toString());
         if (params.status)
-            searchParams.set('status', params.status);
+            searchParams.set("status", params.status);
         if (params.search)
-            searchParams.set('search', params.search);
+            searchParams.set("search", params.search);
         const query = searchParams.toString();
-        const endpoint = query ? `/api/traces?${query}` : '/api/traces';
+        const endpoint = query ? `/api/traces?${query}` : "/api/traces";
         return this.client.request(endpoint);
     }
     /**
@@ -361,7 +362,7 @@ class TraceAPI {
      */
     async delete(id) {
         return this.client.request(`/api/traces?id=${id}`, {
-            method: 'DELETE',
+            method: "DELETE",
         });
     }
     /**
@@ -384,7 +385,7 @@ class TraceAPI {
      */
     async update(id, params) {
         return this.client.request(`/api/traces/${id}`, {
-            method: 'PATCH',
+            method: "PATCH",
             body: JSON.stringify(params),
         });
     }
@@ -393,7 +394,7 @@ class TraceAPI {
      */
     async createSpan(traceId, params) {
         return this.client.request(`/api/traces/${traceId}/spans`, {
-            method: 'POST',
+            method: "POST",
             body: JSON.stringify(params),
         });
     }
@@ -417,10 +418,10 @@ class EvaluationAPI {
     async create(params) {
         const orgId = params.organizationId || this.client.getOrganizationId();
         if (!orgId) {
-            throw new errors_1.EvalAIError('Organization ID is required', 'MISSING_ORGANIZATION_ID', 0);
+            throw new errors_1.EvalAIError("Organization ID is required", "MISSING_ORGANIZATION_ID", 0);
         }
-        return this.client.request('/api/evaluations', {
-            method: 'POST',
+        return this.client.request("/api/evaluations", {
+            method: "POST",
             body: JSON.stringify({ ...params, organizationId: orgId }),
         });
     }
@@ -436,19 +437,19 @@ class EvaluationAPI {
     async list(params = {}) {
         const searchParams = new URLSearchParams();
         if (params.limit)
-            searchParams.set('limit', params.limit.toString());
+            searchParams.set("limit", params.limit.toString());
         if (params.offset)
-            searchParams.set('offset', params.offset.toString());
+            searchParams.set("offset", params.offset.toString());
         if (params.organizationId)
-            searchParams.set('organizationId', params.organizationId.toString());
+            searchParams.set("organizationId", params.organizationId.toString());
         if (params.type)
-            searchParams.set('type', params.type);
+            searchParams.set("type", params.type);
         if (params.status)
-            searchParams.set('status', params.status);
+            searchParams.set("status", params.status);
         if (params.search)
-            searchParams.set('search', params.search);
+            searchParams.set("search", params.search);
         const query = searchParams.toString();
-        const endpoint = query ? `/api/evaluations?${query}` : '/api/evaluations';
+        const endpoint = query ? `/api/evaluations?${query}` : "/api/evaluations";
         return this.client.request(endpoint);
     }
     /**
@@ -456,7 +457,7 @@ class EvaluationAPI {
      */
     async update(id, params) {
         return this.client.request(`/api/evaluations?id=${id}`, {
-            method: 'PUT',
+            method: "PUT",
             body: JSON.stringify(params),
         });
     }
@@ -465,7 +466,7 @@ class EvaluationAPI {
      */
     async delete(id) {
         return this.client.request(`/api/evaluations?id=${id}`, {
-            method: 'DELETE',
+            method: "DELETE",
         });
     }
     /**
@@ -473,7 +474,7 @@ class EvaluationAPI {
      */
     async createTestCase(evaluationId, params) {
         return this.client.request(`/api/evaluations/${evaluationId}/test-cases`, {
-            method: 'POST',
+            method: "POST",
             body: JSON.stringify(params),
         });
     }
@@ -488,7 +489,7 @@ class EvaluationAPI {
      */
     async createRun(evaluationId, params) {
         return this.client.request(`/api/evaluations/${evaluationId}/runs`, {
-            method: 'POST',
+            method: "POST",
             body: JSON.stringify(params),
         });
     }
@@ -516,8 +517,8 @@ class LLMJudgeAPI {
      * Run an LLM judge evaluation
      */
     async evaluate(params) {
-        return this.client.request('/api/llm-judge/evaluate', {
-            method: 'POST',
+        return this.client.request("/api/llm-judge/evaluate", {
+            method: "POST",
             body: JSON.stringify(params),
         });
     }
@@ -525,8 +526,8 @@ class LLMJudgeAPI {
      * Create an LLM judge configuration
      */
     async createConfig(params) {
-        return this.client.request('/api/llm-judge/configs', {
-            method: 'POST',
+        return this.client.request("/api/llm-judge/configs", {
+            method: "POST",
             body: JSON.stringify(params),
         });
     }
@@ -536,13 +537,13 @@ class LLMJudgeAPI {
     async listConfigs(params = {}) {
         const searchParams = new URLSearchParams();
         if (params.organizationId)
-            searchParams.set('organizationId', params.organizationId.toString());
+            searchParams.set("organizationId", params.organizationId.toString());
         if (params.limit)
-            searchParams.set('limit', params.limit.toString());
+            searchParams.set("limit", params.limit.toString());
         if (params.offset)
-            searchParams.set('offset', params.offset.toString());
+            searchParams.set("offset", params.offset.toString());
         const query = searchParams.toString();
-        const endpoint = query ? `/api/llm-judge/configs?${query}` : '/api/llm-judge/configs';
+        const endpoint = query ? `/api/llm-judge/configs?${query}` : "/api/llm-judge/configs";
         return this.client.request(endpoint);
     }
     /**
@@ -551,15 +552,15 @@ class LLMJudgeAPI {
     async listResults(params = {}) {
         const searchParams = new URLSearchParams();
         if (params.configId)
-            searchParams.set('configId', params.configId.toString());
+            searchParams.set("configId", params.configId.toString());
         if (params.evaluationId)
-            searchParams.set('evaluationId', params.evaluationId.toString());
+            searchParams.set("evaluationId", params.evaluationId.toString());
         if (params.limit)
-            searchParams.set('limit', params.limit.toString());
+            searchParams.set("limit", params.limit.toString());
         if (params.offset)
-            searchParams.set('offset', params.offset.toString());
+            searchParams.set("offset", params.offset.toString());
         const query = searchParams.toString();
-        const endpoint = query ? `/api/llm-judge/results?${query}` : '/api/llm-judge/results';
+        const endpoint = query ? `/api/llm-judge/results?${query}` : "/api/llm-judge/results";
         return this.client.request(endpoint);
     }
     /**
@@ -567,11 +568,11 @@ class LLMJudgeAPI {
      */
     async getAlignment(params) {
         const searchParams = new URLSearchParams();
-        searchParams.set('configId', params.configId.toString());
+        searchParams.set("configId", params.configId.toString());
         if (params.startDate)
-            searchParams.set('startDate', params.startDate);
+            searchParams.set("startDate", params.startDate);
         if (params.endDate)
-            searchParams.set('endDate', params.endDate);
+            searchParams.set("endDate", params.endDate);
         const query = searchParams.toString();
         return this.client.request(`/api/llm-judge/alignment?${query}`);
     }
@@ -588,10 +589,12 @@ class AnnotationsAPI {
      * Create an annotation
      */
     async create(params) {
-        return this.client.request('/api/annotations', {
-            method: 'POST',
+        return this.client
+            .request("/api/annotations", {
+            method: "POST",
             body: JSON.stringify(params),
-        }).then(res => res.annotation);
+        })
+            .then((res) => res.annotation);
     }
     /**
      * List annotations
@@ -599,16 +602,18 @@ class AnnotationsAPI {
     async list(params = {}) {
         const searchParams = new URLSearchParams();
         if (params.evaluationRunId)
-            searchParams.set('evaluationRunId', params.evaluationRunId.toString());
+            searchParams.set("evaluationRunId", params.evaluationRunId.toString());
         if (params.testCaseId)
-            searchParams.set('testCaseId', params.testCaseId.toString());
+            searchParams.set("testCaseId", params.testCaseId.toString());
         if (params.limit)
-            searchParams.set('limit', params.limit.toString());
+            searchParams.set("limit", params.limit.toString());
         if (params.offset)
-            searchParams.set('offset', params.offset.toString());
+            searchParams.set("offset", params.offset.toString());
         const query = searchParams.toString();
-        const endpoint = query ? `/api/annotations?${query}` : '/api/annotations';
-        return this.client.request(endpoint).then(res => res.annotations);
+        const endpoint = query ? `/api/annotations?${query}` : "/api/annotations";
+        return this.client
+            .request(endpoint)
+            .then((res) => res.annotations);
     }
 }
 /**
@@ -623,8 +628,8 @@ class AnnotationTasksAPI {
      * Create an annotation task
      */
     async create(params) {
-        return this.client.request('/api/annotations/tasks', {
-            method: 'POST',
+        return this.client.request("/api/annotations/tasks", {
+            method: "POST",
             body: JSON.stringify(params),
         });
     }
@@ -634,15 +639,15 @@ class AnnotationTasksAPI {
     async list(params = {}) {
         const searchParams = new URLSearchParams();
         if (params.organizationId)
-            searchParams.set('organizationId', params.organizationId.toString());
+            searchParams.set("organizationId", params.organizationId.toString());
         if (params.status)
-            searchParams.set('status', params.status);
+            searchParams.set("status", params.status);
         if (params.limit)
-            searchParams.set('limit', params.limit.toString());
+            searchParams.set("limit", params.limit.toString());
         if (params.offset)
-            searchParams.set('offset', params.offset.toString());
+            searchParams.set("offset", params.offset.toString());
         const query = searchParams.toString();
-        const endpoint = query ? `/api/annotations/tasks?${query}` : '/api/annotations/tasks';
+        const endpoint = query ? `/api/annotations/tasks?${query}` : "/api/annotations/tasks";
         return this.client.request(endpoint);
     }
     /**
@@ -664,7 +669,7 @@ class AnnotationTaskItemsAPI {
      */
     async create(taskId, params) {
         return this.client.request(`/api/annotations/tasks/${taskId}/items`, {
-            method: 'POST',
+            method: "POST",
             body: JSON.stringify(params),
         });
     }
@@ -674,11 +679,13 @@ class AnnotationTaskItemsAPI {
     async list(taskId, params = {}) {
         const searchParams = new URLSearchParams();
         if (params.limit)
-            searchParams.set('limit', params.limit.toString());
+            searchParams.set("limit", params.limit.toString());
         if (params.offset)
-            searchParams.set('offset', params.offset.toString());
+            searchParams.set("offset", params.offset.toString());
         const query = searchParams.toString();
-        const endpoint = query ? `/api/annotations/tasks/${taskId}/items?${query}` : `/api/annotations/tasks/${taskId}/items`;
+        const endpoint = query
+            ? `/api/annotations/tasks/${taskId}/items?${query}`
+            : `/api/annotations/tasks/${taskId}/items`;
         return this.client.request(endpoint);
     }
 }
@@ -696,11 +703,11 @@ class DeveloperAPI {
      */
     async getUsage(params) {
         const searchParams = new URLSearchParams();
-        searchParams.set('organizationId', params.organizationId.toString());
+        searchParams.set("organizationId", params.organizationId.toString());
         if (params.startDate)
-            searchParams.set('startDate', params.startDate);
+            searchParams.set("startDate", params.startDate);
         if (params.endDate)
-            searchParams.set('endDate', params.endDate);
+            searchParams.set("endDate", params.endDate);
         const query = searchParams.toString();
         return this.client.request(`/api/developer/usage?${query}`);
     }
@@ -722,8 +729,8 @@ class APIKeysAPI {
      * Create an API key
      */
     async create(params) {
-        return this.client.request('/api/developer/api-keys', {
-            method: 'POST',
+        return this.client.request("/api/developer/api-keys", {
+            method: "POST",
             body: JSON.stringify(params),
         });
     }
@@ -733,13 +740,13 @@ class APIKeysAPI {
     async list(params = {}) {
         const searchParams = new URLSearchParams();
         if (params.organizationId)
-            searchParams.set('organizationId', params.organizationId.toString());
+            searchParams.set("organizationId", params.organizationId.toString());
         if (params.limit)
-            searchParams.set('limit', params.limit.toString());
+            searchParams.set("limit", params.limit.toString());
         if (params.offset)
-            searchParams.set('offset', params.offset.toString());
+            searchParams.set("offset", params.offset.toString());
         const query = searchParams.toString();
-        const endpoint = query ? `/api/developer/api-keys?${query}` : '/api/developer/api-keys';
+        const endpoint = query ? `/api/developer/api-keys?${query}` : "/api/developer/api-keys";
         return this.client.request(endpoint);
     }
     /**
@@ -747,7 +754,7 @@ class APIKeysAPI {
      */
     async update(keyId, params) {
         return this.client.request(`/api/developer/api-keys/${keyId}`, {
-            method: 'PATCH',
+            method: "PATCH",
             body: JSON.stringify(params),
         });
     }
@@ -756,7 +763,7 @@ class APIKeysAPI {
      */
     async revoke(keyId) {
         return this.client.request(`/api/developer/api-keys/${keyId}`, {
-            method: 'DELETE',
+            method: "DELETE",
         });
     }
     /**
@@ -777,8 +784,8 @@ class WebhooksAPI {
      * Create a webhook
      */
     async create(params) {
-        return this.client.request('/api/developer/webhooks', {
-            method: 'POST',
+        return this.client.request("/api/developer/webhooks", {
+            method: "POST",
             body: JSON.stringify(params),
         });
     }
@@ -787,13 +794,13 @@ class WebhooksAPI {
      */
     async list(params) {
         const searchParams = new URLSearchParams();
-        searchParams.set('organizationId', params.organizationId.toString());
+        searchParams.set("organizationId", params.organizationId.toString());
         if (params.status)
-            searchParams.set('status', params.status);
+            searchParams.set("status", params.status);
         if (params.limit)
-            searchParams.set('limit', params.limit.toString());
+            searchParams.set("limit", params.limit.toString());
         if (params.offset)
-            searchParams.set('offset', params.offset.toString());
+            searchParams.set("offset", params.offset.toString());
         const query = searchParams.toString();
         return this.client.request(`/api/developer/webhooks?${query}`);
     }
@@ -808,7 +815,7 @@ class WebhooksAPI {
      */
     async update(webhookId, params) {
         return this.client.request(`/api/developer/webhooks/${webhookId}`, {
-            method: 'PATCH',
+            method: "PATCH",
             body: JSON.stringify(params),
         });
     }
@@ -817,7 +824,7 @@ class WebhooksAPI {
      */
     async delete(webhookId) {
         return this.client.request(`/api/developer/webhooks/${webhookId}`, {
-            method: 'DELETE',
+            method: "DELETE",
         });
     }
     /**
@@ -826,13 +833,15 @@ class WebhooksAPI {
     async getDeliveries(webhookId, params = {}) {
         const searchParams = new URLSearchParams();
         if (params.limit)
-            searchParams.set('limit', params.limit.toString());
+            searchParams.set("limit", params.limit.toString());
         if (params.offset)
-            searchParams.set('offset', params.offset.toString());
+            searchParams.set("offset", params.offset.toString());
         if (params.success !== undefined)
-            searchParams.set('success', params.success.toString());
+            searchParams.set("success", params.success.toString());
         const query = searchParams.toString();
-        const endpoint = query ? `/api/developer/webhooks/${webhookId}/deliveries?${query}` : `/api/developer/webhooks/${webhookId}/deliveries`;
+        const endpoint = query
+            ? `/api/developer/webhooks/${webhookId}/deliveries?${query}`
+            : `/api/developer/webhooks/${webhookId}/deliveries`;
         return this.client.request(endpoint);
     }
 }
@@ -847,6 +856,6 @@ class OrganizationsAPI {
      * Get current organization
      */
     async getCurrent() {
-        return this.client.request('/api/organizations/current');
+        return this.client.request("/api/organizations/current");
     }
 }

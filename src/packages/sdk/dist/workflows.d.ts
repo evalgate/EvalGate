@@ -26,13 +26,13 @@
  * await tracer.endWorkflow({ resolution: 'Issue resolved' });
  * ```
  */
-import type { AIEvalClient } from './client';
+import type { AIEvalClient } from "./client";
 /**
  * Node in a workflow DAG
  */
 export interface WorkflowNode {
     id: string;
-    type: 'agent' | 'tool' | 'decision' | 'parallel' | 'human' | 'llm';
+    type: "agent" | "tool" | "decision" | "parallel" | "human" | "llm";
     name: string;
     config?: Record<string, any>;
 }
@@ -68,11 +68,11 @@ export interface WorkflowContext {
 /**
  * Workflow run status
  */
-export type WorkflowStatus = 'running' | 'completed' | 'failed' | 'cancelled';
+export type WorkflowStatus = "running" | "completed" | "failed" | "cancelled";
 /**
  * Handoff types between agents
  */
-export type HandoffType = 'delegation' | 'escalation' | 'parallel' | 'fallback';
+export type HandoffType = "delegation" | "escalation" | "parallel" | "fallback";
 /**
  * Agent handoff record
  */
@@ -95,7 +95,7 @@ export interface DecisionAlternative {
 /**
  * Decision types made by agents
  */
-export type DecisionType = 'action' | 'tool' | 'delegate' | 'respond' | 'route';
+export type DecisionType = "action" | "tool" | "delegate" | "respond" | "route";
 /**
  * Parameters for recording a decision
  */
@@ -120,11 +120,11 @@ export interface RecordDecisionParams {
 /**
  * LLM provider names
  */
-export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'cohere' | 'mistral' | 'custom';
+export type LLMProvider = "openai" | "anthropic" | "google" | "cohere" | "mistral" | "custom";
 /**
  * Cost categories for tracking
  */
-export type CostCategory = 'llm' | 'tool' | 'embedding' | 'other';
+export type CostCategory = "llm" | "tool" | "embedding" | "other";
 /**
  * Parameters for recording cost
  */

@@ -21,7 +21,7 @@
  * const results = await suite.run();
  * ```
  */
-import { AssertionResult } from './assertions';
+import { type AssertionResult } from "./assertions";
 /**
  * Test suite case definition (different from API TestCase type)
  * Use this for defining test cases in test suites with assertions
@@ -182,7 +182,7 @@ export declare function matchesPattern(pattern: RegExp): (output: string) => Ass
  * });
  * ```
  */
-export declare function hasSentiment(sentiment: 'positive' | 'negative' | 'neutral'): (output: string) => AssertionResult;
+export declare function hasSentiment(sentiment: "positive" | "negative" | "neutral"): (output: string) => AssertionResult;
 /**
  * Helper to create length range assertion
  *

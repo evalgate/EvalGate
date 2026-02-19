@@ -49,7 +49,7 @@ export declare function fetchRunDetails(baseUrl: string, apiKey: string, evaluat
     ok: false;
 }>;
 export type CiContext = {
-    provider?: 'github' | 'gitlab' | 'circle' | 'unknown';
+    provider?: "github" | "gitlab" | "circle" | "unknown";
     repo?: string;
     sha?: string;
     branch?: string;
@@ -59,7 +59,7 @@ export type CiContext = {
 };
 export type ImportResult = {
     testCaseId: number;
-    status: 'passed' | 'failed';
+    status: "passed" | "failed";
     output: string;
     latencyMs?: number;
     costUsd?: number;

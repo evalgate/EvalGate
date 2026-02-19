@@ -59,16 +59,13 @@ class TestSuite {
                 if (this.config.executor) {
                     const timeout = this.config.timeout || 30000;
                     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error(`Test timeout after ${timeout}ms`)), timeout));
-                    actual = await Promise.race([
-                        this.config.executor(testCase.input),
-                        timeoutPromise
-                    ]);
+                    actual = await Promise.race([this.config.executor(testCase.input), timeoutPromise]);
                 }
                 else if (testCase.expected) {
                     actual = testCase.expected; // Use expected as actual if no executor
                 }
                 else {
-                    throw new Error('No executor provided and no expected output');
+                    throw new Error("No executor provided and no expected output");
                 }
                 // Run assertions
                 const assertions = [];
@@ -97,7 +94,7 @@ class TestSuite {
                     actual,
                     passed: allPassed,
                     assertions,
-                    durationMs
+                    durationMs,
                 };
             }
             catch (error) {
@@ -106,17 +103,17 @@ class TestSuite {
                     id,
                     input: testCase.input,
                     expected: testCase.expected,
-                    actual: '',
+                    actual: "",
                     passed: false,
                     assertions: [],
                     durationMs,
-                    error: error instanceof Error ? error.message : String(error)
+                    error: error instanceof Error ? error.message : String(error),
                 };
             }
         };
         // Run tests
         if (this.config.parallel) {
-            results.push(...await Promise.all(this.config.cases.map((tc, i) => runTestCase(tc, i))));
+            results.push(...(await Promise.all(this.config.cases.map((tc, i) => runTestCase(tc, i)))));
         }
         else {
             for (let i = 0; i < this.config.cases.length; i++) {
@@ -128,15 +125,15 @@ class TestSuite {
             }
         }
         const durationMs = Date.now() - startTime;
-        const passed = results.filter(r => r.passed).length;
-        const failed = results.filter(r => !r.passed).length;
+        const passed = results.filter((r) => r.passed).length;
+        const failed = results.filter((r) => !r.passed).length;
         return {
             name: this.name,
             total: results.length,
             passed,
             failed,
             durationMs,
-            results
+            results,
         };
     }
     /**

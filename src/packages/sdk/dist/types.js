@@ -7,21 +7,21 @@ exports.SDKError = exports.EvaluationTemplates = void 0;
  */
 exports.EvaluationTemplates = {
     // Core Testing
-    UNIT_TESTING: 'unit-testing',
-    OUTPUT_QUALITY: 'output-quality',
+    UNIT_TESTING: "unit-testing",
+    OUTPUT_QUALITY: "output-quality",
     // Advanced Evaluation
-    PROMPT_OPTIMIZATION: 'prompt-optimization',
-    CHAIN_OF_THOUGHT: 'chain-of-thought',
-    LONG_CONTEXT_TESTING: 'long-context-testing',
-    MODEL_STEERING: 'model-steering',
-    REGRESSION_TESTING: 'regression-testing',
-    CONFIDENCE_CALIBRATION: 'confidence-calibration',
+    PROMPT_OPTIMIZATION: "prompt-optimization",
+    CHAIN_OF_THOUGHT: "chain-of-thought",
+    LONG_CONTEXT_TESTING: "long-context-testing",
+    MODEL_STEERING: "model-steering",
+    REGRESSION_TESTING: "regression-testing",
+    CONFIDENCE_CALIBRATION: "confidence-calibration",
     // Safety & Compliance
-    SAFETY_COMPLIANCE: 'safety-compliance',
+    SAFETY_COMPLIANCE: "safety-compliance",
     // Domain-Specific
-    RAG_EVALUATION: 'rag-evaluation',
-    CODE_GENERATION: 'code-generation',
-    SUMMARIZATION: 'summarization',
+    RAG_EVALUATION: "rag-evaluation",
+    CODE_GENERATION: "code-generation",
+    SUMMARIZATION: "summarization",
 };
 /**
  * SDK Error class with additional error details
@@ -45,7 +45,7 @@ exports.EvaluationTemplates = {
 class SDKError extends Error {
     constructor(message, code, statusCode, details) {
         super(message);
-        this.name = 'SDKError';
+        this.name = "SDKError";
         this.code = code;
         this.statusCode = statusCode;
         this.details = details;

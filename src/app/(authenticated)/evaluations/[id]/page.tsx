@@ -151,7 +151,12 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
             const publishRes = await fetch(`/api/evaluations/${id}/publish`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ exportData, customShareId: options.customShareId }),
+              body: JSON.stringify({
+                exportData,
+                customShareId: options.customShareId,
+                shareScope: options.shareScope ?? "evaluation",
+                evaluationRunId: runId,
+              }),
             });
             if (!publishRes.ok) {
               const err = await publishRes.json();
@@ -217,6 +222,8 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
           body: JSON.stringify({
             exportData,
             customShareId: options.customShareId,
+            shareScope: options.shareScope ?? "evaluation",
+            evaluationRunId: latestRun?.id ?? latestRun?.runId,
           }),
         });
 

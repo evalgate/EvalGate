@@ -2,10 +2,10 @@
  * Build CheckReport from API data and gate result.
  * Normalizes failed cases (truncate, sort), dashboard URL, top N + more.
  */
-import type { CheckArgs } from '../check';
-import type { QualityLatestData, RunDetailsData } from '../api';
-import type { GateResult } from '../gate';
-import type { CheckReport } from '../formatters/types';
+import type { QualityLatestData, RunDetailsData } from "../api";
+import type { CheckArgs } from "../check";
+import type { CheckReport } from "../formatters/types";
+import type { GateResult } from "../gate";
 export type BuildReportInput = {
     args: CheckArgs;
     quality: QualityLatestData;

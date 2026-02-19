@@ -5,24 +5,24 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.captureCiContext = captureCiContext;
 exports.computeIdempotencyKey = computeIdempotencyKey;
-const crypto_1 = require("crypto");
+const node_crypto_1 = require("node:crypto");
 function captureCiContext() {
     const repo = process.env.GITHUB_REPOSITORY;
     const sha = process.env.GITHUB_SHA;
     const ref = process.env.GITHUB_REF;
     const runId = process.env.GITHUB_RUN_ID;
-    const workflow = process.env.GITHUB_WORKFLOW;
-    const job = process.env.GITHUB_JOB;
+    const _workflow = process.env.GITHUB_WORKFLOW;
+    const _job = process.env.GITHUB_JOB;
     const actor = process.env.GITHUB_ACTOR;
     if (!repo && !sha)
         return undefined;
-    let provider = 'unknown';
+    let provider = "unknown";
     if (process.env.GITHUB_ACTIONS)
-        provider = 'github';
+        provider = "github";
     else if (process.env.GITLAB_CI)
-        provider = 'gitlab';
+        provider = "gitlab";
     else if (process.env.CIRCLECI)
-        provider = 'circle';
+        provider = "circle";
     let runUrl;
     if (repo && runId) {
         runUrl = `https://github.com/${repo}/actions/runs/${runId}`;
@@ -31,21 +31,21 @@ function captureCiContext() {
         provider,
         repo,
         sha,
-        branch: ref?.startsWith('refs/heads/') ? ref.slice('refs/heads/'.length) : ref,
+        branch: ref?.startsWith("refs/heads/") ? ref.slice("refs/heads/".length) : ref,
         runUrl,
         actor,
     };
 }
 function computeIdempotencyKey(evaluationId, ci) {
     const repo = ci.repo ?? process.env.GITHUB_REPOSITORY;
-    const workflow = process.env.GITHUB_WORKFLOW ?? '';
-    const job = process.env.GITHUB_JOB ?? '';
-    const sha = ci.sha ?? process.env.GITHUB_SHA ?? '';
+    const workflow = process.env.GITHUB_WORKFLOW ?? "";
+    const job = process.env.GITHUB_JOB ?? "";
+    const sha = ci.sha ?? process.env.GITHUB_SHA ?? "";
     if (!repo || !sha)
         return undefined;
     const input = `${repo}.${workflow}.${job}.${sha}.${evaluationId}`;
     return hashSha256(input);
 }
 function hashSha256(input) {
-    return (0, crypto_1.createHash)('sha256').update(input, 'utf8').digest('hex');
+    return (0, node_crypto_1.createHash)("sha256").update(input, "utf8").digest("hex");
 }

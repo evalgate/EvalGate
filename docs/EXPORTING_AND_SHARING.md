@@ -310,7 +310,7 @@ await client.evaluations.unpublish({
 
 **Public Demos:**
 - ⚠️ Anyone with the link can view
-- ⚠️ Data is stored in `/public/exports/public/`
+- ⚠️ Data is stored in the database (sharedExports table)
 - ⚠️ Cannot be password-protected
 - ✅ Can be unpublished anytime
 
@@ -333,13 +333,9 @@ your-project/
 │   │   └── team-review-2025-11.json
 │   └── archive/
 │       └── old-evaluations/
-└── public/
-    └── exports/
-        └── public/
-            ├── chatbot-demo.json
-            ├── rag-demo.json
-            └── index.json
 ```
+
+Published share links are stored in the database, not as files. No need to track public demos in git.
 
 ### Version Control
 
@@ -348,10 +344,6 @@ your-project/
 ```bash
 # Add exports to .gitignore (sensitive data)
 echo "exports/" >> .gitignore
-
-# But track public demos
-git add public/exports/public/*.json
-git commit -m "Add public demo: chatbot-safety"
 ```
 
 **Naming Convention:**
@@ -391,9 +383,8 @@ Examples:
 
 **Solutions:**
 1. Check server logs
-2. Verify `/public/exports/public/` directory exists
-3. Ensure write permissions
-4. Check disk space
+2. Verify database connection
+3. Ensure export data passes validation (no secrets, within size limit)
 
 ### Share Link Not Working
 
@@ -401,9 +392,14 @@ Examples:
 
 **Solutions:**
 1. Verify share ID is correct
-2. Check if demo was unpublished
-3. Ensure file exists in `/public/exports/public/`
-4. Clear browser cache
+2. Check if demo was unpublished or expired
+3. Clear browser cache
+
+**Problem:** "This share link has expired"
+
+**Solutions:**
+1. The link was revoked or has passed its expiration date
+2. Request a new share link from the evaluation owner
 
 ---
 

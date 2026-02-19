@@ -64,7 +64,7 @@ export declare function decodeCursor(cursor: string): any;
 /**
  * Create pagination metadata from response
  */
-export declare function createPaginationMeta<T>(items: T[], limit: number, offset: number, total?: number): PaginatedResponse<T>['pagination'];
+export declare function createPaginationMeta<T>(items: T[], limit: number, offset: number, total?: number): PaginatedResponse<T>["pagination"];
 /**
  * Parse pagination params from cursor or offset
  */

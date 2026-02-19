@@ -23,19 +23,25 @@ export default function SharePage({ params }: PageProps) {
   useEffect(() => {
     async function loadDemo() {
       try {
-        const data = await getPublicDemo(id);
+        const result = await getPublicDemo(id);
 
-        if (!data) {
-          setError("Demo not found or not publicly available");
+        if (!result.data) {
+          setError(
+            result.error === "expired"
+              ? "This share link has expired"
+              : result.error === "revoked"
+                ? "This share link has been revoked"
+                : "Share not found or not publicly available",
+          );
           return;
         }
 
-        if (!validateDemoData(data)) {
+        if (!validateDemoData(result.data)) {
           setError("Invalid demo data format");
           return;
         }
 
-        setDemo(data);
+        setDemo(result.data);
       } catch (err) {
         setError("Failed to load demo");
         console.error(err);
@@ -99,7 +105,7 @@ View full results: ${window.location.href}
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    toast.success("Demo data downloaded!");
+    toast.success("Share data downloaded!");
   };
 
   if (loading) {
@@ -120,7 +126,7 @@ View full results: ${window.location.href}
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
-              Demo Not Available
+              Share Not Available
             </CardTitle>
             <CardDescription>
               {error || "This evaluation is not publicly shared or does not exist."}
@@ -138,7 +144,7 @@ View full results: ${window.location.href}
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Banner for demo viewers */}
+      {/* Banner for share viewers */}
       <div className="bg-primary/10 border-b border-primary/20 py-3">
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -181,9 +187,29 @@ View full results: ${window.location.href}
                 {demo.category && <Badge variant="secondary">{demo.category}</Badge>}
               </div>
               {demo.description && <p className="text-muted-foreground">{demo.description}</p>}
-              <p className="text-sm text-muted-foreground mt-2">
-                Shared on {new Date(demo.timestamp).toLocaleDateString()}
-              </p>
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-muted-foreground">
+                <span>
+                  Shared on {new Date(demo.timestamp ?? demo.createdAt).toLocaleDateString()}
+                </span>
+                {(demo as { shareScope?: string }).shareScope === "run" && (
+                  <Badge variant="secondary" className="font-normal">
+                    Immutable snapshot
+                  </Badge>
+                )}
+                {(demo as { shareScope?: string }).shareScope === "evaluation" && (
+                  <Badge variant="outline" className="font-normal">
+                    Updates when republished
+                  </Badge>
+                )}
+                {(demo as { exportHash?: string }).exportHash && (
+                  <span
+                    className="flex items-center gap-1"
+                    title="Hash provided for integrity check"
+                  >
+                    ✓ Integrity hash provided
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleCopyResults}>

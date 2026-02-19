@@ -28,9 +28,7 @@ exports.withContext = withContext;
 exports.withContextSync = withContextSync;
 exports.WithContext = WithContext;
 // Detect environment
-const isNode = typeof process !== 'undefined' &&
-    process.versions?.node &&
-    typeof require !== 'undefined';
+const isNode = typeof process !== "undefined" && process.versions?.node && typeof require !== "undefined";
 // Browser fallback: simple context stack
 class BrowserContextStorage {
     constructor() {
@@ -57,11 +55,11 @@ let contextStorage;
 if (isNode) {
     try {
         // Dynamic import for Node.js only
-        const { AsyncLocalStorage } = require('async_hooks');
+        const { AsyncLocalStorage } = require("node:async_hooks");
         // Create without type argument due to require() being untyped
         contextStorage = new AsyncLocalStorage();
     }
-    catch (error) {
+    catch (_error) {
         // Fallback if async_hooks is not available
         contextStorage = new BrowserContextStorage();
     }
@@ -205,7 +203,7 @@ function withContextSync(metadata, fn) {
  * ```
  */
 function WithContext(metadata) {
-    return function (target, propertyKey, descriptor) {
+    return (_target, _propertyKey, descriptor) => {
         const originalMethod = descriptor.value;
         descriptor.value = async function (...args) {
             return withContext(metadata, () => originalMethod.apply(this, args));

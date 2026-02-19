@@ -94,6 +94,69 @@ export type ImportResult = {
   assertionsJson?: Record<string, unknown>;
 };
 
+export type PublishShareResult = {
+  shareId: string;
+  shareUrl: string;
+  shareScope: string;
+};
+
+export async function fetchRunExport(
+  baseUrl: string,
+  apiKey: string,
+  evaluationId: string,
+  runId: number,
+): Promise<
+  { ok: true; exportData: Record<string, unknown> } | { ok: false; status: number; body: string }
+> {
+  const headers = { Authorization: `Bearer ${apiKey}` };
+  const url = `${baseUrl.replace(/\/$/, "")}/api/evaluations/${evaluationId}/runs/${runId}/export`;
+
+  try {
+    const res = await fetch(url, { headers });
+    const text = await res.text();
+    if (!res.ok) return { ok: false, status: res.status, body: text };
+    const exportData = JSON.parse(text) as Record<string, unknown>;
+    return { ok: true, exportData };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, status: 0, body: msg };
+  }
+}
+
+export async function publishShare(
+  baseUrl: string,
+  apiKey: string,
+  evaluationId: string,
+  exportData: Record<string, unknown>,
+  evaluationRunId: number,
+): Promise<{ ok: true; data: PublishShareResult } | { ok: false; status: number; body: string }> {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${apiKey}`,
+    "Content-Type": "application/json",
+  };
+  const body = {
+    exportData,
+    shareScope: "run",
+    evaluationRunId,
+  };
+  const url = `${baseUrl.replace(/\/$/, "")}/api/evaluations/${evaluationId}/publish`;
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    if (!res.ok) return { ok: false, status: res.status, body: text };
+    const data = JSON.parse(text) as PublishShareResult;
+    return { ok: true, data };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, status: 0, body: msg };
+  }
+}
+
 export async function importRunOnFail(
   baseUrl: string,
   apiKey: string,

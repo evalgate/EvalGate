@@ -9,16 +9,16 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 const check_1 = require("./check");
-const init_1 = require("./init");
 const doctor_1 = require("./doctor");
+const init_1 = require("./init");
 const argv = process.argv.slice(2);
 const subcommand = argv[0];
-if (subcommand === 'init') {
+if (subcommand === "init") {
     const cwd = process.cwd();
     const ok = (0, init_1.runInit)(cwd);
     process.exit(ok ? 0 : 1);
 }
-else if (subcommand === 'doctor') {
+else if (subcommand === "doctor") {
     (0, doctor_1.runDoctor)(argv.slice(1))
         .then((code) => process.exit(code))
         .catch((err) => {
@@ -26,7 +26,7 @@ else if (subcommand === 'doctor') {
         process.exit(1);
     });
 }
-else if (subcommand === 'check') {
+else if (subcommand === "check") {
     const parsed = (0, check_1.parseArgs)(argv.slice(1));
     if (!parsed.ok) {
         console.error(parsed.message);
@@ -66,5 +66,5 @@ Examples:
   evalai check --minScore 92 --evaluationId 42 --apiKey $EVALAI_API_KEY
   evalai check --policy HIPAA --evaluationId 42 --apiKey $EVALAI_API_KEY
 `);
-    process.exit(subcommand === '--help' || subcommand === '-h' ? 0 : 1);
+    process.exit(subcommand === "--help" || subcommand === "-h" ? 0 : 1);
 }

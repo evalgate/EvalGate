@@ -23,58 +23,58 @@ const LOG_LEVELS = {
     debug: 1,
     info: 2,
     warn: 3,
-    error: 4
+    error: 4,
 };
 const LOG_COLORS = {
-    trace: '\x1b[90m', // gray
-    debug: '\x1b[36m', // cyan
-    info: '\x1b[32m', // green
-    warn: '\x1b[33m', // yellow
-    error: '\x1b[31m' // red
+    trace: "\x1b[90m", // gray
+    debug: "\x1b[36m", // cyan
+    info: "\x1b[32m", // green
+    warn: "\x1b[33m", // yellow
+    error: "\x1b[31m", // red
 };
-const COLOR_RESET = '\x1b[0m';
+const COLOR_RESET = "\x1b[0m";
 /**
  * Logger for SDK debugging and troubleshooting
  */
 class Logger {
     constructor(options = {}) {
         this.options = {
-            level: options.level || 'info',
+            level: options.level || "info",
             pretty: options.pretty ?? false,
             timestamps: options.timestamps ?? true,
             handler: options.handler || this.defaultHandler.bind(this),
-            prefix: options.prefix || 'EvalAI'
+            prefix: options.prefix || "EvalAI",
         };
     }
     /**
      * Log a trace message
      */
     trace(message, data) {
-        this.log('trace', message, data);
+        this.log("trace", message, data);
     }
     /**
      * Log a debug message
      */
     debug(message, data) {
-        this.log('debug', message, data);
+        this.log("debug", message, data);
     }
     /**
      * Log an info message
      */
     info(message, data) {
-        this.log('info', message, data);
+        this.log("info", message, data);
     }
     /**
      * Log a warning message
      */
     warn(message, data) {
-        this.log('warn', message, data);
+        this.log("warn", message, data);
     }
     /**
      * Log an error message
      */
     error(message, data) {
-        this.log('error', message, data);
+        this.log("error", message, data);
     }
     /**
      * Log HTTP request
@@ -86,7 +86,7 @@ class Logger {
      * Log HTTP response
      */
     logResponse(method, url, status, duration, data) {
-        const level = status >= 400 ? 'error' : status >= 300 ? 'warn' : 'debug';
+        const level = status >= 400 ? "error" : status >= 300 ? "warn" : "debug";
         this.log(level, `← ${method} ${url} ${status} (${duration}ms)`, data);
     }
     /**
@@ -95,7 +95,7 @@ class Logger {
     child(prefix) {
         return new Logger({
             ...this.options,
-            prefix: `${this.options.prefix}:${prefix}`
+            prefix: `${this.options.prefix}:${prefix}`,
         });
     }
     /**
@@ -118,7 +118,7 @@ class Logger {
             message,
             timestamp: new Date().toISOString(),
             data,
-            prefix: this.options.prefix
+            prefix: this.options.prefix,
         };
         this.options.handler(entry);
     }
@@ -133,23 +133,19 @@ class Logger {
         }
         // Level
         const levelStr = entry.level.toUpperCase().padEnd(5);
-        parts.push(this.options.pretty
-            ? `${LOG_COLORS[entry.level]}${levelStr}${COLOR_RESET}`
-            : levelStr);
+        parts.push(this.options.pretty ? `${LOG_COLORS[entry.level]}${levelStr}${COLOR_RESET}` : levelStr);
         // Prefix
         if (entry.prefix) {
-            parts.push(this.options.pretty
-                ? `\x1b[35m[${entry.prefix}]${COLOR_RESET}`
-                : `[${entry.prefix}]`);
+            parts.push(this.options.pretty ? `\x1b[35m[${entry.prefix}]${COLOR_RESET}` : `[${entry.prefix}]`);
         }
         // Message
         parts.push(entry.message);
         // Log
-        const logLine = parts.join(' ');
-        if (entry.level === 'error') {
+        const logLine = parts.join(" ");
+        if (entry.level === "error") {
             console.error(logLine);
         }
-        else if (entry.level === 'warn') {
+        else if (entry.level === "warn") {
             console.warn(logLine);
         }
         else {
@@ -211,7 +207,7 @@ class RequestLogger {
     logRequest(request) {
         this.logger.logRequest(request.method, request.url, {
             headers: request.headers,
-            body: request.body
+            body: request.body,
         });
     }
     /**
@@ -220,7 +216,7 @@ class RequestLogger {
     logResponse(response) {
         this.logger.logResponse(response.method, response.url, response.status, response.duration, {
             headers: response.headers,
-            body: response.body
+            body: response.body,
         });
     }
 }

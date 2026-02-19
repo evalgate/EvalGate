@@ -20,13 +20,13 @@
  * await importFromLangSmith(client, langsmithData);
  * ```
  */
-import type { AIEvalClient } from './client';
-import type { Trace, Evaluation, TestCase, EvaluationRun } from './types';
-export type ExportFormat = 'json' | 'csv' | 'jsonl';
+import type { AIEvalClient } from "./client";
+import type { Evaluation, EvaluationRun, TestCase, Trace } from "./types";
+export type ExportFormat = "json" | "csv" | "jsonl";
 export type { ExportFormat as ExportType };
 export interface ExportOptions {
     /** Export format */
-    format: 'json' | 'csv' | 'jsonl';
+    format: "json" | "csv" | "jsonl";
     /** Include traces */
     includeTraces?: boolean;
     /** Include evaluations */
@@ -152,7 +152,7 @@ export declare function importData(client: AIEvalClient, data: ExportData, optio
  * });
  * ```
  */
-export declare function exportToFile(client: AIEvalClient, filePath: string, options: Omit<ExportOptions, 'format'>): Promise<void>;
+export declare function exportToFile(client: AIEvalClient, filePath: string, options: Omit<ExportOptions, "format">): Promise<void>;
 /**
  * Import data from JSON file
  *
@@ -192,4 +192,4 @@ export declare function importFromLangSmith(client: AIEvalClient, langsmithData:
  * fs.writeFileSync('traces.csv', csv);
  * ```
  */
-export declare function convertToCSV(data: ExportData, type: 'traces' | 'evaluations'): string;
+export declare function convertToCSV(data: ExportData, type: "traces" | "evaluations"): string;

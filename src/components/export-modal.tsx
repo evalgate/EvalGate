@@ -27,6 +27,7 @@ interface ExportModalProps {
 export interface ExportOptions {
   publishAsDemo: boolean;
   customShareId?: string;
+  shareScope?: "evaluation" | "run";
 }
 
 export function ExportModal({ open, onOpenChange, evaluationName, onExport }: ExportModalProps) {

@@ -67,7 +67,7 @@ class WorkflowTracer {
         this.options = {
             organizationId: options.organizationId || client.getOrganizationId() || 0,
             autoCalculateCost: options.autoCalculateCost ?? true,
-            tracePrefix: options.tracePrefix || 'workflow',
+            tracePrefix: options.tracePrefix || "workflow",
             captureFullPayloads: options.captureFullPayloads ?? true,
             debug: options.debug ?? false,
         };
@@ -92,7 +92,7 @@ class WorkflowTracer {
      */
     async startWorkflow(name, definition, metadata) {
         if (this.currentWorkflow) {
-            throw new Error('A workflow is already active. Call endWorkflow() first.');
+            throw new Error("A workflow is already active. Call endWorkflow() first.");
         }
         const traceId = `${this.options.tracePrefix}-${Date.now()}-${this.generateId()}`;
         const startedAt = new Date().toISOString();
@@ -101,7 +101,7 @@ class WorkflowTracer {
             name: `Workflow: ${name}`,
             traceId,
             organizationId: this.options.organizationId,
-            status: 'pending',
+            status: "pending",
             metadata: (0, context_1.mergeWithContext)({
                 workflowName: name,
                 definition,
@@ -122,22 +122,22 @@ class WorkflowTracer {
         this.costs = [];
         this.activeSpans.clear();
         this.spanCounter = 0;
-        this.log('Started workflow', { name, traceId: trace.id });
+        this.log("Started workflow", { name, traceId: trace.id });
         return this.currentWorkflow;
     }
     /**
      * End the current workflow
      */
-    async endWorkflow(output, status = 'completed') {
+    async endWorkflow(output, status = "completed") {
         if (!this.currentWorkflow) {
-            throw new Error('No active workflow. Call startWorkflow() first.');
+            throw new Error("No active workflow. Call startWorkflow() first.");
         }
         const durationMs = Date.now() - new Date(this.currentWorkflow.startedAt).getTime();
         // Calculate total cost
         const totalCost = this.costs.reduce((sum, cost) => sum + parseFloat(cost.totalCost), 0);
         // Update the original trace with completion data
         await this.client.traces.update(this.currentWorkflow.traceId, {
-            status: status === 'completed' ? 'success' : 'error',
+            status: status === "completed" ? "success" : "error",
             durationMs,
             metadata: (0, context_1.mergeWithContext)({
                 workflowName: this.currentWorkflow.name,
@@ -146,14 +146,14 @@ class WorkflowTracer {
                 totalCost: totalCost.toFixed(6),
                 handoffCount: this.handoffs.length,
                 decisionCount: this.decisions.length,
-                agentCount: new Set(this.handoffs.map(h => h.toAgent)).size + 1,
-                retryCount: this.costs.filter(c => c.isRetry).length,
+                agentCount: new Set(this.handoffs.map((h) => h.toAgent)).size + 1,
+                retryCount: this.costs.filter((c) => c.isRetry).length,
                 handoffs: this.handoffs,
                 decisions: this.decisions,
                 costs: this.costs,
             }),
         });
-        this.log('Ended workflow', {
+        this.log("Ended workflow", {
             name: this.currentWorkflow.name,
             status,
             durationMs,
@@ -176,7 +176,7 @@ class WorkflowTracer {
      */
     async startAgentSpan(agentName, input, parentSpanId) {
         if (!this.currentWorkflow) {
-            throw new Error('No active workflow. Call startWorkflow() first.');
+            throw new Error("No active workflow. Call startWorkflow() first.");
         }
         const spanId = `span-${++this.spanCounter}-${this.generateId()}`;
         const startTime = new Date().toISOString();
@@ -199,7 +199,7 @@ class WorkflowTracer {
                 ...(this.options.captureFullPayloads ? { input } : {}),
             }),
         });
-        this.log('Started agent span', { agentName, spanId });
+        this.log("Started agent span", { agentName, spanId });
         return spanContext;
     }
     /**
@@ -207,7 +207,7 @@ class WorkflowTracer {
      */
     async endAgentSpan(span, output, error) {
         if (!this.currentWorkflow) {
-            throw new Error('No active workflow.');
+            throw new Error("No active workflow.");
         }
         const endTime = new Date().toISOString();
         const durationMs = new Date(endTime).getTime() - new Date(span.startTime).getTime();
@@ -226,7 +226,7 @@ class WorkflowTracer {
             }),
         });
         this.activeSpans.delete(span.spanId);
-        this.log('Ended agent span', { agentName: span.agentName, spanId: span.spanId, durationMs });
+        this.log("Ended agent span", { agentName: span.agentName, spanId: span.spanId, durationMs });
     }
     // ==========================================================================
     // HANDOFFS
@@ -244,9 +244,9 @@ class WorkflowTracer {
      * );
      * ```
      */
-    async recordHandoff(fromAgent, toAgent, context, handoffType = 'delegation') {
+    async recordHandoff(fromAgent, toAgent, context, handoffType = "delegation") {
         if (!this.currentWorkflow) {
-            throw new Error('No active workflow. Call startWorkflow() first.');
+            throw new Error("No active workflow. Call startWorkflow() first.");
         }
         const handoff = {
             fromAgent,
@@ -259,7 +259,7 @@ class WorkflowTracer {
         // Also create a span for the handoff
         const spanId = `handoff-${this.handoffs.length}-${this.generateId()}`;
         await this.client.traces.createSpan(this.currentWorkflow.traceId, {
-            name: `Handoff: ${fromAgent || 'start'} → ${toAgent}`,
+            name: `Handoff: ${fromAgent || "start"} → ${toAgent}`,
             spanId,
             startTime: handoff.timestamp,
             endTime: handoff.timestamp,
@@ -271,7 +271,7 @@ class WorkflowTracer {
                 context,
             }),
         });
-        this.log('Recorded handoff', { fromAgent, toAgent, handoffType });
+        this.log("Recorded handoff", { fromAgent, toAgent, handoffType });
     }
     // ==========================================================================
     // DECISION AUDITING
@@ -297,7 +297,7 @@ class WorkflowTracer {
      */
     async recordDecision(params) {
         if (!this.currentWorkflow) {
-            throw new Error('No active workflow. Call startWorkflow() first.');
+            throw new Error("No active workflow. Call startWorkflow() first.");
         }
         this.decisions.push(params);
         // Create a span for the decision
@@ -321,7 +321,7 @@ class WorkflowTracer {
                 inputContext: params.inputContext,
             }),
         });
-        this.log('Recorded decision', {
+        this.log("Recorded decision", {
             agent: params.agent,
             type: params.type,
             chosen: params.chosen,
@@ -356,7 +356,7 @@ class WorkflowTracer {
         const costRecord = {
             ...params,
             totalTokens,
-            category: params.category || 'llm',
+            category: params.category || "llm",
             inputCost: inputCost.toFixed(6),
             outputCost: outputCost.toFixed(6),
             totalCost: totalCost.toFixed(6),
@@ -377,7 +377,7 @@ class WorkflowTracer {
                 }),
             });
         }
-        this.log('Recorded cost', {
+        this.log("Recorded cost", {
             provider: params.provider,
             model: params.model,
             totalTokens,
@@ -402,7 +402,7 @@ class WorkflowTracer {
             other: 0,
         };
         for (const cost of this.costs) {
-            const category = cost.category || 'other';
+            const category = cost.category || "other";
             breakdown[category] += parseFloat(cost.totalCost);
         }
         return breakdown;
@@ -417,23 +417,23 @@ class WorkflowTracer {
         // Default pricing (can be extended with API lookup)
         const knownPricing = {
             // OpenAI
-            'openai/gpt-4': { inputPricePerMillion: 30.00, outputPricePerMillion: 60.00 },
-            'openai/gpt-4-turbo': { inputPricePerMillion: 10.00, outputPricePerMillion: 30.00 },
-            'openai/gpt-4o': { inputPricePerMillion: 5.00, outputPricePerMillion: 15.00 },
-            'openai/gpt-4o-mini': { inputPricePerMillion: 0.15, outputPricePerMillion: 0.60 },
-            'openai/gpt-3.5-turbo': { inputPricePerMillion: 0.50, outputPricePerMillion: 1.50 },
+            "openai/gpt-4": { inputPricePerMillion: 30.0, outputPricePerMillion: 60.0 },
+            "openai/gpt-4-turbo": { inputPricePerMillion: 10.0, outputPricePerMillion: 30.0 },
+            "openai/gpt-4o": { inputPricePerMillion: 5.0, outputPricePerMillion: 15.0 },
+            "openai/gpt-4o-mini": { inputPricePerMillion: 0.15, outputPricePerMillion: 0.6 },
+            "openai/gpt-3.5-turbo": { inputPricePerMillion: 0.5, outputPricePerMillion: 1.5 },
             // Anthropic
-            'anthropic/claude-3-opus': { inputPricePerMillion: 15.00, outputPricePerMillion: 75.00 },
-            'anthropic/claude-3-sonnet': { inputPricePerMillion: 3.00, outputPricePerMillion: 15.00 },
-            'anthropic/claude-3-haiku': { inputPricePerMillion: 0.25, outputPricePerMillion: 1.25 },
-            'anthropic/claude-3.5-sonnet': { inputPricePerMillion: 3.00, outputPricePerMillion: 15.00 },
+            "anthropic/claude-3-opus": { inputPricePerMillion: 15.0, outputPricePerMillion: 75.0 },
+            "anthropic/claude-3-sonnet": { inputPricePerMillion: 3.0, outputPricePerMillion: 15.0 },
+            "anthropic/claude-3-haiku": { inputPricePerMillion: 0.25, outputPricePerMillion: 1.25 },
+            "anthropic/claude-3.5-sonnet": { inputPricePerMillion: 3.0, outputPricePerMillion: 15.0 },
             // Google
-            'google/gemini-pro': { inputPricePerMillion: 0.50, outputPricePerMillion: 1.50 },
-            'google/gemini-1.5-pro': { inputPricePerMillion: 3.50, outputPricePerMillion: 10.50 },
-            'google/gemini-1.5-flash': { inputPricePerMillion: 0.075, outputPricePerMillion: 0.30 },
+            "google/gemini-pro": { inputPricePerMillion: 0.5, outputPricePerMillion: 1.5 },
+            "google/gemini-1.5-pro": { inputPricePerMillion: 3.5, outputPricePerMillion: 10.5 },
+            "google/gemini-1.5-flash": { inputPricePerMillion: 0.075, outputPricePerMillion: 0.3 },
         };
         const key = `${provider}/${model}`;
-        return knownPricing[key] || { inputPricePerMillion: 1.00, outputPricePerMillion: 3.00 };
+        return knownPricing[key] || { inputPricePerMillion: 1.0, outputPricePerMillion: 3.0 };
     }
     /**
      * Generate a unique ID
@@ -446,7 +446,7 @@ class WorkflowTracer {
      */
     log(message, data) {
         if (this.options.debug) {
-            console.log(`[WorkflowTracer] ${message}`, data || '');
+            console.log(`[WorkflowTracer] ${message}`, data || "");
         }
     }
     /**
@@ -498,7 +498,7 @@ exports.WorkflowTracer = WorkflowTracer;
  * ```
  */
 function traceLangChainAgent(executor, tracer, options = {}) {
-    const agentName = options.agentName || 'LangChainAgent';
+    const agentName = options.agentName || "LangChainAgent";
     const originalInvoke = executor.invoke?.bind(executor);
     const originalCall = executor.call?.bind(executor);
     if (originalInvoke) {
@@ -544,7 +544,7 @@ function traceLangChainAgent(executor, tracer, options = {}) {
  * ```
  */
 function traceCrewAI(crew, tracer, options = {}) {
-    const crewName = options.crewName || 'CrewAI';
+    const crewName = options.crewName || "CrewAI";
     const originalKickoff = crew.kickoff?.bind(crew);
     if (originalKickoff) {
         crew.kickoff = async (input) => {
@@ -553,12 +553,12 @@ function traceCrewAI(crew, tracer, options = {}) {
             try {
                 const result = await originalKickoff(input);
                 await tracer.endAgentSpan(span, { output: result });
-                await tracer.endWorkflow({ result }, 'completed');
+                await tracer.endWorkflow({ result }, "completed");
                 return result;
             }
             catch (error) {
                 await tracer.endAgentSpan(span, undefined, error instanceof Error ? error.message : String(error));
-                await tracer.endWorkflow({ error: error instanceof Error ? error.message : String(error) }, 'failed');
+                await tracer.endWorkflow({ error: error instanceof Error ? error.message : String(error) }, "failed");
                 throw error;
             }
         };
@@ -576,7 +576,7 @@ function traceCrewAI(crew, tracer, options = {}) {
  * ```
  */
 function traceAutoGen(conversation, tracer, options = {}) {
-    const conversationName = options.conversationName || 'AutoGenConversation';
+    const conversationName = options.conversationName || "AutoGenConversation";
     const originalInitiateChat = conversation.initiate_chat?.bind(conversation);
     if (originalInitiateChat) {
         conversation.initiate_chat = async (...args) => {
@@ -585,12 +585,12 @@ function traceAutoGen(conversation, tracer, options = {}) {
             try {
                 const result = await originalInitiateChat(...args);
                 await tracer.endAgentSpan(span, { output: result });
-                await tracer.endWorkflow({ result }, 'completed');
+                await tracer.endWorkflow({ result }, "completed");
                 return result;
             }
             catch (error) {
                 await tracer.endAgentSpan(span, undefined, error instanceof Error ? error.message : String(error));
-                await tracer.endWorkflow({ error: error instanceof Error ? error.message : String(error) }, 'failed');
+                await tracer.endWorkflow({ error: error instanceof Error ? error.message : String(error) }, "failed");
                 throw error;
             }
         };

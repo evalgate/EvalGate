@@ -81,16 +81,16 @@ async function exportData(client, options) {
     const exportData = {
         metadata: {
             exportedAt: new Date().toISOString(),
-            version: '1.0.0',
+            version: "1.0.0",
             format: options.format,
-            organizationId: options.organizationId
-        }
+            organizationId: options.organizationId,
+        },
     };
     // Export traces
     if (options.includeTraces) {
         const traces = await client.traces.list({
             organizationId: options.organizationId,
-            limit: options.limit
+            limit: options.limit,
         });
         exportData.traces = traces;
     }
@@ -98,7 +98,7 @@ async function exportData(client, options) {
     if (options.includeEvaluations) {
         const evaluations = await client.evaluations.list({
             organizationId: options.organizationId,
-            limit: options.limit
+            limit: options.limit,
         });
         exportData.evaluations = evaluations;
         // Export test cases for each evaluation
@@ -140,7 +140,7 @@ async function importData(client, data, options) {
     const result = {
         summary: { total: 0, imported: 0, skipped: 0, failed: 0 },
         details: {},
-        errors: []
+        errors: [],
     };
     if (options.dryRun) {
         // Count what would be imported
@@ -165,13 +165,15 @@ async function importData(client, data, options) {
                     organizationId: options.organizationId || trace.organizationId,
                     status: trace.status,
                     durationMs: trace.durationMs || undefined,
-                    metadata: trace.metadata || undefined
+                    metadata: trace.metadata || undefined,
                 });
                 traceResults.imported++;
                 result.summary.imported++;
             }
             catch (error) {
-                if (options.skipDuplicates && error instanceof Error && error.message.includes('already exists')) {
+                if (options.skipDuplicates &&
+                    error instanceof Error &&
+                    error.message.includes("already exists")) {
                     traceResults.skipped++;
                     result.summary.skipped++;
                 }
@@ -180,7 +182,7 @@ async function importData(client, data, options) {
                     result.summary.failed++;
                     result.errors?.push({
                         item: `trace:${trace.traceId}`,
-                        error: error instanceof Error ? error.message : String(error)
+                        error: error instanceof Error ? error.message : String(error),
                     });
                 }
             }
@@ -194,7 +196,7 @@ async function importData(client, data, options) {
         for (const evaluation of data.evaluations) {
             try {
                 if (!options.createdBy) {
-                    throw new Error('createdBy is required for importing evaluations');
+                    throw new Error("createdBy is required for importing evaluations");
                 }
                 await client.evaluations.create({
                     name: evaluation.name,
@@ -202,13 +204,15 @@ async function importData(client, data, options) {
                     type: evaluation.type,
                     organizationId: options.organizationId || evaluation.organizationId,
                     createdBy: options.createdBy,
-                    status: evaluation.status
+                    status: evaluation.status,
                 });
                 evalResults.imported++;
                 result.summary.imported++;
             }
             catch (error) {
-                if (options.skipDuplicates && error instanceof Error && error.message.includes('already exists')) {
+                if (options.skipDuplicates &&
+                    error instanceof Error &&
+                    error.message.includes("already exists")) {
                     evalResults.skipped++;
                     result.summary.skipped++;
                 }
@@ -217,7 +221,7 @@ async function importData(client, data, options) {
                     result.summary.failed++;
                     result.errors?.push({
                         item: `evaluation:${evaluation.name}`,
-                        error: error instanceof Error ? error.message : String(error)
+                        error: error instanceof Error ? error.message : String(error),
                     });
                 }
             }
@@ -239,8 +243,8 @@ async function importData(client, data, options) {
  * ```
  */
 async function exportToFile(client, filePath, options) {
-    const data = await exportData(client, { ...options, format: 'json' });
-    const fs = await Promise.resolve().then(() => __importStar(require('fs')));
+    const data = await exportData(client, { ...options, format: "json" });
+    const fs = await Promise.resolve().then(() => __importStar(require("node:fs")));
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 /**
@@ -255,8 +259,8 @@ async function exportToFile(client, filePath, options) {
  * ```
  */
 async function importFromFile(client, filePath, options) {
-    const fs = await Promise.resolve().then(() => __importStar(require('fs')));
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const fs = await Promise.resolve().then(() => __importStar(require("node:fs")));
+    const content = fs.readFileSync(filePath, "utf-8");
     const data = JSON.parse(content);
     return importData(client, data, options);
 }
@@ -281,27 +285,27 @@ async function importFromLangSmith(client, langsmithData, options) {
     const transformedData = {
         metadata: {
             exportedAt: new Date().toISOString(),
-            version: '1.0.0',
-            format: 'json',
-            organizationId: options.organizationId
+            version: "1.0.0",
+            format: "json",
+            organizationId: options.organizationId,
         },
-        traces: []
+        traces: [],
     };
     // Transform runs to traces
     if (langsmithData.runs && Array.isArray(langsmithData.runs)) {
         transformedData.traces = langsmithData.runs.map((run) => ({
-            name: run.name || 'Imported Trace',
+            name: run.name || "Imported Trace",
             traceId: run.id || `langsmith-${Date.now()}-${Math.random()}`,
             organizationId: options.organizationId,
-            status: run.error ? 'error' : 'success',
+            status: run.error ? "error" : "success",
             durationMs: run.execution_time ? Math.round(run.execution_time * 1000) : null,
             metadata: {
-                source: 'langsmith',
+                source: "langsmith",
                 original_id: run.id,
                 inputs: run.inputs,
-                outputs: run.outputs
+                outputs: run.outputs,
             },
-            createdAt: run.start_time || new Date().toISOString()
+            createdAt: run.start_time || new Date().toISOString(),
         }));
     }
     return importData(client, transformedData, options);
@@ -317,18 +321,20 @@ async function importFromLangSmith(client, langsmithData, options) {
  * ```
  */
 function convertToCSV(data, type) {
-    const items = type === 'traces' ? data.traces : data.evaluations;
+    const items = type === "traces" ? data.traces : data.evaluations;
     if (!items || items.length === 0)
-        return '';
+        return "";
     // Get headers from first item
     const headers = Object.keys(items[0]);
-    const rows = items.map(item => headers.map(h => {
+    const rows = items.map((item) => headers
+        .map((h) => {
         const value = item[h];
         if (value === null || value === undefined)
-            return '';
-        if (typeof value === 'object')
+            return "";
+        if (typeof value === "object")
             return JSON.stringify(value);
         return String(value);
-    }).join(','));
-    return [headers.join(','), ...rows].join('\n');
+    })
+        .join(","));
+    return [headers.join(","), ...rows].join("\n");
 }

@@ -2,8 +2,8 @@
  * Pure gate evaluation. No console output.
  * Baseline missing → configuration failure (BAD_ARGS), not API_ERROR.
  */
-import type { CheckArgs } from './check';
-import type { QualityLatestData } from './api';
+import type { QualityLatestData } from "./api";
+import type { CheckArgs } from "./check";
 export type GateResult = {
     exitCode: number;
     passed: boolean;

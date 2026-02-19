@@ -17,7 +17,7 @@
  * });
  * ```
  */
-import type { AIEvalClient } from '../client';
+import type { AIEvalClient } from "../client";
 export interface OpenAITraceOptions {
     /** Whether to capture input (default: true) */
     captureInput?: boolean;

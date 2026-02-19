@@ -11,64 +11,64 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LocalStorage = void 0;
 // Environment check
-const isNode = typeof process !== 'undefined' && process.versions?.node;
+const isNode = typeof process !== "undefined" && process.versions?.node;
 if (!isNode) {
-    throw new Error('Local storage mode requires Node.js and cannot run in browsers. ' +
-        'This feature uses the filesystem for storing data.');
+    throw new Error("Local storage mode requires Node.js and cannot run in browsers. " +
+        "This feature uses the filesystem for storing data.");
 }
-const promises_1 = __importDefault(require("fs/promises"));
-const path_1 = __importDefault(require("path"));
+const promises_1 = __importDefault(require("node:fs/promises"));
+const node_path_1 = __importDefault(require("node:path"));
 class LocalStorage {
     constructor(options = {}) {
         this.traces = new Map();
         this.evaluations = new Map();
         this.spans = new Map();
-        this.directory = options.directory || './.evalai-data';
+        this.directory = options.directory || "./.evalai-data";
         this.autoSave = options.autoSave !== false;
         this.initialize();
     }
     async initialize() {
         try {
             await promises_1.default.mkdir(this.directory, { recursive: true });
-            await promises_1.default.mkdir(path_1.default.join(this.directory, 'traces'), { recursive: true });
-            await promises_1.default.mkdir(path_1.default.join(this.directory, 'evaluations'), { recursive: true });
-            await promises_1.default.mkdir(path_1.default.join(this.directory, 'spans'), { recursive: true });
+            await promises_1.default.mkdir(node_path_1.default.join(this.directory, "traces"), { recursive: true });
+            await promises_1.default.mkdir(node_path_1.default.join(this.directory, "evaluations"), { recursive: true });
+            await promises_1.default.mkdir(node_path_1.default.join(this.directory, "spans"), { recursive: true });
             // Load existing data
             await this.loadAllData();
         }
         catch (error) {
-            console.warn('Failed to initialize local storage:', error);
+            console.warn("Failed to initialize local storage:", error);
         }
     }
     async loadAllData() {
         try {
             // Load traces
-            const tracesDir = path_1.default.join(this.directory, 'traces');
+            const tracesDir = node_path_1.default.join(this.directory, "traces");
             const traceFiles = await promises_1.default.readdir(tracesDir);
             for (const file of traceFiles) {
-                if (file.endsWith('.json')) {
-                    const content = await promises_1.default.readFile(path_1.default.join(tracesDir, file), 'utf-8');
+                if (file.endsWith(".json")) {
+                    const content = await promises_1.default.readFile(node_path_1.default.join(tracesDir, file), "utf-8");
                     const trace = JSON.parse(content);
                     this.traces.set(trace.id.toString(), trace);
                 }
             }
             // Load evaluations
-            const evalsDir = path_1.default.join(this.directory, 'evaluations');
+            const evalsDir = node_path_1.default.join(this.directory, "evaluations");
             const evalFiles = await promises_1.default.readdir(evalsDir);
             for (const file of evalFiles) {
-                if (file.endsWith('.json')) {
-                    const content = await promises_1.default.readFile(path_1.default.join(evalsDir, file), 'utf-8');
+                if (file.endsWith(".json")) {
+                    const content = await promises_1.default.readFile(node_path_1.default.join(evalsDir, file), "utf-8");
                     const evaluation = JSON.parse(content);
                     this.evaluations.set(evaluation.id.toString(), evaluation);
                 }
             }
         }
-        catch (error) {
+        catch (_error) {
             // Directories might not exist yet, that's fine
         }
     }
     async saveTraceToDisk(trace) {
-        const filePath = path_1.default.join(this.directory, 'traces', `${trace.id}.json`);
+        const filePath = node_path_1.default.join(this.directory, "traces", `${trace.id}.json`);
         await promises_1.default.writeFile(filePath, JSON.stringify(trace, null, 2));
     }
     async saveTrace(trace) {
@@ -84,7 +84,7 @@ class LocalStorage {
         return Array.from(this.traces.values());
     }
     async saveEvaluationToDisk(evaluation) {
-        const filePath = path_1.default.join(this.directory, 'evaluations', `${evaluation.id}.json`);
+        const filePath = node_path_1.default.join(this.directory, "evaluations", `${evaluation.id}.json`);
         await promises_1.default.writeFile(filePath, JSON.stringify(evaluation, null, 2));
     }
     async saveEvaluation(evaluation) {
@@ -100,7 +100,7 @@ class LocalStorage {
         return Array.from(this.evaluations.values());
     }
     async saveSpansToDisk(traceId, spans) {
-        const filePath = path_1.default.join(this.directory, 'spans', `${traceId}.json`);
+        const filePath = node_path_1.default.join(this.directory, "spans", `${traceId}.json`);
         await promises_1.default.writeFile(filePath, JSON.stringify(spans, null, 2));
     }
     async saveSpans(traceId, spans) {
@@ -122,16 +122,16 @@ class LocalStorage {
             await this.initialize();
         }
         catch (error) {
-            console.warn('Failed to clear local storage:', error);
+            console.warn("Failed to clear local storage:", error);
         }
     }
-    async export(format) {
+    async export(_format) {
         const data = {
             traces: Array.from(this.traces.values()),
             evaluations: Array.from(this.evaluations.values()),
-            spans: Object.fromEntries(this.spans)
+            spans: Object.fromEntries(this.spans),
         };
-        const exportPath = path_1.default.join(this.directory, `export-${Date.now()}.json`);
+        const exportPath = node_path_1.default.join(this.directory, `export-${Date.now()}.json`);
         await promises_1.default.writeFile(exportPath, JSON.stringify(data, null, 2));
         return exportPath;
     }
@@ -139,7 +139,7 @@ class LocalStorage {
         return {
             traces: this.traces.size,
             evaluations: this.evaluations.size,
-            totalSpans: Array.from(this.spans.values()).reduce((sum, spans) => sum + spans.length, 0)
+            totalSpans: Array.from(this.spans.values()).reduce((sum, spans) => sum + spans.length, 0),
         };
     }
 }

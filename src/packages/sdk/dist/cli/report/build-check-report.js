@@ -33,7 +33,7 @@ function buildCheckReport(input) {
     const evaluationRunId = quality?.evaluationRunId;
     const breakdown = quality?.breakdown ?? {};
     const flags = (quality?.flags ?? []);
-    const baseUrl = args.baseUrl.replace(/\/$/, '');
+    const baseUrl = args.baseUrl.replace(/\/$/, "");
     const dashboardUrl = evaluationRunId != null
         ? `${baseUrl}/evaluations/${args.evaluationId}/runs/${evaluationRunId}`
         : undefined;
@@ -41,10 +41,10 @@ function buildCheckReport(input) {
     let failedCases = [];
     if (runDetails?.results && evaluationRunId != null) {
         const raw = runDetails.results
-            .filter((r) => r.status === 'failed')
+            .filter((r) => r.status === "failed")
             .map((r) => ({
             testCaseId: r.testCaseId,
-            status: 'failed',
+            status: "failed",
             name: r.test_cases?.name,
             input: r.test_cases?.input,
             expectedOutput: r.test_cases?.expectedOutput,
@@ -64,7 +64,7 @@ function buildCheckReport(input) {
     const report = {
         evaluationId: args.evaluationId,
         runId: evaluationRunId,
-        verdict: gateResult.passed ? 'pass' : 'fail',
+        verdict: gateResult.passed ? "pass" : "fail",
         reasonCode: gateResult.reasonCode,
         reasonMessage: gateResult.reasonMessage ?? undefined,
         score,

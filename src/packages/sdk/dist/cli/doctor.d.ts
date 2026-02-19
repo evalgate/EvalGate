@@ -6,6 +6,6 @@ export type DoctorArgs = {
     baseUrl: string;
     apiKey: string;
     evaluationId: string;
-    baseline: 'published' | 'previous' | 'production';
+    baseline: "published" | "previous" | "production";
 };
 export declare function runDoctor(argv: string[]): Promise<number>;

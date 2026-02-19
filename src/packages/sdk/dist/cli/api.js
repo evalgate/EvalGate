@@ -9,10 +9,10 @@ exports.fetchRunDetails = fetchRunDetails;
 exports.importRunOnFail = importRunOnFail;
 async function fetchQualityLatest(baseUrl, apiKey, evaluationId, baseline) {
     const headers = { Authorization: `Bearer ${apiKey}` };
-    const url = `${baseUrl.replace(/\/$/, '')}/api/quality?evaluationId=${evaluationId}&action=latest&baseline=${baseline}`;
+    const url = `${baseUrl.replace(/\/$/, "")}/api/quality?evaluationId=${evaluationId}&action=latest&baseline=${baseline}`;
     try {
         const res = await fetch(url, { headers });
-        const requestId = res.headers.get('x-request-id') ?? undefined;
+        const requestId = res.headers.get("x-request-id") ?? undefined;
         const body = await res.text();
         if (!res.ok) {
             return { ok: false, status: res.status, body, requestId };
@@ -27,7 +27,7 @@ async function fetchQualityLatest(baseUrl, apiKey, evaluationId, baseline) {
 }
 async function fetchRunDetails(baseUrl, apiKey, evaluationId, runId) {
     const headers = { Authorization: `Bearer ${apiKey}` };
-    const url = `${baseUrl.replace(/\/$/, '')}/api/evaluations/${evaluationId}/runs/${runId}`;
+    const url = `${baseUrl.replace(/\/$/, "")}/api/evaluations/${evaluationId}/runs/${runId}`;
     try {
         const res = await fetch(url, { headers });
         if (!res.ok)
@@ -42,21 +42,21 @@ async function fetchRunDetails(baseUrl, apiKey, evaluationId, runId) {
 async function importRunOnFail(baseUrl, apiKey, evaluationId, results, options) {
     const headers = {
         Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
     };
     if (options.idempotencyKey) {
-        headers['Idempotency-Key'] = options.idempotencyKey;
+        headers["Idempotency-Key"] = options.idempotencyKey;
     }
     const body = {
-        environment: 'dev',
+        environment: "dev",
         results,
-        importClientVersion: options.importClientVersion ?? 'evalai-cli',
+        importClientVersion: options.importClientVersion ?? "evalai-cli",
         ci: options.ci,
     };
-    const url = `${baseUrl.replace(/\/$/, '')}/api/evaluations/${evaluationId}/runs/import`;
+    const url = `${baseUrl.replace(/\/$/, "")}/api/evaluations/${evaluationId}/runs/import`;
     try {
         const res = await fetch(url, {
-            method: 'POST',
+            method: "POST",
             headers,
             body: JSON.stringify(body),
         });

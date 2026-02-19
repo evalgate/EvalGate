@@ -33,8 +33,8 @@
  *   EVALAI_BASE_URL  — API base URL (default: http://localhost:3000)
  *   EVALAI_API_KEY   — API key for authentication
  */
-export { EXIT } from './constants';
-export type FormatType = 'human' | 'json' | 'github';
+export { EXIT } from "./constants";
+export type FormatType = "human" | "json" | "github";
 export interface CheckArgs {
     baseUrl: string;
     apiKey: string;
@@ -44,10 +44,10 @@ export interface CheckArgs {
     allowWeakEvidence: boolean;
     evaluationId: string;
     policy?: string;
-    baseline: 'published' | 'previous' | 'production';
+    baseline: "published" | "previous" | "production";
     format: FormatType;
     explain: boolean;
-    onFail?: 'import';
+    onFail?: "import";
 }
 export type ParseArgsResult = {
     ok: true;

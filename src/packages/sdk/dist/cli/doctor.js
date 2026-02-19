@@ -5,32 +5,32 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runDoctor = runDoctor;
-const config_1 = require("./config");
 const api_1 = require("./api");
+const config_1 = require("./config");
 function parseDoctorArgs(argv) {
     const args = {};
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i];
-        if (arg.startsWith('--')) {
+        if (arg.startsWith("--")) {
             const key = arg.slice(2);
             const next = argv[i + 1];
-            if (next !== undefined && !next.startsWith('--')) {
+            if (next !== undefined && !next.startsWith("--")) {
                 args[key] = next;
                 i++;
             }
             else {
-                args[key] = 'true';
+                args[key] = "true";
             }
         }
     }
-    const baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || 'http://localhost:3000';
-    const apiKey = args.apiKey || process.env.EVALAI_API_KEY || '';
-    let evaluationId = args.evaluationId || '';
-    const baseline = (args.baseline === 'previous'
-        ? 'previous'
-        : args.baseline === 'production'
-            ? 'production'
-            : 'published');
+    const baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || "http://localhost:3000";
+    const apiKey = args.apiKey || process.env.EVALAI_API_KEY || "";
+    let evaluationId = args.evaluationId || "";
+    const baseline = (args.baseline === "previous"
+        ? "previous"
+        : args.baseline === "production"
+            ? "production"
+            : "published");
     if (!evaluationId) {
         const config = (0, config_1.loadConfig)(process.cwd());
         const merged = (0, config_1.mergeConfigWithArgs)(config, {
@@ -42,20 +42,20 @@ function parseDoctorArgs(argv) {
             evaluationId = String(merged.evaluationId);
     }
     if (!apiKey) {
-        return { ok: false, message: 'Set EVALAI_API_KEY' };
+        return { ok: false, message: "Set EVALAI_API_KEY" };
     }
     if (!evaluationId) {
         const configPath = (0, config_1.findConfigPath)(process.cwd());
         if (!configPath) {
-            return { ok: false, message: 'Run npx evalai init' };
+            return { ok: false, message: "Run npx evalai init" };
         }
-        return { ok: false, message: 'Set evaluationId in evalai.config.json' };
+        return { ok: false, message: "Set evaluationId in evalai.config.json" };
     }
     return { baseUrl, apiKey, evaluationId, baseline };
 }
 async function runDoctor(argv) {
     const parsed = parseDoctorArgs(argv);
-    if (!('baseUrl' in parsed)) {
+    if (!("baseUrl" in parsed)) {
         console.error(parsed.message);
         return 1;
     }
@@ -74,9 +74,9 @@ async function runDoctor(argv) {
     const { data } = result;
     // Baseline: if quality returns baselineMissing, suggest fix
     if (data.baselineMissing === true) {
-        console.error('Publish a run or use --baseline previous');
+        console.error("Publish a run or use --baseline previous");
         return 1;
     }
-    console.log('✓ EvalAI doctor: OK');
+    console.log("✓ EvalAI doctor: OK");
     return 0;
 }

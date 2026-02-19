@@ -12,7 +12,7 @@
  * logger.error('Request failed', { error: err });
  * ```
  */
-export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = "trace" | "debug" | "info" | "warn" | "error";
 export interface LoggerOptions {
     /** Log level (default: 'info') */
     level?: LogLevel;

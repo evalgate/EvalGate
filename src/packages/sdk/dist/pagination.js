@@ -78,11 +78,11 @@ async function* autoPaginate(fetchFn, limit = 50) {
  */
 function encodeCursor(data) {
     const json = JSON.stringify(data);
-    if (typeof globalThis !== 'undefined' && 'btoa' in globalThis) {
+    if (typeof globalThis !== "undefined" && "btoa" in globalThis) {
         return globalThis.btoa(json);
     }
     else {
-        return Buffer.from(json).toString('base64');
+        return Buffer.from(json).toString("base64");
     }
 }
 /**
@@ -91,16 +91,16 @@ function encodeCursor(data) {
 function decodeCursor(cursor) {
     try {
         let json;
-        if (typeof globalThis !== 'undefined' && 'atob' in globalThis) {
+        if (typeof globalThis !== "undefined" && "atob" in globalThis) {
             json = globalThis.atob(cursor);
         }
         else {
-            json = Buffer.from(cursor, 'base64').toString('utf-8');
+            json = Buffer.from(cursor, "base64").toString("utf-8");
         }
         return JSON.parse(json);
     }
-    catch (error) {
-        throw new Error('Invalid cursor format');
+    catch (_error) {
+        throw new Error("Invalid cursor format");
     }
 }
 /**

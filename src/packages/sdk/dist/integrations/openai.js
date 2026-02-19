@@ -41,7 +41,7 @@ const context_1 = require("../context");
  * ```
  */
 function traceOpenAI(openai, evalClient, options = {}) {
-    const { captureInput = true, captureOutput = true, captureMetadata = true, organizationId, tracePrefix = 'openai' } = options;
+    const { captureInput = true, captureOutput = true, captureMetadata = true, organizationId, tracePrefix = "openai", } = options;
     // Create proxy for chat.completions.create
     const originalCreate = openai.chat.completions.create.bind(openai.chat.completions);
     openai.chat.completions.create = async (params, requestOptions) => {
@@ -58,18 +58,20 @@ function traceOpenAI(openai, evalClient, options = {}) {
                 max_tokens: params.max_tokens,
                 ...(captureInput ? { input: params.messages } : {}),
                 ...(captureOutput ? { output: response.choices[0]?.message } : {}),
-                ...(captureMetadata ? {
-                    usage: response.usage,
-                    finish_reason: response.choices[0]?.finish_reason
-                } : {})
+                ...(captureMetadata
+                    ? {
+                        usage: response.usage,
+                        finish_reason: response.choices[0]?.finish_reason,
+                    }
+                    : {}),
             });
             await evalClient.traces.create({
                 name: `OpenAI: ${params.model}`,
                 traceId,
                 organizationId: organizationId || evalClient.getOrganizationId(),
-                status: 'success',
+                status: "success",
                 durationMs,
-                metadata: traceMetadata
+                metadata: traceMetadata,
             });
             return response;
         }
@@ -82,16 +84,18 @@ function traceOpenAI(openai, evalClient, options = {}) {
                 max_tokens: params.max_tokens,
                 ...(captureInput ? { input: params.messages } : {}),
                 ...(captureMetadata ? { params } : {}),
-                error: error instanceof Error ? error.message : String(error)
+                error: error instanceof Error ? error.message : String(error),
             });
-            await evalClient.traces.create({
+            await evalClient.traces
+                .create({
                 name: `OpenAI: ${params.model}`,
                 traceId,
                 organizationId: organizationId || evalClient.getOrganizationId(),
-                status: 'error',
+                status: "error",
                 durationMs,
-                metadata: errorMetadata
-            }).catch(() => {
+                metadata: errorMetadata,
+            })
+                .catch(() => {
                 // Ignore errors in trace creation to avoid masking the original error
             });
             throw error;
@@ -124,8 +128,8 @@ async function traceOpenAICall(evalClient, name, fn, options = {}) {
             name,
             traceId,
             organizationId: options.organizationId || evalClient.getOrganizationId(),
-            status: 'pending',
-            metadata: (0, context_1.mergeWithContext)({})
+            status: "pending",
+            metadata: (0, context_1.mergeWithContext)({}),
         });
         const result = await fn();
         const durationMs = Date.now() - startTime;
@@ -133,9 +137,9 @@ async function traceOpenAICall(evalClient, name, fn, options = {}) {
             name,
             traceId,
             organizationId: options.organizationId || evalClient.getOrganizationId(),
-            status: 'success',
+            status: "success",
             durationMs,
-            metadata: (0, context_1.mergeWithContext)({})
+            metadata: (0, context_1.mergeWithContext)({}),
         });
         return result;
     }
@@ -145,11 +149,11 @@ async function traceOpenAICall(evalClient, name, fn, options = {}) {
             name,
             traceId,
             organizationId: options.organizationId || evalClient.getOrganizationId(),
-            status: 'error',
+            status: "error",
             durationMs,
             metadata: (0, context_1.mergeWithContext)({
-                error: error instanceof Error ? error.message : String(error)
-            })
+                error: error instanceof Error ? error.message : String(error),
+            }),
         });
         throw error;
     }

@@ -44,15 +44,15 @@ exports.chunk = chunk;
  * ```
  */
 async function batchProcess(processor, items, options = {}) {
-    const { batchSize = 100, parallel = true, delayMs = 0, onProgress, onError, continueOnError = true } = options;
+    const { batchSize = 100, parallel = true, delayMs = 0, onProgress, onError, continueOnError = true, } = options;
     const result = {
         successful: [],
         failed: [],
         summary: {
             total: items.length,
             successful: 0,
-            failed: 0
-        }
+            failed: 0,
+        },
     };
     // Split into batches
     const batches = [];
@@ -75,11 +75,11 @@ async function batchProcess(processor, items, options = {}) {
                         batch: batchIndex,
                         index: itemIndex,
                         error: error instanceof Error ? error : new Error(String(error)),
-                        item
+                        item,
                     };
                     result.failed.push({
                         item,
-                        error: batchError.error
+                        error: batchError.error,
                     });
                     result.summary.failed++;
                     if (onError)
@@ -107,12 +107,12 @@ async function batchProcess(processor, items, options = {}) {
                 completed: result.summary.successful + result.summary.failed,
                 failed: result.summary.failed,
                 batch: batchIndex + 1,
-                totalBatches: batches.length
+                totalBatches: batches.length,
             });
         }
         // Delay between batches
         if (delayMs > 0 && batchIndex < batches.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, delayMs));
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
         }
     }
     return result;
@@ -146,7 +146,7 @@ async function* streamEvaluation(config) {
                 result,
                 passed: true,
                 completed,
-                total: cases.length
+                total: cases.length,
             };
         }
         catch (error) {
@@ -157,7 +157,7 @@ async function* streamEvaluation(config) {
                 result: error,
                 passed: false,
                 completed,
-                total: cases.length
+                total: cases.length,
             };
         }
     }
@@ -181,7 +181,7 @@ async function batchRead(fetcher, options = {}) {
     while (hasMore && (!maxPages || page < maxPages)) {
         const items = await fetcher({
             limit: pageSize,
-            offset: page * pageSize
+            offset: page * pageSize,
         });
         if (items.length === 0) {
             hasMore = false;
@@ -243,7 +243,7 @@ class RateLimiter {
             const fn = this.queue.shift();
             if (fn) {
                 await fn();
-                await new Promise(resolve => setTimeout(resolve, this.interval));
+                await new Promise((resolve) => setTimeout(resolve, this.interval));
             }
         }
         this.processing = false;

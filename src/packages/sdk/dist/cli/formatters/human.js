@@ -9,23 +9,25 @@ const snippet_1 = require("../render/snippet");
 const TOP_N = 3;
 function formatHuman(report) {
     const lines = [];
-    const passed = report.verdict === 'pass';
+    const passed = report.verdict === "pass";
     const failReason = report.reasonMessage;
-    lines.push(passed ? '\n✓ EvalAI gate PASSED' : `\n✗ EvalAI gate FAILED: ${failReason ?? report.reasonCode}`);
+    lines.push(passed
+        ? "\n✓ EvalAI gate PASSED"
+        : `\n✗ EvalAI gate FAILED: ${failReason ?? report.reasonCode}`);
     const deltaStr = report.baselineScore != null && report.delta != null
-        ? ` (baseline ${report.baselineScore}, ${report.delta >= 0 ? '+' : ''}${report.delta} pts)`
-        : '';
+        ? ` (baseline ${report.baselineScore}, ${report.delta >= 0 ? "+" : ""}${report.delta} pts)`
+        : "";
     lines.push(`Score: ${report.score ?? 0}/100${deltaStr}`);
     const failedCases = report.failedCases ?? [];
     if (failedCases.length > 0) {
         const toShow = failedCases.slice(0, TOP_N);
-        lines.push(`${failedCases.length} failing case${failedCases.length === 1 ? '' : 's'}:`);
+        lines.push(`${failedCases.length} failing case${failedCases.length === 1 ? "" : "s"}:`);
         for (const fc of toShow) {
-            const label = fc.name ?? fc.input ?? '(unnamed)';
+            const label = fc.name ?? fc.input ?? "(unnamed)";
             const exp = (0, snippet_1.truncateSnippet)(fc.expectedOutput ?? fc.expectedSnippet, 50);
             const out = (0, snippet_1.truncateSnippet)(fc.output ?? fc.outputSnippet, 50);
-            const reason = out ? `got "${out}"` : 'no output';
-            lines.push(`  - "${(0, snippet_1.truncateSnippet)(label, 50)}" → expected: ${exp || '(any)'}, ${reason}`);
+            const reason = out ? `got "${out}"` : "no output";
+            lines.push(`  - "${(0, snippet_1.truncateSnippet)(label, 50)}" → expected: ${exp || "(any)"}, ${reason}`);
         }
         if (failedCases.length > toShow.length) {
             lines.push(`  + ${failedCases.length - toShow.length} more`);
@@ -35,11 +37,11 @@ function formatHuman(report) {
         lines.push(`Dashboard: ${report.dashboardUrl}`);
     }
     if (!passed) {
-        lines.push('Next: View full report above, fix failing cases, or adjust gate with --minScore / --maxDrop');
+        lines.push("Next: View full report above, fix failing cases, or adjust gate with --minScore / --maxDrop");
     }
     if (report.explain && (report.breakdown01 || report.contribPts || report.flags?.length)) {
-        lines.push('');
-        lines.push('--- Explain ---');
+        lines.push("");
+        lines.push("--- Explain ---");
         if (report.contribPts) {
             const cp = report.contribPts;
             const pts = [];
@@ -52,7 +54,7 @@ function formatHuman(report) {
             if (cp.performancePts != null)
                 pts.push(`performance: ${cp.performancePts}`);
             if (pts.length)
-                lines.push(`Contrib pts: ${pts.join(', ')}`);
+                lines.push(`Contrib pts: ${pts.join(", ")}`);
         }
         if (report.breakdown01) {
             const b = report.breakdown01;
@@ -70,10 +72,10 @@ function formatHuman(report) {
             if (b.cost != null)
                 parts.push(`cost=${b.cost}`);
             if (parts.length)
-                lines.push(`Breakdown: ${parts.join(', ')}`);
+                lines.push(`Breakdown: ${parts.join(", ")}`);
         }
         if (report.flags && report.flags.length > 0) {
-            lines.push(`Flags: ${report.flags.join(', ')}`);
+            lines.push(`Flags: ${report.flags.join(", ")}`);
         }
         if (report.thresholds) {
             const t = report.thresholds;
@@ -85,8 +87,8 @@ function formatHuman(report) {
             if (t.minN != null)
                 parts.push(`minN=${t.minN}`);
             if (parts.length)
-                lines.push(`Thresholds: ${parts.join(', ')}`);
+                lines.push(`Thresholds: ${parts.join(", ")}`);
         }
     }
-    return lines.join('\n');
+    return lines.join("\n");
 }

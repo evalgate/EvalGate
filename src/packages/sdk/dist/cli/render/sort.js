@@ -13,8 +13,8 @@ const STATUS_SEVERITY = {
 };
 function sortFailedCases(cases) {
     return [...cases].sort((a, b) => {
-        const sevA = STATUS_SEVERITY[a.status?.toLowerCase() ?? ''] ?? 4;
-        const sevB = STATUS_SEVERITY[b.status?.toLowerCase() ?? ''] ?? 4;
+        const sevA = STATUS_SEVERITY[a.status?.toLowerCase() ?? ""] ?? 4;
+        const sevB = STATUS_SEVERITY[b.status?.toLowerCase() ?? ""] ?? 4;
         if (sevA !== sevB)
             return sevA - sevB;
         const idA = a.testCaseId ?? 0;

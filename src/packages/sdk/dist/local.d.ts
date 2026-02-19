@@ -4,7 +4,7 @@
  *
  * ⚠️ NOTE: This module requires Node.js and will not work in browsers.
  */
-import type { Trace, Evaluation, Span } from './types';
+import type { Evaluation, Span, Trace } from "./types";
 export interface LocalStorageOptions {
     directory?: string;
     autoSave?: boolean;
@@ -30,7 +30,7 @@ export declare class LocalStorage {
     saveSpans(traceId: string, spans: Span[]): Promise<void>;
     getSpans(traceId: string): Promise<Span[] | undefined>;
     clear(): Promise<void>;
-    export(format: 'json'): Promise<string>;
+    export(_format: "json"): Promise<string>;
     getStats(): {
         traces: number;
         evaluations: number;

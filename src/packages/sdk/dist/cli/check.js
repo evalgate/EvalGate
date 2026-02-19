@@ -38,50 +38,50 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EXIT = void 0;
 exports.parseArgs = parseArgs;
 exports.runCheck = runCheck;
-const config_1 = require("./config");
 const api_1 = require("./api");
 const ci_context_1 = require("./ci-context");
-const gate_1 = require("./gate");
-const build_check_report_1 = require("./report/build-check-report");
+const config_1 = require("./config");
+const constants_1 = require("./constants");
+const github_1 = require("./formatters/github");
 const human_1 = require("./formatters/human");
 const json_1 = require("./formatters/json");
-const github_1 = require("./formatters/github");
-const constants_1 = require("./constants");
+const gate_1 = require("./gate");
+const build_check_report_1 = require("./report/build-check-report");
 var constants_2 = require("./constants");
 Object.defineProperty(exports, "EXIT", { enumerable: true, get: function () { return constants_2.EXIT; } });
 function parseArgs(argv) {
     const args = {};
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i];
-        if (arg.startsWith('--')) {
+        if (arg.startsWith("--")) {
             const key = arg.slice(2);
             const next = argv[i + 1];
-            if (next !== undefined && !next.startsWith('--')) {
+            if (next !== undefined && !next.startsWith("--")) {
                 args[key] = next;
                 i++;
             }
             else {
-                args[key] = 'true';
+                args[key] = "true";
             }
         }
     }
-    let baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || 'http://localhost:3000';
-    const apiKey = args.apiKey || process.env.EVALAI_API_KEY || '';
-    let minScore = parseInt(args.minScore || '0');
-    const maxDrop = args.maxDrop ? parseInt(args.maxDrop) : undefined;
-    let minN = args.minN ? parseInt(args.minN) : undefined;
-    let allowWeakEvidence = args.allowWeakEvidence === 'true' || args.allowWeakEvidence === '1';
-    let evaluationId = args.evaluationId || '';
+    let baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || "http://localhost:3000";
+    const apiKey = args.apiKey || process.env.EVALAI_API_KEY || "";
+    let minScore = parseInt(args.minScore || "0", 10);
+    const maxDrop = args.maxDrop ? parseInt(args.maxDrop, 10) : undefined;
+    let minN = args.minN ? parseInt(args.minN, 10) : undefined;
+    let allowWeakEvidence = args.allowWeakEvidence === "true" || args.allowWeakEvidence === "1";
+    let evaluationId = args.evaluationId || "";
     const policy = args.policy || undefined;
-    const formatRaw = args.format || 'human';
-    const format = formatRaw === 'json' ? 'json' : formatRaw === 'github' ? 'github' : 'human';
-    const explain = args.explain === 'true' || args.explain === '1';
-    const onFail = args.onFail === 'import' ? 'import' : undefined;
-    let baseline = (args.baseline === 'previous'
-        ? 'previous'
-        : args.baseline === 'production'
-            ? 'production'
-            : 'published');
+    const formatRaw = args.format || "human";
+    const format = formatRaw === "json" ? "json" : formatRaw === "github" ? "github" : "human";
+    const explain = args.explain === "true" || args.explain === "1";
+    const onFail = args.onFail === "import" ? "import" : undefined;
+    let baseline = (args.baseline === "previous"
+        ? "previous"
+        : args.baseline === "production"
+            ? "production"
+            : "published");
     if (!evaluationId) {
         const config = (0, config_1.loadConfig)(process.cwd());
         const merged = (0, config_1.mergeConfigWithArgs)(config, {
@@ -106,20 +106,45 @@ function parseArgs(argv) {
             baseline = merged.baseline;
     }
     if (!apiKey) {
-        return { ok: false, exitCode: constants_1.EXIT.BAD_ARGS, message: 'Error: --apiKey or EVALAI_API_KEY is required' };
+        return {
+            ok: false,
+            exitCode: constants_1.EXIT.BAD_ARGS,
+            message: "Error: --apiKey or EVALAI_API_KEY is required",
+        };
     }
     if (!evaluationId) {
-        return { ok: false, exitCode: constants_1.EXIT.BAD_ARGS, message: 'Run npx evalai init and paste your evaluationId, or pass --evaluationId.' };
+        return {
+            ok: false,
+            exitCode: constants_1.EXIT.BAD_ARGS,
+            message: "Run npx evalai init and paste your evaluationId, or pass --evaluationId.",
+        };
     }
-    if (isNaN(minScore) || minScore < 0 || minScore > 100) {
-        return { ok: false, exitCode: constants_1.EXIT.BAD_ARGS, message: 'Error: --minScore must be 0-100' };
+    if (Number.isNaN(minScore) || minScore < 0 || minScore > 100) {
+        return { ok: false, exitCode: constants_1.EXIT.BAD_ARGS, message: "Error: --minScore must be 0-100" };
     }
-    if (minN !== undefined && (isNaN(minN) || minN < 1)) {
-        return { ok: false, exitCode: constants_1.EXIT.BAD_ARGS, message: 'Error: --minN must be a positive number' };
+    if (minN !== undefined && (Number.isNaN(minN) || minN < 1)) {
+        return {
+            ok: false,
+            exitCode: constants_1.EXIT.BAD_ARGS,
+            message: "Error: --minN must be a positive number",
+        };
     }
     return {
         ok: true,
-        args: { baseUrl, apiKey, minScore, maxDrop, minN, allowWeakEvidence, evaluationId, policy, baseline, format, explain, onFail },
+        args: {
+            baseUrl,
+            apiKey,
+            minScore,
+            maxDrop,
+            minN,
+            allowWeakEvidence,
+            evaluationId,
+            policy,
+            baseline,
+            format,
+            explain,
+            onFail,
+        },
     };
 }
 async function runCheck(args) {
@@ -149,27 +174,30 @@ async function runCheck(args) {
         gateResult,
         requestId,
     });
-    const formatted = args.format === 'json'
+    const formatted = args.format === "json"
         ? (0, json_1.formatJson)(report)
-        : args.format === 'github'
+        : args.format === "github"
             ? (0, github_1.formatGitHub)(report)
             : (0, human_1.formatHuman)(report);
     console.log(formatted);
     // --onFail import: when gate fails, import run with CI context
-    if (!gateResult.passed && args.onFail === 'import' && runDetails?.results && quality?.evaluationRunId) {
+    if (!gateResult.passed &&
+        args.onFail === "import" &&
+        runDetails?.results &&
+        quality?.evaluationRunId) {
         const importResults = runDetails.results
-            .filter((r) => r.testCaseId != null && (r.status === 'passed' || r.status === 'failed'))
+            .filter((r) => r.testCaseId != null && (r.status === "passed" || r.status === "failed"))
             .map((r) => ({
             testCaseId: r.testCaseId,
             status: r.status,
-            output: r.output ?? '',
+            output: r.output ?? "",
             latencyMs: r.durationMs,
             assertionsJson: r.assertionsJson,
         }));
         if (importResults.length > 0) {
             const ci = (0, ci_context_1.captureCiContext)();
             const idempotencyKey = ci ? (0, ci_context_1.computeIdempotencyKey)(args.evaluationId, ci) : undefined;
-            const importRes = await (0, api_1.importRunOnFail)(args.baseUrl, args.apiKey, args.evaluationId, importResults, { idempotencyKey, ci, importClientVersion: 'evalai-cli' });
+            const importRes = await (0, api_1.importRunOnFail)(args.baseUrl, args.apiKey, args.evaluationId, importResults, { idempotencyKey, ci, importClientVersion: "evalai-cli" });
             if (!importRes.ok) {
                 console.error(`EvalAI import (onFail): ${importRes.status} — ${importRes.body}`);
             }
@@ -178,7 +206,7 @@ async function runCheck(args) {
     return gateResult.exitCode;
 }
 // Main entry point
-const isDirectRun = typeof require !== 'undefined' && require.main === module;
+const isDirectRun = typeof require !== "undefined" && require.main === module;
 if (isDirectRun) {
     const parsed = parseArgs(process.argv.slice(2));
     if (!parsed.ok) {

@@ -40,13 +40,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.findConfigPath = findConfigPath;
 exports.loadConfig = loadConfig;
 exports.mergeConfigWithArgs = mergeConfigWithArgs;
-const fs = __importStar(require("fs"));
-const path = __importStar(require("path"));
-const CONFIG_FILES = [
-    'evalai.config.json',
-    'evalai.config.js',
-    'evalai.config.cjs',
-];
+const fs = __importStar(require("node:fs"));
+const path = __importStar(require("node:path"));
+const CONFIG_FILES = ["evalai.config.json", "evalai.config.js", "evalai.config.cjs"];
 /**
  * Find config file path in directory, walking up to root
  */
@@ -61,10 +57,10 @@ function findConfigPath(cwd = process.cwd()) {
             }
         }
         // Check package.json for evalai field
-        const pkgPath = path.join(dir, 'package.json');
+        const pkgPath = path.join(dir, "package.json");
         if (fs.existsSync(pkgPath)) {
             try {
-                const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+                const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
                 if (pkg.evalai != null) {
                     return pkgPath;
                 }
@@ -85,16 +81,16 @@ function loadConfig(cwd = process.cwd()) {
     if (!configPath)
         return null;
     try {
-        if (configPath.endsWith('package.json')) {
-            const pkg = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+        if (configPath.endsWith("package.json")) {
+            const pkg = JSON.parse(fs.readFileSync(configPath, "utf-8"));
             return pkg.evalai ?? null;
         }
-        const content = fs.readFileSync(configPath, 'utf-8');
-        if (configPath.endsWith('.json')) {
+        const content = fs.readFileSync(configPath, "utf-8");
+        if (configPath.endsWith(".json")) {
             return JSON.parse(content);
         }
         // .js or .cjs - would need to require/import; for v1 we only support JSON
-        if (configPath.endsWith('.js') || configPath.endsWith('.cjs')) {
+        if (configPath.endsWith(".js") || configPath.endsWith(".cjs")) {
             // Try to parse as JSON first (some projects use .js with JSON content)
             try {
                 return JSON.parse(content);
@@ -130,28 +126,32 @@ function mergeConfigWithArgs(config, args) {
             merged.baseline = config.baseline;
     }
     // Args override
-    if (args.evaluationId !== undefined && args.evaluationId !== '') {
+    if (args.evaluationId !== undefined && args.evaluationId !== "") {
         merged.evaluationId = String(args.evaluationId);
     }
-    if (args.baseUrl !== undefined && args.baseUrl !== '') {
+    if (args.baseUrl !== undefined && args.baseUrl !== "") {
         merged.baseUrl = String(args.baseUrl);
     }
     if (args.minScore !== undefined) {
-        merged.minScore = typeof args.minScore === 'number' ? args.minScore : parseInt(String(args.minScore), 10);
+        merged.minScore =
+            typeof args.minScore === "number" ? args.minScore : parseInt(String(args.minScore), 10);
     }
     if (args.minN !== undefined) {
-        merged.minN = typeof args.minN === 'number' ? args.minN : parseInt(String(args.minN), 10);
+        merged.minN = typeof args.minN === "number" ? args.minN : parseInt(String(args.minN), 10);
     }
     if (args.allowWeakEvidence !== undefined) {
-        merged.allowWeakEvidence = args.allowWeakEvidence === true || args.allowWeakEvidence === 'true' || args.allowWeakEvidence === '1';
+        merged.allowWeakEvidence =
+            args.allowWeakEvidence === true ||
+                args.allowWeakEvidence === "true" ||
+                args.allowWeakEvidence === "1";
     }
-    if (args.baseline !== undefined && args.baseline !== '') {
+    if (args.baseline !== undefined && args.baseline !== "") {
         const b = String(args.baseline);
-        if (b === 'previous' || b === 'production') {
+        if (b === "previous" || b === "production") {
             merged.baseline = b;
         }
         else {
-            merged.baseline = 'published';
+            merged.baseline = "published";
         }
     }
     return merged;

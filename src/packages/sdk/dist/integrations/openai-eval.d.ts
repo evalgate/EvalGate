@@ -17,13 +17,13 @@
  * });
  * ```
  */
-import type { TestSuiteCaseResult } from '../testing';
+import type { TestSuiteCaseResult } from "../testing";
 export interface OpenAIChatEvalCase {
     input: string;
     expectedOutput?: string;
     /** Platform test case ID. When provided, used directly for reportToEvalAI (no input matching). */
     testCaseId?: number;
-    assertions?: ((output: string) => import('../assertions').AssertionResult)[];
+    assertions?: ((output: string) => import("../assertions").AssertionResult)[];
 }
 export interface OpenAIChatEvalOptions {
     name: string;

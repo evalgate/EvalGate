@@ -8,7 +8,7 @@ export interface EvalAIConfig {
     minScore?: number;
     minN?: number;
     allowWeakEvidence?: boolean;
-    baseline?: 'published' | 'previous' | 'production';
+    baseline?: "published" | "previous" | "production";
 }
 /**
  * Find config file path in directory, walking up to root

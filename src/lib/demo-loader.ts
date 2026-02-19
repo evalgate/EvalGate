@@ -43,25 +43,42 @@ export async function getDefaultDemo(): Promise<DemoEvaluation | null> {
   }
 }
 
+export type GetPublicDemoResult =
+  | { data: DemoEvaluation; error?: never }
+  | { data: null; error: "expired" | "revoked" | "not_found" };
+
 /**
- * Get a specific public demo by ID
+ * Get a specific public demo by ID from the exports API.
+ * Propagates 410 (expired/revoked) vs 404 (not found) so the share page can show the right message.
  */
-export async function getPublicDemo(id: string): Promise<DemoEvaluation | null> {
+export async function getPublicDemo(id: string): Promise<GetPublicDemoResult> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
-    const res = await fetch(`${baseUrl}/exports/public/${id}.json`, {
+    const res = await fetch(`${baseUrl}/api/exports/${id}`, {
       cache: "no-store",
     });
 
+    if (res.status === 410) {
+      const body = await res.json().catch(() => ({}));
+      const code = (body as { error?: { code?: string } })?.error?.code;
+      return {
+        data: null,
+        error: code === "SHARE_REVOKED" ? "revoked" : "expired",
+      };
+    }
+    if (res.status === 404) {
+      return { data: null, error: "not_found" };
+    }
     if (!res.ok) {
       console.warn(`Failed to load demo ${id}:`, res.status);
-      return null;
+      return { data: null, error: "not_found" };
     }
 
-    return await res.json();
+    const data = await res.json();
+    return { data };
   } catch (error) {
     console.error(`Error loading demo ${id}:`, error);
-    return null;
+    return { data: null, error: "not_found" };
   }
 }
 
@@ -106,7 +123,8 @@ export async function getPredefinedDemo(
   type: keyof typeof DEMO_IDS,
 ): Promise<DemoEvaluation | null> {
   const demoId = DEMO_IDS[type];
-  return getPublicDemo(demoId);
+  const result = await getPublicDemo(demoId);
+  return result.data;
 }
 
 /**
@@ -115,8 +133,7 @@ export async function getPredefinedDemo(
 export async function isDemoPublic(id: string): Promise<boolean> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
-    const res = await fetch(`${baseUrl}/exports/public/${id}.json`, {
-      method: "HEAD",
+    const res = await fetch(`${baseUrl}/api/exports/${id}`, {
       cache: "no-store",
     });
     return res.ok;
@@ -137,7 +154,7 @@ export function getShareUrl(id: string): string {
  * Validate demo data structure
  */
 export function validateDemoData(data: any): data is DemoEvaluation {
-  return (
+  return !!(
     data &&
     typeof data === "object" &&
     typeof data.id === "string" &&

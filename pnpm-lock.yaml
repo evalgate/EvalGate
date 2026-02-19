@@ -185,6 +185,9 @@ importers:
       magic-string:
         specifier: ^0.30.19
         version: 0.30.19
+      nanoid:
+        specifier: ^3.3.11
+        version: 3.3.11
       next:
         specifier: ^16.1.6
         version: 16.1.6(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
