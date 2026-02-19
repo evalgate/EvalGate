@@ -4,7 +4,7 @@ import { parseBody } from "@/lib/api/parse";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { SCOPES } from "@/lib/auth/scopes";
 import { spanService } from "@/lib/services/span.service";
-import { createSpanBodySchema } from "@/lib/validation";
+import { createSpanBodySchema, parsePaginationParams } from "@/lib/validation";
 
 export const GET = secureRoute(
   async (req: NextRequest, ctx: AuthContext, params) => {
@@ -15,8 +15,7 @@ export const GET = secureRoute(
     }
 
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "100", 10), 500);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const { limit, offset } = parsePaginationParams(searchParams);
 
     const result = await spanService.listByTrace(ctx.organizationId, traceId, { limit, offset });
 

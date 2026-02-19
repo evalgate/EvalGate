@@ -5,14 +5,13 @@ import { annotationTasks } from "@/db/schema";
 import { internalError, notFound, quotaExceeded, validationError } from "@/lib/api/errors";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { checkFeature, trackFeature } from "@/lib/autumn-server";
-import { sanitizeSearchInput } from "@/lib/validation";
+import { parsePaginationParams, sanitizeSearchInput } from "@/lib/validation";
 
 export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "10", 10), 100);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const { limit, offset } = parsePaginationParams(searchParams);
     const search = searchParams.get("search");
     const status = searchParams.get("status");
 

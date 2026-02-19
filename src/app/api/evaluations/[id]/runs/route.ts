@@ -6,7 +6,7 @@ import { forbidden, notFound, validationError } from "@/lib/api/errors";
 import { parseBody } from "@/lib/api/parse";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { evaluationService } from "@/lib/services/evaluation.service";
-import { createRunBodySchema } from "@/lib/validation";
+import { createRunBodySchema, parsePaginationParams } from "@/lib/validation";
 
 export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
   const { id } = params;
@@ -29,8 +29,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params
   }
 
   const { searchParams } = new URL(req.url);
-  const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100);
-  const offset = parseInt(searchParams.get("offset") || "0", 10);
+  const { limit, offset } = parsePaginationParams(searchParams);
   const status = searchParams.get("status");
 
   const conditions = [eq(evaluationRuns.evaluationId, evaluationId)];

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { annotationItems, annotationTasks } from "@/db/schema";
 import { forbidden, notFound, validationError } from "@/lib/api/errors";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { parsePaginationParams } from "@/lib/validation";
 
 type VerifyTaskResult = { error: NextResponse } | { task: typeof annotationTasks.$inferSelect };
 
@@ -41,8 +42,7 @@ export const GET = secureRoute(
     }
 
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 100);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const { limit, offset } = parsePaginationParams(searchParams);
     const annotatedParam = searchParams.get("annotated");
 
     const conditions = [eq(annotationItems.taskId, taskId)];

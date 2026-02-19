@@ -3,6 +3,7 @@ import { forbidden } from "@/lib/api/errors";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { SCOPES } from "@/lib/auth/scopes";
 import { auditService } from "@/lib/services/audit.service";
+import { parsePaginationParams } from "@/lib/validation";
 
 export const GET = secureRoute(
   async (req: NextRequest, ctx: AuthContext) => {
@@ -16,8 +17,7 @@ export const GET = secureRoute(
     const resourceType = searchParams.get("resourceType") || undefined;
     const since = searchParams.get("since") || undefined;
     const until = searchParams.get("until") || undefined;
-    const limit = parseInt(searchParams.get("limit") || "50", 10);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const { limit, offset } = parsePaginationParams(searchParams);
 
     const logs = await auditService.list(ctx.organizationId, {
       action,

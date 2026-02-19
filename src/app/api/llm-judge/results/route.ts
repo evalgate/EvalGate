@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { llmJudgeConfigs, llmJudgeResults } from "@/db/schema";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { parsePaginationParams } from "@/lib/validation";
 
 /**
  * GET /api/llm-judge/results - Fetch LLM judge results scoped to the user's organization
@@ -10,8 +11,7 @@ import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 export const GET = secureRoute(
   async (request: NextRequest, ctx: AuthContext) => {
     const { searchParams } = new URL(request.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 100);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const { limit, offset } = parsePaginationParams(searchParams);
     const configId = searchParams.get("configId");
     const minScore = searchParams.get("minScore");
     const maxScore = searchParams.get("maxScore");

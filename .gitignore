@@ -31,6 +31,9 @@ local.db
 # test sqlite (vitest)
 test.db
 
+# coverage (vitest)
+coverage
+
 # npm auth (contains tokens)
 **/.npmrc
 

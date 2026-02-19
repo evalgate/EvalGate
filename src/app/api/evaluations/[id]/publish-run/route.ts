@@ -57,7 +57,7 @@ export const POST = secureRoute(
       return notFound("Run not found or does not belong to this evaluation");
     }
 
-    const now = new Date().toISOString();
+    const now = new Date();
     await db
       .update(evaluations)
       .set({

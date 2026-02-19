@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { apiKeys, apiUsageLogs } from "@/db/schema";
 import { internalError, notFound, validationError } from "@/lib/api/errors";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { parsePaginationParams } from "@/lib/validation";
 
 export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
   try {
@@ -32,8 +33,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params
 
     const searchParams = req.nextUrl.searchParams;
     const period = searchParams.get("period") || "7d";
-    const limit = Math.min(parseInt(searchParams.get("limit") || "100", 10), 1000);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const { limit, offset } = parsePaginationParams(searchParams);
 
     const periodMap: Record<string, number> = {
       "7d": 7,

@@ -127,8 +127,8 @@ export class EvaluationService {
         type: data.type || "standard",
         modelSettings: data.modelConfig ? JSON.stringify(data.modelConfig) : null,
         status: "draft",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning();
 
@@ -141,7 +141,7 @@ export class EvaluationService {
           input: tc.input,
           expectedOutput: tc.expectedOutput || "",
           metadata: JSON.stringify(tc.metadata || {}),
-          createdAt: new Date().toISOString(),
+          createdAt: new Date(),
         })),
       );
     }
@@ -168,7 +168,7 @@ export class EvaluationService {
       .update(evaluations)
       .set({
         ...data,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       })
       .where(and(eq(evaluations.id, id), eq(evaluations.organizationId, organizationId)))
       .returning();

@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create organization
-    const now = new Date().toISOString();
+    const now = new Date();
     const organizationName = user.name
       ? `${user.name}'s Organization`
       : `${user.email}'s Organization`;

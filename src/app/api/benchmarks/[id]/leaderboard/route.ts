@@ -3,6 +3,7 @@ import { internalError, notFound, validationError } from "@/lib/api/errors";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { logger } from "@/lib/logger";
 import { benchmarkService } from "@/lib/services/benchmark.service";
+import { parsePaginationParams } from "@/lib/validation";
 
 export const GET = secureRoute(
   async (req: NextRequest, _ctx: AuthContext, params) => {
@@ -17,7 +18,7 @@ export const GET = secureRoute(
       const { searchParams } = new URL(req.url);
       const sortBy =
         (searchParams.get("sortBy") as "accuracy" | "latency" | "cost" | "score") || "score";
-      const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100);
+      const { limit } = parsePaginationParams(searchParams);
 
       const benchmark = await benchmarkService.getBenchmarkById(benchmarkId);
       if (!benchmark) {

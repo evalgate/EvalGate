@@ -8,7 +8,7 @@ import { parseBody } from "@/lib/api/parse";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { ALL_SCOPES, scopesForRole } from "@/lib/auth/scopes";
 import { logger } from "@/lib/logger";
-import { createAPIKeyBodySchema } from "@/lib/validation";
+import { createAPIKeyBodySchema, parsePaginationParams } from "@/lib/validation";
 
 export const POST = secureRoute(
   async (req: NextRequest, ctx: AuthContext) => {
@@ -102,16 +102,7 @@ export const GET = secureRoute(
     try {
       const { searchParams } = new URL(req.url);
 
-      const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100);
-      const offset = parseInt(searchParams.get("offset") || "0", 10);
-
-      if (Number.isNaN(limit) || limit < 1) {
-        return validationError("Limit must be a positive number");
-      }
-
-      if (Number.isNaN(offset) || offset < 0) {
-        return validationError("Offset must be a non-negative number");
-      }
+      const { limit, offset } = parsePaginationParams(searchParams);
 
       const whereConditions = [
         eq(apiKeys.userId, ctx.userId),

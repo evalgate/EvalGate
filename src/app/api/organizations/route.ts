@@ -12,7 +12,7 @@ import {
 } from "@/db/schema";
 import { internalError, notFound, validationError } from "@/lib/api/errors";
 import { type AuthContext, type AuthOnlyContext, secureRoute } from "@/lib/api/secure-route";
-import { sanitizeSearchInput } from "@/lib/validation";
+import { parsePaginationParams, sanitizeSearchInput } from "@/lib/validation";
 
 export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
@@ -41,8 +41,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
       return NextResponse.json(organization[0], { status: 200 });
     }
 
-    const limit = Math.min(parseInt(searchParams.get("limit") || "10", 10), 100);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const { limit, offset } = parsePaginationParams(searchParams);
     const search = searchParams.get("search");
 
     const results = await db
@@ -80,7 +79,7 @@ export const POST = secureRoute(
         return validationError("Name cannot be empty");
       }
 
-      const now = new Date().toISOString();
+      const now = new Date();
       const newOrganization = await db
         .insert(organizations)
         .values({
@@ -134,9 +133,9 @@ export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 
     const updateData: {
       name?: string;
-      updatedAt: string;
+      updatedAt: Date;
     } = {
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
 
     if (name !== undefined) {

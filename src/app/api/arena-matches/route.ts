@@ -3,6 +3,7 @@ import { z } from "zod";
 import { internalError, zodValidationError } from "@/lib/api/errors";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { arenaMatchesService } from "@/lib/services/arena-matches.service";
+import { parsePaginationParams } from "@/lib/validation";
 
 const createArenaMatchSchema = z.object({
   prompt: z.string().min(1),
@@ -34,13 +35,8 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
     const { searchParams } = new URL(req.url);
-    const options: Record<string, unknown> = {};
-    if (searchParams.has("limit")) {
-      options.limit = parseInt(searchParams.get("limit") || "10", 10);
-    }
-    if (searchParams.has("offset")) {
-      options.offset = parseInt(searchParams.get("offset") || "0", 10);
-    }
+    const { limit, offset } = parsePaginationParams(searchParams);
+    const options: Record<string, unknown> = { limit, offset };
     if (searchParams.has("winnerId")) {
       options.winnerId = searchParams.get("winnerId");
     }

@@ -16,7 +16,7 @@ import { sha256Hex } from "@/lib/crypto/hash";
 import { SCORING_SPEC_V1, SCORING_SPEC_VERSION } from "@/lib/scoring/scoring-spec";
 import { recomputeAndStoreQualityScore } from "@/lib/services/aggregate-metrics.service";
 import { type BaselineMode, qualityService } from "@/lib/services/quality.service";
-import { recomputeQualityBodySchema } from "@/lib/validation";
+import { parsePaginationParams, recomputeQualityBodySchema } from "@/lib/validation";
 
 export const GET = secureRoute(
   async (req: NextRequest, ctx: AuthContext) => {
@@ -39,7 +39,7 @@ export const GET = secureRoute(
 
     if (action === "trend") {
       const model = searchParams.get("model") || undefined;
-      const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100);
+      const { limit } = parsePaginationParams(searchParams);
       const result = await qualityService.trend(ctx.organizationId, evaluationId, { model, limit });
       if (result === null) return notFound("Evaluation not found");
       return NextResponse.json(result);

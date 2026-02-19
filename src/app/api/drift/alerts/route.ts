@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { SCOPES } from "@/lib/auth/scopes";
 import { driftService } from "@/lib/services/drift.service";
+import { parsePaginationParams } from "@/lib/validation";
 
 /**
  * GET /api/drift/alerts — list drift alerts for the org
@@ -12,8 +13,7 @@ export const GET = secureRoute(
     const evaluationId = searchParams.get("evaluationId")
       ? parseInt(searchParams.get("evaluationId")!, 10)
       : undefined;
-    const limit = parseInt(searchParams.get("limit") || "50", 10);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const { limit, offset } = parsePaginationParams(searchParams);
 
     const alerts = await driftService.listAlerts(ctx.organizationId, {
       evaluationId,

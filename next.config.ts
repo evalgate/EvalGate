@@ -68,6 +68,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
 
+  // API versioning: /api/v1/* rewrites to /api/* for public API (docs/API_VERSIONING.md)
+  async rewrites() {
+    return [{ source: "/api/v1/:path*", destination: "/api/:path*" }];
+  },
+
   // Performance optimizations
   productionBrowserSourceMaps: false,
 

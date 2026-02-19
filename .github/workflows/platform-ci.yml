@@ -32,5 +32,11 @@ jobs:
       - name: Test
         run: pnpm test --run
 
+      - name: Coverage
+        run: pnpm test:coverage --run
+
+      - name: OpenAPI audit
+        run: pnpm run audit:openapi
+
       - name: Build
         run: pnpm build

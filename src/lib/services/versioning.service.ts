@@ -137,7 +137,7 @@ export class VersioningService {
       .set({
         publishedVersion: newVersion,
         status: "published",
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       })
       .where(eq(evaluations.id, evaluationId));
 

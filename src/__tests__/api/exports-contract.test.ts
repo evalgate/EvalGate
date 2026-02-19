@@ -74,7 +74,7 @@ describe("GET /api/exports/[shareId] contract", () => {
     // Ensure org and evaluation exist for FK constraints
     let orgs = await db.select().from(organizations).limit(1);
     if (orgs.length === 0) {
-      const now = new Date().toISOString();
+      const now = new Date();
       await db.insert(organizations).values({
         name: "Test Org",
         createdAt: now,

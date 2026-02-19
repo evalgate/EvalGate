@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { webhookDeliveries, webhooks } from "@/db/schema";
 import { forbidden, notFound, validationError } from "@/lib/api/errors";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { parsePaginationParams } from "@/lib/validation";
 
 export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params) => {
   const webhookId = parseInt(params.id, 10);
@@ -25,8 +26,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params
   // Extract query parameters
   const searchParams = req.nextUrl.searchParams;
   const status = searchParams.get("status");
-  const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 200);
-  const offset = parseInt(searchParams.get("offset") || "0", 10);
+  const { limit, offset } = parsePaginationParams(searchParams);
 
   if (status && !["success", "failed", "pending"].includes(status)) {
     return validationError("Invalid status. Must be one of: success, failed, pending");

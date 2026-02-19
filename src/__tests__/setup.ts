@@ -12,7 +12,7 @@ import { organizations, user } from "@/db/schema";
 // Setup for tests (migrations run via pnpm test:db-setup before vitest)
 beforeAll(async () => {
   // Seed minimal data for FK constraints (user, org) used by MCP usage tracking
-  const now = new Date().toISOString();
+  const now = new Date();
   try {
     await db
       .insert(user)

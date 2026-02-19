@@ -3,8 +3,7 @@ import { traces } from "@/db/schema";
 
 async function main() {
   const now = new Date();
-  const hoursAgo = (hours: number) =>
-    new Date(now.getTime() - hours * 60 * 60 * 1000).toISOString();
+  const hoursAgo = (hours: number) => new Date(now.getTime() - hours * 60 * 60 * 1000);
 
   const sampleTraces = [
     {

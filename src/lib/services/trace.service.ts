@@ -41,7 +41,7 @@ export const traceService = {
   },
 
   create(organizationId: number, data: CreateTraceInput) {
-    const now = new Date().toISOString();
+    const now = new Date();
     return db
       .insert(traces)
       .values({

@@ -4,7 +4,7 @@ import { parseBody } from "@/lib/api/parse";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { SCOPES } from "@/lib/auth/scopes";
 import { testCaseService } from "@/lib/services/test-case.service";
-import { createTestCaseBodySchema } from "@/lib/validation";
+import { createTestCaseBodySchema, parsePaginationParams } from "@/lib/validation";
 
 export const GET = secureRoute(
   async (req: NextRequest, ctx: AuthContext, params) => {
@@ -15,8 +15,7 @@ export const GET = secureRoute(
     }
 
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 100);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const { limit, offset } = parsePaginationParams(searchParams);
 
     const cases = await testCaseService.list(ctx.organizationId, evaluationId, { limit, offset });
 

@@ -7,7 +7,11 @@ import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { checkFeature, trackFeature } from "@/lib/autumn-server";
 import { logger } from "@/lib/logger";
 import { evaluationService } from "@/lib/services/evaluation.service";
-import { createEvaluationBodySchema, putEvaluationBodySchema } from "@/lib/validation";
+import {
+  createEvaluationBodySchema,
+  parsePaginationParams,
+  putEvaluationBodySchema,
+} from "@/lib/validation";
 
 export const GET = secureRoute(
   async (req: NextRequest, ctx: AuthContext) => {
@@ -35,10 +39,7 @@ export const GET = secureRoute(
         });
       }
 
-      const parsedLimit = parseInt(searchParams.get("limit") || "50", 10);
-      const parsedOffset = parseInt(searchParams.get("offset") || "0", 10);
-      const limit = Math.min(Number.isNaN(parsedLimit) ? 50 : parsedLimit, 100);
-      const offset = Number.isNaN(parsedOffset) ? 0 : parsedOffset;
+      const { limit, offset } = parsePaginationParams(searchParams);
       const status = searchParams.get("status") as "draft" | "active" | "archived" | null;
 
       const results = await evaluationService.list(organizationId, {
@@ -97,7 +98,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 
   try {
     const organizationId = ctx.organizationId;
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const inserted = await db
       .insert(evaluations)

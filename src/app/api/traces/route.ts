@@ -5,14 +5,17 @@ import { parseBody } from "@/lib/api/parse";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { checkFeature, trackFeature } from "@/lib/autumn-server";
 import { traceService } from "@/lib/services/trace.service";
-import { createTraceBodySchema, sanitizeSearchInput } from "@/lib/validation";
+import {
+  createTraceBodySchema,
+  parsePaginationParams,
+  sanitizeSearchInput,
+} from "@/lib/validation";
 
 export const GET = secureRoute(
   async (req: NextRequest, ctx: AuthContext) => {
     try {
       const { searchParams } = new URL(req.url);
-      const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 100);
-      const offset = parseInt(searchParams.get("offset") || "0", 10);
+      const { limit, offset } = parsePaginationParams(searchParams);
       const status = searchParams.get("status") ?? undefined;
       const searchRaw = searchParams.get("search");
       const search = searchRaw ? sanitizeSearchInput(searchRaw) : undefined;

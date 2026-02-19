@@ -5,7 +5,7 @@ import { llmJudgeConfigs } from "@/db/schema";
 import { internalError, notFound, validationError } from "@/lib/api/errors";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { logger } from "@/lib/logger";
-import { sanitizeSearchInput } from "@/lib/validation";
+import { parsePaginationParams, sanitizeSearchInput } from "@/lib/validation";
 
 export const GET = secureRoute(
   async (req: NextRequest, ctx: AuthContext) => {
@@ -36,8 +36,7 @@ export const GET = secureRoute(
         return NextResponse.json(config[0], { status: 200 });
       }
 
-      const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100);
-      const offset = parseInt(searchParams.get("offset") || "0", 10);
+      const { limit, offset } = parsePaginationParams(searchParams);
       const model = searchParams.get("model");
       const search = searchParams.get("search");
 

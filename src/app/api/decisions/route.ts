@@ -4,6 +4,7 @@ import { internalError, notFound, validationError, zodValidationError } from "@/
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { logger } from "@/lib/logger";
 import { decisionService } from "@/lib/services/decision.service";
+import { parsePaginationParams } from "@/lib/validation";
 
 const createDecisionSchema = z.object({
   spanId: z.number().int().positive(),
@@ -31,8 +32,7 @@ export const GET = secureRoute(
       const workflowRunId = searchParams.get("workflowRunId");
       const spanId = searchParams.get("spanId");
       const decisionId = searchParams.get("id");
-      const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 100);
-      const offset = parseInt(searchParams.get("offset") || "0", 10);
+      const { limit, offset } = parsePaginationParams(searchParams);
       const agentName = searchParams.get("agentName");
       const decisionType = searchParams.get("decisionType");
       const minConfidence = searchParams.get("minConfidence");

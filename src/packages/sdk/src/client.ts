@@ -101,7 +101,6 @@ export class AIEvalClient {
   private logger: Logger;
   private requestLogger: RequestLogger;
   private cache: RequestCache;
-  private batcher: RequestBatcher | null;
   private retryConfig: {
     maxAttempts: number;
     backoff: "exponential" | "linear" | "fixed";

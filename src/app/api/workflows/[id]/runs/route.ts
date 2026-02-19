@@ -8,6 +8,7 @@ import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { SCOPES } from "@/lib/auth/scopes";
 import { logger } from "@/lib/logger";
 import { workflowService } from "@/lib/services/workflow.service";
+import { parsePaginationParams } from "@/lib/validation";
 
 const createRunSchema = z.object({
   traceId: z.number().int().positive(),
@@ -37,8 +38,7 @@ export const GET = secureRoute(
     }
 
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 100);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const { limit, offset } = parsePaginationParams(searchParams);
     const status = searchParams.get("status") as
       | "running"
       | "completed"

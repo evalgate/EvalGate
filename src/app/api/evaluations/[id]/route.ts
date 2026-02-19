@@ -59,7 +59,7 @@ export const PATCH = secureRoute(async (req: NextRequest, ctx: AuthContext, para
     if (!parsed.ok) return parsed.response;
 
     const { name, description } = parsed.data;
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const updated = await db
       .update(evaluations)

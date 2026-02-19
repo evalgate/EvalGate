@@ -10,6 +10,7 @@ import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { checkFeature, trackFeature } from "@/lib/autumn-server";
 import { logger } from "@/lib/logger";
 import { workflowService } from "@/lib/services/workflow.service";
+import { parsePaginationParams } from "@/lib/validation";
 
 const workflowDefinitionSchema = z.object({
   nodes: z.array(
@@ -44,8 +45,7 @@ export const GET = secureRoute(
   async (req: NextRequest, ctx: AuthContext) => {
     try {
       const { searchParams } = new URL(req.url);
-      const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 100);
-      const offset = parseInt(searchParams.get("offset") || "0", 10);
+      const { limit, offset } = parsePaginationParams(searchParams);
       const status = searchParams.get("status") as "draft" | "active" | "archived" | null;
       const search = searchParams.get("search");
 

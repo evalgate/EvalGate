@@ -66,8 +66,12 @@ export const verification = sqliteTable("verification", {
 export const organizations = sqliteTable("organizations", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 export const organizationMembers = sqliteTable(
@@ -81,7 +85,9 @@ export const organizationMembers = sqliteTable(
       .references(() => user.id)
       .notNull(),
     role: text("role").notNull(),
-    createdAt: text("created_at").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (table) => ({
     uniqueOrgUser: uniqueIndex("org_members_org_user_unique").on(
@@ -111,8 +117,12 @@ export const evaluations = sqliteTable("evaluations", {
   executorConfig: text("executor_config", { mode: "json" }),
   publishedRunId: integer("published_run_id"),
   publishedVersion: integer("published_version"),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 /**
@@ -162,7 +172,9 @@ export const traces = sqliteTable("traces", {
   status: text("status").notNull().default("pending"),
   durationMs: integer("duration_ms"),
   metadata: text("metadata", { mode: "json" }),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // DEPRECATED: traceSpans table removed in span unification (Phase 2).

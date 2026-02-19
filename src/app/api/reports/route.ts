@@ -23,6 +23,7 @@ import { notFound, validationError } from "@/lib/api/errors";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { SCOPES } from "@/lib/auth/scopes";
 import { deriveReportSecret, signReport } from "@/lib/reports/sign";
+import { parsePaginationParams } from "@/lib/validation";
 
 export const POST = secureRoute(
   async (req: NextRequest, ctx: AuthContext) => {
@@ -241,8 +242,7 @@ export const POST = secureRoute(
 export const GET = secureRoute(
   async (req: NextRequest, ctx: AuthContext) => {
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const { limit, offset } = parsePaginationParams(searchParams);
 
     const reports = await db
       .select()

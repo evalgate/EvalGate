@@ -13,6 +13,26 @@ export const paginationSchema = z.object({
   offset: z.number().int().min(0).default(0),
 });
 
+/** Schema for parsing limit/offset from URL query params (coerces strings to numbers) */
+const paginationQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(1000).default(50),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+/**
+ * Parse limit and offset from URLSearchParams using paginationSchema.
+ * Use this in all list endpoints for consistency.
+ */
+export function parsePaginationParams(searchParams: URLSearchParams): {
+  limit: number;
+  offset: number;
+} {
+  return paginationQuerySchema.parse({
+    limit: searchParams.get("limit") ?? 50,
+    offset: searchParams.get("offset") ?? 0,
+  });
+}
+
 // Trace schemas
 export const createTraceSchema = z.object({
   name: z.string().min(1).max(255),

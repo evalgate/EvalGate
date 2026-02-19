@@ -6,7 +6,7 @@ import { webhooks } from "@/db/schema";
 import { forbidden, internalError, validationError } from "@/lib/api/errors";
 import { parseBody } from "@/lib/api/parse";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
-import { createWebhookBodySchema } from "@/lib/validation";
+import { createWebhookBodySchema, parsePaginationParams } from "@/lib/validation";
 
 export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   const parsed = await parseBody(req, createWebhookBodySchema);
@@ -63,8 +63,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
     const { searchParams } = new URL(req.url);
     const organizationIdParam = searchParams.get("organizationId");
     const statusParam = searchParams.get("status");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const { limit, offset } = parsePaginationParams(searchParams);
 
     if (!organizationIdParam) {
       return validationError("Organization ID is required");

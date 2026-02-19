@@ -19,8 +19,8 @@ async function main() {
       organizationId: 1,
       description: "Automated testing of GPT-4 responses for accuracy and coherence",
       createdBy: userId,
-      createdAt: new Date("2024-01-10").toISOString(),
-      updatedAt: new Date("2024-01-15").toISOString(),
+      createdAt: new Date("2024-01-10"),
+      updatedAt: new Date("2024-01-15"),
     },
     {
       name: "Customer Support Chatbot",
@@ -29,8 +29,8 @@ async function main() {
       organizationId: 1,
       description: "Human evaluation of chatbot responses in customer support scenarios",
       createdBy: userId,
-      createdAt: new Date("2024-01-12").toISOString(),
-      updatedAt: new Date("2024-01-20").toISOString(),
+      createdAt: new Date("2024-01-12"),
+      updatedAt: new Date("2024-01-20"),
     },
     {
       name: "Model A vs Model B Comparison",
@@ -39,8 +39,8 @@ async function main() {
       organizationId: 1,
       description: "A/B testing comparing two language models",
       createdBy: userId,
-      createdAt: new Date("2024-01-08").toISOString(),
-      updatedAt: new Date("2024-01-18").toISOString(),
+      createdAt: new Date("2024-01-08"),
+      updatedAt: new Date("2024-01-18"),
     },
     {
       name: "Sentiment Analysis Accuracy",
@@ -49,8 +49,8 @@ async function main() {
       organizationId: 2,
       description: "Testing sentiment analysis model accuracy",
       createdBy: userId,
-      createdAt: new Date("2024-01-22").toISOString(),
-      updatedAt: new Date("2024-01-22").toISOString(),
+      createdAt: new Date("2024-01-22"),
+      updatedAt: new Date("2024-01-22"),
     },
     {
       name: "Translation Quality Assessment",
@@ -59,8 +59,8 @@ async function main() {
       organizationId: 2,
       description: "Human evaluation of machine translation quality",
       createdBy: userId,
-      createdAt: new Date("2024-01-05").toISOString(),
-      updatedAt: new Date("2024-01-16").toISOString(),
+      createdAt: new Date("2024-01-05"),
+      updatedAt: new Date("2024-01-16"),
     },
   ];
 
