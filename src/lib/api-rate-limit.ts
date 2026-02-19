@@ -57,20 +57,3 @@ export async function withRateLimit(
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-
-// Helper to get user's plan from request
-export async function getUserPlanFromRequest(request: NextRequest): Promise<string | undefined> {
-  try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return undefined;
-    }
-
-    // This is a simplified version - you might need to decode JWT or query database
-    // For now, return undefined to use default tier
-    return undefined;
-  } catch (error) {
-    Sentry.captureException(error);
-    return undefined;
-  }
-}

@@ -185,13 +185,12 @@ export default function LLMJudgePage() {
     }
 
     if (session?.user) {
-      const token = localStorage.getItem("bearer_token");
       Promise.all([
         fetch("/api/llm-judge/results", {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         }).then((res) => res.json()),
         fetch("/api/llm-judge/configs", {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         }).then((res) => res.json()),
       ])
         .then(([resultsData, configsData]) => {
@@ -223,12 +222,11 @@ export default function LLMJudgePage() {
 
     setIsCreating(true);
     try {
-      const token = localStorage.getItem("bearer_token");
       const response = await fetch("/api/llm-judge/configs", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: configName,

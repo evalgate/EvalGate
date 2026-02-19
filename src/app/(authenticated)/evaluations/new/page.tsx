@@ -94,11 +94,10 @@ export default function NewEvaluationPage() {
     setIsLoading(true);
 
     try {
-      // Step 1: Authentication check
+      // Step 1: Authentication check (cookie-based — session validated server-side)
       updateStepStatus("auth", "in-progress");
-      const token = localStorage.getItem("bearer_token");
-      if (!token) {
-        throw new Error("Authentication token not found. Please log in again.");
+      if (!session?.user) {
+        throw new Error("Authentication required. Please log in again.");
       }
       updateStepStatus("auth", "completed");
 
@@ -117,7 +116,7 @@ export default function NewEvaluationPage() {
       // Step 3: Get organization
       updateStepStatus("org", "in-progress");
       const orgResponse = await fetch("/api/organizations/current", {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
 
       if (!orgResponse.ok) {
@@ -146,9 +145,9 @@ export default function NewEvaluationPage() {
 
       const response = await fetch("/api/evaluations", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           organizationId: organization.id,

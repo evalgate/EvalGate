@@ -96,6 +96,8 @@ export const createEvaluationBodySchema = z.object({
   testCases: z.array(testCaseItemSchema).optional(),
 });
 
+export type CreateEvaluationBodyInput = z.infer<typeof createEvaluationBodySchema>;
+
 export const createEvaluationSchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().optional(),
@@ -121,6 +123,8 @@ export const putEvaluationBodySchema = z.object({
   description: z.string().optional(),
   status: z.enum(["draft", "active", "archived"]).optional(),
 });
+
+export type PutEvaluationBodyInput = z.infer<typeof putEvaluationBodySchema>;
 
 /** Body for POST /api/evaluations/:id/runs */
 export const createRunBodySchema = z
@@ -275,6 +279,7 @@ export const updateWebhookBodySchema = z.object({
     .optional(),
   events: z.array(z.string()).min(1).optional(),
   status: z.enum(["active", "inactive"]).optional(),
+  secret: z.string().min(1).optional(),
 });
 
 // Annotation schemas

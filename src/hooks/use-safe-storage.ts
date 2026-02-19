@@ -51,36 +51,23 @@ export function useSafeStorage<T = string>(
 }
 
 /**
- * Get bearer token safely with null check
+ * Get bearer token helper for legacy call-sites.
+ *
+ * Browser auth now uses HttpOnly cookies; we return a non-empty sentinel so
+ * legacy callers that guard on `if (!token)` continue issuing requests while
+ * secureRoute falls back to cookie auth.
  */
 export function getBearerToken(): string | null {
   if (typeof window === "undefined") {
     return null;
   }
 
-  try {
-    return localStorage.getItem("bearer_token");
-  } catch (error) {
-    logger.error("Failed to get bearer token from localStorage", error);
-    return null;
-  }
+  return "cookie-session";
 }
 
 /**
- * Set bearer token safely
+ * Deprecated no-op: bearer tokens are no longer persisted in localStorage.
  */
 export function setBearerToken(token: string | null): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    if (token === null) {
-      localStorage.removeItem("bearer_token");
-    } else {
-      localStorage.setItem("bearer_token", token);
-    }
-  } catch (error) {
-    logger.error("Failed to set bearer token in localStorage", error);
-  }
+  void token;
 }

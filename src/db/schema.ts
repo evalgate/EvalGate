@@ -272,7 +272,10 @@ export const webhooks = sqliteTable("webhooks", {
     .notNull(),
   url: text("url").notNull(),
   events: text("events", { mode: "json" }).notNull(),
-  secret: text("secret").notNull(),
+  secret: text("secret").notNull(), // legacy placeholder column (kept for migration compatibility)
+  encryptedSecret: text("encrypted_secret"),
+  secretIv: text("secret_iv"),
+  secretTag: text("secret_tag"),
   status: text("status").notNull().default("active"),
   lastDeliveredAt: text("last_delivered_at"),
   createdAt: text("created_at").notNull(),

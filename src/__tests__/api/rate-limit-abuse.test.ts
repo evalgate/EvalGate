@@ -4,19 +4,35 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+// Stub Sentry — its SDK initialization hangs in happy-dom.
+vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
 
 vi.mock("@/lib/api/request-id", () => ({
   getRequestId: () => "test-request-id",
+  extractOrGenerateRequestId: () => "test-request-id",
+  runWithRequestIdAsync: async (_id: string, fn: () => Promise<unknown>) => fn(),
+  setRequestContext: vi.fn(),
+  getRequestContext: () => undefined,
 }));
 
-const checkRateLimit = vi.fn();
+// vi.hoisted ensures the fn exists before the vi.mock factory captures it.
+const { checkRateLimit } = vi.hoisted(() => ({
+  checkRateLimit: vi.fn(),
+}));
 
 vi.mock("@/lib/rate-limit", () => ({
   checkRateLimit,
 }));
 
+import { withRateLimit } from "@/lib/api-rate-limit";
+
 describe("Rate limit abuse proof", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("429 response includes Retry-After when rate limited", async () => {
     const resetMs = Date.now() + 45_000; // 45 seconds from now
     checkRateLimit.mockResolvedValue({
@@ -29,7 +45,6 @@ describe("Rate limit abuse proof", () => {
       },
     });
 
-    const { withRateLimit } = await import("@/lib/api-rate-limit");
     const req = new NextRequest("http://localhost/api/exports/abc");
     const handler = vi.fn(async () => NextResponse.json({ ok: true }));
 
@@ -64,16 +79,15 @@ describe("Rate limit abuse proof", () => {
         },
       });
 
-    const { withRateLimit } = await import("@/lib/api-rate-limit");
     const handler = vi.fn(async () => NextResponse.json({ ok: true }));
 
-    const req1 = new NextRequest("http://localhost/api/test");
-    const req2 = new NextRequest("http://localhost/api/test");
-
-    const [res1, res2] = await Promise.all([
-      withRateLimit(req1, handler, { customTier: "anonymous" }),
-      withRateLimit(req2, handler, { customTier: "anonymous" }),
-    ]);
+    // Run sequentially so mockResolvedValueOnce values are consumed in order.
+    const res1 = await withRateLimit(new NextRequest("http://localhost/api/test"), handler, {
+      customTier: "anonymous",
+    });
+    const res2 = await withRateLimit(new NextRequest("http://localhost/api/test"), handler, {
+      customTier: "anonymous",
+    });
 
     expect(res1.status).toBe(200);
     expect(res2.status).toBe(429);

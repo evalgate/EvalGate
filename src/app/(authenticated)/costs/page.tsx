@@ -119,13 +119,10 @@ export default function CostsPage() {
     }
 
     if (session?.user) {
-      const token = localStorage.getItem("bearer_token");
-      const headers = { Authorization: `Bearer ${token}` };
-
       const fetchData = async () => {
         try {
           setNoOrg(false);
-          const orgRes = await fetch("/api/organizations/current", { headers });
+          const orgRes = await fetch("/api/organizations/current", { credentials: "include" });
           if (!orgRes.ok) {
             if (orgRes.status === 404) {
               setNoOrg(true);
@@ -137,8 +134,8 @@ export default function CostsPage() {
             throw new Error("Failed to fetch organization");
           }
           const [costsRes, trendsRes] = await Promise.all([
-            fetch("/api/costs", { headers }),
-            fetch("/api/costs/trends", { headers }),
+            fetch("/api/costs", { credentials: "include" }),
+            fetch("/api/costs/trends", { credentials: "include" }),
           ]);
 
           const summaryData = await costsRes.json();

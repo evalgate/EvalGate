@@ -8,15 +8,6 @@ global.fetch = vi.fn();
 describe("useOrganizationId", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock localStorage
-    Object.defineProperty(window, "localStorage", {
-      value: {
-        getItem: vi.fn(() => "test-token"),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-      },
-      writable: true,
-    });
   });
 
   it("should return organization ID when fetched", async () => {

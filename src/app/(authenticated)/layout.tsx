@@ -49,11 +49,8 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
 
       setIsLoadingOrg(true);
       try {
-        const token = localStorage.getItem("bearer_token");
         const response = await fetch("/api/organizations/current", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         });
 
         if (response.ok) {

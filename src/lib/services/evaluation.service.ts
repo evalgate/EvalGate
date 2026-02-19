@@ -3,42 +3,18 @@
  * Handles business logic for evaluation operations
  */
 
-import { and, desc, eq } from "drizzle-orm";
-import { z } from "zod";
+import { and, count, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { evaluationRuns, evaluations, testCases, testResults } from "@/db/schema";
 import { runAssertions } from "@/lib/eval/assertion-runners";
 import { validateAssertionsEnvelope } from "@/lib/eval/assertions";
 import { logger } from "@/lib/logger";
 import { computeAndStoreQualityScore } from "@/lib/services/aggregate-metrics.service";
+import type { CreateEvaluationBodyInput, PutEvaluationBodyInput } from "@/lib/validation";
 import { createExecutor, type ExecutorConfig, type ExecutorType } from "./eval-executor";
 
-export const createEvaluationSchema = z.object({
-  name: z.string().min(1).max(255),
-  description: z.string().optional(),
-  type: z.string().default("standard"),
-  modelConfig: z.record(z.any()).optional(),
-  testCases: z
-    .array(
-      z.object({
-        name: z.string().optional(),
-        input: z.string(),
-        expectedOutput: z.string().optional(),
-        metadata: z.record(z.any()).optional(),
-      }),
-    )
-    .optional(),
-});
-
-export const updateEvaluationSchema = z.object({
-  name: z.string().min(1).max(255).optional(),
-  description: z.string().optional(),
-  modelConfig: z.record(z.any()).optional(),
-  status: z.enum(["draft", "active", "archived"]).optional(),
-});
-
-export type CreateEvaluationInput = z.infer<typeof createEvaluationSchema>;
-export type UpdateEvaluationInput = z.infer<typeof updateEvaluationSchema>;
+export type CreateEvaluationInput = CreateEvaluationBodyInput;
+export type UpdateEvaluationInput = PutEvaluationBodyInput;
 
 export class EvaluationService {
   /**
@@ -125,7 +101,9 @@ export class EvaluationService {
         name: data.name,
         description: data.description || "",
         type: data.type || "standard",
-        modelSettings: data.modelConfig ? JSON.stringify(data.modelConfig) : null,
+        executionSettings: data.executionSettings ? JSON.stringify(data.executionSettings) : null,
+        modelSettings: data.modelSettings ? JSON.stringify(data.modelSettings) : null,
+        customMetrics: data.customMetrics ? JSON.stringify(data.customMetrics) : null,
         status: "draft",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -138,8 +116,13 @@ export class EvaluationService {
         data.testCases.map((tc, idx) => ({
           evaluationId: evaluation.id,
           name: tc.name || `Test Case ${idx + 1}`,
-          input: tc.input,
-          expectedOutput: tc.expectedOutput || "",
+          input: typeof tc.input === "string" ? tc.input : JSON.stringify(tc.input),
+          expectedOutput:
+            typeof tc.expectedOutput === "string"
+              ? tc.expectedOutput
+              : tc.expectedOutput != null
+                ? JSON.stringify(tc.expectedOutput)
+                : "",
           metadata: JSON.stringify(tc.metadata || {}),
           createdAt: new Date().toISOString(),
         })),
@@ -164,12 +147,17 @@ export class EvaluationService {
       return null;
     }
 
+    const updates: Record<string, unknown> = {
+      updatedAt: new Date(),
+    };
+
+    if (data.name !== undefined) updates.name = data.name;
+    if (data.description !== undefined) updates.description = data.description;
+    if (data.status !== undefined) updates.status = data.status;
+
     const [updated] = await db
       .update(evaluations)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
+      .set(updates)
       .where(and(eq(evaluations.id, id), eq(evaluations.organizationId, organizationId)))
       .returning();
 
@@ -459,15 +447,27 @@ export class EvaluationService {
       return null;
     }
 
-    // Query counts separately to avoid TypeScript issues with relations
-    const runs = await db.select().from(evaluationRuns).where(eq(evaluationRuns.evaluationId, id));
+    const [{ totalRuns }] = await db
+      .select({ totalRuns: count() })
+      .from(evaluationRuns)
+      .where(eq(evaluationRuns.evaluationId, id));
 
-    const cases = await db.select().from(testCases).where(eq(testCases.evaluationId, id));
+    const [{ totalTestCases }] = await db
+      .select({ totalTestCases: count() })
+      .from(testCases)
+      .where(eq(testCases.evaluationId, id));
+
+    const [latestRun] = await db
+      .select({ createdAt: evaluationRuns.createdAt })
+      .from(evaluationRuns)
+      .where(eq(evaluationRuns.evaluationId, id))
+      .orderBy(desc(evaluationRuns.createdAt))
+      .limit(1);
 
     return {
-      totalRuns: runs.length,
-      totalTestCases: cases.length,
-      lastRunAt: runs[0]?.createdAt || null,
+      totalRuns,
+      totalTestCases,
+      lastRunAt: latestRun?.createdAt || null,
       status: evaluation.status,
     };
   }

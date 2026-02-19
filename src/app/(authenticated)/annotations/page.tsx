@@ -171,9 +171,7 @@ interface AnnotationTask {
 const fetchTasks = async (_session: any) => {
   try {
     const response = await fetch("/api/annotations/tasks", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("bearer_token")}`,
-      },
+      credentials: "include",
     });
     const data = await response.json();
     return data.tasks || [];
@@ -252,16 +250,15 @@ export default function AnnotationsPage() {
 
     setIsCreating(true);
     try {
-      const token = localStorage.getItem("bearer_token");
       const template = selectedTemplate
         ? ANNOTATION_TEMPLATES.find((t) => t.id === selectedTemplate)
         : null;
 
       const response = await fetch("/api/annotations/tasks", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: taskName,

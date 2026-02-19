@@ -32,14 +32,14 @@
     "enabled": true,
     "rules": {
       "recommended": true,
-      "a11y": "off",
+      "a11y": "warn",
       "correctness": {
         "noUnusedImports": "warn",
         "noUnusedVariables": "off",
         "noUnusedFunctionParameters": "off",
         "useHookAtTopLevel": "warn",
         "noInvalidUseBeforeDeclaration": "off",
-        "useExhaustiveDependencies": "off"
+        "useExhaustiveDependencies": "warn"
       },
       "suspicious": {
         "noExplicitAny": "off",

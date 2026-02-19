@@ -13,12 +13,10 @@ export function RunDiffView({
   evaluationId,
   runId,
   compareRunId,
-  token,
 }: {
   evaluationId: string;
   runId: number;
   compareRunId: number;
-  token: string | null;
 }) {
   const [data, setData] = useState<{
     results: ResultRow[];
@@ -28,11 +26,10 @@ export function RunDiffView({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
     setLoading(true);
     setError(null);
     fetch(`/api/evaluations/${evaluationId}/runs/${runId}?compareRunId=${compareRunId}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: "include",
     })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -47,7 +44,7 @@ export function RunDiffView({
       })
       .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
-  }, [evaluationId, runId, compareRunId, token]);
+  }, [evaluationId, runId, compareRunId]);
 
   if (loading) return <p className="text-xs text-muted-foreground mt-1">Loading diff…</p>;
   if (error) return <p className="text-xs text-destructive mt-1">Diff error: {error}</p>;

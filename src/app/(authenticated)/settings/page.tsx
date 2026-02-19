@@ -20,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useOrganizationId } from "@/hooks/use-organization";
-import { getBearerToken } from "@/hooks/use-safe-storage";
 import { useSession } from "@/lib/auth-client";
 
 interface ApiKey {
@@ -90,18 +89,10 @@ export default function SettingsPage() {
     if (!organizationId) return;
 
     try {
-      const token = getBearerToken();
-      if (!token) {
-        toast.error("Authentication required");
-        return;
-      }
-
       const response = await fetch(
         `/api/developer/api-keys?organizationId=${organizationId}&limit=50`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         },
       );
 
@@ -122,18 +113,10 @@ export default function SettingsPage() {
     if (!organizationId) return;
 
     try {
-      const token = getBearerToken();
-      if (!token) {
-        toast.error("Authentication required");
-        return;
-      }
-
       const response = await fetch(
         `/api/developer/webhooks?organizationId=${organizationId}&limit=50`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         },
       );
 
@@ -169,17 +152,11 @@ export default function SettingsPage() {
     }
 
     try {
-      const token = getBearerToken();
-      if (!token) {
-        toast.error("Authentication required");
-        return;
-      }
-
       const response = await fetch("/api/developer/api-keys", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: newKeyName,
@@ -212,12 +189,11 @@ export default function SettingsPage() {
     }
 
     try {
-      const token = localStorage.getItem("bearer_token");
       const response = await fetch("/api/developer/webhooks", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           organizationId,
@@ -248,12 +224,9 @@ export default function SettingsPage() {
     }
 
     try {
-      const token = localStorage.getItem("bearer_token");
       const response = await fetch(`/api/developer/api-keys/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -273,12 +246,9 @@ export default function SettingsPage() {
     }
 
     try {
-      const token = localStorage.getItem("bearer_token");
       const response = await fetch(`/api/developer/webhooks/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (response.ok) {

@@ -50,7 +50,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useOrganizationId } from "@/hooks/use-organization";
-import { getBearerToken } from "@/hooks/use-safe-storage";
 import { useSession } from "@/lib/auth-client";
 
 // Lazy load Recharts components
@@ -135,15 +134,10 @@ export default function DeveloperDashboardPage() {
     if (!organizationId) return;
 
     try {
-      const token = getBearerToken();
-      if (!token) return;
-
       const response = await fetch(
         `/api/developer/usage/summary?organizationId=${organizationId}&period=${period}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         },
       );
 
@@ -162,13 +156,8 @@ export default function DeveloperDashboardPage() {
     if (!organizationId) return;
 
     try {
-      const token = getBearerToken();
-      if (!token) return;
-
       const response = await fetch(`/api/developer/api-keys?organizationId=${organizationId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -201,17 +190,11 @@ export default function DeveloperDashboardPage() {
     setCreating(true);
 
     try {
-      const token = getBearerToken();
-      if (!token) {
-        toast.error("Authentication required");
-        return;
-      }
-
       const response = await fetch("/api/developer/api-keys", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: keyName.trim(),
@@ -251,14 +234,9 @@ export default function DeveloperDashboardPage() {
     if (!keyToDelete) return;
 
     try {
-      const token = getBearerToken();
-      if (!token) return;
-
       const response = await fetch(`/api/developer/api-keys/${keyToDelete}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (response.ok) {

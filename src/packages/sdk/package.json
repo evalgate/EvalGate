@@ -1,6 +1,6 @@
 {
   "name": "@pauly4010/evalai-sdk",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "description": "AI Evaluation Platform SDK - Complete API Coverage with Performance Optimizations",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -76,26 +76,32 @@
     },
     "./assertions": {
       "import": "./dist/assertions.js",
+      "require": "./dist/assertions.js",
       "types": "./dist/assertions.d.ts"
     },
     "./testing": {
       "import": "./dist/testing.js",
+      "require": "./dist/testing.js",
       "types": "./dist/testing.d.ts"
     },
     "./integrations/openai": {
       "import": "./dist/integrations/openai.js",
+      "require": "./dist/integrations/openai.js",
       "types": "./dist/integrations/openai.d.ts"
     },
     "./integrations/anthropic": {
       "import": "./dist/integrations/anthropic.js",
+      "require": "./dist/integrations/anthropic.js",
       "types": "./dist/integrations/anthropic.d.ts"
     },
     "./integrations/openai-eval": {
       "import": "./dist/integrations/openai-eval.js",
+      "require": "./dist/integrations/openai-eval.js",
       "types": "./dist/integrations/openai-eval.d.ts"
     },
     "./matchers": {
       "import": "./dist/matchers/index.js",
+      "require": "./dist/matchers/index.js",
       "types": "./dist/matchers/index.d.ts"
     }
   }

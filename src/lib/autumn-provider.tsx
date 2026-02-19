@@ -5,13 +5,13 @@ import { useSession } from "@/lib/auth-client";
 
 export default function CustomAutumnProvider({ children }: { children: React.ReactNode }) {
   const { refetch } = useSession();
-  // Capture ?token=... from URL (after checkout redirect) and persist
+  // Capture ?token=... from URL (after checkout redirect), then clear it.
+  // Browser auth uses HttpOnly cookies; token query params are not persisted client-side.
   React.useEffect(() => {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
     const token = url.searchParams.get("token");
     if (token) {
-      localStorage.setItem("bearer_token", token);
       url.searchParams.delete("token");
       window.history.replaceState({}, "", url.toString());
       // Refresh auth session so user is considered signed in immediately
@@ -20,12 +20,7 @@ export default function CustomAutumnProvider({ children }: { children: React.Rea
   }, [refetch]);
 
   return (
-    <AutumnProvider
-      includeCredentials={true}
-      getBearerToken={async () => {
-        return localStorage.getItem("bearer_token") || null;
-      }}
-    >
+    <AutumnProvider includeCredentials={true} getBearerToken={async () => null}>
       {children}
     </AutumnProvider>
   );

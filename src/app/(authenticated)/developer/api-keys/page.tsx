@@ -48,7 +48,6 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useOrganizationId } from "@/hooks/use-organization";
-import { getBearerToken } from "@/hooks/use-safe-storage";
 import { useSession } from "@/lib/auth-client";
 
 interface APIKey {
@@ -105,13 +104,8 @@ export default function APIKeysPage() {
     if (!organizationId) return;
 
     try {
-      const token = getBearerToken();
-      if (!token) return;
-
       const response = await fetch(`/api/developer/api-keys?organizationId=${organizationId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -147,17 +141,11 @@ export default function APIKeysPage() {
     setCreating(true);
 
     try {
-      const token = getBearerToken();
-      if (!token) {
-        toast.error("Authentication required");
-        return;
-      }
-
       const response = await fetch("/api/developer/api-keys", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: keyName.trim(),
@@ -197,14 +185,9 @@ export default function APIKeysPage() {
     if (!keyToDelete) return;
 
     try {
-      const token = getBearerToken();
-      if (!token) return;
-
       const response = await fetch(`/api/developer/api-keys/${keyToDelete}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (response.ok) {

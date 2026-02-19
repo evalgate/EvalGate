@@ -28,10 +28,8 @@ export default function TraceDetailPage({ params }: PageProps) {
     }
 
     if (session?.user) {
-      const token = localStorage.getItem("bearer_token");
-
       fetch(`/api/traces/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       })
         .then((res) => res.json())
         .then((data) => {
@@ -43,7 +41,7 @@ export default function TraceDetailPage({ params }: PageProps) {
         });
 
       fetch(`/api/traces/${id}/spans`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       })
         .then((res) => res.json())
         .then((data) => {

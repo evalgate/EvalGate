@@ -6,8 +6,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 
+// Stub Sentry — its SDK initialization hangs in happy-dom.
+vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
+
 vi.mock("@/lib/api/request-id", () => ({
   getRequestId: () => "test-request-id",
+  extractOrGenerateRequestId: () => "test-request-id",
+  runWithRequestIdAsync: async (_id: string, fn: () => Promise<unknown>) => fn(),
+  setRequestContext: vi.fn(),
+  getRequestContext: () => undefined,
 }));
 
 vi.mock("@/lib/rate-limit", () => ({
@@ -21,9 +28,11 @@ vi.mock("@/lib/rate-limit", () => ({
   }),
 }));
 
+// Static import — vi.mock calls above are hoisted before this resolves.
+import { withRateLimit } from "@/lib/api-rate-limit";
+
 describe("Rate limit 429 envelope", () => {
   it("returns 429 with normalized envelope when rate limit exceeded", async () => {
-    const { withRateLimit } = await import("@/lib/api-rate-limit");
     const req = new NextRequest("http://localhost:3000/api/exports/abc123");
     const handler = vi.fn(async () => NextResponse.json({ ok: true }, { status: 200 }));
 

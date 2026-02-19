@@ -27,9 +27,7 @@ export default function OnboardingPage() {
     if (session?.user) {
       // Check if user already has an organization
       fetch("/api/organizations", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("bearer_token")}`,
-        },
+        credentials: "include",
       })
         .then((res) => res.json())
         .then((data) => {
@@ -59,9 +57,9 @@ export default function OnboardingPage() {
     try {
       const response = await fetch("/api/organizations", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("bearer_token")}`,
         },
         body: JSON.stringify({
           name: organizationName,

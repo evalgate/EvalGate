@@ -44,11 +44,9 @@ export default function EvaluationDetailPage({ params }: PageProps) {
     }
 
     if (session?.user) {
-      const token = localStorage.getItem("bearer_token");
-
       // Fetch evaluation
       fetch(`/api/evaluations/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       })
         .then((res) => res.json())
         .then((data) => {
@@ -61,14 +59,14 @@ export default function EvaluationDetailPage({ params }: PageProps) {
 
       // Fetch test cases
       fetch(`/api/evaluations/${id}/test-cases`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       })
         .then((res) => res.json())
         .then((data) => setTestCases(data.testCases || []));
 
       // Fetch runs
       fetch(`/api/evaluations/${id}/runs`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       })
         .then((res) => res.json())
         .then((data) => {
@@ -143,9 +141,8 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
     // Prefer server-side export when we have a run (includes IAA for human_eval)
     if (runId) {
       try {
-        const token = localStorage.getItem("bearer_token");
         const res = await fetch(`/api/evaluations/${id}/runs/${runId}/export`, {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         });
         if (res.ok) {
           const exportData = await res.json();
@@ -593,11 +590,6 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
                                         evaluationId={id}
                                         runId={run.id}
                                         compareRunId={checkReport.baselineRunId}
-                                        token={
-                                          typeof window !== "undefined"
-                                            ? localStorage.getItem("bearer_token")
-                                            : null
-                                        }
                                       />
                                     </div>
                                   )}

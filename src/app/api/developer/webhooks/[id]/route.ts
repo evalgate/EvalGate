@@ -5,6 +5,7 @@ import { webhooks } from "@/db/schema";
 import { forbidden, notFound, validationError } from "@/lib/api/errors";
 import { parseBody } from "@/lib/api/parse";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { encryptWebhookSecret } from "@/lib/security/webhook-secrets";
 import { updateWebhookBodySchema } from "@/lib/validation";
 
 type LoadWebhookResult = { error: NextResponse } | { webhook: typeof webhooks.$inferSelect };
@@ -34,7 +35,7 @@ export const GET = secureRoute(async (_req: NextRequest, ctx: AuthContext, param
   const result = await loadOwnedWebhook(webhookId, ctx);
   if ("error" in result) return result.error;
 
-  const { secret, ...webhookWithoutSecret } = result.webhook;
+  const { secret, encryptedSecret, secretIv, secretTag, ...webhookWithoutSecret } = result.webhook;
   return NextResponse.json(webhookWithoutSecret, { status: 200 });
 });
 
@@ -50,7 +51,7 @@ export const PATCH = secureRoute(async (req: NextRequest, ctx: AuthContext, para
   const parsed = await parseBody(req, updateWebhookBodySchema);
   if (!parsed.ok) return parsed.response;
 
-  const { url, events, status } = parsed.data;
+  const { url, events, status, secret } = parsed.data;
 
   const updates: Record<string, unknown> = {
     updatedAt: new Date().toISOString(),
@@ -68,6 +69,14 @@ export const PATCH = secureRoute(async (req: NextRequest, ctx: AuthContext, para
     updates.status = status;
   }
 
+  if (secret !== undefined) {
+    const encryptedSecret = encryptWebhookSecret(ctx.organizationId, secret);
+    updates.secret = encryptedSecret.secretPlaceholder;
+    updates.encryptedSecret = encryptedSecret.encryptedSecret;
+    updates.secretIv = encryptedSecret.secretIv;
+    updates.secretTag = encryptedSecret.secretTag;
+  }
+
   const updated = await db
     .update(webhooks)
     .set(updates)
@@ -78,7 +87,13 @@ export const PATCH = secureRoute(async (req: NextRequest, ctx: AuthContext, para
     return notFound("Webhook not found");
   }
 
-  const { secret, ...webhookWithoutSecret } = updated[0];
+  const {
+    secret: _secret,
+    encryptedSecret: _enc,
+    secretIv: _iv,
+    secretTag: _tag,
+    ...webhookWithoutSecret
+  } = updated[0];
   return NextResponse.json(webhookWithoutSecret, { status: 200 });
 });
 
@@ -97,7 +112,13 @@ export const DELETE = secureRoute(async (_req: NextRequest, ctx: AuthContext, pa
     return notFound("Webhook not found");
   }
 
-  const { secret: _secret, ...deletedWithoutSecret } = deleted[0];
+  const {
+    secret: _secret,
+    encryptedSecret: _encryptedSecret,
+    secretIv: _secretIv,
+    secretTag: _secretTag,
+    ...deletedWithoutSecret
+  } = deleted[0];
   return NextResponse.json(
     {
       message: "Webhook deleted successfully",

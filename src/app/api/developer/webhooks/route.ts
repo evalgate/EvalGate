@@ -6,6 +6,7 @@ import { webhooks } from "@/db/schema";
 import { forbidden, internalError, validationError } from "@/lib/api/errors";
 import { parseBody } from "@/lib/api/parse";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { encryptWebhookSecret } from "@/lib/security/webhook-secrets";
 import { createWebhookBodySchema, parsePaginationParams } from "@/lib/validation";
 
 export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
@@ -21,6 +22,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   try {
     const trimmedUrl = url.trim();
     const secret = crypto.randomBytes(32).toString("hex");
+    const encryptedSecret = encryptWebhookSecret(ctx.organizationId, secret);
 
     const now = new Date().toISOString();
     const newWebhook = await db
@@ -29,7 +31,10 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
         organizationId: ctx.organizationId,
         url: trimmedUrl,
         events: JSON.stringify(events),
-        secret,
+        secret: encryptedSecret.secretPlaceholder,
+        encryptedSecret: encryptedSecret.encryptedSecret,
+        secretIv: encryptedSecret.secretIv,
+        secretTag: encryptedSecret.secretTag,
         status: "active",
         lastDeliveredAt: null,
         createdAt: now,
@@ -47,7 +52,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
         id: created.id,
         url: created.url,
         events: typeof created.events === "string" ? JSON.parse(created.events) : created.events,
-        secret: created.secret,
+        secret,
         status: created.status,
         createdAt: created.createdAt,
       },

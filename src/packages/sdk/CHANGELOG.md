@@ -5,6 +5,14 @@ All notable changes to the @pauly4010/evalai-sdk package will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.6] - 2026-02-19
+
+### 🔧 Changed
+
+- **CJS compatibility** — Added `require` entries for all subpath exports (`./assertions`, `./testing`, `./integrations/*`, `./matchers`). CJS consumers no longer need custom resolve configuration.
+
+---
+
 ## [1.5.5] - 2026-02-19
 
 ### ✨ Added

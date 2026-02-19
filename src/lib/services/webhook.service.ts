@@ -9,6 +9,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { webhookDeliveries, webhooks } from "@/db/schema";
 import { logger } from "@/lib/logger";
+import { decryptWebhookSecret, encryptWebhookSecret } from "@/lib/security/webhook-secrets";
 
 export const createWebhookSchema = z.object({
   url: z.string().url(),
@@ -73,13 +74,18 @@ export class WebhookService {
     // Generate secret if not provided
     const secret = data.secret || this.generateSecret();
 
+    const encryptedSecret = encryptWebhookSecret(organizationId, secret);
+
     const [webhook] = await db
       .insert(webhooks)
       .values({
         organizationId,
         url: data.url,
         events: data.events as any,
-        secret,
+        secret: encryptedSecret.secretPlaceholder,
+        encryptedSecret: encryptedSecret.encryptedSecret,
+        secretIv: encryptedSecret.secretIv,
+        secretTag: encryptedSecret.secretTag,
         status: "active",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -108,7 +114,13 @@ export class WebhookService {
     };
     if (data.url) updateData.url = data.url;
     if (data.events) updateData.events = data.events;
-    if (data.secret) updateData.secret = data.secret;
+    if (data.secret) {
+      const encryptedSecret = encryptWebhookSecret(organizationId, data.secret);
+      updateData.secret = encryptedSecret.secretPlaceholder;
+      updateData.encryptedSecret = encryptedSecret.encryptedSecret;
+      updateData.secretIv = encryptedSecret.secretIv;
+      updateData.secretTag = encryptedSecret.secretTag;
+    }
 
     const [updated] = await db
       .update(webhooks)
@@ -167,7 +179,16 @@ export class WebhookService {
     }
 
     const payloadString = JSON.stringify(payload);
-    const signature = this.signPayload(payloadString, webhook.secret);
+    const secret = decryptWebhookSecret(organizationId, {
+      encryptedSecret: webhook.encryptedSecret,
+      secretIv: webhook.secretIv,
+      secretTag: webhook.secretTag,
+      secret: webhook.secret,
+    });
+    if (!secret) {
+      throw new Error("Webhook secret not available");
+    }
+    const signature = this.signPayload(payloadString, secret);
 
     const startTime = Date.now();
     let status: "success" | "failed" = "failed";

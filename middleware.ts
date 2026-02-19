@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
  */
 export function middleware(_request: NextRequest) {
   const response = NextResponse.next();
+  const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
 
   // Security headers
   response.headers.set("X-Content-Type-Options", "nosniff");
@@ -16,9 +17,20 @@ export function middleware(_request: NextRequest) {
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
   // Content-Security-Policy (basic for Next App Router)
+  // - 'unsafe-inline' is kept because Next.js injects inline scripts for hydration
+  //   and many UI libraries (Radix, shadcn) emit inline styles. Removing it requires
+  //   nonce-based CSP which is a tracked follow-on project.
+  // - 'unsafe-eval' is allowed in dev only (HMR / React Fast Refresh needs it).
+  //   It is stripped in production to block eval-based XSS.
+  const scriptSrc = [
+    "'self'",
+    "'unsafe-inline'",
+    "https://slelguoygbfzlpylpxfs.supabase.co",
+    ...(isProd ? [] : ["'unsafe-eval'"]),
+  ].join(" ");
   response.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+    `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`,
   );
 
   // Permissions-Policy: disable unused features
@@ -28,7 +40,7 @@ export function middleware(_request: NextRequest) {
   );
 
   // HSTS: only in production (avoid local HTTPS issues)
-  if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") {
+  if (isProd) {
     response.headers.set(
       "Strict-Transport-Security",
       "max-age=31536000; includeSubDomains; preload",

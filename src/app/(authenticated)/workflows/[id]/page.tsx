@@ -89,18 +89,16 @@ export default function WorkflowDetailPage({ params }: PageProps) {
     }
 
     if (session?.user) {
-      const token = localStorage.getItem("bearer_token");
-
       // Fetch workflow with stats
       Promise.all([
         fetch(`/api/workflows/${id}?includeStats=true`, {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         }).then((res) => res.json()),
         fetch(`/api/workflows/${id}/runs?limit=20`, {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         }).then((res) => res.json()),
         fetch(`/api/workflows/${id}/handoffs`, {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         }).then((res) => res.json()),
       ])
         .then(([workflow, runsData, handoffs]) => {

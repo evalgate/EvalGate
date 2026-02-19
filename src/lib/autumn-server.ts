@@ -230,6 +230,17 @@ export function extractBearerToken(authHeader: string | null): string | null {
   return match ? match[1] : null;
 }
 
+export function extractSessionTokenFromCookie(cookieHeader: string | null): string | null {
+  if (!cookieHeader) return null;
+  const match = cookieHeader.match(/(?:^|;\s*)better-auth\.session_token=([^;]+)/);
+  if (!match?.[1]) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}
+
 /**
  * Middleware helper for protected API routes
  * Returns standardized error responses
@@ -248,9 +259,14 @@ export async function requireAuth(request: Request): Promise<
   | { authenticated: false; response: Response }
 > {
   const authHeader = request.headers.get("authorization");
-  const token = extractBearerToken(authHeader);
+  const bearerToken = extractBearerToken(authHeader);
+  const cookieToken = extractSessionTokenFromCookie(request.headers.get("cookie"));
+  const primaryToken = bearerToken ?? cookieToken;
+  let validation = await validateSession(primaryToken);
 
-  const validation = await validateSession(token);
+  if (!validation.valid && bearerToken && cookieToken && bearerToken !== cookieToken) {
+    validation = await validateSession(cookieToken);
+  }
 
   if (!validation.valid || !validation.userId) {
     return {

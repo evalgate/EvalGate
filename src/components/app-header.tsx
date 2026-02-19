@@ -37,7 +37,6 @@ export function AppHeader({ user, organization }: AppHeaderProps) {
     if (error?.code) {
       toast.error("Failed to sign out");
     } else {
-      localStorage.removeItem("bearer_token");
       router.push("/");
       router.refresh();
     }

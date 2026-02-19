@@ -84,22 +84,17 @@ export default function PricingTable({ productDetails }: { productDetails?: Prod
 
                   // Current plan: open billing portal
                   if (product.scenario === "active") {
-                    const token =
-                      typeof window !== "undefined" ? localStorage.getItem("bearer_token") : null;
                     try {
                       const res = await fetch("/api/billing-portal", {
                         method: "POST",
+                        credentials: "include",
                         headers: {
                           "Content-Type": "application/json",
-                          ...(token ? { Authorization: `Bearer ${token}` } : {}),
                         },
                         body: JSON.stringify({
                           returnUrl: (() => {
                             if (typeof window === "undefined") return undefined;
-                            const t = localStorage.getItem("bearer_token");
-                            const u = new URL(window.location.href);
-                            if (t) u.searchParams.set("token", t);
-                            return u.toString();
+                            return window.location.href;
                           })(),
                         }),
                       });
@@ -131,17 +126,11 @@ export default function PricingTable({ productDetails }: { productDetails?: Prod
                       openInNewTab: true,
                       successUrl: (() => {
                         if (typeof window === "undefined") return undefined;
-                        const token = localStorage.getItem("bearer_token");
-                        const u = new URL(window.location.href);
-                        if (token) u.searchParams.set("token", token);
-                        return u.toString();
+                        return window.location.href;
                       })(),
                       cancelUrl: (() => {
                         if (typeof window === "undefined") return undefined;
-                        const token = localStorage.getItem("bearer_token");
-                        const u = new URL(window.location.href);
-                        if (token) u.searchParams.set("token", token);
-                        return u.toString();
+                        return window.location.href;
                       })(),
                     } as any);
 

@@ -20,16 +20,8 @@ export function useOrganization() {
   useEffect(() => {
     const fetchOrganization = async () => {
       try {
-        const token = localStorage.getItem("bearer_token");
-
-        if (!token) {
-          throw new Error("No authentication token found");
-        }
-
         const response = await fetch("/api/organizations/current", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         });
 
         if (!response.ok) {

@@ -55,6 +55,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const appOrigin =
+    process.env.NEXT_PUBLIC_SITE_URL || process.env.BETTER_AUTH_BASE_URL || "http://localhost:3000";
+
   return (
     <html
       lang="en"
@@ -68,7 +71,7 @@ export default function RootLayout({
         <Script
           src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts//route-messenger.js"
           strategy="afterInteractive"
-          data-target-origin="*"
+          data-target-origin={appOrigin}
           data-message-type="ROUTE_CHANGE"
           data-include-search-params="true"
           data-only-in-iframe="true"

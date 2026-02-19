@@ -40,6 +40,7 @@ export interface AuthContext {
   role: Role;
   scopes: string[];
   authType: AuthType;
+  rateLimitTier?: RateLimitTier;
   /** Present when authenticated via API key; used for usage tracking. */
   apiKeyId?: number;
 }
@@ -48,6 +49,7 @@ export interface AuthOnlyContext {
   userId: string;
   scopes: string[];
   authType: Exclude<AuthType, "anonymous">;
+  rateLimitTier?: Exclude<RateLimitTier, "anonymous">;
 }
 
 /** Explicit context for anonymous or authed handlers — never return empty {} */
@@ -59,6 +61,7 @@ export type AnyAuthContext =
       organizationId?: number;
       role?: Role;
       scopes?: string[];
+      rateLimitTier?: Exclude<RateLimitTier, "anonymous">;
     };
 
 export type SecureRouteOptions = {
@@ -100,6 +103,12 @@ export function hasMinRole(role: Role, minRole: Role): boolean {
 export function hasScopes(granted: string[], required: string[]): boolean {
   const set = new Set(granted);
   return required.every((s) => set.has(s));
+}
+
+function deriveRateLimitTier(authType: AuthType, role?: Role): Exclude<RateLimitTier, "anonymous"> {
+  if (authType === "apiKey") return "mcp";
+  if (role === "owner" || role === "admin") return "pro";
+  return "free";
 }
 
 // ── Overloads so callers get the correct context type ──
@@ -210,6 +219,7 @@ export function secureRoute(
               role: authResult.role,
               scopes: authResult.scopes,
               authType: authResult.authType,
+              rateLimitTier: deriveRateLimitTier(authResult.authType, authResult.role),
               apiKeyId: authResult.apiKeyId,
             };
             setRequestContext({ userId: ctx.userId, organizationId: ctx.organizationId });
@@ -223,7 +233,13 @@ export function secureRoute(
               return apiError("FORBIDDEN", "Insufficient scope");
             }
 
-            return await handler(request, ctx, resolvedParams);
+            if (tier) {
+              return await handler(request, ctx, resolvedParams);
+            }
+
+            return await withRateLimit(request, async () => handler(request, ctx, resolvedParams), {
+              customTier: ctx.rateLimitTier ?? "free",
+            });
           } else {
             const authResult = await requireAuth(request);
             if (!authResult.authenticated) {
@@ -233,6 +249,7 @@ export function secureRoute(
               userId: authResult.userId,
               scopes: authResult.scopes,
               authType: authResult.authType,
+              rateLimitTier: deriveRateLimitTier(authResult.authType),
             };
             setRequestContext({ userId: ctx.userId });
 
@@ -241,7 +258,13 @@ export function secureRoute(
               return apiError("FORBIDDEN", "Insufficient scope");
             }
 
-            return await handler(request, ctx, resolvedParams);
+            if (tier) {
+              return await handler(request, ctx, resolvedParams);
+            }
+
+            return await withRateLimit(request, async () => handler(request, ctx, resolvedParams), {
+              customTier: ctx.rateLimitTier ?? "free",
+            });
           }
         }
 

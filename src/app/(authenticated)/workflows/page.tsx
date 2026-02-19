@@ -180,9 +180,8 @@ export default function WorkflowsPage() {
     }
 
     if (session?.user) {
-      const token = localStorage.getItem("bearer_token");
       fetch("/api/workflows?limit=50", {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       })
         .then((res) => res.json().then((data) => ({ res, data })))
         .then(({ res, data }) => {
