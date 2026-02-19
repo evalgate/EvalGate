@@ -67,11 +67,7 @@ function buildCheckReport(input) {
     const actionableMessage = gateSkipped
         ? "Gate not applied: baseline missing. Publish a baseline from the dashboard, or run with --baseline previous once you have runs."
         : (gateResult.reasonMessage ?? undefined);
-    const verdict = gateResult.reasonCode === "WARN_REGRESSION"
-        ? "warn"
-        : gateResult.passed
-            ? "pass"
-            : "fail";
+    const verdict = gateResult.reasonCode === "WARN_REGRESSION" ? "warn" : gateResult.passed ? "pass" : "fail";
     const report = {
         evaluationId: args.evaluationId,
         runId: evaluationRunId,

@@ -1,6 +1,6 @@
 {
   "name": "@pauly4010/evalai-sdk",
-  "version": "1.5.0",
+  "version": "1.5.5",
   "description": "AI Evaluation Platform SDK - Complete API Coverage with Performance Optimizations",
   "main": "dist/index.js",
   "module": "dist/index.js",

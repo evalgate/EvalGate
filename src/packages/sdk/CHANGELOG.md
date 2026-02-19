@@ -5,6 +5,57 @@ All notable changes to the @pauly4010/evalai-sdk package will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.5] - 2026-02-19
+
+### ✨ Added
+
+#### Gate semantics (PASS / WARN / FAIL)
+
+- **`--warnDrop <n>`** — Introduce a WARN band when score drops > `warnDrop` but < `maxDrop`
+- **Gate verdicts:** PASS, WARN, FAIL
+- **Profiles:** `strict` (warnDrop: 0), `balanced` (warnDrop: 1), `fast` (warnDrop: 2)
+- **`--fail-on-flake`** — Fail the gate if any case is flagged as flaky (partial pass rate across determinism runs)
+
+#### Determinism & flake intelligence
+
+- **Adaptive variance thresholds** — Determinism audit passes if `absVariance ≤ 5` OR `relVariance ≤ 2%`
+- **Per-case variance reporting** — Reports per-case pass rate across N runs and flags `[FLAKY]` cases
+- **Golden dataset regression** — Added `evals/golden` with `pnpm eval:golden` to prevent semantic regressions
+- **Golden drift output** — Writes `evals/golden/golden-results.json` with `currentScore`, `baselineScore`, `delta`, `passed`, and timestamps
+
+#### CI audits & workflows
+
+- **Nightly audits** — Added `audit-nightly.yml` for determinism + performance budgets (skips without `OPENAI_API_KEY`)
+- **SDK compatibility matrix** — Added `sdk-compat.yml` to validate older SDK versions against current API
+- **New audits:** `audit:retention`, `audit:migrations`, `audit:performance`, `audit:determinism`
+
+#### Platform safety & governance (docs + proofs)
+
+- **Audit trail docs** — Added `docs/audit-trail.md`
+- **Observability docs** — Added `docs/observability.md` (log schema + requestId)
+- **Retention docs** — Added `docs/data-retention.md`
+- **Migration safety docs** — Added `docs/migration-safety.md`
+- **Adoption benchmark** — Added `docs/adoption-benchmark.md`
+- **Examples** — Added real-world example suites (RAG regression + agent tool-use)
+
+### 🔧 Changed
+
+- **Exit codes updated** — 0=pass, **8=warn**, failures remain as documented for score/regression/policy/API/config
+- **GitHub + human formatters** — Render WARN state, top contributors, and flake indicators where available
+- **Rate limiting** — Adds `Retry-After` header on 429 responses
+- **RequestId propagation** — `EvalAIError` surfaces `requestId` from response body or `x-request-id` header
+
+### 🧪 Testing
+
+- Added tests for:
+  - access boundaries (no tenant info leak)
+  - rate-limit abuse patterns + `Retry-After`
+  - executor failure modes (timeouts / upstream 429 / malformed responses)
+  - error catalog stability + graceful handling of unknown codes
+  - exports contract (retention visibility, 410 semantics)
+
+--
+
 ## [1.5.0] - 2026-02-18
 
 ### ✨ Added

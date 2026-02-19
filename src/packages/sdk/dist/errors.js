@@ -238,7 +238,7 @@ function createErrorFromResponse(response, data) {
     let code = errObj?.code ?? data?.code ?? "UNKNOWN_ERROR";
     const message = typeof data?.error === "string"
         ? data.error
-        : errObj?.message ?? data?.message ?? response.statusText;
+        : (errObj?.message ?? data?.message ?? response.statusText);
     const requestId = errObj?.requestId ?? data?.requestId ?? response.headers.get("x-request-id") ?? undefined;
     // Map HTTP status to error codes when code not in response
     if (!errObj?.code && !data?.code) {
