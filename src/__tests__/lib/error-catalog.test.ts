@@ -4,7 +4,7 @@
  * - Unknown codes degrade gracefully (no crash)
  */
 
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { ApiErrorCode } from "@/lib/api/errors";
 import {
   API_ERROR_CODES,

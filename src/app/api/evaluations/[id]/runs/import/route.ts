@@ -170,8 +170,9 @@ export const POST = secureRoute(
       });
     }
 
-    // Compute quality score (synchronous so we can return it)
+    // Compute quality score (synchronous — CLI reads score for CI gate)
     let qualityResult: { score: number; flags: string[] } | null = null;
+    const scoreStart = performance.now();
     try {
       const q = await computeAndStoreQualityScore(run.id, evaluationId, ctx.organizationId);
       qualityResult = { score: q.score, flags: q.flags };
@@ -181,6 +182,8 @@ export const POST = secureRoute(
         error: err instanceof Error ? err.message : String(err),
       });
     }
+    const scoreDurationMs = Math.round(performance.now() - scoreStart);
+    logger.info("Quality score computed on import", { runId: run.id, scoreDurationMs });
 
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL ||
@@ -200,6 +203,7 @@ export const POST = secureRoute(
         environment,
         passedCount,
         failedCount,
+        scoreDurationMs,
         apiKeyId: ctx.apiKeyId,
       },
     });

@@ -40,7 +40,7 @@ export interface QualityScoreResult {
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
 
 export function computeQualityScore(i: ScoreInputs): QualityScoreResult {
-  const passRate = i.total ? i.passed / i.total : 0;
+  const passRate = clamp01(i.total ? i.passed / i.total : 0);
 
   const safety = clamp01(i.safetyPassRate ?? passRate);
   const judge = clamp01(i.judgeAvg ?? passRate);

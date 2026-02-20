@@ -8,6 +8,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { webhookDeliveries, webhooks } from "@/db/schema";
+import { enqueue } from "@/lib/jobs/enqueue";
 import { logger } from "@/lib/logger";
 import { decryptWebhookSecret, encryptWebhookSecret } from "@/lib/security/webhook-secrets";
 
@@ -323,12 +324,14 @@ export class WebhookService {
   }
 
   /**
-   * Trigger webhook for event
+   * Trigger webhook for event — enqueues async delivery jobs (non-blocking).
+   *
+   * Each subscribed webhook gets its own job with retry/backoff semantics.
+   * Returns immediately with the count of enqueued jobs.
    */
   async trigger(organizationId: number, event: string, data: any) {
     logger.info("Triggering webhooks for event", { organizationId, event });
 
-    // Get all active webhooks for this organization subscribed to this event
     const activeWebhooks = await db
       .select()
       .from(webhooks)
@@ -345,38 +348,23 @@ export class WebhookService {
       organizationId,
     });
 
-    const payload: WebhookPayload = {
+    const timestamp = new Date().toISOString();
+
+    for (const webhook of subscribedWebhooks) {
+      await enqueue(
+        "webhook_delivery",
+        { webhookId: webhook.id, organizationId, event, data, timestamp },
+        { organizationId },
+      );
+    }
+
+    logger.info("Webhook delivery jobs enqueued", {
+      enqueued: subscribedWebhooks.length,
       event,
-      data,
-      timestamp: new Date().toISOString(),
       organizationId,
-    };
-
-    // Deliver to all subscribed webhooks (in parallel)
-    const deliveryPromises = subscribedWebhooks.map((webhook) =>
-      this.deliver(webhook.id, organizationId, payload).catch((err) => {
-        logger.error("Failed to deliver webhook", {
-          webhookId: webhook.id,
-          error: err.message,
-        });
-        return null;
-      }),
-    );
-
-    const results = await Promise.allSettled(deliveryPromises);
-    const successful = results.filter((r) => r.status === "fulfilled").length;
-
-    logger.info("Webhooks triggered", {
-      total: subscribedWebhooks.length,
-      successful,
-      failed: subscribedWebhooks.length - successful,
     });
 
-    return {
-      triggered: subscribedWebhooks.length,
-      successful,
-      failed: subscribedWebhooks.length - successful,
-    };
+    return { enqueued: subscribedWebhooks.length };
   }
 }
 

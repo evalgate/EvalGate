@@ -844,3 +844,26 @@ export const sharedExports = sqliteTable(
       .where(sql`${table.shareScope} = 'run'`),
   }),
 );
+
+// ============================================
+// BACKGROUND JOBS
+// ============================================
+
+export const jobs = sqliteTable("jobs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  type: text("type").notNull(), // 'webhook_delivery'
+  payload: text("payload", { mode: "json" }).notNull(),
+  status: text("status").notNull().default("pending"), // pending | running | success | failed | dead_letter
+  attempt: integer("attempt").notNull().default(0),
+  maxAttempts: integer("max_attempts").notNull().default(5),
+  nextRunAt: integer("next_run_at", { mode: "timestamp" }).notNull(),
+  lastError: text("last_error"),
+  idempotencyKey: text("idempotency_key").unique(),
+  organizationId: integer("organization_id").references(() => organizations.id),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+});

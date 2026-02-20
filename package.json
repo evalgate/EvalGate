@@ -36,6 +36,7 @@
     "audit:performance": "npx tsx scripts/audit-performance.ts",
     "audit:retention": "npx tsx scripts/audit-retention.ts",
     "audit:migrations": "npx tsx scripts/audit-migrations.ts",
+    "audit:indexes": "npx tsx scripts/index-audit.ts",
     "eval:golden": "pnpm sdk:build && npx tsx scripts/run-golden-eval.ts",
     "openapi:generate-paths": "npx tsx scripts/generate-openapi-paths.ts",
     "prepare": "husky"

@@ -53,6 +53,13 @@ jobs:
       - name: Migration safety
         run: pnpm run audit:migrations
 
+      - name: Index audit
+        run: pnpm run audit:indexes
+
+      - name: Dependency security audit
+        run: pnpm audit --audit-level=high
+        continue-on-error: false
+
       - name: Retention audit
         run: pnpm run audit:retention
 
