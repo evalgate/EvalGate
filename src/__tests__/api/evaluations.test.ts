@@ -24,13 +24,13 @@ vi.mock("@/db", () => {
     $dynamic: vi.fn(),
   };
 
-  mockChain.select.mockReturnValue(mockChain);
-  mockChain.from.mockReturnValue(mockChain);
-  mockChain.$dynamic.mockReturnValue(mockChain);
-  mockChain.where.mockReturnValue(mockChain);
-  mockChain.limit.mockReturnValue(mockChain);
-  mockChain.offset.mockReturnValue(mockChain);
-  mockChain.orderBy.mockResolvedValue([]);
+  (mockChain.select as any).mockReturnValue(mockChain);
+  (mockChain.from as any).mockReturnValue(mockChain);
+  (mockChain.$dynamic as any).mockReturnValue(mockChain);
+  (mockChain.where as any).mockReturnValue(mockChain);
+  (mockChain.limit as any).mockReturnValue(mockChain);
+  (mockChain.offset as any).mockReturnValue(mockChain);
+  (mockChain.orderBy as any).mockResolvedValue([]);
 
   return { db: mockChain };
 });

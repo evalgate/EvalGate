@@ -74,7 +74,7 @@ vi.mock("@/lib/api/secure-route", () => ({
           headers: { "content-type": "application/json" },
         });
       }
-      return handler(req, state.ctx, params);
+      return (handler as any)(req, state.ctx, params);
     };
   },
 }));

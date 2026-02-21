@@ -74,7 +74,7 @@ vi.mock("@/lib/api/secure-route", () => ({
   secureRoute: (handler: unknown) => {
     return async (req: NextRequest, props: { params: Promise<Record<string, string>> }) => {
       const params = await props.params;
-      return handler(req, state.ctx, params);
+      return (handler as any)(req, state.ctx, params);
     };
   },
 }));

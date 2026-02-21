@@ -82,7 +82,8 @@ vi.mock("@/lib/api/parse", () => ({
  */
 vi.mock("@/lib/api/secure-route", () => ({
   secureRoute: (handler: unknown, opts?: { minRole?: string }) => {
-    return async (req: NextRequest) => {
+    return async (req: NextRequest, props?: { params: Promise<Record<string, string>> }) => {
+      const params = props?.params ? await props.params : undefined;
       if (!state.ctx.authenticated) {
         return new Response(JSON.stringify({ error: { code: "UNAUTHORIZED" } }), {
           status: 401,
@@ -101,7 +102,7 @@ vi.mock("@/lib/api/secure-route", () => ({
         }
       }
 
-      return handler(req, state.ctx);
+      return (handler as any)(req, state.ctx, params);
     };
   },
 }));
