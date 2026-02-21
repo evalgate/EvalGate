@@ -37,6 +37,8 @@
     "src/packages/sdk/**/*",
     "src/integrations/**/*",
     "src/remotion/**/*",
+    "src/app/docs/**/*",
+    "src/app/guides/**/*",
     "examples/**/*"
   ]
 }
