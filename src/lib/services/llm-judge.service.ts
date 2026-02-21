@@ -258,7 +258,7 @@ export class LLMJudgeService {
     const parts = [
       "You are an expert evaluator.",
       "\n\n# Evaluation Template\n",
-      config.promptTemplate,
+      (config as any).promptTemplate,
       "\n\n# Input\n",
       data.input,
       "\n\n# Output to Evaluate\n",
@@ -312,7 +312,7 @@ export class LLMJudgeService {
     organizationId: number,
   ): Promise<JudgementResult> {
     const provider = this.getProviderFromModel(config.model);
-    logger.info("Calling LLM provider", { provider, model: config.model, organizationId });
+    logger.info("Calling LLM provider", { provider, model: (config as any).model, organizationId });
 
     const systemPrompt =
       'You are an expert AI evaluator. Respond ONLY with valid JSON in this exact format: {"score": <0-100>, "reasoning": "<explanation>", "passed": <true/false>}. Do not include unknown other text.';
@@ -608,7 +608,7 @@ export class LLMJudgeService {
       } catch (error: unknown) {
         logger.error("Failed to judge test case", {
           testCaseId: testResult.testCaseId,
-          error: error.message,
+          error: (error as any).message,
         });
 
         // Save failed judge result
@@ -625,7 +625,7 @@ export class LLMJudgeService {
             originalStatus: testResult.status,
             passed: false,
             evaluationRunId,
-            error: error.message,
+            error: (error as any).message,
           }),
           createdAt: new Date().toISOString(),
         });
@@ -633,7 +633,7 @@ export class LLMJudgeService {
         judgeResults.push({
           testCaseId: testResult.testCaseId,
           judgeScore: 0,
-          judgeReasoning: `Judge evaluation failed: ${error.message}`,
+          judgeReasoning: `Judge evaluation failed: ${(error as any).message}`,
           passed: false,
         });
       }
