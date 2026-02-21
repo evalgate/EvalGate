@@ -94,7 +94,7 @@ vi.mock("@/lib/api/secure-route", () => ({
         authType: "session",
       };
 
-      return handler(req, ctx, params);
+      return (handler as any)(req, ctx, params);
     };
   },
 }));

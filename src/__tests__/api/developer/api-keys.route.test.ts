@@ -38,7 +38,7 @@ vi.mock("@/lib/api/secure-route", () => ({
       };
 
       // Handle minRole option
-      if (opts?.minRole === "admin") {
+      if ((opts as any)?.minRole === "admin") {
         const allowed = ctx.role === "admin" || ctx.role === "owner";
         if (!allowed) {
           return new Response(JSON.stringify({ error: { code: "FORBIDDEN" } }), {
@@ -49,7 +49,7 @@ vi.mock("@/lib/api/secure-route", () => ({
       }
 
       // munknown routes accept (req, ctx), some accept (req, ctx, params)
-      return handler(req, ctx);
+      return (handler as any)(req, ctx, params);
     };
   },
 }));
