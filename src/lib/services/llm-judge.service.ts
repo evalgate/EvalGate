@@ -311,7 +311,7 @@ export class LLMJudgeService {
     prompt: string,
     organizationId: number,
   ): Promise<JudgementResult> {
-    const provider = this.getProviderFromModel(config.model);
+    const provider = this.getProviderFromModel((config as any).model);
     logger.info("Calling LLM provider", { provider, model: (config as any).model, organizationId });
 
     const systemPrompt =

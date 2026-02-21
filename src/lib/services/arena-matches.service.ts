@@ -303,7 +303,7 @@ export class ArenaMatchesService {
     }
 
     // Calculate win rates and streaks
-    for (const entry of modelStats.values()) {
+    for (const entry of Array.from(modelStats.values())) {
       entry.winRate = entry.totalMatches > 0 ? (entry.wins / entry.totalMatches) * 100 : 0;
       entry.streak = this.calculateStreak(entry);
     }
@@ -375,7 +375,7 @@ export class ArenaMatchesService {
           modelId: model.id,
           modelLabel: model.label,
           score: 0,
-          output: `Error: ${error.message}`,
+          output: `Error: ${(error as any).message}`,
           responseTime: 0,
           tokenCount: 0,
           cost: 0,
@@ -568,7 +568,7 @@ Provide a clear explanation for your choice.`,
       "gemini-pro": 0.025,
     };
 
-    const modelKey = config.model || "gpt-4";
+    const modelKey = (config as any).model || "gpt-4";
     const pricePerToken = pricing[modelKey] || 0.03;
 
     return (tokenCount / 1000) * pricePerToken;
