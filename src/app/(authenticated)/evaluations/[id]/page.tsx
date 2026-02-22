@@ -11,8 +11,68 @@ import { RunDiffView } from "@/components/run-diff-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { calculateQualityScore, type EvaluationStats } from "@/lib/ai-quality-score";
+import {
+  calculateQualityScore,
+  type EvaluationStats,
+  type QualityScore,
+} from "@/lib/ai-quality-score";
 import { useSession } from "@/lib/auth-client";
+
+interface EvaluationRun {
+  id: number;
+  totalCases?: number;
+  total_cases?: number;
+  total_tests?: number;
+  passedCases?: number;
+  passed_cases?: number;
+  passed_tests?: number;
+  runId?: number;
+  variant_id?: string;
+  variant_name?: string;
+  average_latency?: number;
+  average_cost?: number;
+  quality_score?: number;
+  status?: string;
+  createdAt?: string;
+  completedAt?: string;
+  startedAt?: string;
+  started_at?: string;
+  traceLog?: any;
+}
+
+interface Evaluation {
+  id: number;
+  name: string;
+  type: EvaluationType;
+  description?: string;
+  category?: string;
+  created_at?: string;
+  human_eval_criteria?: Array<{
+    name: string;
+    description: string;
+    scale: string;
+  }>;
+  judge_prompt?: string;
+  judge_model?: string;
+  variants?: Array<{
+    id: string;
+    name: string;
+    description?: string;
+  }>;
+}
+
+interface TestCase {
+  id: number;
+  input: string;
+  expected?: string;
+  expectedOutput?: string;
+  actualOutput?: string;
+  passed?: boolean;
+  executionTimeMs?: number;
+  errorMessage?: string;
+  name?: string;
+}
+
 import {
   type EvaluationType,
   formatExportData,
@@ -29,11 +89,11 @@ export default function EvaluationDetailPage({ params }: PageProps) {
   const { id } = use(params); // Unwrap Promise with use()
   const { data: session, isPending } = useSession();
   const router = useRouter();
-  const [evaluation, setEvaluation] = useState<unknown>(null);
-  const [testCases, setTestCases] = useState<unknown[]>([]);
-  const [runs, setRuns] = useState<unknown[]>([]);
+  const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [runs, setRuns] = useState<EvaluationRun[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [qualityScore, setQualityScore] = useState<unknown>(null);
+  const [qualityScore, setQualityScore] = useState<QualityScore | null>(null);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [openDiffRunId, setOpenDiffRunId] = useState<number | null>(null);
 
@@ -158,7 +218,7 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
               }),
             });
             if (!publishRes.ok) {
-              const err = await publishRes.json();
+              const err = (await publishRes.json()) as { error?: string };
               throw new Error(err.error || "Failed to publish");
             }
             const result = await publishRes.json();
@@ -168,7 +228,7 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
           downloadExportFile(exportData, evaluation);
           return null;
         }
-      } catch (e) {
+      } catch (e: unknown) {
         console.warn("Server export failed, falling back to client:", e);
       }
     }
@@ -176,12 +236,12 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
     // Fallback: client-side export
     const baseData = {
       evaluation: {
-        id: evaluation.id,
+        id: String(evaluation.id),
         name: evaluation.name,
-        description: evaluation.description,
+        description: evaluation.description || "",
         type: evaluation.type as EvaluationType,
         category: evaluation.category,
-        created_at: evaluation.created_at,
+        created_at: evaluation.created_at || new Date().toISOString(),
       },
       timestamp: new Date().toISOString(),
       summary: {
@@ -192,10 +252,10 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
           (latestRun?.passedCases || latestRun?.passed_cases || 0),
         passRate:
           latestRun?.totalCases || latestRun?.total_cases
-            ? `${Math.round(((latestRun?.passedCases || latestRun?.passed_cases || 0) / (latestRun?.totalCases || latestRun?.total_cases)) * 100)}%`
+            ? `${Math.round(((latestRun?.passedCases || latestRun?.passed_cases || 0) / (latestRun?.totalCases || latestRun?.total_cases || 1)) * 100)}%`
             : "0%",
       },
-      qualityScore: qualityScore,
+      qualityScore: qualityScore || undefined,
     };
 
     // Type-specific additional data
@@ -227,7 +287,7 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
         });
 
         if (!response.ok) {
-          const error = await response.json();
+          const error = (await response.json()) as { error?: string };
           throw new Error(error.error || "Failed to publish");
         }
 
@@ -248,11 +308,14 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
     }
   };
 
-  const downloadExportFile = (exportData: unknown, evaluation: unknown) => {
+  const downloadExportFile = (
+    exportData: unknown,
+    evaluation: { name?: string; type?: string; category?: string },
+  ) => {
     const filename = generateExportFilename(
-      evaluation.name,
+      evaluation.name || "evaluation",
       evaluation.type as EvaluationType,
-      evaluation.category,
+      evaluation.category || "",
     );
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
@@ -269,55 +332,55 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
   // Helper function to get type-specific export data
   const getAdditionalExportData = (
     type: string,
-    testCases: unknown[],
-    runs: unknown[],
-    latestRun: unknown,
+    testCases: TestCase[],
+    runs: EvaluationRun[],
+    latestRun: EvaluationRun | undefined,
   ) => {
     switch (type) {
       case "unit_test":
         return {
-          testResults: testCases.map((tc: unknown) => ({
+          testResults: testCases.map((tc: TestCase) => ({
             id: tc.id,
-            name: tc.name,
+            name: tc.name || "",
             input: tc.input,
-            expected_output: tc.expected_output,
-            actual_output: tc.actual_output,
-            passed: tc.passed || false,
-            execution_time_ms: tc.execution_time_ms,
-            error_message: tc.error_message,
+            expected_output: tc.expectedOutput || tc.expected,
+            actual_output: tc.actualOutput,
+            passed: tc.passed ?? false,
+            execution_time_ms: tc.executionTimeMs,
+            error_message: tc.errorMessage,
           })),
-          codeValidation: latestRun?.code_validation,
+          codeValidation: (latestRun as any)?.code_validation,
         };
 
       case "human_eval":
         return {
-          evaluations: latestRun?.human_evaluations || [],
+          evaluations: (latestRun as any)?.human_evaluations || [],
           criteria: evaluation?.human_eval_criteria || [],
-          interRaterReliability: latestRun?.inter_rater_reliability,
+          interRaterReliability: (latestRun as any)?.inter_rater_reliability,
         };
 
       case "model_eval":
         return {
-          judgeEvaluations: latestRun?.judge_evaluations || [],
+          judgeEvaluations: (latestRun as any)?.judge_evaluations || [],
           judgePrompt: evaluation?.judge_prompt || "",
           judgeModel: evaluation?.judge_model || "gpt-4",
-          aggregateMetrics: latestRun?.aggregate_metrics,
+          aggregateMetrics: (latestRun as any)?.aggregate_metrics,
         };
 
       case "ab_test":
         return {
           variants: evaluation?.variants || [],
-          results: runs.map((run: unknown) => ({
+          results: runs.map((run: EvaluationRun) => ({
             variant_id: run.variant_id,
             variant_name: run.variant_name,
             test_count: run.total_tests,
-            success_rate: run.passed_tests / run.total_tests,
+            success_rate: (run.passed_tests || 0) / (run.total_tests || 1),
             average_latency: run.average_latency,
             average_cost: run.average_cost,
             quality_score: run.quality_score,
           })),
-          statisticalSignificance: latestRun?.statistical_significance,
-          comparison: latestRun?.comparison,
+          statisticalSignificance: (latestRun as any)?.statistical_significance,
+          comparison: (latestRun as any)?.comparison,
         };
 
       default:
@@ -428,7 +491,7 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
             <div className="text-xs sm:text-sm">
               {runs.length > 0
                 ? new Date(
-                    runs[0].startedAt || runs[0].started_at || runs[0].createdAt,
+                    runs[0].startedAt || runs[0].started_at || runs[0].createdAt || "",
                   ).toLocaleDateString()
                 : "Never"}
             </div>
@@ -451,12 +514,14 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
 
         {testCases.length > 0 ? (
           <div className="space-y-2 sm:space-y-3">
-            {testCases.map((testCase: unknown) => (
+            {testCases.map((testCase: TestCase) => (
               <Card key={testCase.id}>
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="text-sm sm:text-base font-semibold mb-2">{testCase.name}</h3>
+                      <h3 className="text-sm sm:text-base font-semibold mb-2">
+                        {testCase.name || `Test Case ${testCase.id}`}
+                      </h3>
                       <div className="grid gap-2 sm:gap-3 md:grid-cols-2">
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Input</p>
@@ -464,11 +529,11 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
                             {JSON.stringify(testCase.input, null, 2)}
                           </pre>
                         </div>
-                        {testCase.expected_output && (
+                        {testCase.expectedOutput && (
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">Expected Output</p>
                             <pre className="text-xs bg-muted rounded p-2 overflow-x-auto max-h-24">
-                              {JSON.stringify(testCase.expected_output, null, 2)}
+                              {JSON.stringify(testCase.expectedOutput, null, 2)}
                             </pre>
                           </div>
                         )}
@@ -501,7 +566,7 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
         <h2 className="mb-4 text-xl font-semibold">Recent Runs</h2>
         {runs.length > 0 ? (
           <div className="space-y-3">
-            {runs.map((run: unknown) => (
+            {runs.map((run: EvaluationRun) => (
               <Card key={run.id} id={`run-${run.id}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -523,7 +588,7 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
                         </Badge>
                         <span className="text-sm text-muted-foreground">
                           {new Date(
-                            run.startedAt || run.started_at || run.createdAt,
+                            run.startedAt || run.started_at || run.createdAt || "",
                           ).toLocaleString()}
                         </span>
                       </div>

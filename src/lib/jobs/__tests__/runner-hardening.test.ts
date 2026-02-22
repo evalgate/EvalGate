@@ -378,12 +378,12 @@ describe("runDueJobs — hardening", () => {
       const { runDueJobs } = await import("../runner");
       const result = await runDueJobs("test-runner");
       expect(result).toMatchObject({
-        processed: expect.unknown(Number),
-        failed: expect.unknown(Number),
-        reclaimed: expect.unknown(Number),
-        deadLettered: expect.unknown(Number),
-        stoppedEarly: expect.unknown(Boolean),
-        runtimeMs: expect.unknown(Number),
+        processed: expect.any(Number),
+        failed: expect.any(Number),
+        reclaimed: expect.any(Number),
+        deadLettered: expect.any(Number),
+        stoppedEarly: expect.any(Boolean),
+        runtimeMs: expect.any(Number),
       });
     });
   });

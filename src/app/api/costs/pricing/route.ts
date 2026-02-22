@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     async (req: NextRequest) => {
       try {
         // Admin-only: require owner or admin role (app-layer RLS)
-        const authResult = await requireAdmin(request);
+        const authResult = await requireAdmin(req as any);
         if (!authResult.authenticated) {
           const data = await authResult.response.json();
           return NextResponse.json(data, { status: authResult.response.status });

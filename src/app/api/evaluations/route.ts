@@ -94,7 +94,8 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   if (!parsed.ok) return parsed.response;
 
   const body = parsed.data;
-  const { name, description, type, executionSettings, modelSettings, customMetrics } = body;
+  const { name, description, type, executionSettings, modelSettings, customMetrics, templates } =
+    body;
 
   try {
     const organizationId = ctx.organizationId;
@@ -121,7 +122,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 
     if (newEvaluation) {
       try {
-        const templates = body.config?.templates || body.templates || [];
+        const allTemplates = (body.config as any)?.templates || (body as any).templates || [];
         const allTestCases: Array<{
           name: string;
           input: string;
@@ -129,7 +130,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
           metadata?: unknown;
         }> = [];
 
-        for (const template of templates) {
+        for (const template of allTemplates) {
           const tcs = template.testCases || template.template?.testCases || [];
           for (const tc of tcs) {
             allTestCases.push({

@@ -24,8 +24,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  calculateQualityScore,
+  type EvaluationStats,
+  type QualityScore,
+} from "@/lib/ai-quality-score";
 import { AIQualityScoreCard } from "./ai-quality-score-card";
 import { EmailCaptureWidget } from "./email-capture-widget";
+
+interface PlaygroundTest {
+  id?: number | string;
+  status?: string;
+  input?: string;
+  query?: string;
+  task?: string;
+  expected?: string;
+  actual?: string;
+  generated?: string;
+  score?: number;
+  notes?: string;
+  context?: string;
+}
 
 interface PlaygroundProps {
   onSignupPrompt?: () => void;
@@ -45,19 +64,7 @@ interface DemoResult {
   name: string;
   overall?: number;
   items?: DemoItem[];
-  qualityScore?: {
-    grade: string;
-    overall: number;
-    metrics: {
-      accuracy: number;
-      safety: number;
-      latency: number;
-      cost: number;
-      consistency: number;
-    };
-    insights: string[];
-    recommendations: string[];
-  };
+  qualityScore?: QualityScore;
   results?: {
     summary: {
       totalTests: number;
@@ -207,7 +214,7 @@ export function InteractivePlayground({ onSignupPrompt }: PlaygroundProps = {}) 
           ? (data.results.summary.passed / data.results.summary.totalTests) * 100
           : 87;
 
-      const calculateGrade = (score: number): "A+" | "A" | "B+" | "B" | "C+" | "C" | "D" | "F" => {
+      const calculateGrade = (score: number): QualityScore["grade"] => {
         if (score >= 97) return "A+";
         if (score >= 93) return "A";
         if (score >= 87) return "B+";
@@ -362,18 +369,20 @@ ${(results.qualityScore?.recommendations || []).map((r: string) => `- ${r}`).joi
   };
 
   const handleExport = () => {
+    if (!results) return;
+
     const exportData = {
-      name: results.name,
+      name: results.name || "Untitled Evaluation",
       timestamp: new Date().toISOString(),
       scenario: selectedScenario,
       summary: {
-        totalTests: results.results.totalTests,
-        passed: results.results.passed,
-        failed: results.results.failed,
-        passRate: `${Math.round((results.results.passed / results.results.totalTests) * 100)}%`,
+        totalTests: results.results?.totalTests || 0,
+        passed: results.results?.passed || 0,
+        failed: results.results?.failed || 0,
+        passRate: `${Math.round(((results.results?.passed || 0) / (results.results?.totalTests || 1)) * 100)}%`,
       },
       qualityScore: results.qualityScore,
-      testResults: results.results.tests.map((test: unknown) => ({
+      testResults: results.results?.tests?.map((test: PlaygroundTest) => ({
         id: test.id,
         status: test.status,
         input: test.input || test.query || test.task,
@@ -661,7 +670,7 @@ ${(results.qualityScore?.recommendations || []).map((r: string) => `- ${r}`).joi
             <div>
               <h3 className="text-2xl font-bold">Evaluation Results</h3>
               <p className="text-muted-foreground">
-                {results.name} &bull; {results.results.totalTests} tests
+                {results.name} &bull; {results.results?.totalTests} tests
               </p>
             </div>
             <div className="flex gap-2">
@@ -678,42 +687,42 @@ ${(results.qualityScore?.recommendations || []).map((r: string) => `- ${r}`).joi
           </div>
 
           {/* Quality Score */}
-          <AIQualityScoreCard score={results.qualityScore} />
+          {results?.qualityScore && <AIQualityScoreCard score={results.qualityScore} />}
 
           {/* Test Results */}
           <Card>
             <CardHeader>
               <CardTitle>Test Results</CardTitle>
               <CardDescription>
-                {results.results.passed} passed &bull; {results.results.failed} failed
+                {results.results?.passed} passed &bull; {results.results?.failed} failed
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="all" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="all">All ({results.results.totalTests})</TabsTrigger>
-                  <TabsTrigger value="passed">Passed ({results.results.passed})</TabsTrigger>
-                  <TabsTrigger value="failed">Failed ({results.results.failed})</TabsTrigger>
+                  <TabsTrigger value="all">All ({results.results?.totalTests})</TabsTrigger>
+                  <TabsTrigger value="passed">Passed ({results.results?.passed})</TabsTrigger>
+                  <TabsTrigger value="failed">Failed ({results.results?.failed})</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="all" className="space-y-4 mt-4">
-                  {results.results.tests.map((test: unknown) => (
+                  {results?.results?.tests?.map((test: PlaygroundTest) => (
                     <TestResultCard key={test.id} test={test} />
                   ))}
                 </TabsContent>
 
                 <TabsContent value="passed" className="space-y-4 mt-4">
-                  {results.results.tests
-                    .filter((t: unknown) => t.status === "passed")
-                    .map((test: unknown) => (
+                  {results?.results?.tests
+                    ?.filter((t: PlaygroundTest) => t.status === "passed")
+                    ?.map((test: PlaygroundTest) => (
                       <TestResultCard key={test.id} test={test} />
                     ))}
                 </TabsContent>
 
                 <TabsContent value="failed" className="space-y-4 mt-4">
-                  {results.results.tests
-                    .filter((t: unknown) => t.status === "failed")
-                    .map((test: unknown) => (
+                  {results?.results?.tests
+                    ?.filter((t: PlaygroundTest) => t.status === "failed")
+                    ?.map((test: PlaygroundTest) => (
                       <TestResultCard key={test.id} test={test} />
                     ))}
                 </TabsContent>
@@ -727,9 +736,9 @@ ${(results.qualityScore?.recommendations || []).map((r: string) => `- ${r}`).joi
               source="playground"
               context={{
                 scenario: selectedScenario,
-                score: results.qualityScore.overall,
-                testsPassed: results.results.passed,
-                totalTests: results.results.totalTests,
+                score: results?.qualityScore?.overall || 0,
+                testsPassed: results?.results?.passed || 0,
+                totalTests: results?.results?.totalTests || 0,
               }}
               onSuccess={() => setShowEmailCapture(false)}
             />
@@ -767,7 +776,7 @@ ${(results.qualityScore?.recommendations || []).map((r: string) => `- ${r}`).joi
   );
 }
 
-function TestResultCard({ test }: { test: unknown }) {
+function TestResultCard({ test }: { test: PlaygroundTest }) {
   const isPassed = test.status === "passed";
 
   return (
@@ -784,8 +793,8 @@ function TestResultCard({ test }: { test: unknown }) {
 
           <div className="flex-1 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="font-medium">{test.input || test.query || test.task}</p>
-              <Badge variant={isPassed ? "default" : "destructive"}>{test.score}/100</Badge>
+              <p className="font-medium">{test.input || test.query || test.task || "Test"}</p>
+              <Badge variant={isPassed ? "default" : "destructive"}>{test.score || 0}/100</Badge>
             </div>
 
             {test.expected && (
@@ -797,7 +806,7 @@ function TestResultCard({ test }: { test: unknown }) {
 
             <div className="text-sm">
               <span className="text-muted-foreground">Actual: </span>
-              <span>{test.actual || test.generated}</span>
+              <span>{test.actual || test.generated || "No output"}</span>
             </div>
 
             {test.notes && <div className="text-sm text-muted-foreground italic">{test.notes}</div>}

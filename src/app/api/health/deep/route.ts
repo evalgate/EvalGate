@@ -11,7 +11,7 @@ import { secureRoute } from "@/lib/api/secure-route";
 export const GET = secureRoute(
   async (req: NextRequest, _ctx) => {
     const startTime = Date.now();
-    const requestId = extractOrGenerateRequestId(req);
+    const requestId = extractOrGenerateRequestId(req as any);
 
     // Set timeout for all health checks (500ms total)
     const timeoutSignal = AbortSignal.timeout(500);

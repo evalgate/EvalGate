@@ -73,7 +73,7 @@ function getOpenAI(): unknown {
 }
 
 function createExecutor(model: string, apiKey: string): (input: string) => Promise<string> {
-  const OpenAI = getOpenAI();
+  const OpenAI = getOpenAI() as any;
   const openai = new OpenAI({ apiKey });
 
   return async (input: string): Promise<string> => {

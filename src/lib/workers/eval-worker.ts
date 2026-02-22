@@ -3,6 +3,11 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { evaluationRuns, evaluations, testCases, testResults } from "@/db/schema";
+
+// Define types based on table schema
+type TestCase = typeof testCases.$inferSelect;
+type Evaluation = typeof evaluations.$inferSelect;
+
 import { logger } from "@/lib/logger";
 import { computeAndStoreQualityScore } from "@/lib/services/aggregate-metrics.service";
 // import { validateSDKTestResult, validateSDKEvaluationResult } from '@/lib/sdk/mapper';
@@ -156,10 +161,11 @@ class EvalWorker {
           );
           sseServer.sendToOrganization(organizationId, completedMessage);
         } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           logger.error("Worker: Test case failed", {
             runId,
             testCaseId: testCase.id,
-            error: error.message,
+            error: errorMessage,
           });
 
           failedCount++;
@@ -173,7 +179,7 @@ class EvalWorker {
             status: "failed",
             output: null,
             score: 0,
-            error: error.message,
+            error: errorMessage,
             durationMs: Date.now() - turnStart,
             messages: JSON.stringify([]),
             toolCalls: JSON.stringify([]),
@@ -184,14 +190,14 @@ class EvalWorker {
           await this.updateHeartbeat(
             runId,
             processedCount,
-            `Failed: ${testCase.name} - ${error.message}`,
+            `Failed: ${testCase.name} - ${errorMessage}`,
           );
 
           // Send test case failed message
           const failedMessage = createTestCaseFailedMessage(
             evaluationId,
             testCase.id,
-            error.message,
+            errorMessage,
           );
           sseServer.sendToOrganization(organizationId, failedMessage);
         }
@@ -237,12 +243,18 @@ class EvalWorker {
 
       // 6. Compute and store quality score
       computeAndStoreQualityScore(runId, evaluationId, organizationId).catch((error) => {
-        logger.error("Worker: Quality score computation failed", { runId, error: error.message });
+        logger.error("Worker: Quality score computation failed", {
+          runId,
+          error: error instanceof Error ? error.message : String(error),
+        });
       });
 
       // 7. Trigger Meta-Judge as post-eval hook (async, fire-and-forget)
       this.triggerMetaJudge(runId, evaluationId, organizationId, testCasesData).catch((error) => {
-        logger.error("Worker: Meta-Judge failed", { runId, error: error.message });
+        logger.error("Worker: Meta-Judge failed", {
+          runId,
+          error: error instanceof Error ? error.message : String(error),
+        });
       });
 
       logger.info("Worker: Evaluation run completed", {
@@ -264,7 +276,8 @@ class EvalWorker {
       });
       sseServer.sendToOrganization(organizationId, completedMessage);
     } catch (error: unknown) {
-      logger.error("Worker: Evaluation run failed", { runId, error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Worker: Evaluation run failed", { runId, error: errorMessage });
 
       // Update run status to failed
       await db
@@ -273,19 +286,19 @@ class EvalWorker {
           status: "failed",
           completedAt: new Date().toISOString(),
           traceLog: JSON.stringify({
-            error: error.message,
+            error: errorMessage,
             failedAt: new Date().toISOString(),
           }),
         })
         .where(eq(evaluationRuns.id, runId));
 
       // Send error message
-      const errorMessage = createSSEMessage("error", {
-        error: error.message,
+      const errorSSEMessage = createSSEMessage("error", {
+        error: errorMessage,
         runId,
         evaluationId,
       });
-      sseServer.sendToOrganization(organizationId, errorMessage);
+      sseServer.sendToOrganization(organizationId, errorSSEMessage);
     }
   }
 
@@ -336,7 +349,7 @@ class EvalWorker {
     runId: number,
     evaluationId: number,
     organizationId: number,
-    testCases: unknown[],
+    testCases: TestCase[],
   ): Promise<void> {
     logger.info("Worker: Triggering Meta-Judge evaluation", { runId, evaluationId });
 
@@ -390,7 +403,8 @@ class EvalWorker {
         averageJudgeScore: judgeResults.averageJudgeScore,
       });
     } catch (error: unknown) {
-      logger.error("Worker: Meta-Judge evaluation failed", { runId, error: error.message });
+      const metaJudgeError = error instanceof Error ? error.message : String(error);
+      logger.error("Worker: Meta-Judge evaluation failed", { runId, error: metaJudgeError });
 
       // Update evaluation run with error information
       await db
@@ -399,7 +413,7 @@ class EvalWorker {
           traceLog: JSON.stringify({
             metaJudge: {
               triggeredAt: new Date().toISOString(),
-              error: error.message,
+              error: metaJudgeError,
               failedAt: new Date().toISOString(),
             },
           }),
@@ -416,7 +430,9 @@ class EvalWorker {
 
     try {
       const parsed = JSON.parse(messages);
-      const userMessage = parsed.find((msg: unknown) => msg.role === "user");
+      const userMessage = parsed.find(
+        (msg: { role?: string; content?: string }) => msg.role === "user",
+      );
       return userMessage?.content || "";
     } catch {
       return "";
@@ -426,7 +442,7 @@ class EvalWorker {
   /**
    * Get expected output for a test case.
    */
-  private getExpectedOutput(testCases: unknown[], testCaseId: number): string | null {
+  private getExpectedOutput(testCases: TestCase[], testCaseId: number): string | null {
     const testCase = testCases.find((tc) => tc.id === testCaseId);
     return testCase?.expectedOutput || null;
   }
@@ -436,9 +452,9 @@ class EvalWorker {
    * This integrates the actual @pauly4010/evalai-sdk for real evaluation.
    */
   private async evaluateTestCase(
-    testCase: unknown,
-    evaluation: unknown,
-    settings?: Record<string, unknown>,
+    testCase: TestCase,
+    evaluation: Evaluation,
+    settings?: { systemPrompt?: string; model?: string; [key: string]: unknown },
   ): Promise<{
     status: string;
     output: string;
@@ -447,11 +463,15 @@ class EvalWorker {
     messages?: unknown[];
     toolCalls?: unknown[];
   }> {
+    const modelSettings = evaluation.modelSettings
+      ? (JSON.parse(evaluation.modelSettings as string) as {
+          systemPrompt?: string;
+          model?: string;
+        })
+      : {};
     const systemPrompt =
-      evaluation.modelSettings?.systemPrompt ||
-      settings?.systemPrompt ||
-      "You are a helpful AI assistant.";
-    const model = evaluation.modelSettings?.model || settings?.model || "gpt-4o-mini";
+      modelSettings.systemPrompt || settings?.systemPrompt || "You are a helpful AI assistant.";
+    const model = modelSettings.model || settings?.model || "gpt-4o-mini";
     const organizationId = evaluation.organizationId;
 
     const messages = [
@@ -529,13 +549,14 @@ class EvalWorker {
 
       return { status, output, score, messages, toolCalls: [] };
     } catch (error: unknown) {
-      logger.error("Evaluation failed", { testCaseId: testCase.id, error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Evaluation failed", { testCaseId: testCase.id, error: errorMessage });
       messages.push({ role: "assistant", content: "" });
       return {
         status: "failed",
         output: "",
         score: 0,
-        error: error.message,
+        error: errorMessage,
         messages,
         toolCalls: [],
       };

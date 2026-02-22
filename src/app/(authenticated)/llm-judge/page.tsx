@@ -43,6 +43,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "@/lib/auth-client";
 
+interface JudgeResult {
+  id: string | number;
+  score: number;
+  input?: string;
+  expected?: string;
+  actual?: string;
+  reasoning?: string;
+  timestamp?: string;
+  judgeModel?: string;
+  judge_model?: string;
+  created_at?: string;
+  test_case_name?: string;
+  evaluation_name?: string;
+}
+
+interface JudgeConfig {
+  id: string | number;
+  name: string;
+  template?: string;
+  prompt?: string;
+  settings?: unknown;
+  createdAt?: string;
+}
+
 // LLM Judge prompt templates
 const JUDGE_TEMPLATES = [
   {
@@ -148,8 +172,8 @@ Score 0-100. Penalize hallucinations heavily.`,
 export default function LLMJudgePage() {
   const { data: session, isPending } = useSession();
   const _router = useRouter();
-  const [judgeResults, setJudgeResults] = useState<unknown[]>([]);
-  const [judgeConfigs, setJudgeConfigs] = useState<unknown[]>([]);
+  const [judgeResults, setJudgeResults] = useState<JudgeResult[]>([]);
+  const [judgeConfigs, setJudgeConfigs] = useState<JudgeConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
@@ -285,11 +309,11 @@ export default function LLMJudgePage() {
   // Calculate stats
   const avgScore =
     judgeResults.length > 0
-      ? judgeResults.reduce((sum: number, r: unknown) => sum + r.score, 0) / judgeResults.length
+      ? judgeResults.reduce((sum: number, r: JudgeResult) => sum + r.score, 0) / judgeResults.length
       : 0;
 
-  const highScores = judgeResults.filter((r: unknown) => r.score >= 0.8).length;
-  const lowScores = judgeResults.filter((r: unknown) => r.score < 0.5).length;
+  const highScores = judgeResults.filter((r: JudgeResult) => r.score >= 0.8).length;
+  const lowScores = judgeResults.filter((r: JudgeResult) => r.score < 0.5).length;
 
   return (
     <div className="space-y-4 sm:space-y-6 w-full">
@@ -685,7 +709,7 @@ export default function LLMJudgePage() {
             Your Judge Configurations
           </h2>
           <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-            {judgeConfigs.map((config: unknown) => (
+            {judgeConfigs.map((config: JudgeConfig) => (
               <Card key={config.id}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">{config.name}</CardTitle>
@@ -721,7 +745,7 @@ export default function LLMJudgePage() {
           </Card>
         ) : judgeResults.length > 0 ? (
           <div className="space-y-3">
-            {judgeResults.map((result: unknown) => (
+            {judgeResults.map((result: JudgeResult) => (
               <Card key={result.id}>
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-start justify-between">
@@ -760,10 +784,10 @@ export default function LLMJudgePage() {
                       <div className="mt-2 flex items-center gap-3 sm:gap-4 text-xs text-muted-foreground flex-wrap">
                         <span className="truncate">Model: {result.judge_model}</span>
                         <span className="hidden sm:inline">
-                          {new Date(result.created_at).toLocaleString()}
+                          {new Date(result.created_at || "").toLocaleString()}
                         </span>
                         <span className="sm:hidden">
-                          {new Date(result.created_at).toLocaleDateString()}
+                          {new Date(result.created_at || "").toLocaleDateString()}
                         </span>
                       </div>
                     </div>

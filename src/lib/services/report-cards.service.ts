@@ -49,7 +49,7 @@ interface EvaluationRun {
   createdAt: string;
   evaluationRunId?: number;
   startedAt?: string;
-  completedAt?: string;
+  completedAt?: string | undefined;
 }
 
 export interface ReportCardData {
@@ -159,12 +159,27 @@ export class ReportCardsService {
       .where(eq(evaluationRuns.evaluationId, evaluationId))
       .orderBy(desc(evaluationRuns.createdAt));
 
+    // Map database results to EvaluationRun interface
+    const mappedRuns: EvaluationRun[] = runs.map((r) => ({
+      ...r,
+      startedAt: r.startedAt || undefined,
+      completedAt: r.completedAt || undefined,
+    }));
+
     // Get test results for all runs
-    const runIds = runs.map((r) => r.id);
+    const runIds = mappedRuns.map((r) => r.id);
     const testResultsData =
       runIds.length > 0
         ? await db.select().from(testResults).where(inArray(testResults.evaluationRunId, runIds))
         : [];
+
+    // Map database results to TestResult interface
+    const mappedTestResults: TestResult[] = testResultsData.map((tr) => ({
+      ...tr,
+      metadata: {},
+      evaluationId: tr.evaluationRunId,
+      updatedAt: tr.createdAt,
+    }));
 
     // Get judge results for all runs
     const judgeResultsData =
@@ -176,16 +191,16 @@ export class ReportCardsService {
         : [];
 
     // Calculate performance metrics
-    const performance = this.calculatePerformance(testResultsData);
+    const performance = this.calculatePerformance(mappedTestResults);
 
     // Calculate quality metrics
     const quality = this.calculateQuality(judgeResultsData);
 
     // Calculate trends
-    const trends = this.calculateTrends(runs, testResultsData);
+    const trends = this.calculateTrends(mappedRuns, mappedTestResults);
 
     // Calculate overall statistics
-    const stats = this.calculateOverallStats(runs, testResultsData);
+    const stats = this.calculateOverallStats(mappedRuns, mappedTestResults);
 
     return {
       evaluationId,
@@ -193,14 +208,15 @@ export class ReportCardsService {
       evaluationType: evaluation.type,
       organizationId,
       organizationName: organization?.name || "Unknown",
-      totalRuns: runs.length,
-      completedRuns: runs.filter((r) => ["completed", "completed_with_failures"].includes(r.status))
-        .length,
+      totalRuns: mappedRuns.length,
+      completedRuns: mappedRuns.filter((r) =>
+        ["completed", "completed_with_failures"].includes(r.status),
+      ).length,
       averageScore: stats.averageScore,
       passRate: stats.passRate,
       averageDuration: stats.averageDuration,
       totalCost: stats.totalCost,
-      lastRunAt: runs.length > 0 ? runs[0].createdAt : "",
+      lastRunAt: mappedRuns.length > 0 ? mappedRuns[0].createdAt : "",
       createdAt:
         evaluation.createdAt instanceof Date
           ? evaluation.createdAt.toISOString()

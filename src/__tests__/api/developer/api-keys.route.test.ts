@@ -49,7 +49,7 @@ vi.mock("@/lib/api/secure-route", () => ({
       }
 
       // munknown routes accept (req, ctx), some accept (req, ctx, params)
-      return (handler as any)(req, ctx, params);
+      return (handler as any)(req, ctx, {});
     };
   },
 }));

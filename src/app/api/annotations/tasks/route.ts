@@ -192,7 +192,14 @@ export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
       return notFound("Annotation task not found");
     }
 
-    const updateData: unknown = {
+    const updateData: {
+      updatedAt: string;
+      name?: string;
+      description?: string | null;
+      status?: string;
+      totalItems?: number;
+      completedItems?: number;
+    } = {
       updatedAt: new Date().toISOString(),
     };
 

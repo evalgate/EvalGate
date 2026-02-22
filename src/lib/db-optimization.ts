@@ -189,7 +189,8 @@ export async function measureQuery<T>(name: string, queryFn: () => Promise<T>): 
     return result;
   } catch (error: unknown) {
     const duration = Date.now() - startTime;
-    logger.error("Query failed", { name, duration, error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error("Query failed", { name, duration, error: errorMessage });
     throw error;
   }
 }
@@ -234,7 +235,8 @@ export class QueryOptimizer {
       return result;
     } catch (error: unknown) {
       const duration = Date.now() - startTime;
-      logger.error("Query error", { query: name, duration, error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Query error", { query: name, duration, error: errorMessage });
       throw error;
     }
   }
@@ -250,7 +252,7 @@ export class QueryOptimizer {
   }
 
   getStats(): Record<string, { count: number; avgTime: number; maxTime: number }> {
-    const result: Record<string, unknown> = {};
+    const result: Record<string, { count: number; avgTime: number; maxTime: number }> = {};
 
     this.queryStats.forEach((stats, name) => {
       result[name] = {

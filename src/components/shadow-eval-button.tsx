@@ -5,6 +5,7 @@ import { CheckCircle, Loader2, PlayCircle, XCircle } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { handleError } from "@/lib/utils/error-handling";
 
 interface ShadowEvalButtonProps {
   evaluationId: number;
@@ -34,7 +35,7 @@ export function ShadowEvalButton({ evaluationId, disabled }: ShadowEvalButtonPro
       setResult({ matched: data.matched ?? 0, total: data.total ?? 0 });
       setStatus("done");
     } catch (e: unknown) {
-      setErrorMsg(e.message);
+      setErrorMsg(handleError(e));
       setStatus("error");
     }
   };

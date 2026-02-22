@@ -65,7 +65,7 @@ beforeEach(async () => {
 });
 
 async function callRoute() {
-  return (GET as unknown)(fakeReq, fakeCtx);
+  return (GET as any)(fakeReq, fakeCtx as any);
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────────

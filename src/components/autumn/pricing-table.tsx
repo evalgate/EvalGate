@@ -121,7 +121,7 @@ export default function PricingTable({ productDetails }: { productDetails?: Prod
                   // New purchase / upgrade flow
                   if (product.id) {
                     const res = await checkout({
-                      productId: product.id,
+                      productId: product.id as string,
                       dialog: CheckoutDialog,
                       openInNewTab: true,
                       successUrl: (() => {
@@ -132,9 +132,9 @@ export default function PricingTable({ productDetails }: { productDetails?: Prod
                         if (typeof window === "undefined") return undefined;
                         return window.location.href;
                       })(),
-                    } as unknown);
+                    } as any);
 
-                    const url = (res as unknown)?.data?.url;
+                    const url = (res as any)?.data?.url;
                     if (url) {
                       const isInIframe =
                         typeof window !== "undefined" && window.self !== window.top;

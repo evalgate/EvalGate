@@ -39,7 +39,7 @@ const featuredCategories = [
 /** Strip the icon (React component function) to make templates serializable for client components */
 function toSerializable(template: { icon?: unknown; [key: string]: unknown }): CatalogTemplateData {
   const { icon, ...rest } = template;
-  return rest as CatalogTemplateData;
+  return rest as unknown as CatalogTemplateData;
 }
 
 export default function TemplatesPage() {
@@ -116,7 +116,7 @@ export default function TemplatesPage() {
           {featuredCategories.slice(1).map((cat) => (
             <TabsContent key={cat.id} value={cat.id} className="mt-8">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {getTemplatesByCategory(cat.id as unknown).map((template) => (
+                {getTemplatesByCategory(cat.id as any).map((template) => (
                   <TemplateCard key={template.id} template={template} />
                 ))}
               </div>
@@ -152,7 +152,7 @@ export default function TemplatesPage() {
           <TabsContent value="catalog-all" className="mt-8">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {COMPREHENSIVE_TEMPLATES.map((template) => (
-                <CatalogTemplateCard key={template.id} template={toSerializable(template)} />
+                <CatalogTemplateCard key={template.id} template={toSerializable(template as any)} />
               ))}
             </div>
           </TabsContent>
@@ -162,7 +162,10 @@ export default function TemplatesPage() {
               <p className="text-sm text-muted-foreground mb-6">{cat.description}</p>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {getCatalogTemplatesByCategory(cat.id).map((template) => (
-                  <CatalogTemplateCard key={template.id} template={toSerializable(template)} />
+                  <CatalogTemplateCard
+                    key={template.id}
+                    template={toSerializable(template as any)}
+                  />
                 ))}
               </div>
             </TabsContent>

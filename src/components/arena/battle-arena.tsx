@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { handleError } from "@/lib/utils/error-handling";
 
 interface ModelResponse {
   modelId: string;
@@ -59,7 +60,7 @@ export function BattleArena() {
       if (!res.ok) throw new Error(data.error);
       setResult(data);
     } catch (e: unknown) {
-      setError(e.message);
+      setError(handleError(e));
     } finally {
       setLoading(false);
     }

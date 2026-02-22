@@ -612,7 +612,7 @@ function followsInstructions(text, instructions) {
     });
 }
 function containsAllRequiredFields(obj, requiredFields) {
-    return requiredFields.every((field) => field in obj);
+    return requiredFields.every((field) => obj && typeof obj === "object" && field in obj);
 }
 function hasValidCodeSyntax(code, language) {
     // This is a simplified implementation

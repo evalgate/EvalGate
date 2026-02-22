@@ -198,7 +198,7 @@ export default function ValidatorsPage() {
                       <div
                         className={`p-3 rounded-lg bg-muted/50 group-hover:scale-110 transition-transform`}
                       >
-                        <Icon className={`h-6 w-6 ${validator.color}`} />
+                        {(Icon as any)({ className: `h-6 w-6 ${validator.color}` })}
                       </div>
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold mb-2 group-hover:text-blue-500 transition-colors">

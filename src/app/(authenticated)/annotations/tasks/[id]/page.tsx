@@ -33,7 +33,7 @@ export default function Page({ params }: PageProps) {
   const [task, setTask] = useState<TaskType | null>(null);
   const [rating, setRating] = useState<number>(3);
   const [feedback, setFeedback] = useState("");
-  const [labels, setLabels] = useState<Record<string, unknown>>({});
+  const [labels, setLabels] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

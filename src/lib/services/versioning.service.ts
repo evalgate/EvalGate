@@ -89,7 +89,7 @@ export class VersioningService {
         customMetrics: evaluation.customMetrics,
         executorType: evaluation.executorType,
         executorConfig: evaluation.executorConfig,
-        policyPack: (evaluation as unknown).policyPack ?? null,
+        policyPack: (evaluation as any).policyPack ?? null,
       },
       testCases: cases.map((tc) => ({
         id: tc.id,

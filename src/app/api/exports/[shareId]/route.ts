@@ -105,11 +105,14 @@ export const GET = secureRoute(
     const etag = `"${row.exportHash}"`;
     const ifNoneMatch = req.headers.get("if-none-match");
     if (ifNoneMatch && ifNoneMatch.trim() === etag) {
-      const res304 = new NextResponse(null, { status: 304 });
-      res304.headers.set("Cache-Control", `public, max-age=60, stale-while-revalidate=86400`);
-      res304.headers.set("ETag", etag);
-      res304.headers.set("Vary", "Authorization");
-      return res304;
+      return new Response(null, {
+        status: 304,
+        headers: {
+          "Cache-Control": "public, max-age=60, stale-while-revalidate=86400",
+          ETag: etag,
+          Vary: "Authorization",
+        },
+      });
     }
 
     // Atomic view count increment: SET view_count = coalesce(view_count, 0) + 1

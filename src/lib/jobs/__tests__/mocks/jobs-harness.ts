@@ -57,18 +57,25 @@ export type ValidatePayloadResult =
 
 function flattenConds(cond: unknown): unknown[] {
   if (!cond || typeof cond !== "object") return [];
-  if (Array.isArray(cond._and)) return cond._and.flatMap(flattenConds);
+  const condObj = cond as Record<string, unknown>;
+  if (Array.isArray(condObj._and)) return condObj._and.flatMap(flattenConds);
   // we don't need to fully evaluate _or in this harness
   return [cond];
 }
 
 function findEq(preds: unknown[], col: string) {
-  const p = preds.find((x) => x?._eq?.col === col);
-  return p ? p._eq.val : undefined;
+  const p = preds.find((x) => {
+    const pred = x as Record<string, unknown>;
+    return pred._eq && typeof pred._eq === "object" && (pred._eq as { col: string }).col === col;
+  });
+  return p ? (p as { _eq: { val: unknown } })._eq.val : undefined;
 }
 function findLt(preds: unknown[], col: string) {
-  const p = preds.find((x) => x?._lt?.col === col);
-  return p ? p._lt.val : undefined;
+  const p = preds.find((x) => {
+    const pred = x as Record<string, unknown>;
+    return pred._lt && typeof pred._lt === "object" && (pred._lt as { col: string }).col === col;
+  });
+  return p ? (p as { _lt: { val: unknown } })._lt.val : undefined;
 }
 
 export const harness = {
@@ -255,7 +262,8 @@ export function setupJobsTestHarness() {
           where: (_cond: unknown) => ({
             limit: async (n: number) => {
               // lock read
-              if (table?.lockName !== undefined) {
+              const tableObj = table as Record<string, unknown>;
+              if (tableObj?.lockName !== undefined) {
                 return [{ ...harness.state.lock }];
               }
 
@@ -277,7 +285,7 @@ export function setupJobsTestHarness() {
 
       insert: (_table: unknown) => ({
         values: (row: unknown) => {
-          const valuesRow = { ...row };
+          const valuesRow = { ...(row as Record<string, unknown>) };
 
           const doInsertReturning = async () => {
             const id = harness.state.nextJobId++;
@@ -288,28 +296,28 @@ export function setupJobsTestHarness() {
               ...valuesRow,
 
               // ensure required fields exist / types are sane
-              payload: valuesRow.payload ?? {},
-              status: valuesRow.status ?? "pending",
-              attempt: valuesRow.attempt ?? 0,
-              maxAttempts: valuesRow.maxAttempts ?? 5,
-              nextRunAt: valuesRow.nextRunAt ?? now,
+              payload: (valuesRow.payload as Record<string, unknown>) ?? {},
+              status: (valuesRow.status as JobStatus) ?? "pending",
+              attempt: (valuesRow.attempt as number) ?? 0,
+              maxAttempts: (valuesRow.maxAttempts as number) ?? 5,
+              nextRunAt: (valuesRow.nextRunAt as Date) ?? now,
 
-              lastError: valuesRow.lastError ?? null,
-              lastErrorCode: valuesRow.lastErrorCode ?? null,
+              lastError: (valuesRow.lastError as string | null) ?? null,
+              lastErrorCode: (valuesRow.lastErrorCode as string | null) ?? null,
 
-              idempotencyKey: valuesRow.idempotencyKey ?? null,
-              organizationId: valuesRow.organizationId ?? null,
+              idempotencyKey: (valuesRow.idempotencyKey as string | null) ?? null,
+              organizationId: (valuesRow.organizationId as number | null) ?? null,
 
-              lockedAt: valuesRow.lockedAt ?? null,
-              lockedUntil: valuesRow.lockedUntil ?? null,
-              lockedBy: valuesRow.lockedBy ?? null,
+              lockedAt: (valuesRow.lockedAt as Date | null) ?? null,
+              lockedUntil: (valuesRow.lockedUntil as Date | null) ?? null,
+              lockedBy: (valuesRow.lockedBy as string | null) ?? null,
 
-              lastStartedAt: valuesRow.lastStartedAt ?? null,
-              lastFinishedAt: valuesRow.lastFinishedAt ?? null,
-              lastDurationMs: valuesRow.lastDurationMs ?? null,
+              lastStartedAt: (valuesRow.lastStartedAt as Date | null) ?? null,
+              lastFinishedAt: (valuesRow.lastFinishedAt as Date | null) ?? null,
+              lastDurationMs: (valuesRow.lastDurationMs as number | null) ?? null,
 
-              createdAt: valuesRow.createdAt ?? now,
-              updatedAt: valuesRow.updatedAt ?? now,
+              createdAt: (valuesRow.createdAt as Date) ?? now,
+              updatedAt: (valuesRow.updatedAt as Date) ?? now,
             };
 
             harness.state.jobs.push(inserted);
@@ -324,7 +332,7 @@ export function setupJobsTestHarness() {
           return {
             onConflictDoNothing: (_opts?: unknown) => ({
               returning: async (_fields?: unknown) => {
-                const key = valuesRow.idempotencyKey;
+                const key = valuesRow.idempotencyKey as string | null;
                 if (key && harness.state.existingByKey[key]) {
                   return []; // conflict path
                 }
@@ -347,7 +355,8 @@ export function setupJobsTestHarness() {
               const ltLockedUntil = findLt(preds, "lockedUntil");
 
               // ── jobRunnerLocks updates ────────────────────────────────
-              if (table?.lockName !== undefined) {
+              const tableObj = table as Record<string, unknown>;
+              if (tableObj?.lockName !== undefined) {
                 const lockName = findEq(preds, "lockName");
                 if (lockName !== "default") return [];
 
@@ -358,8 +367,8 @@ export function setupJobsTestHarness() {
                   ) as number;
                   if (harness.state.lock.lockedUntil < nowMs) {
                     harness.state.lock.lockedUntil = values.lockedUntil;
-                    harness.state.lock.lockedBy = values.lockedBy ?? null;
-                    harness.state.lock.updatedAt = values.updatedAt ?? Date.now();
+                    harness.state.lock.lockedBy = (values.lockedBy as string | null) ?? null;
+                    harness.state.lock.updatedAt = (values.updatedAt as number) ?? Date.now();
                     return [{ lockName: "default" }];
                   }
                   return [];

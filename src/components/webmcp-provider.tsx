@@ -59,12 +59,39 @@ export function WebMCPProvider() {
             },
           },
         },
-        execute: async (params: { category?: string; limit?: number }) => {
+        execute: async (params: unknown) => {
+          const typedParams = params as { category?: string; limit?: number };
           const searchParams = new URLSearchParams();
-          if (params.category) searchParams.set("category", params.category);
-          if (params.limit) searchParams.set("limit", params.limit.toString());
+          if (typedParams.category) searchParams.set("category", typedParams.category);
+          if (typedParams.limit) searchParams.set("limit", typedParams.limit.toString());
           const query = searchParams.toString();
           const url = query ? `/api/evaluation-templates?${query}` : "/api/evaluation-templates";
+          return safeFetch(url);
+        },
+      },
+      {
+        name: "get_evaluation_test_cases",
+        description:
+          "EvalAI: Get test cases for an evaluation. Returns test cases for the specified evaluation ID.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            evaluationId: { type: "number", description: "ID of the evaluation" },
+            limit: {
+              type: "number",
+              description: "Maximum number of test cases to return (default: all)",
+            },
+          },
+          required: ["evaluationId"],
+        },
+        execute: async (params: unknown) => {
+          const typedParams = params as { evaluationId: number; limit?: number };
+          const searchParams = new URLSearchParams();
+          if (typedParams.limit) searchParams.set("limit", typedParams.limit.toString());
+          const query = searchParams.toString();
+          const url = query
+            ? `/api/evaluations/${typedParams.evaluationId}/test-cases?${query}`
+            : `/api/evaluations/${typedParams.evaluationId}/test-cases`;
           return safeFetch(url);
         },
       },
@@ -119,12 +146,9 @@ export function WebMCPProvider() {
           },
           required: ["evaluationId"],
         },
-        execute: async (params: { evaluationId: number }) => {
-          return safeFetch(`/api/evaluations/${params.evaluationId}/runs`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}),
-          });
+        execute: async (params: unknown) => {
+          const typedParams = params as { evaluationId: number };
+          return safeFetch(`/api/evaluations/${typedParams.evaluationId}`);
         },
       },
       {
@@ -142,9 +166,10 @@ export function WebMCPProvider() {
           },
           required: ["evaluationId"],
         },
-        execute: async (params: { evaluationId: number; limit?: number }) => {
-          const limit = params.limit || 10;
-          return safeFetch(`/api/evaluations/${params.evaluationId}/runs?limit=${limit}`);
+        execute: async (params: unknown) => {
+          const typedParams = params as { evaluationId: number; limit?: number };
+          const limit = typedParams.limit || 10;
+          return safeFetch(`/api/evaluations/${typedParams.evaluationId}/runs?limit=${limit}`);
         },
       },
       {
@@ -158,39 +183,18 @@ export function WebMCPProvider() {
           },
           required: ["evaluationId"],
         },
-        execute: async (params: { evaluationId: number }) => {
-          // Fetch the evaluation details — route returns { evaluation: {...} }
-          const evalResponse = await safeFetch(`/api/evaluations/${params.evaluationId}`);
-          const evaluation = evalResponse?.evaluation || evalResponse;
-
-          // Fetch latest run for metrics
-          const runs = await safeFetch(`/api/evaluations/${params.evaluationId}/runs?limit=1`);
-
-          if (!Array.isArray(runs) || runs.length === 0) {
-            return {
-              evaluationId: params.evaluationId,
-              evaluationName: evaluation?.name || "Unknown",
-              score: null,
-              message: "No runs found. Run the evaluation first.",
-            };
-          }
-
-          const latestRun = runs[0];
-          const totalCases = latestRun.totalCases || 0;
-          const passedCases = latestRun.passedCases || 0;
-          const passRate = totalCases > 0 ? (passedCases / totalCases) * 100 : 0;
-
+        execute: async (params: unknown) => {
+          const typedParams = params as { evaluationId: number };
+          const response = await safeFetch(`/api/evaluations/${typedParams.evaluationId}/runs`);
+          const runs = Array.isArray(response) ? response : [];
+          const latestRun = runs[0] || null;
           return {
-            evaluationId: params.evaluationId,
-            evaluationName: evaluation?.name || "Unknown",
-            latestRun: {
-              id: latestRun.id,
-              status: latestRun.status,
-              totalCases,
-              passedCases,
-              failedCases: latestRun.failedCases || 0,
-              passRate: Math.round(passRate),
-            },
+            evaluationId: typedParams.evaluationId,
+            evaluationName:
+              (response as any)?.evaluation?.name || `Evaluation ${typedParams.evaluationId}`,
+            score: latestRun?.score || null,
+            message: latestRun?.status || "No runs available",
+            latestRun: latestRun || undefined,
           };
         },
       },

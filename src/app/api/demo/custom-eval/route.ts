@@ -41,9 +41,9 @@ function runAssertion(
         return {
           name: "No PII Detected",
           passed: r.passed,
-          expected: r.expected,
-          actual: r.actual,
-          message: r.message,
+          expected: r.expected as string,
+          actual: r.actual as string,
+          message: r.message as string,
         };
       }
       case "professional": {
@@ -51,9 +51,9 @@ function runAssertion(
         return {
           name: "Professional Tone",
           passed: r.passed,
-          expected: r.expected,
-          actual: r.actual,
-          message: r.message,
+          expected: r.expected as string,
+          actual: r.actual as string,
+          message: r.message as string,
         };
       }
       case "proper-grammar": {
@@ -61,9 +61,9 @@ function runAssertion(
         return {
           name: "Proper Grammar",
           passed: r.passed,
-          expected: r.expected,
-          actual: r.actual,
-          message: r.message,
+          expected: r.expected as string,
+          actual: r.actual as string,
+          message: r.message as string,
         };
       }
       case "valid-json": {
@@ -71,9 +71,9 @@ function runAssertion(
         return {
           name: "Valid JSON",
           passed: r.passed,
-          expected: r.expected,
-          actual: r.actual,
-          message: r.message,
+          expected: r.expected as string,
+          actual: r.actual as string,
+          message: r.message as string,
         };
       }
       case "contains-code": {
@@ -81,9 +81,9 @@ function runAssertion(
         return {
           name: "Contains Code",
           passed: r.passed,
-          expected: r.expected,
-          actual: r.actual,
-          message: r.message,
+          expected: r.expected as string,
+          actual: r.actual as string,
+          message: r.message as string,
         };
       }
       case "positive-sentiment": {
@@ -91,9 +91,9 @@ function runAssertion(
         return {
           name: "Positive Sentiment",
           passed: r.passed,
-          expected: r.expected,
-          actual: r.actual,
-          message: r.message,
+          expected: r.expected as string,
+          actual: r.actual as string,
+          message: r.message as string,
         };
       }
       case "negative-sentiment": {
@@ -101,9 +101,9 @@ function runAssertion(
         return {
           name: "Negative Sentiment",
           passed: r.passed,
-          expected: r.expected,
-          actual: r.actual,
-          message: r.message,
+          expected: r.expected as string,
+          actual: r.actual as string,
+          message: r.message as string,
         };
       }
       case "neutral-sentiment": {
@@ -111,9 +111,9 @@ function runAssertion(
         return {
           name: "Neutral Sentiment",
           passed: r.passed,
-          expected: r.expected,
-          actual: r.actual,
-          message: r.message,
+          expected: r.expected as string,
+          actual: r.actual as string,
+          message: r.message as string,
         };
       }
       case "not-hallucinated": {
@@ -134,9 +134,9 @@ function runAssertion(
         return {
           name: "No Hallucination",
           passed: r.passed,
-          expected: r.expected,
-          actual: r.actual,
-          message: r.message,
+          expected: r.expected as string,
+          actual: r.actual as string,
+          message: r.message as string,
         };
       }
       case "length-check": {
@@ -147,9 +147,9 @@ function runAssertion(
         return {
           name: "Length Check",
           passed: r.passed,
-          expected: r.expected,
-          actual: r.actual,
-          message: r.message,
+          expected: r.expected as string,
+          actual: r.actual as string,
+          message: r.message as string,
         };
       }
       case "contains-keywords": {
@@ -166,9 +166,9 @@ function runAssertion(
         return {
           name: "Contains Keywords",
           passed: r.passed,
-          expected: r.expected,
-          actual: r.actual,
-          message: r.message,
+          expected: r.expected as string,
+          actual: r.actual as string,
+          message: r.message as string,
         };
       }
       case "matches-expected": {
@@ -185,9 +185,9 @@ function runAssertion(
         return {
           name: "Matches Expected",
           passed: r.passed,
-          expected: r.expected,
-          actual: r.actual,
-          message: r.message,
+          expected: r.expected as string,
+          actual: r.actual as string,
+          message: r.message as string,
         };
       }
       default:

@@ -5,6 +5,17 @@ import { db } from "@/db";
 import { evaluationRuns, llmJudgeResults, testResults } from "@/db/schema";
 import { logger } from "@/lib/logger";
 
+interface TestResultData {
+  id: number;
+  actualOutput?: string;
+  output?: string;
+}
+
+interface JudgeResultData {
+  testResultId: number;
+  reasoning?: string;
+}
+
 export interface DebugAnalysis {
   runId: number;
   summary: string;
@@ -106,7 +117,10 @@ class DebugAgentService {
     const patterns: Map<string, FailurePattern> = new Map();
 
     for (const result of failedResults) {
-      const category = this.categorizeFailure(result, judgeResults);
+      const category = this.categorizeFailure(
+        result as TestResultData,
+        judgeResults as JudgeResultData[],
+      );
       const key = category;
 
       if (!patterns.has(key)) {
@@ -120,7 +134,7 @@ class DebugAgentService {
 
       const pattern = patterns.get(key)!;
       pattern.occurrences++;
-      pattern.affectedTestIds.push(result.id);
+      pattern.affectedTestIds.push((result as any).id);
     }
 
     return Array.from(patterns.values()).sort((a, b) => b.occurrences - a.occurrences);
@@ -129,7 +143,10 @@ class DebugAgentService {
   /**
    * Categorize a failure based on result content.
    */
-  private categorizeFailure(result: unknown, judgeResults: unknown[]): FailurePattern["category"] {
+  private categorizeFailure(
+    result: TestResultData,
+    judgeResults: JudgeResultData[],
+  ): FailurePattern["category"] {
     const output = (result.actualOutput || result.output || "").toLowerCase();
     const judgeResult = judgeResults.find((jr) => jr.testResultId === result.id);
     const reasoning = (judgeResult?.reasoning || "").toLowerCase();

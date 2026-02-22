@@ -292,8 +292,10 @@ async function importFromLangSmith(client, langsmithData, options) {
         traces: [],
     };
     // Transform runs to traces
-    if (langsmithData.runs && Array.isArray(langsmithData.runs)) {
-        transformedData.traces = langsmithData.runs.map((run) => ({
+    const lsData = langsmithData;
+    if (lsData.runs && Array.isArray(lsData.runs)) {
+        transformedData.traces = lsData.runs.map((run) => ({
+            id: run.id || 0,
             name: run.name || "Imported Trace",
             traceId: run.id || `langsmith-${Date.now()}-${Math.random()}`,
             organizationId: options.organizationId,

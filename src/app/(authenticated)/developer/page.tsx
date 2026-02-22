@@ -53,27 +53,37 @@ import { useOrganizationId } from "@/hooks/use-organization";
 import { useSession } from "@/lib/auth-client";
 
 // Lazy load Recharts components
-// Import as type "unknown" to avoid type conflicts with dynamic imports
-const LineChart = dynamic<unknown>(() => import("recharts").then((mod) => mod.LineChart), {
+const LineChart = dynamic(() => import("recharts").then((mod) => ({ default: mod.LineChart })), {
   ssr: false,
-});
-const Line = dynamic<unknown>(() => import("recharts").then((mod) => mod.Line), { ssr: false });
-const BarChart = dynamic<unknown>(() => import("recharts").then((mod) => mod.BarChart), {
+}) as any;
+const Line = dynamic(() => import("recharts").then((mod) => ({ default: mod.Line })), {
   ssr: false,
-});
-const Bar = dynamic<unknown>(() => import("recharts").then((mod) => mod.Bar), { ssr: false });
-const XAxis = dynamic<unknown>(() => import("recharts").then((mod) => mod.XAxis), { ssr: false });
-const YAxis = dynamic<unknown>(() => import("recharts").then((mod) => mod.YAxis), { ssr: false });
-const CartesianGrid = dynamic<unknown>(() => import("recharts").then((mod) => mod.CartesianGrid), {
+}) as any;
+const BarChart = dynamic(() => import("recharts").then((mod) => ({ default: mod.BarChart })), {
   ssr: false,
-});
-const Tooltip = dynamic<unknown>(() => import("recharts").then((mod) => mod.Tooltip), {
+}) as any;
+const Bar = dynamic(() => import("recharts").then((mod) => ({ default: mod.Bar })), {
   ssr: false,
-});
-const ResponsiveContainer = dynamic<unknown>(
-  () => import("recharts").then((mod) => mod.ResponsiveContainer),
+}) as any;
+const XAxis = dynamic(() => import("recharts").then((mod) => ({ default: mod.XAxis })), {
+  ssr: false,
+}) as any;
+const YAxis = dynamic(() => import("recharts").then((mod) => ({ default: mod.YAxis })), {
+  ssr: false,
+}) as any;
+const CartesianGrid = dynamic(
+  () => import("recharts").then((mod) => ({ default: mod.CartesianGrid })),
+  {
+    ssr: false,
+  },
+) as any;
+const Tooltip = dynamic(() => import("recharts").then((mod) => ({ default: mod.Tooltip })), {
+  ssr: false,
+}) as any;
+const ResponsiveContainer = dynamic(
+  () => import("recharts").then((mod) => ({ default: mod.ResponsiveContainer })),
   { ssr: false },
-);
+) as any;
 
 interface UsageSummary {
   totalRequests: number;
@@ -147,7 +157,7 @@ export default function DeveloperDashboardPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setSummary(data.summary);
+        setSummary(data.summary as UsageSummary);
       }
     } catch (_error) {
       // Error already handled

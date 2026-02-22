@@ -30,8 +30,8 @@ describe("Golden error catalog", () => {
     const err = new EvalAIError("Custom message", "UNKNOWN_FUTURE_CODE", 418, {});
     expect(err).toBeInstanceOf(EvalAIError);
     expect(err.code).toBe("UNKNOWN_FUTURE_CODE");
-    expect(err.documentation).toBe("https://docs.ai-eval-platform.com/errors");
-    expect(err.solutions).toContain("Check the API documentation for more information");
+    expect(err.documentation).toBe("https://docs.ai-eval-platform.com/errors/UNKNOWN_FUTURE_CODE");
+    expect(err.solutions).toContain("Check the error details for more information");
     expect(err.retryable).toBe(false);
   });
 

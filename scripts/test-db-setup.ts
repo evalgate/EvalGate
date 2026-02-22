@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 /**
  * Run migrations for test database. Called before vitest.
  */
-import { runMigrations } from "./run-migrations";
+import { runMigrations } from "./run-migrations.js";
 
 const testDb = resolve(process.cwd(), "test.db").replace(/\\/g, "/");
 await runMigrations({

@@ -30,15 +30,26 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WorkflowDAG } from "@/components/workflow-dag";
+import { WorkflowDAG, type WorkflowDefinition, type WorkflowNode } from "@/components/workflow-dag";
 import { useSession } from "@/lib/auth-client";
+
+interface Workflow {
+  id: string | number;
+  name: string;
+  status: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  steps?: unknown[];
+  definition?: WorkflowDefinition;
+}
 
 type PageProps = {
   params: Promise<{ id: string }>;
 };
 
 interface WorkflowStats {
-  workflow: unknown;
+  workflow: Workflow;
   stats: {
     totalRuns: number;
     completedRuns: number;
@@ -67,8 +78,7 @@ interface Handoff {
   fromAgent: string | null;
   toAgent: string;
   handoffType: string;
-  context: unknown;
-  timestamp: string;
+  count: number;
 }
 
 export default function WorkflowDetailPage({ params }: PageProps) {
@@ -77,7 +87,7 @@ export default function WorkflowDetailPage({ params }: PageProps) {
   const router = useRouter();
   const [workflowData, setWorkflowData] = useState<WorkflowStats | null>(null);
   const [runs, setRuns] = useState<WorkflowRun[]>([]);
-  const [handoffStats, setHandoffStats] = useState<unknown[]>([]);
+  const [handoffStats, setHandoffStats] = useState<Handoff[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
   const [activeTab, setActiveTab] = useState("overview");
@@ -296,13 +306,16 @@ export default function WorkflowDetailPage({ params }: PageProps) {
               <CardHeader>
                 <CardTitle className="text-base">
                   Node:{" "}
-                  {workflow.definition.nodes.find((n: unknown) => n.id === selectedNodeId)?.name}
+                  {
+                    workflow.definition.nodes.find((n: WorkflowNode) => n.id === selectedNodeId)
+                      ?.name
+                  }
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <pre className="bg-muted p-4 rounded-lg text-xs overflow-auto">
                   {JSON.stringify(
-                    workflow.definition.nodes.find((n: unknown) => n.id === selectedNodeId),
+                    workflow.definition.nodes.find((n: WorkflowNode) => n.id === selectedNodeId),
                     null,
                     2,
                   )}
@@ -391,7 +404,7 @@ export default function WorkflowDetailPage({ params }: PageProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {handoffStats.map((stat, i) => (
+                  {handoffStats.map((stat: Handoff, i) => (
                     <div
                       key={i}
                       className="flex items-center justify-between p-3 bg-muted rounded-lg"

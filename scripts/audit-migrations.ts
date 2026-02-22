@@ -11,7 +11,7 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runMigrations } from "./run-migrations";
+import { runMigrations } from "./run-migrations.js";
 
 async function main(): Promise<number> {
   const dir = await mkdtemp(join(tmpdir(), "evalai-migration-audit-"));

@@ -109,10 +109,11 @@ export class TemplateInjection {
         unusedVariables,
       };
     } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       return {
         success: false,
         rendered: "",
-        errors: [`Template rendering failed: ${error.message}`],
+        errors: [`Template rendering failed: ${errorMessage}`],
         warnings,
         usedVariables: [],
         unusedVariables: Object.keys(context.variables),
@@ -312,46 +313,50 @@ export class TemplateInjection {
       variables: {},
       functions: {
         // String functions
-        upper: (str: string) => str.toUpperCase(),
-        lower: (str: string) => str.toLowerCase(),
-        capitalize: (str: string) => str.charAt(0).toUpperCase() + str.slice(1),
-        trim: (str: string) => str.trim(),
+        upper: ((str: string) => str.toUpperCase()) as (...args: unknown[]) => unknown,
+        lower: ((str: string) => str.toLowerCase()) as (...args: unknown[]) => unknown,
+        capitalize: ((str: string) => str.charAt(0).toUpperCase() + str.slice(1)) as (
+          ...args: unknown[]
+        ) => unknown,
+        trim: ((str: string) => str.trim()) as (...args: unknown[]) => unknown,
 
         // Number functions
-        round: (num: number, decimals: number = 0) =>
-          Math.round(num * 10 ** decimals) / 10 ** decimals,
-        floor: (num: number) => Math.floor(num),
-        ceil: (num: number) => Math.ceil(num),
-        abs: (num: number) => Math.abs(num),
+        round: ((num: number, decimals: number = 0) =>
+          Math.round(num * 10 ** decimals) / 10 ** decimals) as (...args: unknown[]) => unknown,
+        floor: ((num: number) => Math.floor(num)) as (...args: unknown[]) => unknown,
+        ceil: ((num: number) => Math.ceil(num)) as (...args: unknown[]) => unknown,
+        abs: ((num: number) => Math.abs(num)) as (...args: unknown[]) => unknown,
 
         // Date functions
-        formatDate: (date: Date | string, _format: string = "YYYY-MM-DD") => {
+        formatDate: ((date: Date | string, _format: string = "YYYY-MM-DD") => {
           const d = typeof date === "string" ? new Date(date) : date;
           return d.toISOString().split("T")[0]; // Simple format
-        },
+        }) as (...args: unknown[]) => unknown,
 
         // Array functions
-        join: (array: unknown[], separator: string = ", ") => array.join(separator),
-        length: (array: unknown[]) => array.length,
-        first: (array: unknown[]) => array[0],
-        last: (array: unknown[]) => array[array.length - 1],
+        join: ((array: unknown[], separator: string = ", ") => array.join(separator)) as (
+          ...args: unknown[]
+        ) => unknown,
+        length: ((array: unknown[]) => array.length) as (...args: unknown[]) => unknown,
+        first: ((array: unknown[]) => array[0]) as (...args: unknown[]) => unknown,
+        last: ((array: unknown[]) => array[array.length - 1]) as (...args: unknown[]) => unknown,
 
         // Object functions
-        keys: (obj: object) => Object.keys(obj),
-        values: (obj: object) => Object.values(obj),
-        entries: (obj: object) => Object.entries(obj),
+        keys: ((obj: object) => Object.keys(obj)) as (...args: unknown[]) => unknown,
+        values: ((obj: object) => Object.values(obj)) as (...args: unknown[]) => unknown,
+        entries: ((obj: object) => Object.entries(obj)) as (...args: unknown[]) => unknown,
 
         // Utility functions
-        default: (value: unknown, defaultValue: unknown) =>
-          value !== undefined ? value : defaultValue,
-        json: (obj: unknown) => JSON.stringify(obj, null, 2),
-        parse: (str: string) => {
+        default: ((value: unknown, defaultValue: unknown) =>
+          value !== undefined ? value : defaultValue) as (...args: unknown[]) => unknown,
+        json: ((obj: unknown) => JSON.stringify(obj, null, 2)) as (...args: unknown[]) => unknown,
+        parse: ((str: string) => {
           try {
             return JSON.parse(str);
           } catch {
             return null;
           }
-        },
+        }) as (...args: unknown[]) => unknown,
       },
       metadata: {
         timestamp: new Date().toISOString(),

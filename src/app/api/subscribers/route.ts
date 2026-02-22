@@ -191,11 +191,11 @@ function generateTags(source: string, context: Record<string, unknown>): string[
       tags.push(`scenario:${context.scenario}`);
     }
 
-    if (context.score && context.score > 80) {
+    if (context.score && (context.score as number) > 80) {
       tags.push("impressed-by-results");
     }
 
-    if (context.testsPassed && context.testsPassed > 5) {
+    if (context.testsPassed && (context.testsPassed as number) > 5) {
       tags.push("engaged-user");
     }
   }

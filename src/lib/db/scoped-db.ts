@@ -1,6 +1,7 @@
 // src/lib/db/scoped-db.ts
 
 import { eq } from "drizzle-orm";
+import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 import { db } from "@/db";
 
 /**
@@ -15,17 +16,12 @@ import { db } from "@/db";
 export function scopedDb(organizationId: number) {
   return {
     /** Scoped select: auto-appends org filter */
-    selectFrom<T extends { organizationId: unknown }>(table: T) {
-      return db
-        .select()
-        .from(table as unknown)
-        .where(eq((table as unknown).organizationId, organizationId));
+    selectFrom<T extends SQLiteTable & { organizationId: any }>(table: T) {
+      return db.select().from(table).where(eq(table.organizationId, organizationId));
     },
     /** Scoped delete: prevents cross-tenant deletion */
-    deleteFrom<T extends { organizationId: unknown }>(table: T) {
-      return db
-        .delete(table as unknown)
-        .where(eq((table as unknown).organizationId, organizationId));
+    deleteFrom<T extends SQLiteTable & { organizationId: any }>(table: T) {
+      return db.delete(table).where(eq(table.organizationId, organizationId));
     },
     /** Raw db for tables without org column (join-through patterns) */
     raw: db,

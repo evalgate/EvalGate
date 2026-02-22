@@ -257,7 +257,16 @@ await openai.chat.completions.create({
 
 
 🧭 Changelog
-v1.5.7 (Latest)
+v1.5.8 (Latest)
+Fixed secureRoute TypeScript overload compatibility
+
+Fixed test infrastructure (expect.any, NextRequest constructor)
+
+Fixed 304 response handling in exports API
+
+Improved error catalog test coverage
+
+v1.5.7
 Documentation updates for CJS compatibility
 
 Version alignment across README and changelog

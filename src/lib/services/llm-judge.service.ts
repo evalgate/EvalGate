@@ -37,6 +37,13 @@ export interface JudgementResult {
   details?: Record<string, unknown>;
 }
 
+interface JudgeConfig {
+  model?: string;
+  temperature?: number;
+  max_tokens?: number;
+  [key: string]: unknown;
+}
+
 export class LLMJudgeService {
   /**
    * List LLM judge configurations for an organization
@@ -307,12 +314,16 @@ export class LLMJudgeService {
    * @private
    */
   private async callLLMProvider(
-    config: unknown,
+    config: JudgeConfig,
     prompt: string,
     organizationId: number,
   ): Promise<JudgementResult> {
-    const provider = this.getProviderFromModel((config as any).model);
-    logger.info("Calling LLM provider", { provider, model: (config as any).model, organizationId });
+    const provider = this.getProviderFromModel(config.model || "gpt-4o-mini");
+    logger.info("Calling LLM provider", {
+      provider,
+      model: config.model || "gpt-4o-mini",
+      organizationId,
+    });
 
     const systemPrompt =
       'You are an expert AI evaluator. Respond ONLY with valid JSON in this exact format: {"score": <0-100>, "reasoning": "<explanation>", "passed": <true/false>}. Do not include unknown other text.';
@@ -358,7 +369,7 @@ export class LLMJudgeService {
 
         const data = await response.json();
         const content = data.choices?.[0]?.message?.content || "";
-        return this.parseJudgementResponse(content, provider, config.model);
+        return this.parseJudgementResponse(content, provider, config.model || "gpt-4o-mini");
       } else if (provider === "anthropic") {
         const apiKey = process.env.ANTHROPIC_API_KEY;
         if (!apiKey) {
@@ -389,14 +400,17 @@ export class LLMJudgeService {
 
         const data = await response.json();
         const content = data.content?.[0]?.text || "";
-        return this.parseJudgementResponse(content, provider, config.model);
+        return this.parseJudgementResponse(content, provider, config.model || "gpt-4o-mini");
       } else {
         // Google or unsupported — fallback
         logger.warn("Unsupported provider, falling back to simple scoring", { provider });
         return this.fallbackScoring(prompt);
       }
     } catch (error) {
-      logger.error({ error, provider, model: config.model }, "LLM provider call failed");
+      logger.error(
+        { error, provider, model: config.model || "gpt-4o-mini" },
+        "LLM provider call failed",
+      );
       return this.fallbackScoring(prompt);
     }
   }
@@ -619,7 +633,7 @@ export class LLMJudgeService {
           input: testResult.input,
           output: testResult.output,
           score: 0,
-          reasoning: `Judge evaluation failed: ${error.message}`,
+          reasoning: `Judge evaluation failed: ${error instanceof Error ? error.message : String(error)}`,
           metadata: JSON.stringify({
             originalScore: testResult.score,
             originalStatus: testResult.status,

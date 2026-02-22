@@ -54,6 +54,16 @@ export interface WorkflowDefinition {
     entrypoint: string;
     metadata?: Record<string, unknown>;
 }
+interface LangChainExecutor {
+    invoke?: (input: unknown, config?: unknown) => Promise<unknown>;
+    call?: (input: unknown, config?: unknown) => Promise<unknown>;
+}
+interface CrewAI {
+    kickoff?: (input?: unknown) => Promise<unknown>;
+}
+interface LangChainConversation {
+    initiate_chat?: (...args: unknown[]) => Promise<unknown>;
+}
 /**
  * Active workflow context
  */
@@ -337,9 +347,9 @@ export declare class WorkflowTracer {
  * const result = await tracedExecutor.invoke({ input: 'Hello' });
  * ```
  */
-export declare function traceLangChainAgent(executor: unknown, tracer: WorkflowTracer, options?: {
+export declare function traceLangChainAgent(executor: LangChainExecutor, tracer: WorkflowTracer, options?: {
     agentName?: string;
-}): unknown;
+}): LangChainExecutor;
 /**
  * Create a traced wrapper for CrewAI crews
  *
@@ -352,9 +362,9 @@ export declare function traceLangChainAgent(executor: unknown, tracer: WorkflowT
  * const result = await tracedCrew.kickoff({ topic: 'AI Safety' });
  * ```
  */
-export declare function traceCrewAI(crew: unknown, tracer: WorkflowTracer, options?: {
+export declare function traceCrewAI(crew: CrewAI, tracer: WorkflowTracer, options?: {
     crewName?: string;
-}): unknown;
+}): CrewAI;
 /**
  * Create a traced wrapper for AutoGen conversations
  *
@@ -365,9 +375,9 @@ export declare function traceCrewAI(crew: unknown, tracer: WorkflowTracer, optio
  * });
  * ```
  */
-export declare function traceAutoGen(conversation: unknown, tracer: WorkflowTracer, options?: {
+export declare function traceAutoGen(conversation: LangChainConversation, tracer: WorkflowTracer, options?: {
     conversationName?: string;
-}): unknown;
+}): LangChainConversation;
 /**
  * Create a workflow tracer from an existing client
  */
@@ -376,3 +386,4 @@ export declare function createWorkflowTracer(client: AIEvalClient, options?: Wor
  * Helper to trace an async function as a workflow step
  */
 export declare function traceWorkflowStep<T>(tracer: WorkflowTracer, agentName: string, fn: () => Promise<T>, input?: Record<string, unknown>): Promise<T>;
+export {};

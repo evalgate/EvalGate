@@ -132,14 +132,15 @@ export class ComparisonEngine {
 
       return { modelId, output, latencyMs, tokenCount, cost };
     } catch (error: unknown) {
-      logger.error(`ComparisonEngine: ${modelId} failed`, { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`ComparisonEngine: ${modelId} failed`, { error: errorMessage });
       return {
         modelId,
         output: "",
         latencyMs: Date.now() - start,
         tokenCount: 0,
         cost: 0,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }

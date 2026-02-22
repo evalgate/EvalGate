@@ -8,6 +8,38 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSession } from "@/lib/auth-client";
 
+interface TraceSpan {
+  id: number;
+  spanId: string;
+  parentSpanId?: string;
+  name: string;
+  type: string;
+  span_type?: string;
+  startTime?: string;
+  endTime?: string;
+  durationMs?: number;
+  input?: string;
+  inputHash?: string;
+  output?: string;
+  evaluationRunId?: number;
+  metadata?: unknown;
+  createdAt: string;
+  error?: string;
+}
+
+interface SpanNode extends TraceSpan {
+  children: SpanNode[];
+}
+
+interface TraceData {
+  id: number;
+  name: string;
+  created_at: string;
+  session_id?: string;
+  tags?: string[];
+  spans: TraceSpan[];
+}
+
 type PageProps = {
   params: Promise<{ id: string }>;
 };
@@ -16,9 +48,9 @@ export default function TraceDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const { data: session, isPending } = useSession();
   const router = useRouter();
-  const [trace, setTrace] = useState<unknown>(null);
-  const [spans, setSpans] = useState<unknown[]>([]);
-  const [rootSpans, setRootSpans] = useState<unknown[]>([]);
+  const [trace, setTrace] = useState<TraceData | null>(null);
+  const [spans, setSpans] = useState<TraceSpan[]>([]);
+  const [rootSpans, setRootSpans] = useState<SpanNode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -45,26 +77,26 @@ export default function TraceDetailPage({ params }: PageProps) {
       })
         .then((res) => res.json())
         .then((data) => {
-          const fetchedSpans = data.spans || [];
+          const fetchedSpans: TraceSpan[] = data.spans || [];
           setSpans(fetchedSpans);
 
-          const spanMap = new Map();
-          const roots: unknown[] = [];
+          const spanMap = new Map<string, SpanNode>();
+          const roots: SpanNode[] = [];
 
-          fetchedSpans.forEach((span: unknown) => {
-            spanMap.set(span.id, { ...span, children: [] });
+          fetchedSpans.forEach((span: TraceSpan) => {
+            spanMap.set(span.spanId, { ...span, children: [] });
           });
 
-          fetchedSpans.forEach((span: unknown) => {
-            const spanNode = spanMap.get(span.id);
-            if (span.parent_span_id) {
-              const parent = spanMap.get(span.parent_span_id);
+          fetchedSpans.forEach((span: TraceSpan) => {
+            const spanNode = spanMap.get(span.spanId);
+            if (spanNode && span.parentSpanId) {
+              const parent = spanMap.get(span.parentSpanId);
               if (parent) {
                 parent.children.push(spanNode);
               } else {
                 roots.push(spanNode);
               }
-            } else {
+            } else if (spanNode) {
               roots.push(spanNode);
             }
           });
@@ -80,7 +112,7 @@ export default function TraceDetailPage({ params }: PageProps) {
   }
 
   const totalDuration = spans.reduce(
-    (sum: number, span: unknown) => sum + (span.duration_ms || 0),
+    (sum: number, span: TraceSpan) => sum + (span.durationMs || 0),
     0,
   );
 
@@ -148,7 +180,7 @@ export default function TraceDetailPage({ params }: PageProps) {
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-bold">
-              {spans.filter((s: unknown) => s.error).length}
+              {spans.filter((s: TraceSpan) => s.error).length}
             </div>
           </CardContent>
         </Card>
@@ -177,7 +209,7 @@ export default function TraceDetailPage({ params }: PageProps) {
   );
 }
 
-function SpanNode({ span, level }: { span: unknown; level: number }) {
+function SpanNode({ span, level }: { span: SpanNode; level: number }) {
   const hasError = !!span.error;
 
   return (
@@ -191,27 +223,27 @@ function SpanNode({ span, level }: { span: unknown; level: number }) {
             <div className="flex items-center gap-2 mb-1">
               <span
                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                  span.span_type === "llm"
+                  span.type === "llm"
                     ? "bg-blue-500/10 text-blue-500"
-                    : span.span_type === "tool"
+                    : span.type === "tool"
                       ? "bg-green-500/10 text-green-500"
-                      : span.span_type === "agent"
+                      : span.type === "agent"
                         ? "bg-purple-500/10 text-purple-500"
                         : "bg-gray-500/10 text-gray-500"
                 }`}
               >
-                {span.span_type}
+                {span.type}
               </span>
               <span className="font-semibold">{span.name}</span>
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Zap className="h-3 w-3" />
-                {span.duration_ms}ms
+                {span.durationMs}ms
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                {new Date(span.start_time).toLocaleTimeString()}
+                {new Date(span.startTime || "").toLocaleTimeString()}
               </div>
             </div>
             {hasError && (
@@ -243,7 +275,7 @@ function SpanNode({ span, level }: { span: unknown; level: number }) {
 
       {span.children && span.children.length > 0 && (
         <div className="space-y-2">
-          {span.children.map((child: unknown) => (
+          {span.children.map((child: SpanNode) => (
             <SpanNode key={child.id} span={child} level={level + 1} />
           ))}
         </div>

@@ -649,7 +649,7 @@ export function followsInstructions(text: string, instructions: string[]): boole
 }
 
 export function containsAllRequiredFields(obj: unknown, requiredFields: string[]): boolean {
-  return requiredFields.every((field) => field in obj);
+  return requiredFields.every((field) => obj && typeof obj === "object" && field in obj);
 }
 
 export function hasValidCodeSyntax(code: string, language: string): boolean {

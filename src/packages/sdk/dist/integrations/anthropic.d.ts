@@ -50,7 +50,7 @@ export interface AnthropicTraceOptions {
  * });
  * ```
  */
-export declare function traceAnthropic(anthropic: unknown, evalClient: AIEvalClient, options?: AnthropicTraceOptions): unknown;
+export declare function traceAnthropic(anthropic: any, evalClient: AIEvalClient, options?: AnthropicTraceOptions): any;
 /**
  * Manual trace wrapper for Anthropic calls
  *

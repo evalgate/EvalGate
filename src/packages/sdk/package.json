@@ -1,6 +1,6 @@
 {
   "name": "@pauly4010/evalai-sdk",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "description": "AI Evaluation Platform SDK - Complete API Coverage with Performance Optimizations",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -20,8 +20,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest",
-    "prepublishOnly": "npm run build"
+    "test": "vitest"
   },
   "keywords": [
     "ai",

@@ -55,10 +55,10 @@ export interface AnthropicTraceOptions {
  * ```
  */
 export function traceAnthropic(
-  anthropic: unknown,
+  anthropic: any,
   evalClient: AIEvalClient,
   options: AnthropicTraceOptions = {},
-): unknown {
+): any {
   const {
     captureInput = true,
     captureOutput = true,
@@ -70,7 +70,7 @@ export function traceAnthropic(
   // Create proxy for messages.create
   const originalCreate = anthropic.messages.create.bind(anthropic.messages);
 
-  anthropic.messages.create = async (params: unknown, requestOptions?: unknown) => {
+  anthropic.messages.create = async (params: any, requestOptions?: any) => {
     const startTime = Date.now();
     const traceId = `${tracePrefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 

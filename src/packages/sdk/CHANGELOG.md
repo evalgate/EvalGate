@@ -5,6 +5,23 @@ All notable changes to the @pauly4010/evalai-sdk package will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.8] - 2026-02-22
+
+### 🐛 Fixed
+
+- **secureRoute TypeScript overload compatibility** — Fixed implementation signature to use `ctx: any` for proper overload compatibility
+- **Test infrastructure fixes** — Replaced invalid `expect.unknown()` with `expect.any()` across test files
+- **NextRequest constructor** — Fixed test mocks using incorrect `(NextRequest as any)()` syntax
+- **304 response handling** — Fixed exports API returning invalid 304 response with body
+- **Error catalog tests** — Updated test expectations to match actual EvalAIError behavior
+- **Redis cache timeout** — Added explicit timeout to prevent test hangs
+
+### 🔧 Changed
+
+- **Biome formatting** — Applied consistent line endings across 199 files
+
+---
+
 ## [1.5.7] - 2026-02-20
 
 ### 📚 Documentation

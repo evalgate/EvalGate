@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WorkflowDAGMini } from "@/components/workflow-dag";
+import { WorkflowDAGMini, type WorkflowDefinition } from "@/components/workflow-dag";
 import { useSession } from "@/lib/auth-client";
 
 // SDK Integration examples
@@ -106,7 +106,7 @@ interface Workflow {
   name: string;
   description: string | null;
   status: "draft" | "active" | "archived";
-  definition: unknown;
+  definition: WorkflowDefinition;
   createdAt: string;
   updatedAt: string;
   _count?: {

@@ -118,11 +118,7 @@ export function deriveRateLimitTier(
 
 /** Authenticated + org-scoped handler (default) */
 export function secureRoute(
-  handler: (
-    req: NextRequest,
-    ctx: AuthContext,
-    params: Record<string, string>,
-  ) => Promise<NextResponse>,
+  handler: (req: NextRequest, ctx: any, params: Record<string, string>) => Promise<NextResponse>,
   options?: SecureRouteOptions & { requireOrg?: true; allowAnonymous?: false | undefined },
 ): (req: NextRequest, props: { params: Promise<Record<string, string>> }) => Promise<NextResponse>;
 
@@ -149,11 +145,7 @@ export function secureRoute(
 // ── Implementation ──
 
 export function secureRoute(
-  handler: (
-    req: NextRequest,
-    ctx: unknown,
-    params: Record<string, string>,
-  ) => Promise<NextResponse>,
+  handler: (req: NextRequest, ctx: any, params: Record<string, string>) => Promise<NextResponse>,
   options: SecureRouteOptions = {},
 ): (req: NextRequest, props: { params: Promise<Record<string, string>> }) => Promise<NextResponse> {
   const {
@@ -164,7 +156,7 @@ export function secureRoute(
   } = options;
 
   return async (req: NextRequest, props: { params: Promise<Record<string, string>> }) => {
-    const requestId = extractOrGenerateRequestId(req);
+    const requestId = extractOrGenerateRequestId(req as unknown as Request);
     const resolvedParams = await props.params;
 
     const addRequestIdHeader = (res: NextResponse): NextResponse => {
@@ -194,7 +186,7 @@ export function secureRoute(
             route: req.nextUrl.pathname,
             method: req.method,
             durationMs,
-            statusCode: res.status,
+            statusCode: (res as Response).status,
           });
           return addRequestIdHeader(res);
         });
@@ -209,7 +201,7 @@ export function secureRoute(
         const hasAuthHeader = !!request.headers.get("authorization");
         if (needsAuth || (allowAnonymous && hasAuthHeader)) {
           if (needsOrg) {
-            const authResult = await requireAuthWithOrg(request);
+            const authResult = await requireAuthWithOrg(request as unknown as Request);
             if (!authResult.authenticated) {
               // Parse the error from the auth response
               try {
@@ -248,7 +240,7 @@ export function secureRoute(
               customTier: ctx.rateLimitTier ?? "free",
             });
           } else {
-            const authResult = await requireAuth(request);
+            const authResult = await requireAuth(request as unknown as Request);
             if (!authResult.authenticated) {
               return apiError("UNAUTHORIZED", "Unauthorized");
             }
@@ -307,7 +299,7 @@ export function secureRoute(
         userId: reqCtx?.userId ?? null,
         organizationId: reqCtx?.organizationId ?? null,
         durationMs,
-        statusCode: res.status,
+        statusCode: (res as Response).status,
       });
       return addRequestIdHeader(res);
     };

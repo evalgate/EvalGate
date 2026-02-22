@@ -71,7 +71,7 @@ export default async function DashboardPage() {
   }
 
   const organizationId =
-    (session.user as unknown).organizationId ||
+    (session.user as any).organizationId ||
     parseInt(process.env.DEFAULT_ORGANIZATION_ID || "1", 10);
   const stats = await getDashboardStats(organizationId);
   const recentRuns = await getRecentEvaluationRuns(organizationId);

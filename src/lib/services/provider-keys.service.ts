@@ -151,7 +151,7 @@ export class ProviderKeysService {
       conditions.push(eq(providerKeys.provider, provider));
     }
     if (!includeInactive) {
-      conditions.push(eq(providerKeys.isActive, true as unknown));
+      conditions.push(eq(providerKeys.isActive, true));
     }
 
     return db
@@ -284,7 +284,12 @@ export class ProviderKeysService {
       throw new Error("Provider key not found");
     }
 
-    const updateData: unknown = {
+    const updateData: {
+      updatedAt: string;
+      keyName?: string;
+      metadata?: string;
+      isActive?: boolean;
+    } = {
       updatedAt: new Date().toISOString(),
     };
 

@@ -360,8 +360,10 @@ export async function importFromLangSmith(
   };
 
   // Transform runs to traces
-  if (langsmithData.runs && Array.isArray(langsmithData.runs)) {
-    transformedData.traces = langsmithData.runs.map((run: unknown) => ({
+  const lsData = langsmithData as { runs?: unknown[] };
+  if (lsData.runs && Array.isArray(lsData.runs)) {
+    transformedData.traces = lsData.runs.map((run: any) => ({
+      id: run.id || 0,
       name: run.name || "Imported Trace",
       traceId: run.id || `langsmith-${Date.now()}-${Math.random()}`,
       organizationId: options.organizationId!,
@@ -399,7 +401,7 @@ export function convertToCSV(data: ExportData, type: "traces" | "evaluations"): 
   const rows = items.map((item) =>
     headers
       .map((h) => {
-        const value = (item as unknown)[h];
+        const value = (item as any)[h];
         if (value === null || value === undefined) return "";
         if (typeof value === "object") return JSON.stringify(value);
         return String(value);

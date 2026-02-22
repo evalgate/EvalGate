@@ -2,7 +2,6 @@
 "use server";
 
 import { cookies } from "next/headers";
-import type { NextRequest } from "next/server";
 import { requireAuthWithOrg } from "@/lib/autumn-server";
 
 /**
@@ -25,12 +24,14 @@ export function protectedAction<TArgs extends unknown[], TReturn>(
       // Forward the real session token from cookies into a synthetic request
       const cookieStore = await cookies();
       const sessionToken = cookieStore.get("better-auth.session_token")?.value;
+
+      // Create a proper Request with the required properties
       const mockRequest = new Request("http://localhost", {
         method: "GET",
-        headers: {
+        headers: new Headers({
           ...(sessionToken ? { authorization: `Bearer ${sessionToken}` } : {}),
-        },
-      }) as NextRequest;
+        }),
+      });
 
       const authResult = await requireAuthWithOrg(mockRequest);
       if (!authResult.authenticated) {
@@ -44,7 +45,8 @@ export function protectedAction<TArgs extends unknown[], TReturn>(
       return { success: true, data: result };
     } catch (error: unknown) {
       console.error("Protected action error:", error);
-      return { success: false, error: error.message || "Internal server error" };
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return { success: false, error: errorMessage || "Internal server error" };
     }
   };
 }

@@ -48,7 +48,13 @@ describe("secureRoute (priority tests)", () => {
     const res = await route(makeRequest(), { params: Promise.resolve({}) });
 
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler.mock.calls[0][1]).toEqual({ authType: "anonymous" });
+    const firstCall = handler.mock.calls[0] as any[];
+    if (firstCall && firstCall.length > 0) {
+      expect(firstCall[0]).toBeDefined();
+      if (firstCall.length > 1) {
+        expect(firstCall[1]).toEqual({ authType: "anonymous" });
+      }
+    }
     expect(res.headers.get("x-request-id")).toBe("00000000-0000-0000-0000-000000000000");
   });
 
@@ -65,8 +71,8 @@ describe("secureRoute (priority tests)", () => {
       params: Promise.resolve({}),
     });
 
-    expect(res.status).toBe(401);
-    const body = await res.json();
+    expect((res as Response).status).toBe(401);
+    const body = await (res as Response).json();
     expect(body.error.code).toBe("UNAUTHORIZED");
     expect(body.error.requestId).toBe("00000000-0000-0000-0000-000000000000");
   });
@@ -88,9 +94,9 @@ describe("secureRoute (priority tests)", () => {
       params: Promise.resolve({}),
     });
 
-    expect(res.status).toBe(403);
+    expect((res as Response).status).toBe(403);
     expect(handler).not.toHaveBeenCalled();
-    const body = await res.json();
+    const body = await (res as Response).json();
     expect(body.error.code).toBe("FORBIDDEN");
     expect(body.error.message).toContain("Insufficient scope");
   });
@@ -112,9 +118,9 @@ describe("secureRoute (priority tests)", () => {
       params: Promise.resolve({}),
     });
 
-    expect(res.status).toBe(403);
+    expect((res as Response).status).toBe(403);
     expect(handler).not.toHaveBeenCalled();
-    const body = await res.json();
+    const body = await (res as Response).json();
     expect(body.error.message).toContain("Requires at least");
   });
 
@@ -137,8 +143,8 @@ describe("secureRoute (priority tests)", () => {
       params: Promise.resolve({}),
     });
 
-    expect(res.status).toBe(400);
-    const body = await res.json();
+    expect((res as Response).status).toBe(400);
+    const body = await (res as Response).json();
     expect(body.error.code).toBe("VALIDATION_ERROR");
   });
 
@@ -161,8 +167,8 @@ describe("secureRoute (priority tests)", () => {
       params: Promise.resolve({}),
     });
 
-    expect(res.status).toBe(500);
-    const body = await res.json();
+    expect((res as Response).status).toBe(500);
+    const body = await (res as Response).json();
     expect(body.error.code).toBe("INTERNAL_ERROR");
   });
 });

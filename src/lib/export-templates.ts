@@ -7,6 +7,33 @@ import type { QualityScore } from "./ai-quality-score";
 
 export type EvaluationType = "unit_test" | "human_eval" | "model_eval" | "ab_test";
 
+interface UnitTestAdditionalData {
+  testResults?: unknown[];
+  codeValidation?: unknown;
+}
+
+interface HumanEvalAdditionalData {
+  evaluations?: unknown[];
+  interRaterReliability?: unknown;
+  criteria?: unknown[];
+}
+
+interface ModelEvalAdditionalData {
+  judgeEvaluations?: unknown[];
+  judgePrompt?: string;
+  judgeModel?: string;
+  aggregateMetrics?: unknown;
+  metrics?: unknown;
+  modelComparison?: unknown;
+}
+
+interface ABTestAdditionalData {
+  variants?: unknown[];
+  results?: unknown[];
+  statisticalSignificance?: unknown;
+  comparison?: unknown;
+}
+
 export interface BaseExportData {
   evaluation: {
     id: string;
@@ -138,68 +165,74 @@ export function formatExportData(
 
   switch (type) {
     case "unit_test":
-      return formatUnitTestExport(baseData, additionalData);
+      return formatUnitTestExport(baseData, additionalData as UnitTestAdditionalData);
     case "human_eval":
-      return formatHumanEvalExport(baseData, additionalData);
+      return formatHumanEvalExport(baseData, additionalData as HumanEvalAdditionalData);
     case "model_eval":
-      return formatModelEvalExport(baseData, additionalData);
+      return formatModelEvalExport(baseData, additionalData as ModelEvalAdditionalData);
     case "ab_test":
-      return formatABTestExport(baseData, additionalData);
+      return formatABTestExport(baseData, additionalData as ABTestAdditionalData);
     default:
-      return baseData as unknown;
+      throw new Error(`Unsupported export type: ${type}`);
   }
 }
 
 function formatUnitTestExport(
   baseData: BaseExportData,
-  additionalData: unknown,
+  additionalData: UnitTestAdditionalData,
 ): UnitTestExportData {
   return {
     ...baseData,
     type: "unit_test",
-    testResults: additionalData.testResults || [],
-    codeValidation: additionalData.codeValidation,
+    testResults: (additionalData.testResults || []) as UnitTestExportData["testResults"],
+    codeValidation: additionalData.codeValidation as UnitTestExportData["codeValidation"],
   };
 }
 
 function formatHumanEvalExport(
   baseData: BaseExportData,
-  additionalData: unknown,
+  additionalData: HumanEvalAdditionalData,
 ): HumanEvalExportData {
   return {
     ...baseData,
     type: "human_eval",
-    evaluations: additionalData.evaluations || [],
-    interRaterReliability: additionalData.interRaterReliability,
-    criteria: additionalData.criteria || [],
+    evaluations: (additionalData.evaluations || []) as HumanEvalExportData["evaluations"],
+    interRaterReliability:
+      additionalData.interRaterReliability as HumanEvalExportData["interRaterReliability"],
+    criteria: (additionalData.criteria || []) as HumanEvalExportData["criteria"],
   };
 }
 
 function formatModelEvalExport(
   baseData: BaseExportData,
-  additionalData: unknown,
+  additionalData: ModelEvalAdditionalData,
 ): ModelEvalExportData {
   return {
     ...baseData,
     type: "model_eval",
-    judgeEvaluations: additionalData.judgeEvaluations || [],
+    judgeEvaluations: (additionalData.judgeEvaluations ||
+      []) as ModelEvalExportData["judgeEvaluations"],
     judgePrompt: additionalData.judgePrompt || "",
     judgeModel: additionalData.judgeModel || "gpt-4",
-    aggregateMetrics: additionalData.aggregateMetrics,
+    aggregateMetrics: additionalData.aggregateMetrics as ModelEvalExportData["aggregateMetrics"],
   };
 }
 
-function formatABTestExport(baseData: BaseExportData, additionalData: unknown): ABTestExportData {
+function formatABTestExport(
+  baseData: BaseExportData,
+  additionalData: ABTestAdditionalData,
+): ABTestExportData {
   return {
     ...baseData,
     type: "ab_test",
-    variants: additionalData.variants || [],
-    results: additionalData.results || [],
-    statisticalSignificance: additionalData.statisticalSignificance,
-    comparison: additionalData.comparison || {
+    variants: (additionalData.variants || []) as ABTestExportData["variants"],
+    results: (additionalData.results || []) as ABTestExportData["results"],
+    statisticalSignificance:
+      additionalData.statisticalSignificance as ABTestExportData["statisticalSignificance"],
+    comparison: (additionalData.comparison || {
       metric: "quality_score",
-      baseline_variant: additionalData.variants?.[0]?.name || "A",
-    },
+      baseline_variant: (additionalData.variants?.[0] as any)?.name || "A",
+    }) as ABTestExportData["comparison"],
   };
 }
 

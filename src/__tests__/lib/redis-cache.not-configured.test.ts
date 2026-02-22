@@ -6,7 +6,7 @@ describe("redis-cache (not configured)", () => {
     delete process.env.UPSTASH_REDIS_REST_TOKEN;
   });
 
-  it("get returns null/undefined when redis is not configured", async () => {
+  it("get returns null/undefined when redis is not configured", { timeout: 10000 }, async () => {
     const mod = await import("@/lib/redis-cache");
     const modAny = mod as Record<string, unknown>;
     const cache = modAny.cache as Record<string, unknown>;

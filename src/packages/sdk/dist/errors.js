@@ -160,27 +160,21 @@ class EvalAIError extends Error {
         this.code = code;
         this.statusCode = statusCode;
         this.details = details;
-        // Get documentation and solutions
-        const errorDoc = ERROR_DOCS[code];
-        if (errorDoc) {
-            this.documentation = errorDoc.documentation;
-            this.solutions = errorDoc.solutions;
-            this.retryable = errorDoc.retryable;
-        }
-        else {
-            this.documentation = "https://docs.ai-eval-platform.com/errors";
-            this.solutions = ["Check the API documentation for more information"];
-            this.retryable = false;
-        }
+        // Initialize required properties from ERROR_DOCS
+        const doc = ERROR_DOCS[code];
+        this.documentation = doc?.documentation ?? `https://docs.ai-eval-platform.com/errors/${code}`;
+        this.solutions = doc?.solutions ?? ["Check the error details for more information"];
+        this.retryable = doc?.retryable ?? false;
         // Extract retry-after for rate limits
-        if (code === "RATE_LIMIT_EXCEEDED" && details?.retryAfter) {
-            this.retryAfter = details.retryAfter;
+        const errorDetails = details;
+        if (code === "RATE_LIMIT_EXCEEDED" && errorDetails?.retryAfter) {
+            this.retryAfter = errorDetails.retryAfter;
         }
         // Extract reset time for feature limits
-        if (code === "FEATURE_LIMIT_REACHED" && details?.resetAt) {
-            this.resetAt = new Date(details.resetAt);
+        if (code === "FEATURE_LIMIT_REACHED" && errorDetails?.resetAt) {
+            this.resetAt = new Date(errorDetails.resetAt);
         }
-        this.requestId = details?.error?.requestId ?? details?.requestId;
+        this.requestId = errorDetails?.error?.requestId ?? errorDetails?.requestId;
         // Ensure proper prototype chain
         Object.setPrototypeOf(this, EvalAIError.prototype);
     }
@@ -234,14 +228,17 @@ exports.SDKError = EvalAIError;
  */
 function createErrorFromResponse(response, data) {
     const status = response.status;
-    const errObj = data?.error && typeof data.error === "object" ? data.error : data;
-    let code = errObj?.code ?? data?.code ?? "UNKNOWN_ERROR";
-    const message = typeof data?.error === "string"
-        ? data.error
-        : (errObj?.message ?? data?.message ?? response.statusText);
-    const requestId = errObj?.requestId ?? data?.requestId ?? response.headers.get("x-request-id") ?? undefined;
+    const errorData = data;
+    const errObj = errorData?.error && typeof errorData.error === "object"
+        ? errorData.error
+        : errorData;
+    let code = errObj?.code ?? errorData?.code ?? "UNKNOWN_ERROR";
+    const message = typeof errorData?.error === "string"
+        ? errorData.error
+        : (errObj?.message ?? errorData?.message ?? response.statusText);
+    const requestId = errObj?.requestId ?? errorData?.requestId ?? response.headers.get("x-request-id") ?? undefined;
     // Map HTTP status to error codes when code not in response
-    if (!errObj?.code && !data?.code) {
+    if (!errObj?.code && !errorData?.code) {
         if (status === 401)
             code = "UNAUTHORIZED";
         else if (status === 403)

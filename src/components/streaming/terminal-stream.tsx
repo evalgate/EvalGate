@@ -82,27 +82,27 @@ export function TerminalStream({
   const formatMessageContent = useCallback((type: string, data: unknown): string => {
     switch (type) {
       case "evaluation_started":
-        return `🚀 Evaluation started: ${data.evaluationName}`;
+        return `🚀 Evaluation started: ${(data as any).evaluationName}`;
       case "evaluation_progress":
-        return `⏳ Progress: ${data.progress}% - ${data.currentTest}`;
+        return `⏳ Progress: ${(data as any).progress}% - ${(data as any).currentTest}`;
       case "evaluation_completed":
         return `✅ Evaluation completed successfully`;
       case "test_case_started":
-        return `🧪 Test case: ${data.testCaseName}`;
+        return `🧪 Test case: ${(data as any).testCaseName}`;
       case "test_case_completed":
-        return `✓ Test case completed (Score: ${data.score})`;
+        return `✓ Test case completed (Score: ${(data as any).score})`;
       case "test_case_failed":
-        return `✗ Test case failed (Score: ${data.score})`;
+        return `✗ Test case failed (Score: ${(data as any).score})`;
       case "arena_match_started":
-        return `⚔️ Arena match started: ${data.models?.join(" vs ")}`;
+        return `⚔️ Arena match started: ${(data as any).models?.join(" vs ")}`;
       case "model_response":
-        return `🤖 ${data.modelId}: Score ${data.score}`;
+        return `🤖 ${(data as any).modelId}: Score ${(data as any).score}`;
       case "arena_match_completed":
         return `🏆 Arena match completed`;
       case "notification":
-        return `📢 ${data.title}: ${data.message}`;
+        return `📢 ${(data as any).title}: ${(data as any).message}`;
       case "error":
-        return `❌ Error: ${data.error}`;
+        return `❌ Error: ${(data as any).error}`;
       case "ping":
         return "💓 Ping";
       default:
@@ -121,7 +121,7 @@ export function TerminalStream({
         timestamp: new Date().toISOString(),
         level,
         content,
-        metadata: data,
+        metadata: data as Record<string, unknown>,
       };
     },
     [getMessageLevel, formatMessageContent],

@@ -94,11 +94,12 @@ class AIEvalClient {
                             results.push({ id: req.id, status: 200, data });
                         }
                         catch (err) {
+                            const errorObj = err;
                             results.push({
                                 id: req.id,
-                                status: err?.statusCode || 500,
+                                status: errorObj?.statusCode || 500,
                                 data: null,
-                                error: err?.message || "Unknown error",
+                                error: errorObj?.message || "Unknown error",
                             });
                         }
                     })();

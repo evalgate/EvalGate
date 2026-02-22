@@ -12,7 +12,7 @@ export const GET = secureRoute(async (request: NextRequest, ctx: AuthContext) =>
   const clientId = searchParams.get("clientId") || `client_${Date.now()}_${Math.random()}`;
   const channels = searchParams.get("channels")?.split(",") || [];
 
-  const response = new NextResponse(
+  const response = new Response(
     new ReadableStream({
       start(controller) {
         // Send initial connection message
@@ -31,7 +31,7 @@ export const GET = secureRoute(async (request: NextRequest, ctx: AuthContext) =>
         );
 
         // Add client to SSE server
-        sseServer.addClient(clientId, response as unknown, organizationId, userId, channels);
+        sseServer.addClient(clientId, response as any, organizationId, userId, channels);
 
         logger.info("SSE connection established", { clientId, organizationId, channels });
       },

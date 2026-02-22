@@ -138,11 +138,7 @@ export function LiveProgress({
                 : tc,
             );
 
-            return {
-              ...prev,
-              currentTest: data.testCaseName,
-              testCases: updatedTestCases as unknown,
-            };
+            return { ...prev, currentTest: data.testCaseId, testCases: updatedTestCases } as any;
           });
         } else if (event.type === "test_case_completed" && data.evaluationId === evaluationId) {
           setProgress((prev) => {
@@ -163,8 +159,8 @@ export function LiveProgress({
               ...prev,
               completedTests: prev.completedTests + 1,
               passedTests: prev.passedTests + (data.passed ? 1 : 0),
-              testCases: updatedTestCases as unknown,
-            };
+              testCases: updatedTestCases,
+            } as any;
           });
         } else if (event.type === "test_case_failed" && data.evaluationId === evaluationId) {
           setProgress((prev) => {
@@ -185,8 +181,8 @@ export function LiveProgress({
               ...prev,
               completedTests: prev.completedTests + 1,
               failedTests: prev.failedTests + 1,
-              testCases: updatedTestCases as unknown,
-            };
+              testCases: updatedTestCases,
+            } as any;
           });
         }
       } catch (error) {

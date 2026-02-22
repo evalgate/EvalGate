@@ -132,14 +132,14 @@ export default function NewEvaluationPage() {
       // Build combined config from all selected templates
       const combinedConfig = {
         templates: data.templates.map((t) => ({
-          id: t.template.id,
-          name: t.config.name || t.template.name,
-          description: t.config.description || t.template.description,
-          type: t.template.type,
-          judgePrompt: t.config.customPrompt || t.template.judgePrompt,
-          testCases: t.template.testCases,
-          code: t.template.code,
-          humanEvalCriteria: t.template.humanEvalCriteria,
+          id: (t.template as any).id,
+          name: (t.config as any).name || (t.template as any).name,
+          description: (t.config as any).description || (t.template as any).description,
+          type: (t.template as any).type,
+          judgePrompt: (t.config as any).customPrompt || (t.template as any).judgePrompt,
+          testCases: (t.template as any).testCases,
+          code: (t.template as any).code,
+          humanEvalCriteria: (t.template as any).humanEvalCriteria,
         })),
       };
 

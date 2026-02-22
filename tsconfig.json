@@ -7,10 +7,11 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "ESNext",
+    "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "baseUrl": "./src",
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["node", "react", "react-dom"],
     "jsx": "react-jsx",
@@ -21,17 +22,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["*"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "src/types/**/*.d.ts",
-    ".next/dev/types/**/*.ts"
-  ],
+  "include": ["next-env.d.ts", "next-types.d.ts", "**/*.ts", "**/*.tsx", "src/types/**/*.d.ts"],
   "exclude": [
     "node_modules",
     "src/packages/sdk/**/*",
@@ -39,6 +33,10 @@
     "src/remotion/**/*",
     "src/app/docs/**/*",
     "src/app/guides/**/*",
-    "examples/**/*"
+    "examples/**/*",
+    "scripts/**/*",
+    "src/__tests__/**/*",
+    "**/__tests__/**/*",
+    ".next/types/**/*"
   ]
 }

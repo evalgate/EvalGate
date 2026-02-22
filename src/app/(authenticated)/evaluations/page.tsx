@@ -17,11 +17,24 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "@/lib/auth-client";
 
+interface EvaluationListItem {
+  id: number;
+  name: string;
+  type: string;
+  status: string;
+  category?: string;
+  description?: string;
+  createdAt: string;
+  created_at?: string;
+  updatedAt: string;
+  creator_name?: string;
+}
+
 export default function EvaluationsPage() {
   const { data: session, isPending } = useSession();
   const _router = useRouter();
-  const [evaluations, setEvaluations] = useState<unknown[]>([]);
-  const [filteredEvaluations, setFilteredEvaluations] = useState<unknown[]>([]);
+  const [evaluations, setEvaluations] = useState<EvaluationListItem[]>([]);
+  const [filteredEvaluations, setFilteredEvaluations] = useState<EvaluationListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -66,7 +79,7 @@ export default function EvaluationsPage() {
     // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter(
-        (evaluation: unknown) =>
+        (evaluation: EvaluationListItem) =>
           evaluation.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           evaluation.description?.toLowerCase().includes(searchQuery.toLowerCase()),
       );
@@ -74,7 +87,9 @@ export default function EvaluationsPage() {
 
     // Apply type filter
     if (typeFilter !== "all") {
-      filtered = filtered.filter((evaluation: unknown) => evaluation.type === typeFilter);
+      filtered = filtered.filter(
+        (evaluation: EvaluationListItem) => evaluation.type === typeFilter,
+      );
     }
 
     setFilteredEvaluations(filtered);
@@ -162,7 +177,7 @@ export default function EvaluationsPage() {
         </div>
       ) : filteredEvaluations.length > 0 ? (
         <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredEvaluations.map((evaluation: unknown) => (
+          {filteredEvaluations.map((evaluation: EvaluationListItem) => (
             <Link key={evaluation.id} href={`/evaluations/${evaluation.id}`}>
               <Card className="hover:border-primary transition-colors cursor-pointer h-full">
                 <CardHeader className="space-y-2">
@@ -193,7 +208,7 @@ export default function EvaluationsPage() {
                   <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground flex-wrap">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {new Date(evaluation.created_at).toLocaleDateString()}
+                      {new Date(evaluation.created_at || evaluation.createdAt).toLocaleDateString()}
                     </div>
                     <div className="truncate">by {evaluation.creator_name || "Unknown"}</div>
                   </div>

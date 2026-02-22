@@ -67,7 +67,7 @@ export function apiError(
   message: string,
   statusOverride?: number,
   details?: unknown,
-): NextResponse<ApiErrorResponse> {
+): NextResponse {
   const status = statusOverride ?? CODE_TO_STATUS[code];
   const requestId = getRequestId();
 

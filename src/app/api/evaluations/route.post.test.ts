@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
 import { evaluations } from "@/db/schema";
 import { parseBody } from "@/lib/api/parse";
-import { checkFeature, trackFeature } from "@/lib/autumn-server";
+import { checkFeature, requireAuthWithOrg, trackFeature } from "@/lib/autumn-server";
 import { logger } from "@/lib/logger";
 import { POST } from "./route";
 
@@ -44,6 +44,22 @@ vi.mock("@/lib/api-rate-limit", () => ({
   ),
 }));
 
+vi.mock("@/lib/api/secure-route", () => ({
+  secureRoute: (handler: any) => {
+    return async (req: any, props: any) => {
+      const ctx = {
+        userId: "test-user",
+        organizationId: 1,
+        role: "member",
+        scopes: ["eval:read", "eval:write"],
+        authType: "session",
+      };
+      const params = await props.params;
+      return handler(req, ctx, params);
+    };
+  },
+}));
+
 vi.mock("@/lib/logger", () => ({
   logger: {
     info: vi.fn(),
@@ -53,11 +69,11 @@ vi.mock("@/lib/logger", () => ({
 }));
 
 const mockedDbInsert = vi.mocked(db.insert);
-mockedDbInsert.mockImplementation((table: unknown) => {
+mockedDbInsert.mockImplementation((table: any) => {
   if (table === evaluations) {
-    return evaluationInsert as unknown;
+    return evaluationInsert as any;
   }
-  return testCaseInsert as unknown;
+  return testCaseInsert as any;
 });
 
 const routeContext = { params: Promise.resolve({}) } as const;
@@ -85,6 +101,14 @@ const createdEvaluation = {
 describe("POST /api/evaluations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(requireAuthWithOrg).mockResolvedValue({
+      authenticated: true,
+      userId: "test-user",
+      organizationId: 1,
+      role: "member",
+      scopes: ["eval:read", "eval:write"],
+      authType: "session",
+    } as any);
     evaluationInsert.values.mockReturnThis();
     evaluationInsert.returning.mockResolvedValue([createdEvaluation]);
     testCaseInsert.values.mockResolvedValue(undefined);
@@ -96,14 +120,20 @@ describe("POST /api/evaluations", () => {
       .mockResolvedValueOnce({ allowed: true, remaining: 10 });
     vi.mocked(parseBody).mockResolvedValue({ ok: true, data: baseBody });
 
-    const req = new NextRequest("http://localhost:3000/api/evaluations", {
-      method: "POST",
-      body: JSON.stringify(baseBody),
-    });
+    const req = new (NextRequest as unknown as typeof Request)(
+      "http://localhost:3000/api/evaluations",
+      {
+        method: "POST",
+        body: JSON.stringify(baseBody),
+        headers: new Headers({
+          "Content-Type": "application/json",
+        }),
+      },
+    );
 
-    const res = await POST(req, routeContext as never);
+    const res = await POST(req as any, routeContext as never);
 
-    expect(res.status).toBe(201);
+    expect((res as Response).status).toBe(201);
     expect(evaluationInsert.values).toHaveBeenCalledWith(
       expect.objectContaining({ name: baseBody.name, type: baseBody.type }),
     );
@@ -126,32 +156,44 @@ describe("POST /api/evaluations", () => {
     vi.mocked(parseBody).mockResolvedValue({ ok: true, data: baseBody });
     testCaseInsert.values.mockRejectedValueOnce(new Error("boom"));
 
-    const req = new NextRequest("http://localhost:3000/api/evaluations", {
-      method: "POST",
-      body: JSON.stringify(baseBody),
-    });
+    const req = new (NextRequest as unknown as typeof Request)(
+      "http://localhost:3000/api/evaluations",
+      {
+        method: "POST",
+        body: JSON.stringify(baseBody),
+        headers: new Headers({
+          "Content-Type": "application/json",
+        }),
+      },
+    );
 
-    const res = await POST(req, routeContext as never);
+    const res = await POST(req as any, routeContext as never);
 
-    expect(res.status).toBe(201);
+    expect((res as Response).status).toBe(201);
     expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
       expect.stringContaining("Failed to persist template test cases"),
-      expect.unknown(Object),
+      expect.any(Object),
     );
   });
 
   it("returns quota failure when the projects feature is denied", async () => {
     vi.mocked(checkFeature).mockResolvedValueOnce({ allowed: false, remaining: 0 });
 
-    const req = new NextRequest("http://localhost:3000/api/evaluations", {
-      method: "POST",
-      body: JSON.stringify(baseBody),
-    });
+    const req = new (NextRequest as unknown as typeof Request)(
+      "http://localhost:3000/api/evaluations",
+      {
+        method: "POST",
+        body: JSON.stringify(baseBody),
+        headers: new Headers({
+          "Content-Type": "application/json",
+        }),
+      },
+    );
 
-    const res = await POST(req, routeContext as never);
+    const res = await POST(req as any, routeContext as never);
 
-    const payload = await res.json();
-    expect(res.status).toBe(403);
+    const payload = await (res as Response).json();
+    expect((res as Response).status).toBe(403);
     expect(payload.error.code).toBe("QUOTA_EXCEEDED");
     expect(mockedDbInsert).not.toHaveBeenCalled();
   });

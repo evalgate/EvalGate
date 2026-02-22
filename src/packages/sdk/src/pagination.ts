@@ -115,7 +115,7 @@ export function encodeCursor(data: unknown): string {
   const json = JSON.stringify(data);
 
   if (typeof globalThis !== "undefined" && "btoa" in globalThis) {
-    return (globalThis as unknown).btoa(json);
+    return (globalThis as any).btoa(json);
   } else {
     return Buffer.from(json).toString("base64");
   }
@@ -129,7 +129,7 @@ export function decodeCursor(cursor: string): unknown {
     let json: string;
 
     if (typeof globalThis !== "undefined" && "atob" in globalThis) {
-      json = (globalThis as unknown).atob(cursor);
+      json = (globalThis as any).atob(cursor);
     } else {
       json = Buffer.from(cursor, "base64").toString("utf-8");
     }
@@ -167,7 +167,7 @@ export function createPaginationMeta<T>(
  */
 export function parsePaginationParams(params: PaginationParams): { limit: number; offset: number } {
   if (params.cursor) {
-    const decoded = decodeCursor(params.cursor);
+    const decoded = decodeCursor(params.cursor) as { limit?: number; offset?: number };
     return {
       limit: decoded.limit || 50,
       offset: decoded.offset || 0,

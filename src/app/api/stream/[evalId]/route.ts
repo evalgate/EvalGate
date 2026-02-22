@@ -31,7 +31,7 @@ export const GET = secureRoute(async (_request: NextRequest, ctx: AuthContext, p
     },
   });
 
-  return new NextResponse(stream, {
+  return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",

@@ -125,7 +125,7 @@ export async function handleWebhookDelivery(payload: Record<string, unknown>): P
       errorMsg = `HTTP ${responseCode}: ${responseBody.substring(0, 500)}`;
     }
   } catch (err: unknown) {
-    errorMsg = err.message;
+    errorMsg = err instanceof Error ? err.message : String(err);
   }
 
   const durationMs = Date.now() - startTime;
@@ -145,7 +145,7 @@ export async function handleWebhookDelivery(payload: Record<string, unknown>): P
     });
   } catch (insertErr: unknown) {
     // Unique constraint violation on dedup index — already recorded
-    if (insertErr?.message?.includes("UNIQUE constraint")) {
+    if (insertErr instanceof Error && insertErr.message?.includes("UNIQUE constraint")) {
       logger.info("Webhook delivery record dedup — already exists", { webhookId, event });
     } else {
       throw insertErr;

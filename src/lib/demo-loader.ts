@@ -3,6 +3,20 @@
  * Used for unauthenticated users and public sharing
  */
 
+import type { QualityScore } from "@/lib/ai-quality-score";
+
+interface TestResult {
+  id?: number | string;
+  name?: string;
+  passed?: boolean;
+  input?: string | unknown;
+  expectedOutput?: string;
+  actualOutput?: string;
+  score?: number;
+}
+
+export type { TestResult };
+
 export interface DemoEvaluation {
   id: string;
   name: string;
@@ -15,8 +29,9 @@ export interface DemoEvaluation {
     failed: number;
     passRate: string;
   };
-  qualityScore: unknown;
+  qualityScore?: QualityScore;
   timestamp: string;
+  testResults?: TestResult[];
   [key: string]: unknown;
 }
 
@@ -157,11 +172,11 @@ export function validateDemoData(data: unknown): data is DemoEvaluation {
   return !!(
     data &&
     typeof data === "object" &&
-    typeof data.id === "string" &&
-    typeof data.name === "string" &&
-    typeof data.type === "string" &&
-    data.summary &&
-    typeof data.summary.totalTests === "number" &&
-    data.qualityScore
+    typeof (data as any).id === "string" &&
+    typeof (data as any).name === "string" &&
+    typeof (data as any).type === "string" &&
+    (data as any).summary &&
+    typeof (data as any).summary.totalTests === "number" &&
+    (data as any).qualityScore
   );
 }

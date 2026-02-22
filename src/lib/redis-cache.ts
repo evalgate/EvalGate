@@ -5,6 +5,7 @@
 
 import { Redis } from "@upstash/redis";
 import { logger } from "@/lib/logger";
+import { handleError } from "@/lib/utils/error-handling";
 
 // Lazy Redis client initialization
 let redis: Redis | undefined;
@@ -56,7 +57,8 @@ export class RedisCache {
       logger.debug("Cache miss", { key: fullKey });
       return null;
     } catch (error: unknown) {
-      logger.error("Cache get error", { key: fullKey, error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Cache get error", { key: fullKey, error: errorMessage });
       return null; // Fail gracefully
     }
   }
@@ -73,7 +75,8 @@ export class RedisCache {
       logger.debug("Cache set", { key: fullKey, ttl: cacheTTL });
       return true;
     } catch (error: unknown) {
-      logger.error("Cache set error", { key: fullKey, error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Cache set error", { key: fullKey, error: errorMessage });
       return false; // Fail gracefully
     }
   }
@@ -89,7 +92,7 @@ export class RedisCache {
       logger.debug("Cache deleted", { key: fullKey });
       return true;
     } catch (error: unknown) {
-      logger.error("Cache delete error", { key: fullKey, error: error.message });
+      logger.error("Cache delete error", { key: fullKey, error: handleError(error) });
       return false;
     }
   }
@@ -111,7 +114,10 @@ export class RedisCache {
       logger.debug("Cache pattern deleted", { pattern: fullPattern, count: keys.length });
       return keys.length;
     } catch (error: unknown) {
-      logger.error("Cache delete pattern error", { pattern: fullPattern, error: error.message });
+      logger.error("Cache delete pattern error", {
+        pattern: fullPattern,
+        error: handleError(error),
+      });
       return 0;
     }
   }
@@ -188,7 +194,7 @@ export class RedisCache {
         keys: keys.length,
       };
     } catch (error: unknown) {
-      logger.error("Failed to get cache stats", { error: error.message });
+      logger.error("Failed to get cache stats", { error: handleError(error) });
       return { keys: 0 };
     }
   }

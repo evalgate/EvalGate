@@ -1,8 +1,10 @@
+import type React from "react";
+
 export interface EvaluationTemplate {
   id: string;
   name: string;
   category: string;
-  icon: unknown;
+  icon: React.ComponentType<{ className?: string }>;
   description: string;
   type: "unit_test" | "human_eval" | "model_eval" | "ab_test";
   complexity: "beginner" | "intermediate" | "advanced";

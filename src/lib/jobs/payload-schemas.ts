@@ -16,7 +16,7 @@ const webhookDeliverySchema = z.object({
   timestamp: z.string().min(1),
 });
 
-const PAYLOAD_SCHEMAS: Record<JobType, z.ZodTypeunknown> = {
+const PAYLOAD_SCHEMAS: Record<JobType, z.ZodSchema> = {
   webhook_delivery: webhookDeliverySchema,
 };
 
@@ -45,6 +45,8 @@ export function validatePayload(
   }
   return {
     success: false,
-    error: result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
+    error: result.error.issues
+      .map((i: z.ZodIssue) => `${i.path.join(".")}: ${i.message}`)
+      .join("; "),
   };
 }

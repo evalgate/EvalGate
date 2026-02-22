@@ -1,5 +1,5 @@
-import type { ZodTypeunknown } from "zod";
-import { harness } from "./__tests__/mocks/jobs-harness";
+import type { ZodUnknown } from "zod";
+import { harness, type MockJob } from "./__tests__/mocks/jobs-harness";
 import { type JobErrorCode, JobErrorCodes } from "./errors";
 
 /**
@@ -39,6 +39,11 @@ export interface JobRecord {
   lockAcquiredAt: Date | null;
   lockUntil: Date | null;
 
+  // Harness-specific lock fields
+  lockedBy: string | null;
+  lockedAt: Date | null;
+  lockedUntil: Date | null;
+
   organizationId?: number | null;
 }
 
@@ -52,7 +57,7 @@ export type JobHandlerContext = {
 export type JobHandler<P = unknown> = (payload: P, ctx: JobHandlerContext) => Promise<void>;
 
 export type JobHandlerRegistration<P = unknown> = {
-  schema?: ZodTypeunknown;
+  schema?: ZodUnknown;
   handler: JobHandler<P>;
 };
 
@@ -133,6 +138,9 @@ export function createJobTestHarness() {
         lockOwner: null,
         lockAcquiredAt: null,
         lockUntil: null,
+        lockedBy: null,
+        lockedAt: null,
+        lockedUntil: null,
         organizationId: 1,
         ...overrides,
       };
@@ -190,23 +198,30 @@ function computeBackoffMs(attempt: number): number {
   return Math.min(ms, 60_000);
 }
 
-function clearJobLocks(job: unknown) {
-  job.lockOwner = null;
-  job.lockAcquiredAt = null;
-  job.lockUntil = null;
-  // Also clear the harness-specific fields
+function clearJobLocks(job: JobRecord | MockJob) {
+  if ("lockOwner" in job) {
+    job.lockOwner = null;
+    job.lockAcquiredAt = null;
+    job.lockUntil = null;
+  }
+  // Always clear the harness-specific fields
   job.lockedBy = null;
   job.lockedAt = null;
   job.lockedUntil = null;
 }
 
-function markFinished(job: unknown, startedMs: number) {
+function markFinished(job: JobRecord | MockJob, startedMs: number) {
   job.lastFinishedAt = nowDate();
   job.lastDurationMs = Math.max(0, Math.round(timeFn() - startedMs));
   clearJobLocks(job);
 }
 
-function deadLetter(job: JobRecord, code: JobErrorCode, message: string, startedMs: number) {
+function deadLetter(
+  job: JobRecord | MockJob,
+  code: JobErrorCode,
+  message: string,
+  startedMs: number,
+) {
   job.status = "dead_letter";
   job.lastErrorCode = code;
   job.lastError = message;
@@ -331,7 +346,7 @@ export async function runDueJobs(
         result.failed += 1;
         result.deadLettered += 1;
         deadLetter(
-          job as unknown,
+          job,
           JobErrorCodes.HANDLER_MISSING,
           `No job handler registered for type: ${job.type}`,
           jobStartedMs,
@@ -341,13 +356,13 @@ export async function runDueJobs(
 
       // Payload validation (if schema exists or validateImpl exists)
       let payload: unknown = job.payload;
-      if (reg.schema) {
-        const parsed = reg.schema.safeParse(job.payload);
+      if (reg.schema && typeof reg.schema === "object" && "safeParse" in reg.schema) {
+        const parsed = (reg.schema as any).safeParse(job.payload);
         if (!parsed.success) {
           result.failed += 1;
           result.deadLettered += 1;
           deadLetter(
-            job as unknown,
+            job,
             JobErrorCodes.PAYLOAD_INVALID,
             `Invalid payload for job type ${job.type}: ${parsed.error.message}`,
             jobStartedMs,
@@ -361,7 +376,7 @@ export async function runDueJobs(
         if (!validation.success) {
           result.failed += 1;
           result.deadLettered += 1;
-          deadLetter(job as unknown, JobErrorCodes.PAYLOAD_INVALID, validation.error, jobStartedMs);
+          deadLetter(job, JobErrorCodes.PAYLOAD_INVALID, validation.error, jobStartedMs);
           continue;
         }
         payload = validation.data;
@@ -376,7 +391,7 @@ export async function runDueJobs(
         job.status = "success";
         job.lastErrorCode = null;
         job.lastError = null;
-        markFinished(job as unknown, jobStartedMs);
+        markFinished(job, jobStartedMs);
         result.processed += 1; // Only increment processed for successful jobs
       } catch (err) {
         // Handler failure
@@ -385,7 +400,7 @@ export async function runDueJobs(
         job.lastError = safeErrorMessage(err);
         job.attempt = (job.attempt ?? 0) + 1;
 
-        markFinished(job as unknown, jobStartedMs);
+        markFinished(job, jobStartedMs);
 
         if (job.attempt >= job.maxAttempts) {
           job.status = "dead_letter";

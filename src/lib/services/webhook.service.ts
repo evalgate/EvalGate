@@ -110,7 +110,15 @@ export class WebhookService {
       return null;
     }
 
-    const updateData: unknown = {
+    const updateData: {
+      updatedAt: string;
+      url?: string;
+      events?: string[];
+      secret?: string;
+      encryptedSecret?: string;
+      secretIv?: string;
+      secretTag?: string;
+    } = {
       updatedAt: new Date().toISOString(),
     };
     if (data.url) updateData.url = data.url;
@@ -230,11 +238,12 @@ export class WebhookService {
         });
       }
     } catch (err: unknown) {
-      error = err.message;
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      error = errorMessage;
       logger.error("Webhook delivery error", {
         webhookId,
-        error: err.message,
-        stack: err.stack,
+        error: errorMessage,
+        stack: err instanceof Error ? err.stack : undefined,
       });
     }
 

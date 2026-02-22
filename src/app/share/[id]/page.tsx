@@ -8,7 +8,12 @@ import { AIQualityScoreCard } from "@/components/ai-quality-score-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { type DemoEvaluation, getPublicDemo, validateDemoData } from "@/lib/demo-loader";
+import {
+  type DemoEvaluation,
+  getPublicDemo,
+  type TestResult,
+  validateDemoData,
+} from "@/lib/demo-loader";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -64,7 +69,7 @@ export default function SharePage({ params }: PageProps) {
 
     const summary = `
 Evaluation Results: ${demo.name}
-Grade: ${demo.qualityScore.grade} (${demo.qualityScore.overall}/100)
+Grade: ${(demo.qualityScore as any)?.grade} (${(demo.qualityScore as any)?.overall}/100)
 
 Summary:
 - Total Tests: ${demo.summary.totalTests}
@@ -73,17 +78,17 @@ Summary:
 - Pass Rate: ${demo.summary.passRate}
 
 Quality Metrics:
-- Accuracy: ${demo.qualityScore.metrics.accuracy}/100
-- Safety: ${demo.qualityScore.metrics.safety}/100
-- Latency: ${demo.qualityScore.metrics.latency}/100
-- Cost: ${demo.qualityScore.metrics.cost}/100
-- Consistency: ${demo.qualityScore.metrics.consistency}/100
+- Accuracy: ${(demo.qualityScore as any)?.metrics?.accuracy}/100
+- Safety: ${(demo.qualityScore as any)?.metrics?.safety}/100
+- Latency: ${(demo.qualityScore as any)?.metrics?.latency}/100
+- Cost: ${(demo.qualityScore as any)?.metrics?.cost}/100
+- Consistency: ${(demo.qualityScore as any)?.metrics?.consistency}/100
 
 Key Insights:
-${demo.qualityScore.insights.map((i: string) => `- ${i}`).join("\n")}
+${(demo.qualityScore as any)?.insights?.map((i: string) => `- ${i}`).join("\n")}
 
 Recommendations:
-${demo.qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
+${(demo.qualityScore as any)?.recommendations?.map((r: string) => `- ${r}`).join("\n")}
 
 View full results: ${window.location.href}
     `.trim();
@@ -279,35 +284,37 @@ View full results: ${window.location.href}
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {demo.testResults.slice(0, 10).map((test: unknown, idx: number) => (
-                  <div
-                    key={test.id || idx}
-                    className="flex items-start justify-between p-3 border rounded-lg"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant={test.passed ? "default" : "destructive"}>
-                          {test.passed ? "PASS" : "FAIL"}
-                        </Badge>
-                        <span className="font-medium">{test.name || `Test ${idx + 1}`}</span>
+                {((demo.testResults as TestResult[]) || [])
+                  .slice(0, 10)
+                  .map((test: TestResult, idx: number) => (
+                    <div
+                      key={test.id || idx}
+                      className="flex items-start justify-between p-3 border rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant={test.passed ? "default" : "destructive"}>
+                            {test.passed ? "PASS" : "FAIL"}
+                          </Badge>
+                          <span className="font-medium">{test.name || `Test ${idx + 1}`}</span>
+                        </div>
+                        {test.input != null && (
+                          <p className="text-sm text-muted-foreground">
+                            Input:{" "}
+                            {typeof test.input === "string"
+                              ? test.input
+                              : JSON.stringify(test.input as any).slice(0, 100)}
+                          </p>
+                        )}
                       </div>
-                      {test.input && (
-                        <p className="text-sm text-muted-foreground">
-                          Input:{" "}
-                          {typeof test.input === "string"
-                            ? test.input
-                            : JSON.stringify(test.input).slice(0, 100)}
-                        </p>
+                      {test.score !== undefined && (
+                        <div className="text-right">
+                          <div className="text-lg font-bold">{test.score}</div>
+                          <div className="text-xs text-muted-foreground">score</div>
+                        </div>
                       )}
                     </div>
-                    {test.score !== undefined && (
-                      <div className="text-right">
-                        <div className="text-lg font-bold">{test.score}</div>
-                        <div className="text-xs text-muted-foreground">score</div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  ))}
                 {demo.testResults.length > 10 && (
                   <p className="text-sm text-muted-foreground text-center pt-2">
                     Showing 10 of {demo.testResults.length} results. Download full data for more.

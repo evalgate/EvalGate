@@ -11,6 +11,16 @@ import { driftAlerts, evaluations, qualityScores } from "@/db/schema";
 import { meanAndStd, zScore } from "@/lib/drift/zscore";
 import { logger } from "@/lib/logger";
 
+interface QualityScoreData {
+  id: number;
+  evaluationId: number;
+  organizationId: number;
+  model: string | null;
+  score: number;
+  breakdown: unknown;
+  createdAt: Date | string;
+}
+
 export type AlertType = "quality_drop" | "safety_spike" | "cost_spike" | "judge_shift";
 export type Severity = "info" | "warning" | "critical";
 
@@ -97,10 +107,10 @@ export class DriftService {
       const latestBreakdown =
         typeof latest.breakdown === "string" ? JSON.parse(latest.breakdown) : latest.breakdown;
 
-      if (latestBreakdown?.safety !== undefined) {
+      if ((latestBreakdown as any)?.safety !== undefined) {
         const safetyValues = historical.map((s) => {
           const bd = typeof s.breakdown === "string" ? JSON.parse(s.breakdown) : s.breakdown;
-          return (bd as unknown)?.safety ?? 1;
+          return (bd as any)?.safety ?? 1;
         });
         const safetyStats = meanAndStd(safetyValues);
         const safetyZ = zScore(latestBreakdown.safety, safetyStats.mean, safetyStats.std);
@@ -119,10 +129,10 @@ export class DriftService {
       }
 
       // Cost drift (check breakdown)
-      if (latestBreakdown?.cost !== undefined) {
+      if ((latestBreakdown as any)?.cost !== undefined) {
         const costValues = historical.map((s) => {
           const bd = typeof s.breakdown === "string" ? JSON.parse(s.breakdown) : s.breakdown;
-          return (bd as unknown)?.cost ?? 1;
+          return (bd as any)?.cost ?? 1;
         });
         const costStats = meanAndStd(costValues);
         const costZ = zScore(latestBreakdown.cost, costStats.mean, costStats.std);
@@ -201,7 +211,7 @@ export class DriftService {
   private async createAlert(
     organizationId: number,
     alert: { evaluationId: number; alertType: AlertType; severity: Severity; explanation: string },
-    latest: unknown,
+    latest: QualityScoreData,
     baselineValue: number,
     zScoreValue: number,
   ) {
@@ -211,7 +221,7 @@ export class DriftService {
       alertType: alert.alertType,
       severity: alert.severity,
       explanation: alert.explanation,
-      model: latest.model,
+      model: latest.model || "unknown",
       currentValue: String(latest.score),
       baselineValue: String(baselineValue),
       zScoreValue: String(zScoreValue),

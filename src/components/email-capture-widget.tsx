@@ -59,7 +59,8 @@ export function EmailCaptureWidget({
       toast.success("Success! Check your email 📧");
       onSuccess?.();
     } catch (error: unknown) {
-      toast.error(error.message || "Something went wrong. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      toast.error(errorMessage || "Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

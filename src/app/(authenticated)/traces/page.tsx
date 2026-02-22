@@ -20,6 +20,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSession } from "@/lib/auth-client";
 
+interface Trace {
+  id: number;
+  name: string;
+  traceId: string;
+  organizationId: number;
+  status: string;
+  durationMs?: number;
+  metadata?: unknown;
+  createdAt: string;
+  tags?: string[];
+  session_id?: string;
+}
+
 // Integration examples
 const INTEGRATION_EXAMPLES = {
   openai: {
@@ -105,8 +118,8 @@ export async function customWorkflow(input: string) {
 export default function TracesPage() {
   const { data: session, isPending } = useSession();
   const _router = useRouter();
-  const [traces, setTraces] = useState<unknown[]>([]);
-  const [filteredTraces, setFilteredTraces] = useState<unknown[]>([]);
+  const [traces, setTraces] = useState<Trace[]>([]);
+  const [filteredTraces, setFilteredTraces] = useState<Trace[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -147,7 +160,7 @@ export default function TracesPage() {
   }, [session, isPending]);
 
   // Get all unique tags from traces
-  const allTags = Array.from(new Set(traces.flatMap((trace: unknown) => trace.tags || [])));
+  const allTags = Array.from(new Set(traces.flatMap((trace: Trace) => trace.tags || [])));
 
   // Filter traces based on search and tags
   useEffect(() => {
@@ -156,7 +169,7 @@ export default function TracesPage() {
     // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter(
-        (trace: unknown) =>
+        (trace: Trace) =>
           trace.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           trace.session_id?.toLowerCase().includes(searchQuery.toLowerCase()),
       );
@@ -164,7 +177,7 @@ export default function TracesPage() {
 
     // Apply tag filter
     if (selectedTags.length > 0) {
-      filtered = filtered.filter((trace: unknown) =>
+      filtered = filtered.filter((trace: Trace) =>
         selectedTags.every((tag) => trace.tags?.includes(tag)),
       );
     }
@@ -390,7 +403,7 @@ export default function TracesPage() {
         </div>
       ) : filteredTraces.length > 0 ? (
         <div className="space-y-3">
-          {filteredTraces.map((trace: unknown) => (
+          {filteredTraces.map((trace: Trace) => (
             <Link key={trace.id} href={`/traces/${trace.id}`}>
               <Card className="hover:border-primary transition-colors cursor-pointer">
                 <CardContent className="p-3 sm:p-4">
@@ -411,10 +424,10 @@ export default function TracesPage() {
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           <span className="hidden sm:inline">
-                            {new Date(trace.created_at).toLocaleString()}
+                            {new Date(trace.createdAt).toLocaleString()}
                           </span>
                           <span className="sm:hidden">
-                            {new Date(trace.created_at).toLocaleDateString()}
+                            {new Date(trace.createdAt).toLocaleDateString()}
                           </span>
                         </div>
                         {trace.tags && trace.tags.length > 0 && (

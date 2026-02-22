@@ -43,8 +43,8 @@ export const POST = secureRoute(
 
     const newTestCase = await testCaseService.create(ctx.organizationId, evaluationId, {
       name,
-      input,
-      expectedOutput,
+      input: input as string,
+      expectedOutput: expectedOutput as string | null | undefined,
       metadata,
     });
 
