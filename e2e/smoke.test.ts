@@ -22,7 +22,7 @@ test("public pricing page loads", async ({ page }) => {
   await expect(page.locator("body")).toBeVisible();
   // No server error page
   await expect(page.locator("text=Application error")).not.toBeVisible();
-  await expect(page.locator("text=500")).not.toBeVisible();
+  await expect(page.locator("text=Internal Server Error")).not.toBeVisible();
 });
 
 test("/api/health/deep returns 401 or 403 when unauthenticated", async ({ request }) => {
