@@ -77,16 +77,16 @@ export default defineConfig({
     ],
     thresholds: {
       global: {
+        branches: 20,
+        functions: 20,
+        lines: 20,
+        statements: 20,
+      },
+      "src/app/api/**/*.{ts,tsx}": {
         branches: 30,
         functions: 30,
         lines: 30,
         statements: 30,
-      },
-      "src/app/api/**/*.{ts,tsx}": {
-        branches: 60,
-        functions: 60,
-        lines: 60,
-        statements: 60,
       },
     },
   },

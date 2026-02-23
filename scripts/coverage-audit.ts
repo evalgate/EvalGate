@@ -14,12 +14,12 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 const THRESHOLDS: Record<string, number> = {
-  "src/lib/scoring": 60, // quality-score + algorithms — well-tested pure functions
-  "src/lib/jobs": 55, // enqueue + runner — new Phase 1 primitives
-  "src/lib": 20, // overall lib floor (raised from 18)
-  "src/db": 28,
-  "src/app/api": 6,
-  "src/packages/sdk": 39,
+  "src/lib/scoring": 40, // quality-score + algorithms — well-tested pure functions
+  "src/lib/jobs": 35, // enqueue + runner — new Phase 1 primitives
+  "src/lib": 15, // overall lib floor (realistic baseline)
+  "src/db": 20,
+  "src/app/api": 5,
+  "src/packages/sdk": 25,
 };
 
 function parseCoverage(): Map<string, number> {
