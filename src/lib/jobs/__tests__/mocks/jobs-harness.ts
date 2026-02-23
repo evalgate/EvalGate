@@ -242,7 +242,7 @@ export function setupJobsTestHarness() {
   }));
 
   // ── payload schemas ────────────────────────────────────────────────────────
-  vi.mock("../payload-schemas", () => ({
+  vi.mock("@/lib/jobs/payload-schemas", () => ({
     validatePayload: (type: string, payload: unknown) => {
       if (harness.state.validateImpl) return harness.state.validateImpl(type, payload);
       return { success: true, data: payload };
@@ -250,7 +250,7 @@ export function setupJobsTestHarness() {
   }));
 
   // ── webhook handler module: must export WebhookDeliveryError ───────────────
-  vi.mock("../handlers/webhook-delivery", () => {
+  vi.mock("@/lib/jobs/handlers/webhook-delivery", () => {
     class WebhookDeliveryError extends Error {
       errorCode: string;
       retryAfterMs?: number;
@@ -451,7 +451,12 @@ export function setupJobsTestHarness() {
             let cached: Promise<unknown[]> | null = null;
             const run = () => (cached ??= exec());
 
-            return run();
+            return {
+              returning: (_fields?: unknown) => run(),
+              // biome-ignore lint/suspicious/noThenProperty: intentional thenable for drizzle chain mock
+              then: (resolve: unknown, reject?: unknown) =>
+                run().then(resolve as never, reject as never),
+            };
           },
         }),
       }),

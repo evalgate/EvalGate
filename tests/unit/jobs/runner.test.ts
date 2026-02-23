@@ -17,15 +17,14 @@ describe("jobs/runner", () => {
       // Import after mocks to prevent leakage
       const { runDueJobs } = await import("@/lib/jobs/runner");
 
-      const nowMs = Date.UTC(2026, 1, 22, 12, 0, 0);
-
-      // Create a stale running job
+      // Create a stale running job with expired lock
       const staleJob = harness.makeJob({
         id: 1001,
         status: "running",
         lockedBy: "old-runner",
-        lockedAt: new Date(nowMs - 180_000), // 3 minutes ago
-        lockedUntil: new Date(nowMs - 60_000), // 1 minute ago (expired)
+        lockedAt: new Date(Date.now() - 180_000), // 3 minutes ago
+        lockedUntil: new Date(Date.now() - 60_000), // 1 minute ago (expired)
+        nextRunAt: new Date(Date.now() + 60_000), // Not due yet — prevents re-processing after reclaim
         lastErrorCode: null,
       });
       harness.state.jobs.push(staleJob);
@@ -37,21 +36,19 @@ describe("jobs/runner", () => {
       expect(staleJob.lockedBy).toBeNull();
       expect(staleJob.lockedAt).toBeNull();
       expect(staleJob.lockedUntil).toBeNull();
-      expect(staleJob.lastErrorCode).toBe("LOCK_TIMEOUT_RECLAIMED");
+      expect(staleJob.lastErrorCode).toBe("JOB_LOCK_TIMEOUT_RECLAIMED");
     });
 
     it("does not reclaim jobs that are still within lock TTL", async () => {
       const { runDueJobs } = await import("@/lib/jobs/runner");
 
-      const nowMs = Date.UTC(2026, 1, 22, 12, 0, 0);
-
-      // Create a running job with valid lock
+      // Create a running job with valid lock (still in the future)
       const activeJob = harness.makeJob({
         id: 1002,
         status: "running",
         lockedBy: "active-runner",
-        lockedAt: new Date(nowMs - 30_000), // 30 seconds ago
-        lockedUntil: new Date(nowMs + 90_000), // 90 seconds from now (still valid)
+        lockedAt: new Date(Date.now() - 30_000), // 30 seconds ago
+        lockedUntil: new Date(Date.now() + 90_000), // 90 seconds from now (still valid)
       });
       harness.state.jobs.push(activeJob);
 
@@ -80,7 +77,7 @@ describe("jobs/runner", () => {
       expect(result.deadLettered).toBe(1);
       expect(result.failed).toBe(1);
       expect(job.status).toBe("dead_letter");
-      expect(job.lastErrorCode).toBe("HANDLER_MISSING");
+      expect(job.lastErrorCode).toBe("JOB_HANDLER_MISSING");
       expect(job.lastError).toContain("No handler for type: unknown_handler_type");
       expect(job.lockedBy).toBeNull();
     });
@@ -109,7 +106,7 @@ describe("jobs/runner", () => {
       expect(result.deadLettered).toBe(1);
       expect(result.failed).toBe(1);
       expect(job.status).toBe("dead_letter");
-      expect(job.lastErrorCode).toBe("PAYLOAD_INVALID");
+      expect(job.lastErrorCode).toBe("JOB_PAYLOAD_INVALID");
       expect(job.lastError).toContain("Invalid webhookId: must be a positive integer");
     });
 
@@ -170,7 +167,7 @@ describe("jobs/runner", () => {
       expect(result.deadLettered).toBe(0);
       expect(job.status).toBe("pending");
       expect(job.attempt).toBe(1);
-      expect(job.lastErrorCode).toBe("HANDLER_ERROR");
+      expect(job.lastErrorCode).toBe("JOB_HANDLER_ERROR");
       expect(job.lastError).toContain("Temporary failure");
 
       // Should have a next run time in the future (backoff)
@@ -200,7 +197,7 @@ describe("jobs/runner", () => {
       expect(result.deadLettered).toBe(1);
       expect(job.status).toBe("dead_letter");
       expect(job.attempt).toBe(3);
-      expect(job.lastErrorCode).toBe("HANDLER_ERROR");
+      expect(job.lastErrorCode).toBe("JOB_HANDLER_ERROR");
     });
 
     it("uses custom retry-after from WebhookDeliveryError when available", async () => {
