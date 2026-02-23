@@ -20,7 +20,15 @@ async function main(): Promise<number> {
   return new Promise((resolve) => {
     const proc = spawn(
       "pnpm",
-      ["exec", "vitest", "run", "src/__tests__/api/exports-contract.test.ts", "--reporter=verbose"],
+      [
+        "exec",
+        "vitest",
+        "run",
+        "-c",
+        "vitest.db.config.ts",
+        "tests/api/exports-contract.test.ts",
+        "--reporter=verbose",
+      ],
       {
         cwd: root,
         stdio: "inherit",

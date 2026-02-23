@@ -67,6 +67,9 @@ jobs:
   build:
     needs: quality
     runs-on: ubuntu-latest
+    env:
+      TURSO_CONNECTION_URL: 'file:memory.db'
+      TURSO_AUTH_TOKEN: test-token
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
