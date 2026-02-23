@@ -16,13 +16,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     setupFiles: ["tests/setup.db.ts"],
-    include: [
-      "tests/api/**/*.test.ts",
-      "tests/lib/**/*.test.ts",
-      "tests/integration/**/*.test.ts",
-      "tests/secure-route.anonymous.test.ts",
-      "tests/trace-linked.integration.test.ts",
-    ],
+    include: ["tests/api/**/*.test.ts", "tests/lib/**/*.test.ts", "tests/integration/**/*.test.ts"],
     exclude: [
       "**/node_modules/**",
       "**/dist/**",

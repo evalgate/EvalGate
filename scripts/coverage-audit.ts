@@ -14,12 +14,12 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 const THRESHOLDS: Record<string, number> = {
-  "src/lib/scoring": 10,
-  "src/lib/jobs": 10,
-  "src/lib": 3,
-  "src/db": 1,
-  "src/app/api": 1,
-  "src/packages/sdk": 1,
+  "src/lib/scoring": 60, // measured: ~85%
+  "src/lib/jobs": 60, // measured: ~85%
+  "src/lib": 30, // measured: ~49%
+  "src/db": 80, // measured: ~100%
+  // src/app/api — route.ts files excluded from coverage (Next.js boilerplate); logic lives in src/lib
+  // src/packages/sdk — tested via `pnpm sdk:test` with its own vitest config
 };
 
 /** Subdirectories where each test lane writes coverage. */
