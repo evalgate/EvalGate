@@ -101,7 +101,7 @@ jobs:
 
       - name: Start server
         run: |
-          pnpm start -- --port 3000 > server.log 2>&1 &
+          pnpm start > server.log 2>&1 &
           echo $! > server.pid
           sleep 5
           echo '--- server.log (first 50 lines) ---'
