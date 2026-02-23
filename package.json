@@ -13,8 +13,8 @@
     "format": "biome format --write .",
     "format:check": "biome format .",
     "start": "next start",
-    "test": "vitest --workspace",
-    "test:run": "vitest run --workspace",
+    "test": "pnpm test:unit && pnpm test:db && pnpm test:dom",
+    "test:run": "pnpm test:unit && pnpm test:db && pnpm test:dom",
 
     "test:unit": "vitest run -c vitest.unit.config.ts",
     "test:unit:coverage": "vitest run -c vitest.unit.config.ts --coverage",
