@@ -30,10 +30,10 @@ jobs:
         run: pnpm typecheck
 
       - name: Test
-        run: pnpm test:unit && pnpm test:db && pnpm test:dom
+        run: pnpm test --run
 
       - name: Coverage
-        run: pnpm test:unit:coverage && pnpm test:db:coverage && pnpm test:dom:coverage
+        run: pnpm test:coverage --run
 
       - name: Coverage audit
         run: pnpm run audit:coverage
