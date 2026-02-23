@@ -30,7 +30,7 @@ const makeBuilder = (result: unknown[]) => {
 
 vi.mock("@/db", () => ({
   db: {
-    select: vi.fn(() => makeBuilder(state.updateQueue.shift() as unknown[] ?? state.selectRows)),
+    select: vi.fn(() => makeBuilder((state.updateQueue.shift() as unknown[]) ?? state.selectRows)),
     insert: vi.fn(() => ({
       values: vi.fn((val) => {
         state.insertCalls.push(val);
@@ -39,7 +39,7 @@ vi.mock("@/db", () => ({
         };
       }),
     })),
-    update: vi.fn(() => makeBuilder(state.updateQueue.shift() as unknown[] ?? state.selectRows)),
+    update: vi.fn(() => makeBuilder((state.updateQueue.shift() as unknown[]) ?? state.selectRows)),
   },
 }));
 
@@ -55,7 +55,7 @@ vi.mock("drizzle-orm", () => ({
 
 describe("CostService", () => {
   let costService: any;
-  
+
   beforeAll(async () => {
     const mod = await import("@/lib/services/cost.service");
     costService = mod.costService;
@@ -86,7 +86,12 @@ describe("CostService", () => {
     it("refreshes cache when expired", async () => {
       costService.pricingCacheExpiry = Date.now() - 1000; // Expired
       state.selectRows = [
-        { provider: "openai", model: "gpt-4", inputPricePerMillion: "2.0", outputPricePerMillion: "6.0" }
+        {
+          provider: "openai",
+          model: "gpt-4",
+          inputPricePerMillion: "2.0",
+          outputPricePerMillion: "6.0",
+        },
       ];
 
       const pricing = await costService.getPricing("openai", "gpt-4");
@@ -245,7 +250,7 @@ describe("CostService", () => {
     it("returns empty breakdown for no records", async () => {
       state.selectRows = [];
       const breakdown = await costService.aggregateWorkflowCost(999);
-      
+
       expect(breakdown.totalCost).toBe(0);
       expect(breakdown.byProvider).toEqual({});
       expect(breakdown.retryCount).toBe(0);
@@ -256,7 +261,8 @@ describe("CostService", () => {
     it("returns breakdown for trace with spans", async () => {
       state.updateQueue = [
         [{ id: 1 }, { id: 2 }], // spans for trace
-        [ // cost records for those spans
+        [
+          // cost records for those spans
           {
             id: 1,
             spanId: 1,
@@ -292,7 +298,7 @@ describe("CostService", () => {
     it("returns empty breakdown for trace with no spans", async () => {
       state.selectRows = []; // no spans
       const breakdown = await costService.getCostBreakdownByTrace(999);
-      
+
       expect(breakdown.totalCost).toBe(0);
       expect(breakdown.byProvider).toEqual({});
     });
@@ -330,21 +336,24 @@ describe("CostService", () => {
   describe("getOrganizationCostSummary", () => {
     it("returns comprehensive cost summary", async () => {
       state.updateQueue = [
-        [ // last30Days query
+        [
+          // last30Days query
           {
             totalCost: "1.000",
             totalTokens: 100000,
             requestCount: 100,
           },
         ],
-        [ // last7Days query
+        [
+          // last7Days query
           {
             totalCost: "0.300",
             totalTokens: 30000,
             requestCount: 30,
           },
         ],
-        [ // topModels query
+        [
+          // topModels query
           {
             provider: "openai",
             model: "gpt-4",
@@ -365,11 +374,11 @@ describe("CostService", () => {
       expect(summary.last30Days.totalCost).toBe(1.0);
       expect(summary.last30Days.totalTokens).toBe(100000);
       expect(summary.last30Days.requestCount).toBe(100);
-      
+
       expect(summary.last7Days.totalCost).toBe(0.3);
       expect(summary.last7Days.totalTokens).toBe(30000);
       expect(summary.last7Days.requestCount).toBe(30);
-      
+
       expect(summary.topModels).toHaveLength(2);
       expect(summary.topModels[0]).toEqual({
         provider: "openai",
@@ -406,7 +415,7 @@ describe("CostService", () => {
       expect(state.updateCalls).toHaveLength(1);
       expect(state.updateCalls[0]).toEqual({ isActive: false });
       expect(state.insertCalls).toHaveLength(1);
-      
+
       // Cache should be cleared
       expect(costService.pricingCacheExpiry).toBe(0);
     });

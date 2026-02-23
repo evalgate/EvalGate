@@ -1,9 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  DEMO_IDS,
-  getShareUrl,
-  validateDemoData,
-} from "@/lib/demo-loader";
+import { DEMO_IDS, getShareUrl, validateDemoData } from "@/lib/demo-loader";
 
 describe("DEMO_IDS", () => {
   it("contains expected demo identifiers", () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import * as errors from "@/lib/api/errors";
+
 const { apiError, quotaExceeded, zodValidationError } = errors;
 
 vi.mock("@/lib/api/request-id", () => ({

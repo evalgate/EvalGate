@@ -22,7 +22,7 @@ const makeBuilder = (result: unknown[]) => {
 
 vi.mock("@/db", () => ({
   db: {
-    select: vi.fn(() => makeBuilder(state.updateQueue.shift() as unknown[] ?? state.selectRows)),
+    select: vi.fn(() => makeBuilder((state.updateQueue.shift() as unknown[]) ?? state.selectRows)),
   },
 }));
 
@@ -39,7 +39,7 @@ vi.mock("@/lib/logger", () => ({
 
 describe("ReportCardsService", () => {
   let reportCardsService: any;
-  
+
   beforeAll(async () => {
     const mod = await import("@/lib/services/report-cards.service");
     reportCardsService = mod.reportCardsService;
@@ -55,9 +55,9 @@ describe("ReportCardsService", () => {
     it("throws error when evaluation not found", async () => {
       state.updateQueue = [[]]; // select evaluation returns empty
 
-      await expect(
-        reportCardsService.generateReportCard(1, 1)
-      ).rejects.toThrow("Evaluation not found or access denied");
+      await expect(reportCardsService.generateReportCard(1, 1)).rejects.toThrow(
+        "Evaluation not found or access denied",
+      );
     });
 
     it("generates comprehensive report card with no runs", async () => {
@@ -75,14 +75,14 @@ describe("ReportCardsService", () => {
       expect(report.totalRuns).toBe(0);
       expect(report.averageScore).toBe(0);
       expect(report.passRate).toBe(0);
-      
+
       // Check performance empty state
       expect(report.performance.scoreDistribution).toEqual({});
       expect(report.performance.costStats.total).toBe(0);
-      
+
       // Check quality empty state
       expect(report.quality.judgeResults.totalJudged).toBe(0);
-      
+
       // Check trends empty state
       expect(report.trends.recentPerformance).toHaveLength(0);
     });
@@ -91,16 +91,40 @@ describe("ReportCardsService", () => {
       state.updateQueue = [
         [{ id: 1, name: "Test Eval", type: "qa", createdAt: new Date() }], // evaluation
         [{ id: 1, name: "Test Org" }], // organization
-        [ // runs
+        [
+          // runs
           { id: 101, status: "completed", createdAt: "2024-01-02", completedAt: "2024-01-02" },
           { id: 102, status: "completed", createdAt: "2024-01-01", completedAt: "2024-01-01" },
         ],
-        [ // test results
-          { id: 1, evaluationRunId: 101, score: 90, status: "passed", durationMs: 100, metadata: '{"cost": 0.05}' },
-          { id: 2, evaluationRunId: 101, score: 80, status: "passed", durationMs: 150, metadata: '{"cost": 0.05}' },
-          { id: 3, evaluationRunId: 102, score: 40, status: "failed", durationMs: 200, metadata: '{"cost": 0.10}' },
+        [
+          // test results
+          {
+            id: 1,
+            evaluationRunId: 101,
+            score: 90,
+            status: "passed",
+            durationMs: 100,
+            metadata: '{"cost": 0.05}',
+          },
+          {
+            id: 2,
+            evaluationRunId: 101,
+            score: 80,
+            status: "passed",
+            durationMs: 150,
+            metadata: '{"cost": 0.05}',
+          },
+          {
+            id: 3,
+            evaluationRunId: 102,
+            score: 40,
+            status: "failed",
+            durationMs: 200,
+            metadata: '{"cost": 0.10}',
+          },
         ],
-        [ // judge results
+        [
+          // judge results
           { id: 1, evaluationRunId: 101, score: 85, metadata: '{"passed": true}' },
           { id: 2, evaluationRunId: 102, score: 45, metadata: '{"passed": false}' },
         ],
@@ -111,7 +135,7 @@ describe("ReportCardsService", () => {
       // Basic stats
       expect(report.totalRuns).toBe(2);
       expect(report.completedRuns).toBe(2);
-      
+
       // Performance stats
       // (90+80+40)/3 = 70
       expect(report.averageScore).toBe(70);
@@ -126,7 +150,7 @@ describe("ReportCardsService", () => {
       expect(report.performance.scoreDistribution["81-100"]).toBe(1); // the 90
       expect(report.performance.scoreDistribution["61-80"]).toBe(1); // the 80
       expect(report.performance.scoreDistribution["21-40"]).toBe(1); // the 40
-      
+
       // Status distribution
       expect(report.performance.statusDistribution["passed"]).toBe(2);
       expect(report.performance.statusDistribution["failed"]).toBe(1);
@@ -165,14 +189,14 @@ describe("ReportCardsService", () => {
 
       expect(summary.evaluationId).toBe(1);
       expect(summary.evaluationName).toBe("Test Eval");
-      
+
       // Weights: avgScore (0.4) + passRate (0.3) + consistency (0.2) + judgeQuality (0.1)
       // avgScore=95 -> 95 * 0.4 = 38
       // passRate=100 -> 100 * 0.3 = 30
       // consistency -> variance 0 -> coeff 0 -> 100 * 0.2 = 20
       // judgeQuality=90 -> 90 * 0.1 = 9
       // Total = 38 + 30 + 20 + 9 = 97
-      
+
       expect(summary.overallScore).toBe(97);
       expect(summary.grade).toBe("A+");
       expect(summary.status).toBe("excellent");
@@ -206,18 +230,23 @@ describe("ReportCardsService", () => {
 
     it("generates summaries for multiple evaluations", async () => {
       state.updateQueue = [
-        [ // evaluations list
+        [
+          // evaluations list
           { id: 1, name: "Eval 1", type: "qa", createdAt: new Date() },
           { id: 2, name: "Eval 2", type: "coding", createdAt: new Date() },
         ],
         // DB calls for Eval 1 generateReportCard (3 calls because runs is empty)
-        [{ id: 1, name: "Eval 1" }], [{ id: 1 }], [],
+        [{ id: 1, name: "Eval 1" }],
+        [{ id: 1 }],
+        [],
         // DB calls for Eval 2 generateReportCard (3 calls because runs is empty)
-        [{ id: 2, name: "Eval 2" }], [{ id: 1 }], [],
+        [{ id: 2, name: "Eval 2" }],
+        [{ id: 1 }],
+        [],
       ];
 
       const cards = await reportCardsService.getReportCards(1);
-      
+
       expect(cards).toHaveLength(2);
       expect(cards[0].evaluationId).toBe(1);
       expect(cards[1].evaluationId).toBe(2);
@@ -225,18 +254,21 @@ describe("ReportCardsService", () => {
 
     it("skips evaluations that throw errors during generation", async () => {
       state.updateQueue = [
-        [ // evaluations list
+        [
+          // evaluations list
           { id: 1, name: "Eval 1", type: "qa", createdAt: new Date() },
           { id: 2, name: "Eval 2", type: "coding", createdAt: new Date() },
         ],
         // DB calls for Eval 1 generateReportCard (make it fail by returning empty eval)
         [],
         // DB calls for Eval 2 generateReportCard (3 calls)
-        [{ id: 2, name: "Eval 2" }], [{ id: 1 }], [],
+        [{ id: 2, name: "Eval 2" }],
+        [{ id: 1 }],
+        [],
       ];
 
       const cards = await reportCardsService.getReportCards(1);
-      
+
       // Eval 1 failed, so only Eval 2 should be returned
       expect(cards).toHaveLength(1);
       expect(cards[0].evaluationId).toBe(2);
@@ -258,37 +290,64 @@ describe("ReportCardsService", () => {
 
     it("calculates stats correctly from multiple report cards", async () => {
       state.updateQueue = [
-        [ // evaluations list
+        [
+          // evaluations list
           { id: 1, name: "Eval 1", type: "qa", createdAt: new Date() },
           { id: 2, name: "Eval 2", type: "coding", createdAt: new Date() },
         ],
         // DB calls for Eval 1 -> Score 97 (A+) -> 5 calls because runs exist
-        [{ id: 1, name: "Eval 1", type: "qa", createdAt: new Date() }], [{ id: 1 }], 
-        [{ id: 101, status: "completed", createdAt: new Date().toISOString() }], 
-        [{ id: 1, evaluationRunId: 101, score: 95, status: "passed", durationMs: 100, metadata: { cost: 0.05 } }], 
+        [{ id: 1, name: "Eval 1", type: "qa", createdAt: new Date() }],
+        [{ id: 1 }],
+        [{ id: 101, status: "completed", createdAt: new Date().toISOString() }],
+        [
+          {
+            id: 1,
+            evaluationRunId: 101,
+            score: 95,
+            status: "passed",
+            durationMs: 100,
+            metadata: { cost: 0.05 },
+          },
+        ],
         [{ id: 1, evaluationRunId: 101, score: 90, metadata: { passed: true } }],
         // DB calls for Eval 2 -> Score ~48 (F) -> 5 calls because runs exist
-        [{ id: 2, name: "Eval 2", type: "qa", createdAt: new Date() }], [{ id: 1 }], 
-        [{ id: 102, status: "completed", createdAt: new Date(Date.now() - 10 * 86400000).toISOString() }], // old run
-        [{ id: 2, evaluationRunId: 102, score: 40, status: "failed", durationMs: 100, metadata: { cost: 0.05 } }], 
+        [{ id: 2, name: "Eval 2", type: "qa", createdAt: new Date() }],
+        [{ id: 1 }],
+        [
+          {
+            id: 102,
+            status: "completed",
+            createdAt: new Date(Date.now() - 10 * 86400000).toISOString(),
+          },
+        ], // old run
+        [
+          {
+            id: 2,
+            evaluationRunId: 102,
+            score: 40,
+            status: "failed",
+            durationMs: 100,
+            metadata: { cost: 0.05 },
+          },
+        ],
         [{ id: 2, evaluationRunId: 102, score: 30, metadata: { passed: false } }],
       ];
 
       const stats = await reportCardsService.getReportCardStats(1);
 
       expect(stats.totalEvaluations).toBe(2);
-      
+
       // Avg score = (97 + approx 48) / 2
       expect(stats.averageScore).toBeGreaterThan(0);
-      
+
       // Grade distribution
       expect(stats.gradeDistribution["A+"]).toBe(1);
-      
+
       // Top performers sorting
       expect(stats.topPerformers).toHaveLength(2);
       expect(stats.topPerformers[0].evaluationId).toBe(1); // Eval 1 scored higher
       expect(stats.topPerformers[1].evaluationId).toBe(2);
-      
+
       // Recent activity (generatedAt for both is recent)
       expect(stats.recentActivity).toBe(2);
     });

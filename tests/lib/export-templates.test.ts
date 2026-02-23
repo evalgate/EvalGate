@@ -1,18 +1,20 @@
 import { describe, expect, it } from "vitest";
 import {
+  type ABTestExportData,
+  type BaseExportData,
   formatExportData,
   generateExportFilename,
   getExportDescription,
   getRecommendedExportFormat,
-  validateExportData,
-  type BaseExportData,
-  type UnitTestExportData,
   type HumanEvalExportData,
   type ModelEvalExportData,
-  type ABTestExportData,
+  type UnitTestExportData,
+  validateExportData,
 } from "@/lib/export-templates";
 
-const createBaseData = (type: "unit_test" | "human_eval" | "model_eval" | "ab_test"): BaseExportData => ({
+const createBaseData = (
+  type: "unit_test" | "human_eval" | "model_eval" | "ab_test",
+): BaseExportData => ({
   evaluation: {
     id: "eval-123",
     name: "Test Evaluation",
@@ -41,7 +43,14 @@ describe("formatExportData", () => {
     const baseData = createBaseData("unit_test");
     const additionalData = {
       testResults: [
-        { id: "1", name: "Test 1", input: "input", expected_output: "expected", actual_output: "actual", passed: true },
+        {
+          id: "1",
+          name: "Test 1",
+          input: "input",
+          expected_output: "expected",
+          actual_output: "actual",
+          passed: true,
+        },
       ],
       codeValidation: { syntax_errors: 0, runtime_errors: 0, assertion_failures: 1 },
     };
@@ -56,7 +65,15 @@ describe("formatExportData", () => {
   it("formats human_eval export data correctly", () => {
     const baseData = createBaseData("human_eval");
     const additionalData = {
-      evaluations: [{ id: "1", evaluator_id: "user1", ratings: { quality: 5 }, comments: "Good", timestamp: "2024-01-01" }],
+      evaluations: [
+        {
+          id: "1",
+          evaluator_id: "user1",
+          ratings: { quality: 5 },
+          comments: "Good",
+          timestamp: "2024-01-01",
+        },
+      ],
       interRaterReliability: { agreement_percentage: 85 },
       criteria: [{ name: "Quality", description: "Overall quality", scale: "1-5" }],
     };
@@ -72,7 +89,16 @@ describe("formatExportData", () => {
   it("formats model_eval export data correctly", () => {
     const baseData = createBaseData("model_eval");
     const additionalData = {
-      judgeEvaluations: [{ id: "1", test_case_id: "tc1", judge_model: "gpt-4", input: "test", response: "response", judgment: { label: "pass", score: 90, reasoning: "Good" } }],
+      judgeEvaluations: [
+        {
+          id: "1",
+          test_case_id: "tc1",
+          judge_model: "gpt-4",
+          input: "test",
+          response: "response",
+          judgment: { label: "pass", score: 90, reasoning: "Good" },
+        },
+      ],
       judgePrompt: "Evaluate this response",
       judgeModel: "gpt-4-turbo",
       aggregateMetrics: { average_score: 88 },
@@ -90,9 +116,24 @@ describe("formatExportData", () => {
     const baseData = createBaseData("ab_test");
     const additionalData = {
       variants: [{ id: "a", name: "Variant A", description: "Control" }],
-      results: [{ variant_id: "a", variant_name: "Variant A", test_count: 100, success_rate: 0.85, average_latency: 150, average_cost: 0.01, quality_score: 88 }],
+      results: [
+        {
+          variant_id: "a",
+          variant_name: "Variant A",
+          test_count: 100,
+          success_rate: 0.85,
+          average_latency: 150,
+          average_cost: 0.01,
+          quality_score: 88,
+        },
+      ],
       statisticalSignificance: { p_value: 0.03, confidence_level: 0.95, effect_size: 0.15 },
-      comparison: { metric: "quality_score", baseline_variant: "Variant A", winner_variant: "Variant B", improvement_percentage: 12 },
+      comparison: {
+        metric: "quality_score",
+        baseline_variant: "Variant A",
+        winner_variant: "Variant B",
+        improvement_percentage: 12,
+      },
     };
 
     const result = formatExportData(baseData, additionalData) as ABTestExportData;
@@ -163,11 +204,15 @@ describe("generateExportFilename", () => {
 
 describe("getExportDescription", () => {
   it("returns correct description for unit_test", () => {
-    expect(getExportDescription("unit_test")).toBe("Automated test results with code validation metrics");
+    expect(getExportDescription("unit_test")).toBe(
+      "Automated test results with code validation metrics",
+    );
   });
 
   it("returns correct description for human_eval", () => {
-    expect(getExportDescription("human_eval")).toBe("Human evaluation ratings with inter-rater reliability");
+    expect(getExportDescription("human_eval")).toBe(
+      "Human evaluation ratings with inter-rater reliability",
+    );
   });
 
   it("returns correct description for model_eval", () => {
@@ -175,7 +220,9 @@ describe("getExportDescription", () => {
   });
 
   it("returns correct description for ab_test", () => {
-    expect(getExportDescription("ab_test")).toBe("A/B test results with statistical significance analysis");
+    expect(getExportDescription("ab_test")).toBe(
+      "A/B test results with statistical significance analysis",
+    );
   });
 });
 
@@ -193,7 +240,16 @@ describe("validateExportData", () => {
     const data: UnitTestExportData = {
       ...createBaseData("unit_test"),
       type: "unit_test",
-      testResults: [{ id: "1", name: "Test", input: "in", expected_output: "out", actual_output: "out", passed: true }],
+      testResults: [
+        {
+          id: "1",
+          name: "Test",
+          input: "in",
+          expected_output: "out",
+          actual_output: "out",
+          passed: true,
+        },
+      ],
     };
 
     const result = validateExportData(data);
@@ -206,7 +262,16 @@ describe("validateExportData", () => {
     const data = {
       ...createBaseData("unit_test"),
       type: "unit_test" as const,
-      testResults: [{ id: "1", name: "Test", input: "in", expected_output: "out", actual_output: "out", passed: true }],
+      testResults: [
+        {
+          id: "1",
+          name: "Test",
+          input: "in",
+          expected_output: "out",
+          actual_output: "out",
+          passed: true,
+        },
+      ],
     };
     (data.evaluation as any).id = undefined;
 
@@ -280,7 +345,16 @@ describe("validateExportData", () => {
     const data = {
       ...createBaseData("unit_test"),
       type: "unit_test" as const,
-      testResults: [{ id: "1", name: "Test", input: "in", expected_output: "out", actual_output: "out", passed: true }],
+      testResults: [
+        {
+          id: "1",
+          name: "Test",
+          input: "in",
+          expected_output: "out",
+          actual_output: "out",
+          passed: true,
+        },
+      ],
     };
     (data as any).qualityScore = undefined;
 
@@ -294,7 +368,16 @@ describe("validateExportData", () => {
     const data = {
       ...createBaseData("unit_test"),
       type: "unit_test" as const,
-      testResults: [{ id: "1", name: "Test", input: "in", expected_output: "out", actual_output: "out", passed: true }],
+      testResults: [
+        {
+          id: "1",
+          name: "Test",
+          input: "in",
+          expected_output: "out",
+          actual_output: "out",
+          passed: true,
+        },
+      ],
     };
     (data as any).summary = undefined;
 

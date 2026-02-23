@@ -7,7 +7,7 @@ describe("jobs/runner", () => {
   beforeEach(() => {
     vi.resetModules();
     harness.reset();
-    
+
     // Setup mocks before importing the module under test
     setupJobsTestHarness();
   });
@@ -16,9 +16,9 @@ describe("jobs/runner", () => {
     it("reclaims expired running jobs and updates them to pending", async () => {
       // Import after mocks to prevent leakage
       const { runDueJobs } = await import("@/lib/jobs/runner");
-      
+
       const nowMs = Date.UTC(2026, 1, 22, 12, 0, 0);
-      
+
       // Create a stale running job
       const staleJob = harness.makeJob({
         id: 1001,
@@ -42,9 +42,9 @@ describe("jobs/runner", () => {
 
     it("does not reclaim jobs that are still within lock TTL", async () => {
       const { runDueJobs } = await import("@/lib/jobs/runner");
-      
+
       const nowMs = Date.UTC(2026, 1, 22, 12, 0, 0);
-      
+
       // Create a running job with valid lock
       const activeJob = harness.makeJob({
         id: 1002,
@@ -66,7 +66,7 @@ describe("jobs/runner", () => {
   describe("handler missing dead-letter", () => {
     it("dead-letters jobs with unregistered handler types", async () => {
       const { runDueJobs } = await import("@/lib/jobs/runner");
-      
+
       const job = harness.makeJob({
         id: 1003,
         type: "unknown_handler_type",
@@ -89,7 +89,7 @@ describe("jobs/runner", () => {
   describe("payload invalid via validateImpl", () => {
     it("dead-letters jobs when payload validation fails", async () => {
       const { runDueJobs } = await import("@/lib/jobs/runner");
-      
+
       // Setup validation to fail
       harness.state.validateImpl = () => ({
         success: false,
@@ -115,7 +115,7 @@ describe("jobs/runner", () => {
 
     it("processes jobs successfully when payload validation passes", async () => {
       const { runDueJobs } = await import("@/lib/jobs/runner");
-      
+
       // Setup validation to succeed
       harness.state.validateImpl = () => ({
         success: true,
@@ -148,7 +148,7 @@ describe("jobs/runner", () => {
   describe("retry/backoff + maxAttempts", () => {
     it("retries job with exponential backoff when handler fails", async () => {
       const { runDueJobs } = await import("@/lib/jobs/runner");
-      
+
       // Setup handler to fail
       harness.state.handlerImpl = async () => {
         throw new Error("Temporary failure");
@@ -172,14 +172,14 @@ describe("jobs/runner", () => {
       expect(job.attempt).toBe(1);
       expect(job.lastErrorCode).toBe("HANDLER_ERROR");
       expect(job.lastError).toContain("Temporary failure");
-      
+
       // Should have a next run time in the future (backoff)
       expect(job.nextRunAt.getTime()).toBeGreaterThan(Date.now());
     });
 
     it("dead-letters job when maxAttempts is exceeded", async () => {
       const { runDueJobs } = await import("@/lib/jobs/runner");
-      
+
       harness.state.handlerImpl = async () => {
         throw new Error("Persistent failure");
       };
@@ -205,10 +205,12 @@ describe("jobs/runner", () => {
 
     it("uses custom retry-after from WebhookDeliveryError when available", async () => {
       const { runDueJobs, WebhookDeliveryError } = await import("@/lib/jobs/runner");
-      
+
       // Import WebhookDeliveryError from the mocked module
-      const { WebhookDeliveryError: MockWebhookDeliveryError } = await import("@/lib/jobs/handlers/webhook-delivery");
-      
+      const { WebhookDeliveryError: MockWebhookDeliveryError } = await import(
+        "@/lib/jobs/handlers/webhook-delivery"
+      );
+
       harness.state.handlerImpl = async () => {
         throw new MockWebhookDeliveryError("Rate limited", "RATE_LIMIT", 30_000);
       };
@@ -227,7 +229,7 @@ describe("jobs/runner", () => {
 
       expect(result.failed).toBe(1);
       expect(job.lastErrorCode).toBe("RATE_LIMIT");
-      
+
       // Should use the custom retry-after (30 seconds) instead of default backoff
       const expectedNextRun = Date.now() + 30_000;
       expect(Math.abs(job.nextRunAt.getTime() - expectedNextRun)).toBeLessThan(1000);
@@ -237,7 +239,7 @@ describe("jobs/runner", () => {
   describe("global lock skipped", () => {
     it("skips processing when global lock is held by another runner", async () => {
       const { runDueJobs } = await import("@/lib/jobs/runner");
-      
+
       // Hold the global lock with another runner
       harness.holdGlobalLock("other-runner", 60_000);
 
@@ -259,7 +261,7 @@ describe("jobs/runner", () => {
 
     it("processes normally when global lock is available", async () => {
       const { runDueJobs } = await import("@/lib/jobs/runner");
-      
+
       // Ensure lock is not held
       harness.releaseGlobalLock();
 
@@ -285,30 +287,30 @@ describe("jobs/runner", () => {
   describe("nextRetryAt utility", () => {
     it("calculates next retry time with jitter for attempt 1", async () => {
       const { nextRetryAt } = await import("@/lib/jobs/runner");
-      
+
       const before = Date.now();
       const nextTime = nextRetryAt(1);
       const after = Date.now();
-      
+
       // Should be approximately 1 minute (+/- 10% jitter)
       const expectedMin = before + 54_000; // 1 min - 10%
       const expectedMax = after + 66_000; // 1 min + 10%
-      
+
       expect(nextTime.getTime()).toBeGreaterThanOrEqual(expectedMin);
       expect(nextTime.getTime()).toBeLessThanOrEqual(expectedMax);
     });
 
     it("uses default backoff for attempt numbers beyond defined values", async () => {
       const { nextRetryAt } = await import("@/lib/jobs/runner");
-      
+
       const before = Date.now();
       const nextTime = nextRetryAt(10); // Beyond defined attempts
       const after = Date.now();
-      
+
       // Should use attempt 5 backoff (4 hours) as default
       const expectedMin = before + 3.6 * 60 * 60 * 1000; // 4h - 10%
       const expectedMax = after + 4.4 * 60 * 60 * 1000; // 4h + 10%
-      
+
       expect(nextTime.getTime()).toBeGreaterThanOrEqual(expectedMin);
       expect(nextTime.getTime()).toBeLessThanOrEqual(expectedMax);
     });

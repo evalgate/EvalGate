@@ -37,7 +37,7 @@ vi.mock("drizzle-orm", () => ({
 
 describe("qualityService", () => {
   let qualityService: any;
-  
+
   beforeAll(async () => {
     const mod = await import("@/lib/services/quality.service");
     qualityService = mod.qualityService;
@@ -84,22 +84,24 @@ describe("qualityService", () => {
         }
         if (callNum === 2) {
           // Latest quality score
-          return makeBuilder(() => [{
-            id: 1,
-            evaluationRunId: 200,
-            evaluationId: 1,
-            organizationId: 1,
-            score: 75,
-            total: 100,
-            traceCoverageRate: "0.9",
-            provenanceCoverageRate: "0.85",
-            breakdown: {},
-            flags: [],
-            evidenceLevel: "high",
-            scoringVersion: "1.0",
-            model: "gpt-4",
-            createdAt: "2024-01-01",
-          }]);
+          return makeBuilder(() => [
+            {
+              id: 1,
+              evaluationRunId: 200,
+              evaluationId: 1,
+              organizationId: 1,
+              score: 75,
+              total: 100,
+              traceCoverageRate: "0.9",
+              provenanceCoverageRate: "0.85",
+              breakdown: {},
+              flags: [],
+              evidenceLevel: "high",
+              scoringVersion: "1.0",
+              model: "gpt-4",
+              createdAt: "2024-01-01",
+            },
+          ]);
         }
         if (callNum === 3) {
           // Baseline quality score
@@ -125,15 +127,17 @@ describe("qualityService", () => {
           return makeBuilder(() => [{ id: 1, organizationId: 1, publishedRunId: 100 }]);
         }
         if (callNum === 2) {
-          return makeBuilder(() => [{
-            id: 1,
-            evaluationRunId: 200,
-            evaluationId: 1,
-            organizationId: 1,
-            score: 90,
-            scoringVersion: "1.0",
-            createdAt: "2024-01-01",
-          }]);
+          return makeBuilder(() => [
+            {
+              id: 1,
+              evaluationRunId: 200,
+              evaluationId: 1,
+              organizationId: 1,
+              score: 90,
+              scoringVersion: "1.0",
+              createdAt: "2024-01-01",
+            },
+          ]);
         }
         if (callNum === 3) {
           return makeBuilder(() => [{ score: 85 }]);

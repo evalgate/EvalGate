@@ -8,7 +8,9 @@ describe("runner-in-memory.runDueJobs", () => {
   const runnerId = "runner-1";
   let nowMs: number;
   let mod: any;
-  let h: ReturnType<typeof import("../../../../src/lib/jobs/runner-in-memory").createJobTestHarness>;
+  let h: ReturnType<
+    typeof import("../../../../src/lib/jobs/runner-in-memory").createJobTestHarness
+  >;
 
   // Import types after setup
   type JobRecord = import("../../../../src/lib/jobs/runner-in-memory").JobRecord;
@@ -24,10 +26,10 @@ describe("runner-in-memory.runDueJobs", () => {
   beforeEach(() => {
     vi.resetModules();
     harness.reset();
-    
+
     // Setup mocks before importing the module under test
     setupJobsTestHarness();
-    
+
     // Import AFTER mocks to prevent leakage
     mod = require("@/lib/jobs/runner-in-memory");
     h = mod.createJobTestHarness();
@@ -220,7 +222,7 @@ describe("runner-in-memory.runDueJobs", () => {
         makeDueJob({
           type: "webhook_delivery",
           payload: { index: i },
-        })
+        }),
       );
     }
 

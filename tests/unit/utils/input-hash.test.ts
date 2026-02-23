@@ -3,7 +3,7 @@ import { normalizeInput, sha256Input } from "@/lib/utils/input-hash";
 
 describe("sortKeys", () => {
   // Since sortKeys is not exported, we test it indirectly through normalizeInput
-  
+
   it("should sort object keys recursively", () => {
     const input = '{"z": 1, "a": 2, "nested": {"y": 3, "x": 4}}';
     const result = normalizeInput(input);
@@ -93,13 +93,15 @@ describe("normalizeInput", () => {
 
   it("should handle non-object JSON", () => {
     // Strings get treated as arrays of characters when parsed as JSON
-    expect(normalizeInput('"string value"')).toBe('{"0":"s","1":"t","2":"r","3":"i","4":"n","5":"g","6":" ","7":"v","8":"a","9":"l","10":"u","11":"e"}');
+    expect(normalizeInput('"string value"')).toBe(
+      '{"0":"s","1":"t","2":"r","3":"i","4":"n","5":"g","6":" ","7":"v","8":"a","9":"l","10":"u","11":"e"}',
+    );
     // Numbers and booleans become empty objects when passed through sortKeys
-    expect(normalizeInput('123')).toBe('{}');
-    expect(normalizeInput('true')).toBe('{}');
-    expect(normalizeInput('false')).toBe('{}');
+    expect(normalizeInput("123")).toBe("{}");
+    expect(normalizeInput("true")).toBe("{}");
+    expect(normalizeInput("false")).toBe("{}");
     // null stays as 'null' since JSON.parse returns null
-    expect(normalizeInput('null')).toBe('null');
+    expect(normalizeInput("null")).toBe("null");
   });
 
   it("should handle JSON with special characters", () => {
@@ -170,7 +172,7 @@ describe("sha256Input", () => {
   });
 
   it("should handle arrays", () => {
-    const input = '[1, 2, 3]';
+    const input = "[1, 2, 3]";
     const hash = sha256Input(input);
     expect(hash).toMatch(/^[a-f0-9]{64}$/);
   });
@@ -186,7 +188,7 @@ describe("sha256Input", () => {
   it("should be deterministic across multiple calls", () => {
     const input = '{"z": 1, "a": {"nested": [1, 2, 3]}, "b": 2}';
     const hashes = Array.from({ length: 10 }, () => sha256Input(input));
-    hashes.forEach(hash => {
+    hashes.forEach((hash) => {
       expect(hash).toBe(hashes[0]);
     });
   });

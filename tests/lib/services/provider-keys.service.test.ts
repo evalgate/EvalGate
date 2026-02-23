@@ -33,7 +33,7 @@ const makeBuilder = (result: unknown[]) => {
 
 vi.mock("@/db", () => ({
   db: {
-    select: vi.fn(() => makeBuilder(state.updateQueue.shift() as unknown[] ?? state.selectRows)),
+    select: vi.fn(() => makeBuilder((state.updateQueue.shift() as unknown[]) ?? state.selectRows)),
     insert: vi.fn(() => ({
       values: vi.fn((val) => {
         state.insertCalls.push(val);
@@ -42,7 +42,7 @@ vi.mock("@/db", () => ({
         };
       }),
     })),
-    update: vi.fn(() => makeBuilder(state.updateQueue.shift() as unknown[] ?? state.selectRows)),
+    update: vi.fn(() => makeBuilder((state.updateQueue.shift() as unknown[]) ?? state.selectRows)),
     delete: vi.fn(() => ({
       where: vi.fn(() => {
         state.deleteWhereCalled = true;
@@ -73,13 +73,15 @@ vi.mock("@/lib/security/encryption", () => ({
       success: true,
       decrypted: "sk-1234567890abcdef1234567890abcdef12345678",
     })),
-    deriveKey: vi.fn((baseKey: string, salt: string, iterations: number) => `derived_key_${baseKey}_${salt}`),
+    deriveKey: vi.fn(
+      (baseKey: string, salt: string, iterations: number) => `derived_key_${baseKey}_${salt}`,
+    ),
   },
 }));
 
 describe("ProviderKeysService", () => {
   let providerKeysService: any;
-  
+
   beforeAll(async () => {
     const mod = await import("@/lib/services/provider-keys.service");
     providerKeysService = mod.providerKeysService;
@@ -102,13 +104,17 @@ describe("ProviderKeysService", () => {
         { id: 1, name: "Test Org" }, // organization check
       ];
 
-      const result = await providerKeysService.createProviderKey(1, {
-        provider: "openai",
-        keyName: "Test Key",
-        keyType: "api_key",
-        apiKey: "sk-1234567890abcdef1234567890abcdef12345678",
-        metadata: { version: "1.0" },
-      }, "user1");
+      const result = await providerKeysService.createProviderKey(
+        1,
+        {
+          provider: "openai",
+          keyName: "Test Key",
+          keyType: "api_key",
+          apiKey: "sk-1234567890abcdef1234567890abcdef12345678",
+          metadata: { version: "1.0" },
+        },
+        "user1",
+      );
 
       expect(result).toBeDefined();
       expect(result.id).toBe(1);
@@ -116,39 +122,47 @@ describe("ProviderKeysService", () => {
       expect(result.keyName).toBe("Test Key");
       expect(result.keyType).toBe("api_key");
       expect(result.keyPrefix).toBe("sk-1...");
-      
+
       expect(state.insertCalls).toHaveLength(1);
       const inserted = state.insertCalls[0] as any;
       expect(inserted.organizationId).toBe(1);
       expect(inserted.provider).toBe("openai");
       expect(inserted.keyName).toBe("Test Key");
-      expect(inserted.encryptedKey).toBe("encrypted_sk-1234567890abcdef1234567890abcdef12345678_derived_key_test_encryption_key_org-1");
+      expect(inserted.encryptedKey).toBe(
+        "encrypted_sk-1234567890abcdef1234567890abcdef12345678_derived_key_test_encryption_key_org-1",
+      );
     });
 
     it("throws error when organization not found", async () => {
       state.updateQueue = [[]]; // organization check fails
 
       await expect(
-        providerKeysService.createProviderKey(999, {
-          provider: "openai",
-          keyName: "Test Key",
-          keyType: "api_key",
-          apiKey: "sk-1234567890abcdef1234567890abcdef12345678",
-        }, "user1")
+        providerKeysService.createProviderKey(
+          999,
+          {
+            provider: "openai",
+            keyName: "Test Key",
+            keyType: "api_key",
+            apiKey: "sk-1234567890abcdef1234567890abcdef12345678",
+          },
+          "user1",
+        ),
       ).rejects.toThrow("Organization not found");
     });
 
     it("handles missing metadata", async () => {
-      state.updateQueue = [
-        { id: 1, name: "Test Org" },
-      ];
+      state.updateQueue = [{ id: 1, name: "Test Org" }];
 
-      const result = await providerKeysService.createProviderKey(1, {
-        provider: "anthropic",
-        keyName: "Test Key",
-        keyType: "api_key",
-        apiKey: "sk-ant-test",
-      }, "user1");
+      const result = await providerKeysService.createProviderKey(
+        1,
+        {
+          provider: "anthropic",
+          keyName: "Test Key",
+          keyType: "api_key",
+          apiKey: "sk-ant-test",
+        },
+        "user1",
+      );
 
       expect(result).toBeDefined();
       const inserted = state.insertCalls[0] as any;
@@ -158,20 +172,22 @@ describe("ProviderKeysService", () => {
     it("throws error without encryption key", async () => {
       const prev = process.env.PROVIDER_KEY_ENCRYPTION_KEY;
       delete process.env.PROVIDER_KEY_ENCRYPTION_KEY;
-      
-      state.updateQueue = [
-        { id: 1, name: "Test Org" },
-      ];
+
+      state.updateQueue = [{ id: 1, name: "Test Org" }];
 
       await expect(
-        providerKeysService.createProviderKey(1, {
-          provider: "openai",
-          keyName: "Test Key",
-          keyType: "api_key",
-          apiKey: "sk-1234567890abcdef1234567890abcdef12345678",
-        }, "user1")
+        providerKeysService.createProviderKey(
+          1,
+          {
+            provider: "openai",
+            keyName: "Test Key",
+            keyType: "api_key",
+            apiKey: "sk-1234567890abcdef1234567890abcdef12345678",
+          },
+          "user1",
+        ),
       ).rejects.toThrow("PROVIDER_KEY_ENCRYPTION_KEY environment variable is required");
-      
+
       if (prev !== undefined) process.env.PROVIDER_KEY_ENCRYPTION_KEY = prev;
     });
   });
@@ -291,7 +307,7 @@ describe("ProviderKeysService", () => {
       expect(result.decryptedKey).toBe("sk-1234567890abcdef1234567890abcdef12345678");
       expect(result.metadata.version).toBe("1.0");
       expect(result.isActive).toBe(true);
-      
+
       // Should update lastUsedAt
       expect(state.updateCalls).toHaveLength(1);
       expect(state.updateCalls[0]).toEqual({ lastUsedAt: expect.any(String) });
@@ -315,13 +331,13 @@ describe("ProviderKeysService", () => {
           tag: "test_tag",
         },
       ];
-      
+
       // Clear encryption key env var to force error
       delete process.env.PROVIDER_KEY_ENCRYPTION_KEY;
 
-      await expect(
-        providerKeysService.getProviderKey(1, 1)
-      ).rejects.toThrow("Encryption key not found for organization");
+      await expect(providerKeysService.getProviderKey(1, 1)).rejects.toThrow(
+        "Encryption key not found for organization",
+      );
     });
 
     it("throws error when decryption fails", async () => {
@@ -343,9 +359,9 @@ describe("ProviderKeysService", () => {
         error: "Invalid decryption",
       });
 
-      await expect(
-        providerKeysService.getProviderKey(1, 1)
-      ).rejects.toThrow("Failed to decrypt provider key: Invalid decryption");
+      await expect(providerKeysService.getProviderKey(1, 1)).rejects.toThrow(
+        "Failed to decrypt provider key: Invalid decryption",
+      );
     });
   });
 
@@ -415,7 +431,7 @@ describe("ProviderKeysService", () => {
       expect(result.keyName).toBe("New Name");
       expect(result.metadata.new).toBe("data");
       expect(result.isActive).toBe(true);
-      
+
       expect(state.updateCalls).toHaveLength(1);
       expect(state.updateCalls[0].keyName).toBe("New Name");
       expect(state.updateCalls[0].metadata).toBe('{"new":"data"}');
@@ -449,7 +465,7 @@ describe("ProviderKeysService", () => {
       state.updateQueue = [[]];
 
       await expect(
-        providerKeysService.updateProviderKey(1, 999, { keyName: "New Name" })
+        providerKeysService.updateProviderKey(1, 999, { keyName: "New Name" }),
       ).rejects.toThrow("Provider key not found");
     });
   });
@@ -472,9 +488,9 @@ describe("ProviderKeysService", () => {
     it("throws error when key not found", async () => {
       state.updateQueue = [[]];
 
-      await expect(
-        providerKeysService.deleteProviderKey(1, 999)
-      ).rejects.toThrow("Provider key not found");
+      await expect(providerKeysService.deleteProviderKey(1, 999)).rejects.toThrow(
+        "Provider key not found",
+      );
     });
   });
 
@@ -485,7 +501,8 @@ describe("ProviderKeysService", () => {
     });
 
     it("validates Anthropic key format", () => {
-      const validKey = "sk-ant-api03-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+      const validKey =
+        "sk-ant-api03-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
       expect(providerKeysService.validateProviderKey("anthropic", validKey)).toBe(true);
     });
 

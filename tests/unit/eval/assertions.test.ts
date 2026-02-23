@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
-  toAssertionsEnvelope,
-  safetyPassRateFromEnvelope,
-  parseAssertionsJson,
-  validateAssertionsEnvelope,
-  normalizeAssertionsForWrite,
+  type AssertionsEnvelope,
   computeSafetyPassRate,
   KNOWN_ASSERTION_KEYS,
-  type AssertionsEnvelope,
   type LegacyAssertions,
+  normalizeAssertionsForWrite,
+  parseAssertionsJson,
+  safetyPassRateFromEnvelope,
+  toAssertionsEnvelope,
+  validateAssertionsEnvelope,
 } from "@/lib/eval/assertions";
 
 describe("toAssertionsEnvelope", () => {
@@ -165,9 +165,7 @@ describe("parseAssertionsJson", () => {
   it("should parse v1 envelope", () => {
     const envelope = {
       version: "v1",
-      assertions: [
-        { key: "pii", category: "privacy", passed: true },
-      ],
+      assertions: [{ key: "pii", category: "privacy", passed: true }],
     };
     const result = parseAssertionsJson(envelope);
     expect(result).toEqual(envelope);
@@ -245,7 +243,7 @@ describe("validateAssertionsEnvelope", () => {
     };
     const result = validateAssertionsEnvelope(envelope);
     expect(result.assertions).toHaveLength(2);
-    expect(result.assertions.map(a => a.key)).toEqual(["pii", "toxicity"]);
+    expect(result.assertions.map((a) => a.key)).toEqual(["pii", "toxicity"]);
   });
 
   // Edge case tests
@@ -276,9 +274,7 @@ describe("normalizeAssertionsForWrite", () => {
   it("should normalize valid v1 envelope", () => {
     const envelope = {
       version: "v1",
-      assertions: [
-        { key: "pii", category: "privacy", passed: true },
-      ],
+      assertions: [{ key: "pii", category: "privacy", passed: true }],
     };
     const result = normalizeAssertionsForWrite(envelope);
     expect(result).toEqual(envelope);
@@ -312,8 +308,8 @@ describe("normalizeAssertionsForWrite", () => {
     const legacy = { pii: true, unknown: true };
     const result = normalizeAssertionsForWrite(legacy);
     expect(result?.assertions).toHaveLength(3); // pii + hallucination (default) + unknown gets filtered but hallucination added
-    expect(result?.assertions.map(a => a.key)).toContain("pii");
-    expect(result?.assertions.map(a => a.key)).toContain("hallucination");
+    expect(result?.assertions.map((a) => a.key)).toContain("pii");
+    expect(result?.assertions.map((a) => a.key)).toContain("hallucination");
   });
 });
 

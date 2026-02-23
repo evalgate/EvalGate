@@ -27,7 +27,7 @@ describe("canonicalizeJson", () => {
 
   it("should handle arrays", () => {
     const arr = [3, 1, 2];
-    expect(canonicalizeJson(arr)).toBe('[3,1,2]');
+    expect(canonicalizeJson(arr)).toBe("[3,1,2]");
   });
 
   it("should handle arrays with mixed types", () => {

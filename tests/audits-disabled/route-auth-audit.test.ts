@@ -10,7 +10,7 @@
  * New routes MUST use secureRoute or be added to PUBLIC_ROUTE_ALLOWLIST
  * (for intentionally public endpoints). Fail the suite if new legacy routes
  * appear without migration.
- * 
+ *
  * TEMPORARILY DISABLED: TODO - Fix glob pattern for Windows path resolution
  */
 
@@ -34,9 +34,7 @@ const PUBLIC_ROUTE_ALLOWLIST = [
 
 // Legacy auth patterns that should be migrated to secureRoute
 // SHRINK-ONLY: This list should only shrink over time
-const LEGACY_AUTH_ALLOWLIST = [
-  "arena-matches/route.ts",
-];
+const LEGACY_AUTH_ALLOWLIST = ["arena-matches/route.ts"];
 
 function isAllowlisted(routePath: string): boolean {
   const normalized = routePath.replace(/\\/g, "/");
@@ -67,10 +65,10 @@ describe.skip("API Route Auth Audit - DISABLED: Fix glob pattern", () => {
 
       // Should use secureRoute
       const usesSecureRoute = content.includes("secureRoute");
-      
+
       // Should NOT use legacy patterns
-      const usesLegacyAuth = 
-        content.includes("requireAuth") || 
+      const usesLegacyAuth =
+        content.includes("requireAuth") ||
         content.includes("getCurrentUser") ||
         content.includes("requireAuthWithOrg");
 

@@ -1,11 +1,11 @@
 // vitest.db.config.ts
-import { defineConfig } from "vitest/config";
+
 import path from "node:path";
+import { defineConfig } from "vitest/config";
 
 const r = (p: string) => path.resolve(__dirname, p);
 
 export default defineConfig({
-  name: "db",
   resolve: {
     alias: {
       "@": r("./src"),
@@ -58,7 +58,7 @@ export default defineConfig({
       "visual-edits/**",
       "types/**",
       "src/lib/evaluation-templates/**",
-      
+
       // standard excludes
       "**/__tests__/**",
       "**/__mocks__/**",

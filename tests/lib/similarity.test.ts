@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-  cosineSimilarity,
-  levenshteinSimilarity,
   combinedScore,
+  cosineSimilarity,
   keywordMatchRate,
+  levenshteinSimilarity,
 } from "@/lib/scoring/similarity";
 
 describe("cosineSimilarity", () => {
@@ -105,7 +105,7 @@ describe("combinedScore", () => {
   it("accepts custom weights", () => {
     const result1 = combinedScore("hello", "hallo", { cosine: 1, levenshtein: 0 });
     const result2 = combinedScore("hello", "hallo", { cosine: 0, levenshtein: 1 });
-    
+
     // With only cosine (word-based), "hello" vs "hallo" should be 0 (different words)
     expect(result1).toBe(0);
     // With only levenshtein, should be 80 (1 edit out of 5)

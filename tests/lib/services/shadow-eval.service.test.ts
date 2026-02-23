@@ -31,7 +31,7 @@ const makeBuilder = (result: unknown[]) => {
 
 vi.mock("@/db", () => ({
   db: {
-    select: vi.fn(() => makeBuilder(state.updateQueue.shift() as unknown[] ?? state.selectRows)),
+    select: vi.fn(() => makeBuilder((state.updateQueue.shift() as unknown[]) ?? state.selectRows)),
     insert: vi.fn(() => ({
       values: vi.fn((val) => {
         state.insertCalls.push(val);
@@ -40,7 +40,7 @@ vi.mock("@/db", () => ({
         };
       }),
     })),
-    update: vi.fn(() => makeBuilder(state.updateQueue.shift() as unknown[] ?? state.selectRows)),
+    update: vi.fn(() => makeBuilder((state.updateQueue.shift() as unknown[]) ?? state.selectRows)),
     delete: vi.fn(() => ({
       where: vi.fn(() => {
         state.deleteWhereCalled = true;
@@ -74,7 +74,7 @@ vi.mock("@/lib/services/provider-keys.service", () => ({
 describe("ShadowEvalService", () => {
   let shadowEvalService: any;
   let providerKeysService: any;
-  
+
   beforeAll(async () => {
     const mod = await import("@/lib/services/shadow-eval.service");
     shadowEvalService = mod.shadowEvalService;
@@ -97,15 +97,15 @@ describe("ShadowEvalService", () => {
       evaluationId: 1,
       traceIds: ["trace1", "trace2"],
       dateRange: { start: "2024-01-01", end: "2024-01-02" },
-      filters: { status: ["success"] }
+      filters: { status: ["success"] },
     };
 
     it("throws error when evaluation not found", async () => {
       state.updateQueue = [[]]; // select evaluation returns empty
 
-      await expect(
-        shadowEvalService.createShadowEval(1, validInput, "user1")
-      ).rejects.toThrow("Evaluation not found or access denied");
+      await expect(shadowEvalService.createShadowEval(1, validInput, "user1")).rejects.toThrow(
+        "Evaluation not found or access denied",
+      );
     });
 
     it("throws error when no production traces found", async () => {
@@ -114,17 +114,40 @@ describe("ShadowEvalService", () => {
         [], // getProductionTraces returns empty
       ];
 
-      await expect(
-        shadowEvalService.createShadowEval(1, validInput, "user1")
-      ).rejects.toThrow("No production traces found for shadow evaluation");
+      await expect(shadowEvalService.createShadowEval(1, validInput, "user1")).rejects.toThrow(
+        "No production traces found for shadow evaluation",
+      );
     });
 
     it("creates shadow evaluation successfully and starts processing", async () => {
       const mockEval = { id: 1, organizationId: 1 };
-      const mockTraces = [{ traceId: "trace1", metadata: "{}" }, { traceId: "trace2", metadata: "{}" }];
-      const mockSpans1 = [{ spanId: "s1", name: "test", type: "llm", input: "in", output: "out", durationMs: 100, metadata: "{}" }];
-      const mockSpans2 = [{ spanId: "s2", name: "test", type: "llm", input: "in", output: "out", durationMs: 100, metadata: "{}" }];
-      
+      const mockTraces = [
+        { traceId: "trace1", metadata: "{}" },
+        { traceId: "trace2", metadata: "{}" },
+      ];
+      const mockSpans1 = [
+        {
+          spanId: "s1",
+          name: "test",
+          type: "llm",
+          input: "in",
+          output: "out",
+          durationMs: 100,
+          metadata: "{}",
+        },
+      ];
+      const mockSpans2 = [
+        {
+          spanId: "s2",
+          name: "test",
+          type: "llm",
+          input: "in",
+          output: "out",
+          durationMs: 100,
+          metadata: "{}",
+        },
+      ];
+
       // Setup the queue for createShadowEval + getProductionTraces + processShadowEval
       state.updateQueue = [
         [mockEval], // check evaluation exists
@@ -138,9 +161,12 @@ describe("ShadowEvalService", () => {
         decryptedKey: "sk-test",
       });
 
-      const mockResponse = new Response(JSON.stringify({
-        choices: [{ message: { content: 'good output' } }]
-      }), { status: 200 });
+      const mockResponse = new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "good output" } }],
+        }),
+        { status: 200 },
+      );
       vi.mocked(globalThis.fetch).mockResolvedValue(mockResponse);
 
       const result = await shadowEvalService.createShadowEval(1, validInput, "user1");
@@ -149,12 +175,12 @@ describe("ShadowEvalService", () => {
       expect(result.id).toBe(1);
       expect(result.status).toBe("pending");
       expect(result.totalTraces).toBe(2);
-      
+
       expect(state.insertCalls).toHaveLength(1); // The evaluation run
-      
+
       // Wait a tick for the fire-and-forget background process to finish its inserts
-      await new Promise(resolve => setTimeout(resolve, 10));
-      
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       // Should have inserted 2 test results
       expect(state.insertCalls.length).toBeGreaterThan(1);
     });
@@ -180,18 +206,15 @@ describe("ShadowEvalService", () => {
           startedAt: "2024-01-01",
           completedAt: "2024-01-02",
         },
-        evaluations: { id: 2, organizationId: 1 }
+        evaluations: { id: 2, organizationId: 1 },
       };
-      
+
       const mockResults = [
         { score: 100, status: "passed", durationMs: 150 },
         { score: 50, status: "failed", durationMs: 250 },
       ];
 
-      state.updateQueue = [
-        [mockRun],
-        mockResults,
-      ];
+      state.updateQueue = [[mockRun], mockResults];
 
       const result = await shadowEvalService.getShadowEvalResults(1, 1);
 
@@ -215,8 +238,8 @@ describe("ShadowEvalService", () => {
           evaluationId: 2,
           status: "completed",
           totalCases: 0,
-          traceLog: 'invalid-json',
-        }
+          traceLog: "invalid-json",
+        },
       };
 
       state.updateQueue = [[mockRun], []];
@@ -241,8 +264,13 @@ describe("ShadowEvalService", () => {
     it("calculates stats correctly from runs", async () => {
       const mockRuns = [
         { id: 1, evaluationId: 2, status: "completed", traceLog: '{"scoreImprovement": 15}' },
-        { id: 2, evaluationId: 2, status: "completed_with_failures", traceLog: '{"scoreImprovement": 5}' },
-        { id: 3, evaluationId: 3, status: "pending", traceLog: '{}' }, // No improvement data
+        {
+          id: 2,
+          evaluationId: 2,
+          status: "completed_with_failures",
+          traceLog: '{"scoreImprovement": 5}',
+        },
+        { id: 3, evaluationId: 3, status: "pending", traceLog: "{}" }, // No improvement data
       ];
 
       state.selectRows = mockRuns;
@@ -261,8 +289,18 @@ describe("ShadowEvalService", () => {
     it("handles LLM API errors properly during replay", async () => {
       const mockEval = { id: 1, organizationId: 1, modelSettings: { model: "gpt-4" } };
       const mockTraces = [{ traceId: "trace1", metadata: "{}" }];
-      const mockSpans = [{ spanId: "s1", name: "test", type: "llm", input: "in", output: "out", durationMs: 100, metadata: "{}" }];
-      
+      const mockSpans = [
+        {
+          spanId: "s1",
+          name: "test",
+          type: "llm",
+          input: "in",
+          output: "out",
+          durationMs: 100,
+          metadata: "{}",
+        },
+      ];
+
       state.updateQueue = [
         [mockEval], // createShadowEval check
         mockTraces, // get traces
@@ -277,87 +315,138 @@ describe("ShadowEvalService", () => {
       // Mock API failure
       vi.mocked(globalThis.fetch).mockResolvedValue(new Response("API Error", { status: 500 }));
 
-      await shadowEvalService.createShadowEval(1, { evaluationId: 1, traceIds: ["trace1"] }, "user1");
-      
+      await shadowEvalService.createShadowEval(
+        1,
+        { evaluationId: 1, traceIds: ["trace1"] },
+        "user1",
+      );
+
       // Wait for background process
-      await new Promise(resolve => setTimeout(resolve, 10));
-      
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       // Should have inserted a failed test result
       expect(state.insertCalls.length).toBeGreaterThan(1); // Run + Result
-      
+
       // Check the last status update
-      const statusUpdates = state.updateCalls.filter((c) => (c as Record<string, unknown>).status !== undefined);
-      expect((statusUpdates[statusUpdates.length - 1] as Record<string, unknown>).status).toBe("completed_with_failures");
+      const statusUpdates = state.updateCalls.filter(
+        (c) => (c as Record<string, unknown>).status !== undefined,
+      );
+      expect((statusUpdates[statusUpdates.length - 1] as Record<string, unknown>).status).toBe(
+        "completed_with_failures",
+      );
     });
 
     it("falls back to heuristic when no API key", async () => {
       const mockEval = { id: 1, organizationId: 1, modelSettings: { model: "gpt-4" } };
       const mockTraces = [{ traceId: "trace1", metadata: "{}" }];
-      const mockSpans = [{ spanId: "s1", name: "test", type: "llm", input: "in", output: "out", durationMs: 100, metadata: "{}" }];
-      
-      state.updateQueue = [
-        [mockEval], mockTraces, mockSpans, [mockEval],
+      const mockSpans = [
+        {
+          spanId: "s1",
+          name: "test",
+          type: "llm",
+          input: "in",
+          output: "out",
+          durationMs: 100,
+          metadata: "{}",
+        },
       ];
+
+      state.updateQueue = [[mockEval], mockTraces, mockSpans, [mockEval]];
 
       // Return null for API key
       vi.mocked(providerKeysService.getActiveProviderKey).mockResolvedValue(null);
 
-      await shadowEvalService.createShadowEval(1, { evaluationId: 1, traceIds: ["trace1"] }, "user1");
-      
-      await new Promise(resolve => setTimeout(resolve, 10));
-      
+      await shadowEvalService.createShadowEval(
+        1,
+        { evaluationId: 1, traceIds: ["trace1"] },
+        "user1",
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       // The heuristic fallback outputs "[Heuristic] Replay for: in"
       // Original output is "out". They share no words, so similarity score is 0.
       // This means the test case fails (score < 70).
-      const statusUpdates = state.updateCalls.filter((c) => (c as Record<string, unknown>).status !== undefined);
-      expect((statusUpdates[statusUpdates.length - 1] as Record<string, unknown>).status).toBe("completed_with_failures");
+      const statusUpdates = state.updateCalls.filter(
+        (c) => (c as Record<string, unknown>).status !== undefined,
+      );
+      expect((statusUpdates[statusUpdates.length - 1] as Record<string, unknown>).status).toBe(
+        "completed_with_failures",
+      );
     });
-    
+
     it("handles Anthropic API calls correctly", async () => {
       const mockEval = { id: 1, organizationId: 1, modelSettings: { model: "claude-3-opus" } };
       const mockTraces = [{ traceId: "trace1", metadata: "{}" }];
-      const mockSpans = [{ spanId: "s1", name: "test", type: "llm", input: "in", output: "out", durationMs: 100, metadata: "{}" }];
-      
-      state.updateQueue = [
-        [mockEval], mockTraces, mockSpans, [mockEval],
+      const mockSpans = [
+        {
+          spanId: "s1",
+          name: "test",
+          type: "llm",
+          input: "in",
+          output: "out",
+          durationMs: 100,
+          metadata: "{}",
+        },
       ];
+
+      state.updateQueue = [[mockEval], mockTraces, mockSpans, [mockEval]];
 
       vi.mocked(providerKeysService.getActiveProviderKey).mockResolvedValue({
         decryptedKey: "sk-ant-test",
       });
 
-      const mockResponse = new Response(JSON.stringify({
-        content: [{ text: 'out' }] // exact match with expected 'out' from mockSpans
-      }), { status: 200 });
+      const mockResponse = new Response(
+        JSON.stringify({
+          content: [{ text: "out" }], // exact match with expected 'out' from mockSpans
+        }),
+        { status: 200 },
+      );
       vi.mocked(globalThis.fetch).mockResolvedValue(mockResponse);
 
-      await shadowEvalService.createShadowEval(1, { evaluationId: 1, traceIds: ["trace1"] }, "user1");
-      
-      await new Promise(resolve => setTimeout(resolve, 10));
-      
+      await shadowEvalService.createShadowEval(
+        1,
+        { evaluationId: 1, traceIds: ["trace1"] },
+        "user1",
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       expect(globalThis.fetch).toHaveBeenCalledWith(
         "https://api.anthropic.com/v1/messages",
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
     it("handles unsupported models gracefully", async () => {
       const mockEval = { id: 1, organizationId: 1, modelSettings: { model: "unknown-model-xyz" } };
       const mockTraces = [{ traceId: "trace1", metadata: "{}" }];
-      const mockSpans = [{ spanId: "s1", name: "test", type: "llm", input: "in", output: "out", durationMs: 100, metadata: "{}" }];
-      
-      state.updateQueue = [
-        [mockEval], mockTraces, mockSpans, [mockEval],
+      const mockSpans = [
+        {
+          spanId: "s1",
+          name: "test",
+          type: "llm",
+          input: "in",
+          output: "out",
+          durationMs: 100,
+          metadata: "{}",
+        },
       ];
+
+      state.updateQueue = [[mockEval], mockTraces, mockSpans, [mockEval]];
 
       vi.mocked(providerKeysService.getActiveProviderKey).mockResolvedValue({
         decryptedKey: "key",
       });
 
-      await shadowEvalService.createShadowEval(1, { evaluationId: 1, traceIds: ["trace1"] }, "user1");
-      
-      await new Promise(resolve => setTimeout(resolve, 10));
-      
+      await shadowEvalService.createShadowEval(
+        1,
+        { evaluationId: 1, traceIds: ["trace1"] },
+        "user1",
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       // Unknown models default to openai logic but if that fails/throws, it's handled
       // The function defaults "unknown-model-xyz" to "openai" in getProviderFromModel
       expect(true).toBe(true);

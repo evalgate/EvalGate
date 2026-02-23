@@ -30,7 +30,7 @@ const makeBuilder = (result: unknown[]) => {
 
 vi.mock("@/db", () => ({
   db: {
-    select: vi.fn(() => makeBuilder(state.updateQueue.shift() as unknown[] ?? state.selectRows)),
+    select: vi.fn(() => makeBuilder((state.updateQueue.shift() as unknown[]) ?? state.selectRows)),
     insert: vi.fn(() => ({
       values: vi.fn((val) => {
         state.insertCalls.push(val);
@@ -39,7 +39,7 @@ vi.mock("@/db", () => ({
         };
       }),
     })),
-    update: vi.fn(() => makeBuilder(state.updateQueue.shift() as unknown[] ?? state.selectRows)),
+    update: vi.fn(() => makeBuilder((state.updateQueue.shift() as unknown[]) ?? state.selectRows)),
     delete: vi.fn(() => ({
       where: vi.fn(() => {
         state.deleteWhereCalled = true;
@@ -68,7 +68,7 @@ vi.mock("@/lib/services/provider-keys.service", () => ({
 describe("LLMJudgeService", () => {
   let llmJudgeService: any;
   let providerKeysService: any;
-  
+
   beforeAll(async () => {
     const mod = await import("@/lib/services/llm-judge.service");
     llmJudgeService = mod.llmJudgeService;
@@ -190,9 +190,9 @@ describe("LLMJudgeService", () => {
     it("deletes config when found", async () => {
       const mockConfig = { id: 1, name: "Test Config" };
       state.updateQueue = [[mockConfig]]; // getConfigById returns config
-      
+
       const result = await llmJudgeService.deleteConfig(1, 1);
-      
+
       expect(result).toBe(true);
       expect(state.deleteWhereCalled).toBe(true);
     });
@@ -215,7 +215,9 @@ describe("LLMJudgeService", () => {
 
     it("throws error when config not found", async () => {
       state.updateQueue = [[]]; // getConfigById returns empty
-      await expect(llmJudgeService.evaluate(1, evalInput)).rejects.toThrow("LLM judge config not found");
+      await expect(llmJudgeService.evaluate(1, evalInput)).rejects.toThrow(
+        "LLM judge config not found",
+      );
     });
 
     it("uses OpenAI provider when model is GPT", async () => {
@@ -224,9 +226,12 @@ describe("LLMJudgeService", () => {
         decryptedKey: "sk-test",
       });
 
-      const mockResponse = new Response(JSON.stringify({
-        choices: [{ message: { content: '{"score": 85, "reasoning": "Good", "passed": true}' } }]
-      }), { status: 200 });
+      const mockResponse = new Response(
+        JSON.stringify({
+          choices: [{ message: { content: '{"score": 85, "reasoning": "Good", "passed": true}' } }],
+        }),
+        { status: 200 },
+      );
       vi.mocked(globalThis.fetch).mockResolvedValueOnce(mockResponse);
 
       const result = await llmJudgeService.evaluate(1, evalInput);
@@ -236,7 +241,7 @@ describe("LLMJudgeService", () => {
       expect(result.reasoning).toBe("Good");
       expect(globalThis.fetch).toHaveBeenCalledWith(
         "https://api.openai.com/v1/chat/completions",
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -268,9 +273,12 @@ describe("LLMJudgeService", () => {
       state.updateQueue = [[{ ...mockConfig, model: "claude-3-opus" }]];
       process.env.ANTHROPIC_API_KEY = "sk-ant-test";
 
-      const mockResponse = new Response(JSON.stringify({
-        content: [{ text: '{"score": 90, "reasoning": "Excellent", "passed": true}' }]
-      }), { status: 200 });
+      const mockResponse = new Response(
+        JSON.stringify({
+          content: [{ text: '{"score": 90, "reasoning": "Excellent", "passed": true}' }],
+        }),
+        { status: 200 },
+      );
       vi.mocked(globalThis.fetch).mockResolvedValueOnce(mockResponse);
 
       const result = await llmJudgeService.evaluate(1, evalInput);
@@ -278,7 +286,7 @@ describe("LLMJudgeService", () => {
       expect(result.score).toBe(90);
       expect(globalThis.fetch).toHaveBeenCalledWith(
         "https://api.anthropic.com/v1/messages",
-        expect.any(Object)
+        expect.any(Object),
       );
 
       delete process.env.ANTHROPIC_API_KEY;
@@ -299,9 +307,12 @@ describe("LLMJudgeService", () => {
         decryptedKey: "sk-test",
       });
 
-      const mockResponse = new Response(JSON.stringify({
-        choices: [{ message: { content: "I give this an 85/100 because it's pretty good." } }]
-      }), { status: 200 });
+      const mockResponse = new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "I give this an 85/100 because it's pretty good." } }],
+        }),
+        { status: 200 },
+      );
       vi.mocked(globalThis.fetch).mockResolvedValueOnce(mockResponse);
 
       const result = await llmJudgeService.evaluate(1, evalInput);
@@ -324,9 +335,9 @@ describe("LLMJudgeService", () => {
         { score: 80, metadata: '{"passed":true}' },
         { score: 90, metadata: '{"passed":true}' },
         { score: 40, metadata: '{"passed":false}' },
-        { score: 50, metadata: 'invalid json' }, // Should be treated as failed
+        { score: 50, metadata: "invalid json" }, // Should be treated as failed
       ];
-      
+
       // First call for getConfigById, second for get results
       state.updateQueue = [[mockConfig], mockResults];
 
@@ -357,7 +368,7 @@ describe("LLMJudgeService", () => {
       state.selectRows = []; // No default config
 
       const result = await llmJudgeService.evaluateRunBatch(1, 1, [
-        { testCaseId: 1, input: "in", output: "out", status: "passed" }
+        { testCaseId: 1, input: "in", output: "out", status: "passed" },
       ]);
 
       expect(result.totalJudged).toBe(0);
@@ -376,9 +387,12 @@ describe("LLMJudgeService", () => {
         decryptedKey: "sk-test",
       });
 
-      const mockResponse = new Response(JSON.stringify({
-        choices: [{ message: { content: '{"score": 90, "reasoning": "Good", "passed": true}' } }]
-      }), { status: 200 });
+      const mockResponse = new Response(
+        JSON.stringify({
+          choices: [{ message: { content: '{"score": 90, "reasoning": "Good", "passed": true}' } }],
+        }),
+        { status: 200 },
+      );
       vi.mocked(globalThis.fetch).mockResolvedValue(mockResponse);
 
       const testResults = [
@@ -414,9 +428,16 @@ describe("LLMJudgeService", () => {
       vi.mocked(globalThis.fetch).mockImplementation(() => {
         fetchCallCount++;
         if (fetchCallCount === 1) {
-          return Promise.resolve(new Response(JSON.stringify({
-            choices: [{ message: { content: '{"score": 90, "reasoning": "Good", "passed": true}' } }]
-          }), { status: 200 }));
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                choices: [
+                  { message: { content: '{"score": 90, "reasoning": "Good", "passed": true}' } },
+                ],
+              }),
+              { status: 200 },
+            ),
+          );
         } else {
           return Promise.reject(new Error("Network failure"));
         }

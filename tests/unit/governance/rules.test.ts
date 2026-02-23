@@ -1,20 +1,24 @@
 import { describe, expect, it } from "vitest";
 import {
-  GovernanceRules,
-  GovernanceEngine,
-  createWorkflowGovernance,
-  needsApproval,
-  shouldBlock,
   CompliancePresets,
   createComplianceGovernance,
-  type GovernanceConfig,
+  createWorkflowGovernance,
   type Decision,
-  type DecisionContext,
   type DecisionAlternative,
+  type DecisionContext,
+  type GovernanceConfig,
+  GovernanceEngine,
+  GovernanceRules,
+  needsApproval,
+  shouldBlock,
 } from "@/lib/governance/rules";
 
 // Mock the external type
-const mockAlternative = (name: string, confidence: number, reasoning?: string): DecisionAlternative => ({
+const mockAlternative = (
+  name: string,
+  confidence: number,
+  reasoning?: string,
+): DecisionAlternative => ({
   name,
   confidence,
   reasoning,

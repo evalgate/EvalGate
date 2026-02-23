@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-  renderTemplate,
   extractVariables,
-  validateContext,
+  renderTemplate,
   type TemplateContext,
+  validateContext,
 } from "@/lib/prompts/template-engine";
 
 describe("renderTemplate", () => {
@@ -73,12 +73,16 @@ describe("renderTemplate", () => {
 
   describe("each loops", () => {
     it("iterates over array items", () => {
-      const result = renderTemplate("{{#each items}}[{{this}}]{{/each}}", { items: ["a", "b", "c"] });
+      const result = renderTemplate("{{#each items}}[{{this}}]{{/each}}", {
+        items: ["a", "b", "c"],
+      });
       expect(result).toBe("[a][b][c]");
     });
 
     it("returns empty string for non-array", () => {
-      const result = renderTemplate("{{#each items}}[{{this}}]{{/each}}", { items: "not an array" as any });
+      const result = renderTemplate("{{#each items}}[{{this}}]{{/each}}", {
+        items: "not an array" as any,
+      });
       expect(result).toBe("");
     });
 
@@ -93,7 +97,9 @@ describe("renderTemplate", () => {
     });
 
     it("handles multiline body", () => {
-      const result = renderTemplate("{{#each items}}\n- {{this}}\n{{/each}}", { items: ["one", "two"] });
+      const result = renderTemplate("{{#each items}}\n- {{this}}\n{{/each}}", {
+        items: ["one", "two"],
+      });
       expect(result).toBe("\n- one\n\n- two\n");
     });
   });

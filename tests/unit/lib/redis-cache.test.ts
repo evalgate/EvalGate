@@ -18,7 +18,7 @@ describe("redis-cache", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
-    
+
     // Set up valid Redis environment
     process.env.UPSTASH_REDIS_REST_URL = "https://fake-redis.upstash.io";
     process.env.UPSTASH_REDIS_REST_TOKEN = "fake-token";
@@ -29,7 +29,7 @@ describe("redis-cache", () => {
       const { Redis } = await import("@upstash/redis");
       const mockGet = vi.mocked(Redis.fromEnv()).get;
       const mockSetex = vi.mocked(Redis.fromEnv()).setex;
-      
+
       mockGet.mockResolvedValue('{"data":"test"}');
       mockSetex.mockResolvedValue("OK");
 
@@ -41,7 +41,7 @@ describe("redis-cache", () => {
       expect(mockSetex).toHaveBeenCalledWith(
         "cache:test-key",
         300,
-        JSON.stringify({ data: "test" })
+        JSON.stringify({ data: "test" }),
       );
 
       // Test get
@@ -79,7 +79,7 @@ describe("redis-cache", () => {
       const mockGet = vi.mocked(Redis.fromEnv()).get;
       const mockSetex = vi.mocked(Redis.fromEnv()).setex;
       const mockFn = vi.fn().mockResolvedValue("computed-value");
-      
+
       mockGet.mockResolvedValue(null); // Cache miss first
       mockSetex.mockResolvedValue("OK");
 
@@ -89,11 +89,7 @@ describe("redis-cache", () => {
       const result1 = await cache.wrap("test-key", mockFn, { ttl: 300 });
       expect(result1).toBe("computed-value");
       expect(mockFn).toHaveBeenCalledTimes(1);
-      expect(mockSetex).toHaveBeenCalledWith(
-        "cache:test-key",
-        300,
-        "computed-value"
-      );
+      expect(mockSetex).toHaveBeenCalledWith("cache:test-key", 300, "computed-value");
 
       // Second call with same mock setup - cache miss again due to vi.resetModules()
       const result2 = await cache.wrap("test-key", mockFn, { ttl: 300 });
@@ -103,7 +99,7 @@ describe("redis-cache", () => {
 
     it("skips cache when skipCache option is true", async () => {
       const mockFn = vi.fn().mockResolvedValue("fresh-value");
-      
+
       const { cache } = await import("@/lib/redis-cache");
 
       const result = await cache.wrap("test-key", mockFn, { skipCache: true });
@@ -127,10 +123,8 @@ describe("redis-cache", () => {
       const { Redis } = await import("@upstash/redis");
       const mockKeys = vi.mocked(Redis.fromEnv()).keys;
       const mockDel = vi.mocked(Redis.fromEnv()).del;
-      
-      mockKeys
-        .mockResolvedValueOnce(["cache:test:1", "cache:test:2"])
-        .mockResolvedValueOnce([]);
+
+      mockKeys.mockResolvedValueOnce(["cache:test:1", "cache:test:2"]).mockResolvedValueOnce([]);
       mockDel.mockResolvedValue(2);
 
       const { cache } = await import("@/lib/redis-cache");
@@ -219,7 +213,7 @@ describe("redis-cache", () => {
       const mockGet = vi.mocked(Redis.fromEnv()).get;
       const mockSetex = vi.mocked(Redis.fromEnv()).setex;
       const mockFn = vi.fn().mockResolvedValue("fallback-value");
-      
+
       mockGet.mockRejectedValue(new Error("Cache read failed"));
       mockSetex.mockRejectedValue(new Error("Cache write failed"));
 
@@ -236,7 +230,7 @@ describe("redis-cache", () => {
       const { Redis } = await import("@upstash/redis");
       const mockKeys = vi.mocked(Redis.fromEnv()).keys;
       const mockDel = vi.mocked(Redis.fromEnv()).del;
-      
+
       mockKeys.mockResolvedValue(["cache:users:org:123:1", "cache:posts:org:123:2"]);
       mockDel.mockResolvedValue(2);
 
@@ -252,7 +246,7 @@ describe("redis-cache", () => {
       const { Redis } = await import("@upstash/redis");
       const mockKeys = vi.mocked(Redis.fromEnv()).keys;
       const mockDel = vi.mocked(Redis.fromEnv()).del;
-      
+
       mockKeys.mockResolvedValue(["cache:users:org:456:1"]);
       mockDel.mockResolvedValue(1);
 
@@ -268,7 +262,7 @@ describe("redis-cache", () => {
       const { Redis } = await import("@upstash/redis");
       const mockKeys = vi.mocked(Redis.fromEnv()).keys;
       const mockDel = vi.mocked(Redis.fromEnv()).del;
-      
+
       mockKeys.mockResolvedValue(["cache:users:1", "cache:users:2"]);
       mockDel.mockResolvedValue(2);
 

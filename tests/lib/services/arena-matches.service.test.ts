@@ -24,7 +24,7 @@ const makeBuilder = (result: unknown[]) => {
 
 vi.mock("@/db", () => ({
   db: {
-    select: vi.fn(() => makeBuilder(state.updateQueue.shift() as unknown[] ?? state.selectRows)),
+    select: vi.fn(() => makeBuilder((state.updateQueue.shift() as unknown[]) ?? state.selectRows)),
     insert: vi.fn(() => ({
       values: vi.fn((val) => {
         state.insertCalls.push(val);
@@ -53,7 +53,7 @@ vi.mock("@/lib/services/llm-judge.service", () => ({
     evaluate: vi.fn().mockResolvedValue({
       score: 85,
       reasoning: "Good",
-      passed: true
+      passed: true,
     }),
   },
 }));
@@ -61,7 +61,7 @@ vi.mock("@/lib/services/llm-judge.service", () => ({
 describe("ArenaMatchesService", () => {
   let arenaMatchesService: any;
   let llmJudgeService: any;
-  
+
   beforeAll(async () => {
     const mod = await import("@/lib/services/arena-matches.service");
     arenaMatchesService = mod.arenaMatchesService;
@@ -84,7 +84,11 @@ describe("ArenaMatchesService", () => {
 
     it("throws error when no available models found", async () => {
       await expect(
-        arenaMatchesService.createArenaMatch(1, { ...validInput, models: ["unknown-1", "unknown-2"] }, "user1")
+        arenaMatchesService.createArenaMatch(
+          1,
+          { ...validInput, models: ["unknown-1", "unknown-2"] },
+          "user1",
+        ),
       ).rejects.toThrow("No available models found for arena match");
     });
 
@@ -100,9 +104,9 @@ describe("ArenaMatchesService", () => {
       expect(result.prompt).toBe("What is 2+2?");
       expect(result.results).toHaveLength(2);
       expect(result.scores).toBeDefined();
-      
+
       expect(state.insertCalls.length).toBeGreaterThan(0); // Judge config + Arena match
-      
+
       // The match should have been inserted
       const matchInsert = state.insertCalls[state.insertCalls.length - 1] as any;
       expect(matchInsert.prompt).toBe("What is 2+2?");
@@ -111,23 +115,26 @@ describe("ArenaMatchesService", () => {
 
     it("uses provided judge config ID", async () => {
       const result = await arenaMatchesService.createArenaMatch(
-        1, 
-        { ...validInput, judgeConfigId: 5 }, 
-        "user1"
+        1,
+        { ...validInput, judgeConfigId: 5 },
+        "user1",
       );
 
       // Verify llmJudgeService.evaluate was called with configId 5
-      expect(llmJudgeService.evaluate).toHaveBeenCalledWith(1, expect.objectContaining({
-        configId: 5
-      }));
-      
+      expect(llmJudgeService.evaluate).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          configId: 5,
+        }),
+      );
+
       // Default judge config check should not have happened (insertCalls only has the match)
       expect(state.insertCalls).toHaveLength(1);
     });
 
     it("handles model execution failures gracefully", async () => {
       // The service has a private callModel method that just returns mock strings for known models
-      // So we can't easily make it throw without mocking the service itself, but we can see what happens 
+      // So we can't easily make it throw without mocking the service itself, but we can see what happens
       // when evaluate fails. Let's make evaluate throw.
       vi.mocked(llmJudgeService.evaluate).mockRejectedValueOnce(new Error("Judge failed"));
 
@@ -135,7 +142,7 @@ describe("ArenaMatchesService", () => {
 
       // One model failed, one succeeded
       expect(result.results).toHaveLength(2);
-      
+
       // Find the failed one
       const failedResult = result.results.find((r: any) => r.score === 0);
       expect(failedResult).toBeDefined();
@@ -151,11 +158,11 @@ describe("ArenaMatchesService", () => {
     });
 
     it("returns parsed match when found", async () => {
-      const mockMatch = { 
-        id: 1, 
-        prompt: "test", 
+      const mockMatch = {
+        id: 1,
+        prompt: "test",
         results: '[{"modelId":"m1","score":90}]',
-        scores: '{"m1":90}'
+        scores: '{"m1":90}',
       };
       state.selectRows = [mockMatch];
 
@@ -167,11 +174,11 @@ describe("ArenaMatchesService", () => {
     });
 
     it("handles non-stringified JSON fields safely", async () => {
-      const mockMatch = { 
-        id: 1, 
-        prompt: "test", 
-        results: [{modelId:"m1",score:90}],
-        scores: {m1:90}
+      const mockMatch = {
+        id: 1,
+        prompt: "test",
+        results: [{ modelId: "m1", score: 90 }],
+        scores: { m1: 90 },
       };
       state.selectRows = [mockMatch];
 
@@ -191,15 +198,15 @@ describe("ArenaMatchesService", () => {
 
     it("returns parsed matches", async () => {
       state.selectRows = [
-        { id: 1, results: '[]', scores: '{}' },
-        { id: 2, results: '[]', scores: '{}' },
+        { id: 1, results: "[]", scores: "{}" },
+        { id: 2, results: "[]", scores: "{}" },
       ];
 
       const result = await arenaMatchesService.getArenaMatches(1, {
         limit: 10,
         offset: 5,
         winnerId: "gpt-4",
-        dateRange: { start: "2024-01-01", end: "2024-01-02" }
+        dateRange: { start: "2024-01-01", end: "2024-01-02" },
       });
 
       expect(result).toHaveLength(2);
@@ -216,8 +223,8 @@ describe("ArenaMatchesService", () => {
           createdAt: "2024-01-01T12:00:00Z",
           results: [
             { modelId: "gpt-4", modelLabel: "GPT-4", score: 90, responseTime: 1000, cost: 0.01 },
-            { modelId: "claude", modelLabel: "Claude", score: 80, responseTime: 1200, cost: 0.01 }
-          ]
+            { modelId: "claude", modelLabel: "Claude", score: 80, responseTime: 1200, cost: 0.01 },
+          ],
         },
         {
           id: 2,
@@ -225,8 +232,8 @@ describe("ArenaMatchesService", () => {
           createdAt: "2024-01-02T12:00:00Z",
           results: [
             { modelId: "gpt-4", modelLabel: "GPT-4", score: 95, responseTime: 900, cost: 0.01 },
-            { modelId: "gemini", modelLabel: "Gemini", score: 85, responseTime: 800, cost: 0.01 }
-          ]
+            { modelId: "gemini", modelLabel: "Gemini", score: 85, responseTime: 800, cost: 0.01 },
+          ],
         },
         {
           id: 3,
@@ -234,9 +241,9 @@ describe("ArenaMatchesService", () => {
           createdAt: "2024-01-03T12:00:00Z",
           results: [
             { modelId: "gpt-4", modelLabel: "GPT-4", score: 85, responseTime: 1100, cost: 0.01 },
-            { modelId: "claude", modelLabel: "Claude", score: 95, responseTime: 1000, cost: 0.01 }
-          ]
-        }
+            { modelId: "claude", modelLabel: "Claude", score: 95, responseTime: 1000, cost: 0.01 },
+          ],
+        },
       ];
 
       state.selectRows = mockMatches;
@@ -244,26 +251,26 @@ describe("ArenaMatchesService", () => {
       const leaderboard = await arenaMatchesService.getLeaderboard(1);
 
       expect(leaderboard).toHaveLength(3);
-      
+
       // GPT-4 should have 3 matches, 2 wins (66.6% win rate)
       const gpt4 = leaderboard.find((e: any) => e.modelId === "gpt-4");
       expect(gpt4.totalMatches).toBe(3);
       expect(gpt4.wins).toBe(2);
       expect(gpt4.winRate).toBeCloseTo(66.67, 1);
       expect(gpt4.averageScore).toBe(90); // (90+95+85)/3
-      
+
       // Claude should have 2 matches, 1 win (50% win rate)
       const claude = leaderboard.find((e: any) => e.modelId === "claude");
       expect(claude.totalMatches).toBe(2);
       expect(claude.wins).toBe(1);
       expect(claude.winRate).toBe(50);
-      
+
       // Ordering: GPT-4 (66%), Claude (50%), Gemini (0%)
       expect(leaderboard[0].modelId).toBe("gpt-4");
       expect(leaderboard[1].modelId).toBe("claude");
       expect(leaderboard[2].modelId).toBe("gemini");
     });
-    
+
     it("respects timeRange option", async () => {
       state.selectRows = [];
       await arenaMatchesService.getLeaderboard(1, { timeRange: { days: 7 } });
@@ -275,9 +282,9 @@ describe("ArenaMatchesService", () => {
   describe("getArenaStats", () => {
     it("returns zeroed stats when no matches", async () => {
       state.selectRows = []; // getArenaMatches returns empty
-      
+
       const stats = await arenaMatchesService.getArenaStats(1);
-      
+
       expect(stats.totalMatches).toBe(0);
       expect(stats.averageScore).toBe(0);
       expect(stats.mostActiveModel).toBe("");
@@ -290,15 +297,15 @@ describe("ArenaMatchesService", () => {
         {
           id: 1,
           createdAt: new Date().toISOString(), // recent
-          scores: { "gpt-4": 90, "claude": 80 },
-          results: [{ modelId: "gpt-4" }, { modelId: "claude" }]
+          scores: { "gpt-4": 90, claude: 80 },
+          results: [{ modelId: "gpt-4" }, { modelId: "claude" }],
         },
         {
           id: 2,
           createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // older than a week
-          scores: { "gpt-4": 95, "gemini": 85 },
-          results: [{ modelId: "gpt-4" }, { modelId: "gemini" }]
-        }
+          scores: { "gpt-4": 95, gemini: 85 },
+          results: [{ modelId: "gpt-4" }, { modelId: "gemini" }],
+        },
       ];
 
       // Setup queue for getArenaMatches then getLeaderboard
@@ -311,7 +318,7 @@ describe("ArenaMatchesService", () => {
 
       expect(stats.totalMatches).toBe(2);
       // avg of (85) and (90) = 87.5 => 88
-      expect(stats.averageScore).toBe(88); 
+      expect(stats.averageScore).toBe(88);
       // gpt-4 appears twice, others once
       expect(stats.mostActiveModel).toBe("gpt-4");
       // 1 match in last week

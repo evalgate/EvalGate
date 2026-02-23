@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getErrorMessage, isError, hasMessage, handleError } from "@/lib/utils/error-handling";
+import { getErrorMessage, handleError, hasMessage, isError } from "@/lib/utils/error-handling";
 
 describe("getErrorMessage", () => {
   // Happy path tests
@@ -193,7 +193,7 @@ describe("handleError", () => {
     expect(handleError(error, "Custom fallback")).toBe("test");
   });
 
-  // Error/invalid input tests  
+  // Error/invalid input tests
   it("should handle null with fallback", () => {
     expect(handleError(null)).toBe("An unknown error occurred");
   });

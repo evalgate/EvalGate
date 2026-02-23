@@ -1,6 +1,6 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
-import { webhookService } from "@/lib/services/webhook.service";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CreateWebhookInput } from "@/lib/services/webhook.service";
+import { webhookService } from "@/lib/services/webhook.service";
 
 // Mock external dependencies
 vi.mock("@/db", () => ({
@@ -47,7 +47,7 @@ vi.mock("@/lib/logger", () => ({
 
 vi.mock("@/lib/security/webhook-secrets", () => ({
   encryptWebhookSecret: vi.fn((secret: string) => `encrypted_${secret}`),
-  decryptWebhookSecret: vi.fn((secret: string) => secret.replace('encrypted_', '')),
+  decryptWebhookSecret: vi.fn((secret: string) => secret.replace("encrypted_", "")),
 }));
 
 describe("Webhook Service", () => {
@@ -63,20 +63,22 @@ describe("Webhook Service", () => {
 
     it("should return webhooks for organization", async () => {
       const mockDb = await import("@/db");
-      
+
       vi.mocked(mockDb.db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValueOnce({
           where: vi.fn().mockReturnValueOnce({
-            orderBy: vi.fn().mockResolvedValueOnce([{
-              id: 1,
-              organizationId: 1,
-              url: "https://example.com/webhook",
-              events: ["evaluation.created"],
-              description: "Test webhook",
-              status: "active",
-              createdAt: "2024-01-01T00:00:00Z",
-              updatedAt: "2024-01-01T00:00:00Z",
-            }]),
+            orderBy: vi.fn().mockResolvedValueOnce([
+              {
+                id: 1,
+                organizationId: 1,
+                url: "https://example.com/webhook",
+                events: ["evaluation.created"],
+                description: "Test webhook",
+                status: "active",
+                createdAt: "2024-01-01T00:00:00Z",
+                updatedAt: "2024-01-01T00:00:00Z",
+              },
+            ]),
           }),
         }),
       } as any);
@@ -96,20 +98,22 @@ describe("Webhook Service", () => {
 
     it("should return webhook when found", async () => {
       const mockDb = await import("@/db");
-      
+
       vi.mocked(mockDb.db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValueOnce({
           where: vi.fn().mockReturnValueOnce({
-            limit: vi.fn().mockResolvedValueOnce([{
-              id: 1,
-              organizationId: 1,
-              url: "https://example.com/webhook",
-              events: ["evaluation.created"],
-              description: "Test webhook",
-              status: "active",
-              createdAt: "2024-01-01T00:00:00Z",
-              updatedAt: "2024-01-01T00:00:00Z",
-            }]),
+            limit: vi.fn().mockResolvedValueOnce([
+              {
+                id: 1,
+                organizationId: 1,
+                url: "https://example.com/webhook",
+                events: ["evaluation.created"],
+                description: "Test webhook",
+                status: "active",
+                createdAt: "2024-01-01T00:00:00Z",
+                updatedAt: "2024-01-01T00:00:00Z",
+              },
+            ]),
           }),
         }),
       } as any);
@@ -124,19 +128,21 @@ describe("Webhook Service", () => {
   describe("create", () => {
     it("should create a webhook successfully", async () => {
       const mockDb = await import("@/db");
-      
+
       vi.mocked(mockDb.db.insert).mockReturnValueOnce({
         values: vi.fn().mockReturnValueOnce({
-          returning: vi.fn().mockResolvedValueOnce([{
-            id: 123,
-            organizationId: 1,
-            url: "https://example.com/webhook",
-            events: ["evaluation.created"],
-            description: "Test webhook",
-            status: "active",
-            createdAt: "2024-01-01T00:00:00Z",
-            updatedAt: "2024-01-01T00:00:00Z",
-          }]),
+          returning: vi.fn().mockResolvedValueOnce([
+            {
+              id: 123,
+              organizationId: 1,
+              url: "https://example.com/webhook",
+              events: ["evaluation.created"],
+              description: "Test webhook",
+              status: "active",
+              createdAt: "2024-01-01T00:00:00Z",
+              updatedAt: "2024-01-01T00:00:00Z",
+            },
+          ]),
         }),
       } as any);
 
@@ -156,19 +162,21 @@ describe("Webhook Service", () => {
 
     it("should create webhook without secret", async () => {
       const mockDb = await import("@/db");
-      
+
       vi.mocked(mockDb.db.insert).mockReturnValueOnce({
         values: vi.fn().mockReturnValueOnce({
-          returning: vi.fn().mockResolvedValueOnce([{
-            id: 124,
-            organizationId: 1,
-            url: "https://example.com/webhook-2",
-            events: ["evaluation.completed"],
-            description: "Test webhook 2",
-            status: "active",
-            createdAt: "2024-01-01T00:00:00Z",
-            updatedAt: "2024-01-01T00:00:00Z",
-          }]),
+          returning: vi.fn().mockResolvedValueOnce([
+            {
+              id: 124,
+              organizationId: 1,
+              url: "https://example.com/webhook-2",
+              events: ["evaluation.completed"],
+              description: "Test webhook 2",
+              status: "active",
+              createdAt: "2024-01-01T00:00:00Z",
+              updatedAt: "2024-01-01T00:00:00Z",
+            },
+          ]),
         }),
       } as any);
 
@@ -187,12 +195,31 @@ describe("Webhook Service", () => {
   describe("delete", () => {
     it("should delete a webhook successfully", async () => {
       const mockDb = await import("@/db");
-      
+
       // Mock getById to return existing webhook
       vi.mocked(mockDb.db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValueOnce({
           where: vi.fn().mockReturnValueOnce({
-            limit: vi.fn().mockResolvedValueOnce([{
+            limit: vi.fn().mockResolvedValueOnce([
+              {
+                id: 1,
+                organizationId: 1,
+                url: "https://example.com/webhook",
+                events: ["evaluation.created"],
+                description: "Test webhook",
+                status: "active",
+                createdAt: "2024-01-01T00:00:00Z",
+                updatedAt: "2024-01-01T00:00:00Z",
+              },
+            ]),
+          }),
+        }),
+      } as any);
+
+      vi.mocked(mockDb.db.delete).mockReturnValueOnce({
+        where: vi.fn().mockReturnValueOnce({
+          returning: vi.fn().mockResolvedValueOnce([
+            {
               id: 1,
               organizationId: 1,
               url: "https://example.com/webhook",
@@ -201,23 +228,8 @@ describe("Webhook Service", () => {
               status: "active",
               createdAt: "2024-01-01T00:00:00Z",
               updatedAt: "2024-01-01T00:00:00Z",
-            }]),
-          }),
-        }),
-      } as any);
-
-      vi.mocked(mockDb.db.delete).mockReturnValueOnce({
-        where: vi.fn().mockReturnValueOnce({
-          returning: vi.fn().mockResolvedValueOnce([{
-            id: 1,
-            organizationId: 1,
-            url: "https://example.com/webhook",
-            events: ["evaluation.created"],
-            description: "Test webhook",
-            status: "active",
-            createdAt: "2024-01-01T00:00:00Z",
-            updatedAt: "2024-01-01T00:00:00Z",
-          }]),
+            },
+          ]),
         }),
       } as any);
 
@@ -228,7 +240,7 @@ describe("Webhook Service", () => {
 
     it("should return false when webhook not found for deletion", async () => {
       const mockDb = await import("@/db");
-      
+
       // Mock getById to return null (webhook not found)
       vi.mocked(mockDb.db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValueOnce({
@@ -246,20 +258,22 @@ describe("Webhook Service", () => {
   describe("trigger", () => {
     it("should trigger webhook successfully", async () => {
       const mockDb = await import("@/db");
-      
+
       // Mock webhook lookup - return array for activeWebhooks
       vi.mocked(mockDb.db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValueOnce({
-          where: vi.fn().mockResolvedValueOnce([{
-            id: 1,
-            organizationId: 1,
-            url: "https://example.com/webhook",
-            events: ["evaluation.created"],
-            description: "Test webhook",
-            status: "active",
-            createdAt: "2024-01-01T00:00:00Z",
-            updatedAt: "2024-01-01T00:00:00Z",
-          }]),
+          where: vi.fn().mockResolvedValueOnce([
+            {
+              id: 1,
+              organizationId: 1,
+              url: "https://example.com/webhook",
+              events: ["evaluation.created"],
+              description: "Test webhook",
+              status: "active",
+              createdAt: "2024-01-01T00:00:00Z",
+              updatedAt: "2024-01-01T00:00:00Z",
+            },
+          ]),
         }),
       } as any);
 
@@ -273,20 +287,22 @@ describe("Webhook Service", () => {
 
     it("should skip webhook when event not subscribed", async () => {
       const mockDb = await import("@/db");
-      
+
       // Mock webhook lookup with different events
       vi.mocked(mockDb.db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValueOnce({
-          where: vi.fn().mockResolvedValueOnce([{
-            id: 1,
-            organizationId: 1,
-            url: "https://example.com/webhook",
-            events: ["evaluation.completed"], // Different event
-            description: "Test webhook",
-            status: "active",
-            createdAt: "2024-01-01T00:00:00Z",
-            updatedAt: "2024-01-01T00:00:00Z",
-          }]),
+          where: vi.fn().mockResolvedValueOnce([
+            {
+              id: 1,
+              organizationId: 1,
+              url: "https://example.com/webhook",
+              events: ["evaluation.completed"], // Different event
+              description: "Test webhook",
+              status: "active",
+              createdAt: "2024-01-01T00:00:00Z",
+              updatedAt: "2024-01-01T00:00:00Z",
+            },
+          ]),
         }),
       } as any);
 
@@ -296,7 +312,7 @@ describe("Webhook Service", () => {
 
     it("should handle no active webhooks", async () => {
       const mockDb = await import("@/db");
-      
+
       // Mock empty webhook lookup
       vi.mocked(mockDb.db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValueOnce({

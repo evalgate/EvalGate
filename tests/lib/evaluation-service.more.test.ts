@@ -69,7 +69,7 @@ vi.mock("@/lib/eval/assertions", () => ({
 
 describe("EvaluationService additional coverage", () => {
   let evaluationService: any;
-  
+
   beforeAll(async () => {
     const mod = await import("@/lib/services/evaluation.service");
     evaluationService = mod.evaluationService;
@@ -140,7 +140,7 @@ describe("EvaluationService additional coverage", () => {
         return builder as any;
       });
 
-      const result = await evaluationService.update(1, 1, { 
+      const result = await evaluationService.update(1, 1, {
         name: "Updated Name",
         description: "New description",
         status: "active",

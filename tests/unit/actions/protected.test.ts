@@ -1,5 +1,5 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
-import { protectedAction, getActionError, getActionData } from "@/lib/actions/protected";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getActionData, getActionError, protectedAction } from "@/lib/actions/protected";
 
 // Mock the dependencies
 vi.mock("@/lib/autumn-server", () => ({
@@ -52,13 +52,11 @@ describe("Protected Action", () => {
       expect(testHandler).toHaveBeenCalledWith(
         { userId: "user123", organizationId: 456 },
         "arg1",
-        "arg2"
+        "arg2",
       );
 
       // Verify authentication was called
-      expect(requireAuthWithOrg).toHaveBeenCalledWith(
-        expect.any(Request)
-      );
+      expect(requireAuthWithOrg).toHaveBeenCalledWith(expect.any(Request));
     });
 
     it("should return error result when authentication fails", async () => {

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  calculateQualityScore,
-  generateShareableLink,
   calculateConsistency,
-  type QualityMetrics,
+  calculateQualityScore,
   type EvaluationStats,
+  generateShareableLink,
+  type QualityMetrics,
 } from "@/lib/ai-quality-score";
 
 describe("calculateQualityScore", () => {
@@ -409,7 +409,7 @@ describe("calculateConsistency", () => {
   });
 
   it("should handle large arrays", () => {
-    const scores = Array.from({ length: 1000 }, (_, i) => 80 + (i % 20 - 10));
+    const scores = Array.from({ length: 1000 }, (_, i) => 80 + ((i % 20) - 10));
     const consistency = calculateConsistency(scores);
     expect(consistency).toBeGreaterThanOrEqual(0);
     expect(consistency).toBeLessThanOrEqual(100);

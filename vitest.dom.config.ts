@@ -1,12 +1,12 @@
 // vitest.dom.config.ts
+
+import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
-import path from "node:path";
 
 const r = (p: string) => path.resolve(__dirname, p);
 
 export default defineConfig({
-  name: "dom",
   plugins: [react()],
   resolve: {
     alias: {
@@ -18,10 +18,7 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["tests/setup.dom.ts"],
-    include: [
-      "tests/components/**/*.test.tsx",
-      "tests/hooks/**/*.test.ts",
-    ],
+    include: ["tests/components/**/*.test.tsx", "tests/hooks/**/*.test.ts"],
     exclude: [
       "**/node_modules/**",
       "**/dist/**",
@@ -58,7 +55,7 @@ export default defineConfig({
       "visual-edits/**",
       "types/**",
       "src/lib/evaluation-templates/**",
-      
+
       // standard excludes
       "**/__tests__/**",
       "**/__mocks__/**",

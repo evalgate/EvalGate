@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { costService } from "@/lib/services/cost.service";
 
 // Mock the database
@@ -43,23 +43,25 @@ describe("Cost Service", () => {
 
     it("should return cost record when found", async () => {
       const mockDb = await import("@/db");
-      
+
       vi.mocked(mockDb.db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValueOnce({
           where: vi.fn().mockReturnValueOnce({
-            limit: vi.fn().mockResolvedValueOnce([{
-              id: 1,
-              spanId: 123,
-              organizationId: 1,
-              provider: "openai",
-              model: "gpt-4",
-              inputTokens: 100,
-              outputTokens: 50,
-              totalCost: 0.015,
-              category: "llm",
-              isRetry: false,
-              createdAt: "2024-01-01T00:00:00Z",
-            }]),
+            limit: vi.fn().mockResolvedValueOnce([
+              {
+                id: 1,
+                spanId: 123,
+                organizationId: 1,
+                provider: "openai",
+                model: "gpt-4",
+                inputTokens: 100,
+                outputTokens: 50,
+                totalCost: 0.015,
+                category: "llm",
+                isRetry: false,
+                createdAt: "2024-01-01T00:00:00Z",
+              },
+            ]),
           }),
         }),
       } as any);
@@ -80,25 +82,27 @@ describe("Cost Service", () => {
 
     it("should return cost records for workflow run", async () => {
       const mockDb = await import("@/db");
-      
+
       vi.mocked(mockDb.db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValueOnce({
           where: vi.fn().mockReturnValueOnce({
             orderBy: vi.fn().mockReturnValueOnce({
-              limit: vi.fn().mockResolvedValueOnce([{
-                id: 1,
-                spanId: 123,
-                workflowRunId: 456,
-                organizationId: 1,
-                provider: "openai",
-                model: "gpt-4",
-                inputTokens: 100,
-                outputTokens: 50,
-                totalCost: 0.015,
-                category: "llm",
-                isRetry: false,
-                createdAt: "2024-01-01T00:00:00Z",
-              }]),
+              limit: vi.fn().mockResolvedValueOnce([
+                {
+                  id: 1,
+                  spanId: 123,
+                  workflowRunId: 456,
+                  organizationId: 1,
+                  provider: "openai",
+                  model: "gpt-4",
+                  inputTokens: 100,
+                  outputTokens: 50,
+                  totalCost: 0.015,
+                  category: "llm",
+                  isRetry: false,
+                  createdAt: "2024-01-01T00:00:00Z",
+                },
+              ]),
             }),
           }),
         }),
@@ -111,7 +115,7 @@ describe("Cost Service", () => {
 
     it("should respect limit parameter", async () => {
       const mockDb = await import("@/db");
-      
+
       vi.mocked(mockDb.db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValueOnce({
           where: vi.fn().mockReturnValueOnce({
@@ -123,7 +127,7 @@ describe("Cost Service", () => {
       } as any);
 
       await costService.listByWorkflowRun(456, 50);
-      
+
       // Verify the mock was called
       expect(mockDb.db.select).toHaveBeenCalled();
     });

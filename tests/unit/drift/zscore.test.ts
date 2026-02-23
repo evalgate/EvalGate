@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { zScore, meanAndStd } from "@/lib/drift/zscore";
+import { meanAndStd, zScore } from "@/lib/drift/zscore";
 
 describe("zScore", () => {
   // Happy path tests
@@ -70,7 +70,7 @@ describe("meanAndStd", () => {
   it("should handle mixed positive and negative values", () => {
     const result = meanAndStd([-2, 0, 2]);
     expect(result.mean).toBe(0);
-    expect(result.std).toBeCloseTo(Math.sqrt(8/3), 5);
+    expect(result.std).toBeCloseTo(Math.sqrt(8 / 3), 5);
   });
 
   // Edge case tests
@@ -83,28 +83,28 @@ describe("meanAndStd", () => {
   it("should handle decimal values", () => {
     const result = meanAndStd([1.5, 2.5, 3.5]);
     expect(result.mean).toBe(2.5);
-    expect(result.std).toBeCloseTo(Math.sqrt(2/3), 5);
+    expect(result.std).toBeCloseTo(Math.sqrt(2 / 3), 5);
   });
 
   it("should handle large numbers", () => {
     const result = meanAndStd([1000, 2000, 3000]);
     expect(result.mean).toBe(2000);
-    expect(result.std).toBeCloseTo(Math.sqrt(2000000/3), 5);
+    expect(result.std).toBeCloseTo(Math.sqrt(2000000 / 3), 5);
   });
 
   it("should handle very small numbers", () => {
     const result = meanAndStd([0.001, 0.002, 0.003]);
     expect(result.mean).toBe(0.002);
-    expect(result.std).toBeCloseTo(Math.sqrt(0.000002/3), 10);
+    expect(result.std).toBeCloseTo(Math.sqrt(0.000002 / 3), 10);
   });
 
   // Mathematical property tests
   it("should satisfy standard deviation properties", () => {
     const values = [1, 2, 3, 4, 5];
     const result = meanAndStd(values);
-    
+
     // All values should be within 3 standard deviations of mean
-    values.forEach(value => {
+    values.forEach((value) => {
       const z = Math.abs(zScore(value, result.mean, result.std));
       expect(z).toBeLessThanOrEqual(3);
     });

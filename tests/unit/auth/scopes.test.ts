@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SCOPES, ALL_SCOPES, scopesForRole } from "@/lib/auth/scopes";
+import { ALL_SCOPES, SCOPES, scopesForRole } from "@/lib/auth/scopes";
 
 // Import Role type - we need to mock this since it's from secure-route
 type Role = "owner" | "admin" | "member" | "viewer";
@@ -94,21 +94,13 @@ describe("scopesForRole", () => {
 
   it("should return read-only scopes for unknown/default role", () => {
     const scopes = scopesForRole("unknown" as Role);
-    expect(scopes).toEqual([
-      SCOPES.EVAL_READ,
-      SCOPES.RUNS_READ,
-      SCOPES.TRACES_READ,
-    ]);
+    expect(scopes).toEqual([SCOPES.EVAL_READ, SCOPES.RUNS_READ, SCOPES.TRACES_READ]);
     expect(scopes).toHaveLength(3);
   });
 
   it("should return read-only scopes for viewer role", () => {
     const scopes = scopesForRole("viewer" as Role);
-    expect(scopes).toEqual([
-      SCOPES.EVAL_READ,
-      SCOPES.RUNS_READ,
-      SCOPES.TRACES_READ,
-    ]);
+    expect(scopes).toEqual([SCOPES.EVAL_READ, SCOPES.RUNS_READ, SCOPES.TRACES_READ]);
     expect(scopes).toHaveLength(3);
   });
 
@@ -116,55 +108,43 @@ describe("scopesForRole", () => {
   it("should maintain role hierarchy - owner superset of admin", () => {
     const ownerScopes = scopesForRole("owner" as Role);
     const adminScopes = scopesForRole("admin" as Role);
-    
+
     // Admin should have all scopes except ADMIN_ORG
-    expect(adminScopes.every(scope => ownerScopes.includes(scope))).toBe(true);
+    expect(adminScopes.every((scope) => ownerScopes.includes(scope))).toBe(true);
     expect(ownerScopes.length).toBeGreaterThan(adminScopes.length);
   });
 
   it("should maintain role hierarchy - admin superset of member", () => {
     const adminScopes = scopesForRole("admin" as Role);
     const memberScopes = scopesForRole("member" as Role);
-    
+
     // Member should have all scopes except ADMIN_KEYS
-    expect(memberScopes.every(scope => adminScopes.includes(scope))).toBe(true);
+    expect(memberScopes.every((scope) => adminScopes.includes(scope))).toBe(true);
     expect(adminScopes.length).toBeGreaterThan(memberScopes.length);
   });
 
   it("should maintain role hierarchy - member superset of viewer", () => {
     const memberScopes = scopesForRole("member" as Role);
     const viewerScopes = scopesForRole("viewer" as Role);
-    
+
     // Viewer should have only read scopes
-    expect(viewerScopes.every(scope => memberScopes.includes(scope))).toBe(true);
+    expect(viewerScopes.every((scope) => memberScopes.includes(scope))).toBe(true);
     expect(memberScopes.length).toBeGreaterThan(viewerScopes.length);
   });
 
   // Error/invalid input tests
   it("should handle empty string role", () => {
     const scopes = scopesForRole("" as Role);
-    expect(scopes).toEqual([
-      SCOPES.EVAL_READ,
-      SCOPES.RUNS_READ,
-      SCOPES.TRACES_READ,
-    ]);
+    expect(scopes).toEqual([SCOPES.EVAL_READ, SCOPES.RUNS_READ, SCOPES.TRACES_READ]);
   });
 
   it("should handle null role (treated as unknown)", () => {
     const scopes = scopesForRole(null as any);
-    expect(scopes).toEqual([
-      SCOPES.EVAL_READ,
-      SCOPES.RUNS_READ,
-      SCOPES.TRACES_READ,
-    ]);
+    expect(scopes).toEqual([SCOPES.EVAL_READ, SCOPES.RUNS_READ, SCOPES.TRACES_READ]);
   });
 
   it("should handle undefined role (treated as unknown)", () => {
     const scopes = scopesForRole(undefined as any);
-    expect(scopes).toEqual([
-      SCOPES.EVAL_READ,
-      SCOPES.RUNS_READ,
-      SCOPES.TRACES_READ,
-    ]);
+    expect(scopes).toEqual([SCOPES.EVAL_READ, SCOPES.RUNS_READ, SCOPES.TRACES_READ]);
   });
 });

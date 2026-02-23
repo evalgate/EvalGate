@@ -10,7 +10,7 @@
  *
  * Uses AST-based scan (ts-morph) to avoid false positives on docs, helpers,
  * and non-error payloads.
- * 
+ *
  * TEMPORARILY DISABLED: TODO - Fix glob pattern for Windows path resolution
  */
 
@@ -73,15 +73,15 @@ describe.skip("API Error Envelope Audit - DISABLED: Fix glob pattern", () => {
 
       // Check for ad-hoc patterns using AST for precision
       const callExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
-      
+
       for (const callExpr of callExpressions) {
         const expression = callExpr.getExpression();
-        
+
         if (expression.getText() === "NextResponse.json") {
           const firstArg = callExpr.getArguments()[0];
           if (firstArg && firstArg.getKind() === SyntaxKind.ObjectLiteralExpression) {
             const objLiteral = firstArg.asKindOrThrow(SyntaxKind.ObjectLiteralExpression);
-            
+
             // Look for error property at top level
             const errorProp = objLiteral.getProperty("error");
             if (errorProp) {
@@ -89,9 +89,9 @@ describe.skip("API Error Envelope Audit - DISABLED: Fix glob pattern", () => {
               const errorInit = errorProp.getFirstChildByKind(SyntaxKind.ObjectLiteralExpression);
               if (!errorInit) {
                 // error is not an object = ad-hoc pattern
-                violations.push({ 
-                  file: routeFile, 
-                  line: callExpr.getStartLineNumber() 
+                violations.push({
+                  file: routeFile,
+                  line: callExpr.getStartLineNumber(),
                 });
               }
             }
