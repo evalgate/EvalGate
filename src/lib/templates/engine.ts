@@ -62,10 +62,11 @@ export class TemplateEngine {
     // Find all {{variable}} occurrences
     const variableRegex = /\{\{([^}]+)\}\}/g;
     const variables: string[] = [];
-    let match;
+    let match = variableRegex.exec(template);
 
-    while ((match = variableRegex.exec(template)) !== null) {
+    while (match !== null) {
       variables.push(match[1].trim());
+      match = variableRegex.exec(template);
     }
 
     // Remove duplicates
@@ -202,10 +203,11 @@ export class TemplateValidator {
   static extractVariables(template: string): string[] {
     const variableRegex = /\{\{([^}]+)\}\}/g;
     const variables: string[] = [];
-    let match;
+    let match = variableRegex.exec(template);
 
-    while ((match = variableRegex.exec(template)) !== null) {
+    while (match !== null) {
       variables.push(match[1].trim());
+      match = variableRegex.exec(template);
     }
 
     return [...new Set(variables)];

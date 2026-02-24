@@ -98,6 +98,7 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 
   return (
     <style
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: legitimate use — injecting CSS variables for dynamic chart theming (shadcn/ui pattern)
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
           .map(

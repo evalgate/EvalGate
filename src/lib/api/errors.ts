@@ -105,7 +105,7 @@ export function validationError(message: string, details?: unknown) {
   return apiError("VALIDATION_ERROR", message, undefined, details);
 }
 
-export function rateLimited(message = "Too munknown requests. Please try again later.") {
+export function rateLimited(message = "Too many requests. Please try again later.") {
   return apiError("RATE_LIMITED", message);
 }
 

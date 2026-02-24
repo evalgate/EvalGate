@@ -127,13 +127,14 @@ export class TemplateInjection {
   static extractAllVariables(template: string): string[] {
     const variables = new Set<string>();
     const regex = /\{\{([^}]+)\}\}/g;
-    let match;
+    let match = regex.exec(template);
 
-    while ((match = regex.exec(template)) !== null) {
+    while (match !== null) {
       const variable = match[1].trim();
       // Handle nested properties (e.g., user.name)
       const parts = variable.split(".");
       variables.add(parts[0]);
+      match = regex.exec(template);
     }
 
     return Array.from(variables);
@@ -145,15 +146,16 @@ export class TemplateInjection {
   static extractRequiredVariables(template: string): string[] {
     const variables = new Set<string>();
     const regex = /\{\{([^}]+)\}\}/g;
-    let match;
+    let match = regex.exec(template);
 
-    while ((match = regex.exec(template)) !== null) {
+    while (match !== null) {
       const variable = match[1].trim();
       // Mark as required if it has no default value
       if (!variable.includes("|") && !variable.includes("?")) {
         const parts = variable.split(".");
         variables.add(parts[0]);
       }
+      match = regex.exec(template);
     }
 
     return Array.from(variables);
@@ -371,9 +373,9 @@ export class TemplateInjection {
   static extractMetadata(template: string): Record<string, unknown> {
     const metadata: Record<string, unknown> = {};
     const metadataRegex = /<!--\s*meta:\s*(.+?)\s*-->/g;
-    let match;
+    let match = metadataRegex.exec(template);
 
-    while ((match = metadataRegex.exec(template)) !== null) {
+    while (match !== null) {
       try {
         const metaContent = match[1].trim();
         if (metaContent.includes(":")) {
@@ -386,6 +388,7 @@ export class TemplateInjection {
       } catch (_error) {
         // Skip invalid metadata
       }
+      match = metadataRegex.exec(template);
     }
 
     return metadata;

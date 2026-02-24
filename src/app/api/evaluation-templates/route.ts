@@ -69,5 +69,9 @@ export const GET = secureRoute(
       return internalError(error instanceof Error ? error.message : undefined);
     }
   },
-  { allowAnonymous: true, rateLimit: "anonymous" },
+  {
+    allowAnonymous: true,
+    rateLimit: "anonymous",
+    cacheControl: "public, max-age=60, stale-while-revalidate=300",
+  },
 );

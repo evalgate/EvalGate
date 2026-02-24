@@ -77,6 +77,8 @@ export type SecureRouteOptions = {
   requiredScopes?: string[];
   /** Minimum organization role required (checked via ROLE_RANK hierarchy). */
   minRole?: Role;
+  /** Cache-Control header value for GET responses (e.g. "public, max-age=60, stale-while-revalidate=300"). */
+  cacheControl?: string;
 };
 
 // ── Role ranking & helpers ──
@@ -159,8 +161,11 @@ export function secureRoute(
     const requestId = extractOrGenerateRequestId(req as unknown as Request);
     const resolvedParams = await props.params;
 
-    const addRequestIdHeader = (res: NextResponse): NextResponse => {
+    const addResponseHeaders = (res: NextResponse): NextResponse => {
       res.headers.set(REQUEST_ID_HEADER, requestId);
+      if (options.cacheControl && req.method === "GET") {
+        res.headers.set("Cache-Control", options.cacheControl);
+      }
       return res;
     };
 
@@ -188,7 +193,7 @@ export function secureRoute(
             durationMs,
             statusCode: (res as Response).status,
           });
-          return addRequestIdHeader(res);
+          return addResponseHeaders(res);
         });
       }
       // Auth header exists — fall through to authed path
@@ -301,7 +306,7 @@ export function secureRoute(
         durationMs,
         statusCode: (res as Response).status,
       });
-      return addRequestIdHeader(res);
+      return addResponseHeaders(res);
     };
     return runWithRequestIdAsync(requestId, runAndAddHeader);
   };

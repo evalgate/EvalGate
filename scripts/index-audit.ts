@@ -75,12 +75,13 @@ function collectIndexedColumns(): Map<string, Set<string>> {
     // Match: CREATE [UNIQUE] INDEX [IF NOT EXISTS] ... ON `table` (`col1`, `col2`, ...)
     const indexRe =
       /CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:IF\s+NOT\s+EXISTS\s+)?\S+\s+ON\s+[`"]?(\w+)[`"]?\s*\(([^)]+)\)/gi;
-    let m: RegExpExecArray | null;
-    while ((m = indexRe.exec(content)) !== null) {
+    let m: RegExpExecArray | null = indexRe.exec(content);
+    while (m !== null) {
       const table = m[1].toLowerCase();
       const cols = m[2].split(",").map((c) => c.trim().replace(/[`"]/g, "").toLowerCase());
       if (!indexed.has(table)) indexed.set(table, new Set());
       for (const col of cols) indexed.get(table)!.add(col);
+      m = indexRe.exec(content);
     }
 
     // Also match inline index definitions in CREATE TABLE (e.g. PRIMARY KEY, UNIQUE)
