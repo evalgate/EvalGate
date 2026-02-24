@@ -52,7 +52,7 @@
         "noTemplateCurlyInString": "off",
         "useIterableCallbackReturn": "off",
         "noImplicitAnyLet": "warn",
-        "noAssignInExpressions": "off"
+        "noAssignInExpressions": "warn"
       },
       "style": {
         "noNonNullAssertion": "off",
@@ -68,7 +68,7 @@
         "noImgElement": "off"
       },
       "security": {
-        "noDangerouslySetInnerHtml": "off"
+        "noDangerouslySetInnerHtml": "warn"
       }
     }
   },
