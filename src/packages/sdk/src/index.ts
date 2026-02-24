@@ -123,6 +123,19 @@ export {
   type PaginatedResponse,
   type PaginationParams,
 } from "./pagination";
+// Regression gate constants & types (v1.6.0)
+export {
+  ARTIFACTS,
+  type Baseline,
+  type BaselineTolerance,
+  GATE_CATEGORY,
+  GATE_EXIT,
+  type GateCategory,
+  type GateExitCode,
+  REPORT_SCHEMA_VERSION,
+  type RegressionDelta,
+  type RegressionReport,
+} from "./regression";
 // Streaming and batch processing (Tier 3.3)
 // Use functions from ./streaming module instead of these deprecated exports
 export { batchProcess, batchRead, RateLimiter, streamEvaluation } from "./streaming";

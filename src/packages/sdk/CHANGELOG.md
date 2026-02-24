@@ -5,6 +5,34 @@ All notable changes to the @pauly4010/evalai-sdk package will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-02-24
+
+### ✨ Added
+
+#### CLI — Regression Gate & Baseline Management
+
+- **`evalai baseline init`** — Create a starter `evals/baseline.json` with sample values and provenance metadata
+- **`evalai baseline update`** — Run confidence tests, golden eval, and latency benchmark, then update baseline with real scores
+- **`evalai gate`** — Run the local regression gate with proper exit code taxonomy (0=pass, 1=regression, 2=infra_error, 3=confidence_failed, 4=confidence_missing)
+- **`evalai gate --format json`** — Output `evals/regression-report.json` as machine-readable JSON to stdout
+- **`evalai gate --format github`** — Output GitHub Step Summary markdown with delta table
+
+#### SDK Exports — Regression Gate Constants & Types
+
+- **`GATE_EXIT`** — Exit code constants (`PASS`, `REGRESSION`, `INFRA_ERROR`, `CONFIDENCE_FAILED`, `CONFIDENCE_MISSING`)
+- **`GATE_CATEGORY`** — Report category constants (`pass`, `regression`, `infra_error`)
+- **`REPORT_SCHEMA_VERSION`** — Current schema version for `regression-report.json`
+- **`ARTIFACTS`** — Well-known artifact paths (`BASELINE`, `REGRESSION_REPORT`, `CONFIDENCE_SUMMARY`, `LATENCY_BENCHMARK`)
+- **Types**: `RegressionReport`, `RegressionDelta`, `Baseline`, `BaselineTolerance`, `GateExitCode`, `GateCategory`
+- **Subpath export**: `@pauly4010/evalai-sdk/regression` for tree-shakeable imports
+
+### 🔧 Changed
+
+- CLI help text updated to include `baseline` and `gate` commands
+- SDK becomes the public contract for regression gate — scripts are implementation detail
+
+---
+
 ## [1.5.8] - 2026-02-22
 
 ### 🐛 Fixed

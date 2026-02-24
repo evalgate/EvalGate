@@ -7,9 +7,11 @@
  *   evalai check  — CI/CD evaluation gate (see evalai check --help)
  */
 
+import { runBaseline } from "./baseline";
 import { parseArgs, runCheck } from "./check";
 import { runDoctor } from "./doctor";
 import { runInit } from "./init";
+import { runGate } from "./regression-gate";
 import { parseShareArgs, runShare } from "./share";
 
 const argv = process.argv.slice(2);
@@ -19,6 +21,12 @@ if (subcommand === "init") {
   const cwd = process.cwd();
   const ok = runInit(cwd);
   process.exit(ok ? 0 : 1);
+} else if (subcommand === "baseline") {
+  const code = runBaseline(argv.slice(1));
+  process.exit(code);
+} else if (subcommand === "gate") {
+  const code = runGate(argv.slice(1));
+  process.exit(code);
 } else if (subcommand === "doctor") {
   runDoctor(argv.slice(1))
     .then((code) => process.exit(code))
@@ -54,10 +62,16 @@ if (subcommand === "init") {
   console.log(`EvalAI CLI
 
 Usage:
-  evalai init              Create evalai.config.json
-  evalai doctor [options]  Verify CI/CD setup (same endpoint as check)
-  evalai check [options]   CI/CD evaluation gate
-  evalai share [options]   Create share link for a run
+  evalai init                Create evalai.config.json
+  evalai baseline init       Create starter evals/baseline.json
+  evalai baseline update     Run tests and update baseline with real scores
+  evalai gate [options]      Run regression gate (local test-based)
+  evalai doctor [options]    Verify CI/CD setup (same endpoint as check)
+  evalai check [options]     CI/CD evaluation gate (API-based)
+  evalai share [options]     Create share link for a run
+
+Options for gate:
+  --format <fmt>      Output format: human (default), json, github
 
 Options for check:
   --evaluationId <id>  Evaluation to gate on (or from config)

@@ -9,7 +9,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.extendExpectWithToPassGate = exports.Logger = exports.openAIChatEval = exports.traceOpenAI = exports.traceAnthropic = exports.runCheck = exports.parseArgs = exports.EXIT = exports.RequestCache = exports.CacheTTL = exports.RequestBatcher = exports.importData = exports.exportData = exports.compareSnapshots = exports.saveSnapshot = exports.compareWithSnapshot = exports.snapshot = exports.TestSuite = exports.createTestSuite = exports.ContextManager = exports.withContext = exports.getContext = exports.createContext = exports.withinRange = exports.similarTo = exports.respondedWithinTime = exports.notContainsPII = exports.matchesSchema = exports.matchesPattern = exports.isValidURL = exports.isValidEmail = exports.hasValidCodeSyntax = exports.hasSentiment = exports.hasReadabilityScore = exports.hasNoToxicity = exports.hasNoHallucinations = exports.hasLength = exports.hasFactualAccuracy = exports.followsInstructions = exports.expect = exports.containsLanguage = exports.containsKeywords = exports.containsJSON = exports.containsAllRequiredFields = exports.NetworkError = exports.ValidationError = exports.AuthenticationError = exports.RateLimitError = exports.EvalAIError = exports.AIEvalClient = void 0;
-exports.WorkflowTracer = exports.traceWorkflowStep = exports.traceLangChainAgent = exports.traceCrewAI = exports.traceAutoGen = exports.createWorkflowTracer = exports.EvaluationTemplates = exports.streamEvaluation = exports.RateLimiter = exports.batchRead = exports.batchProcess = exports.PaginatedIterator = exports.encodeCursor = exports.decodeCursor = exports.createPaginatedIterator = exports.autoPaginate = void 0;
+exports.REPORT_SCHEMA_VERSION = exports.GATE_EXIT = exports.GATE_CATEGORY = exports.ARTIFACTS = exports.WorkflowTracer = exports.traceWorkflowStep = exports.traceLangChainAgent = exports.traceCrewAI = exports.traceAutoGen = exports.createWorkflowTracer = exports.EvaluationTemplates = exports.streamEvaluation = exports.RateLimiter = exports.batchRead = exports.batchProcess = exports.PaginatedIterator = exports.encodeCursor = exports.decodeCursor = exports.createPaginatedIterator = exports.autoPaginate = void 0;
 // Main SDK exports
 var client_1 = require("./client");
 Object.defineProperty(exports, "AIEvalClient", { enumerable: true, get: function () { return client_1.AIEvalClient; } });
@@ -117,6 +117,12 @@ Object.defineProperty(exports, "traceCrewAI", { enumerable: true, get: function 
 Object.defineProperty(exports, "traceLangChainAgent", { enumerable: true, get: function () { return workflows_1.traceLangChainAgent; } });
 Object.defineProperty(exports, "traceWorkflowStep", { enumerable: true, get: function () { return workflows_1.traceWorkflowStep; } });
 Object.defineProperty(exports, "WorkflowTracer", { enumerable: true, get: function () { return workflows_1.WorkflowTracer; } });
+// Regression gate constants & types (v1.6.0)
+var regression_1 = require("./regression");
+Object.defineProperty(exports, "ARTIFACTS", { enumerable: true, get: function () { return regression_1.ARTIFACTS; } });
+Object.defineProperty(exports, "GATE_CATEGORY", { enumerable: true, get: function () { return regression_1.GATE_CATEGORY; } });
+Object.defineProperty(exports, "GATE_EXIT", { enumerable: true, get: function () { return regression_1.GATE_EXIT; } });
+Object.defineProperty(exports, "REPORT_SCHEMA_VERSION", { enumerable: true, get: function () { return regression_1.REPORT_SCHEMA_VERSION; } });
 // Default export for convenience
 const client_2 = require("./client");
 exports.default = client_2.AIEvalClient;

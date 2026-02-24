@@ -1,6 +1,6 @@
 {
   "name": "@pauly4010/evalai-sdk",
-  "version": "1.5.8",
+  "version": "1.6.0",
   "description": "AI Evaluation Platform SDK - Complete API Coverage with Performance Optimizations",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -102,6 +102,11 @@
       "import": "./dist/matchers/index.js",
       "require": "./dist/matchers/index.js",
       "types": "./dist/matchers/index.d.ts"
+    },
+    "./regression": {
+      "import": "./dist/regression.js",
+      "require": "./dist/regression.js",
+      "types": "./dist/regression.d.ts"
     }
   }
 }
