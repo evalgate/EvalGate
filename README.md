@@ -5,88 +5,71 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/pauly7610/ai-evaluation-platform/pulls)
 
-Stop LLM regressions in CI in 5 minutes.
+Stop LLM regressions in CI in 2 minutes.
 
-No infra. No lock-in. Remove it unknowntime.
+No infra. No lock-in. Remove anytime.
 
-## 1) Run a regression test locally (60 seconds)
-
-```bash
-npm install @pauly4010/evalai-sdk openai
-```
-
-```typescript
-import { openAIChatEval } from '@pauly4010/evalai-sdk';
-
-await openAIChatEval({
-  name: 'chat-regression',
-  cases: [
-    { input: 'Hello', expectedOutput: 'greeting' },
-    { input: '2 + 2 = ?', expectedOutput: '4' }
-  ]
-});
-```
-
-That's it.
-
-You'll see: `PASS 2/2 (score: 100)`
-
-No account required. No dashboard required. Just a score.
-
-## 2) Gate regressions in CI (2 more minutes)
+## Quick Start
 
 ```bash
-npx -y @pauly4010/evalai-sdk@^1 init
+npx @pauly4010/evalai-sdk init
+git push
 ```
 
-Then paste your evaluation ID into `evalai.config.json`:
+That's it. `evalai init` detects your Node project, runs your tests to create a baseline, installs a GitHub Actions workflow, and prints what to commit. Open a PR and CI blocks regressions automatically.
 
-```json
-{ "evaluationId": "42" }
-```
+## What happens on a PR?
 
-Now add to CI:
+1. CI runs `npx evalai gate`
+2. Gate runs your tests and compares against the baseline
+3. If tests regress → CI blocks the merge
+4. If tests pass → merge proceeds
+5. A regression report is uploaded as a CI artifact
+
+## Two Paths
+
+### Path A: Local gate (no account, no API key)
 
 ```bash
-npx -y @pauly4010/evalai-sdk@^1 check --format github --onFail import
+npx @pauly4010/evalai-sdk init    # scaffold everything
+npx evalai gate                    # run gate locally
+npx evalai baseline update         # update baseline after intentional changes
 ```
 
-If your score drops below the baseline, CI fails. That's your regression gate.
+Works for any Node.js project with a `test` script.
 
-## What happens when it fails?
+### Path B: Platform gate (dashboard, history, LLM judge)
 
-- Score drops
-- Baseline comparison detects regression
-- `evalai check` exits non-zero
-- CI blocks the merge
+```bash
+npx evalai init                    # creates evalai.config.json
+# paste evaluationId from dashboard
+npx evalai check --format github --onFail import
+```
 
-Simple.
+Adds quality score tracking, baseline comparisons, trace coverage, and PR annotations.
 
-## Golden Path (run locally → gate in CI → fail output)
+## Remove anytime
 
-1. **Run locally (~60 seconds):** Use the snippet above. You get `PASS 2/2 (score: 100)` or a fail with score + baseline compare.
-2. **Gate in CI:** Add `npx -y @pauly4010/evalai-sdk@^1 check --format github --onFail import` to your CI. When the score drops below baseline, CI fails and shows the regression delta.
-3. **Fail output:** `evalai check` exits non-zero, prints the score vs baseline, and with `--onFail import` uploads failing runs to the dashboard for debugging.
+```bash
+rm evalai.config.json evals/ .github/workflows/evalai-gate.yml
+```
 
-See [examples/quickstart-ci](examples/quickstart-ci) for a minimal CI example, [docs/ci/github-actions.md](docs/ci/github-actions.md) for a copy-paste workflow, or [docs/demo.md](docs/demo.md) for before/after screenshots.
-
-## Remove unknowntime
-
-Delete `evalai.config.json`. That's it.
-
-## What You Get (Optional)
-
-If you connect to the hosted platform: quality score history, baseline comparisons, trace coverage, signed reports, human eval, MCP tools. But none of that is required to start.
-
-EvalAI is just a regression gate.
+No account cancellation. No data export. Your tests keep working.
 
 **Live demo:** [https://v0-ai-evaluation-platform-nu.vercel.app](https://v0-ai-evaluation-platform-nu.vercel.app)
 
-**Docs:** [Exporting and Sharing](docs/EXPORTING_AND_SHARING.md) · [Share link privacy](docs/share-links.md) · [API contract](docs/api-contract.md) · [GitHub Actions CI](docs/ci/github-actions.md) · [Observability](docs/observability.md) · [Security](SECURITY.md)
+**Docs:** [Regression Gate](docs/REGRESSION_GATE.md) · [Quickstart](docs/quickstart.md) · [GitHub Actions](docs/ci/github-actions.md) · [API Contract](docs/api-contract.md) · [Observability](docs/observability.md) · [Security](SECURITY.md)
 
 ---
 
 ## Key Features
+
+### Regression Gate
+- **Zero-config scaffolder** — `npx evalai init` detects repo, creates baseline, installs CI workflow
+- **Built-in gate** — works with any `npm test` / `pnpm test` / `yarn test`
+- **Advanced gate** — golden eval scores, confidence tests, p95 latency, cost tracking
+- **GitHub Step Summary** — delta tables, pass/fail icons, artifact upload
+- **Baseline governance** — CODEOWNERS, label gates, anti-cheat guards
 
 ### Evaluation
 - **Four evaluation types:** Unit Tests, Human Evaluation, LLM Judge, A/B Testing
@@ -95,8 +78,9 @@ EvalAI is just a regression gate.
 - **Quality score dashboard** — pass rates, trends, and drill-down into failures
 
 ### Developer Experience
-- **Full TypeScript SDK** — `@pauly4010/evalai-sdk` with `openAIChatEval`, traces, evaluations, LLM judge, webhooks
-- **CLI** — `evalai init` and `evalai check` for CI gates (use `npx -y @pauly4010/evalai-sdk@^1` for pinned CI)
+- **Full TypeScript SDK** — [`@pauly4010/evalai-sdk`](https://www.npmjs.com/package/@pauly4010/evalai-sdk) with CLI, regression gate, traces, evaluations, LLM judge
+- **CLI commands** — `evalai init`, `evalai gate`, `evalai baseline`, `evalai check`, `evalai doctor`, `evalai share`
+- **Programmatic exports** — gate exit codes, categories, report types via `@pauly4010/evalai-sdk/regression`
 - **API keys** — scoped keys for CI/CD and production
 
 ## Local Development

@@ -46,6 +46,9 @@ describe("regression-report.json contract", () => {
       ],
       failures: [] as string[],
       baseline: { updatedAt: "2026-01-01T00:00:00Z", updatedBy: "test" },
+      durationMs: 1234,
+      command: "npm test",
+      runner: "vitest",
     };
   }
 
@@ -103,6 +106,25 @@ describe("regression-report.json contract", () => {
       expect(report.baseline).toHaveProperty("updatedAt");
       expect(report.baseline).toHaveProperty("updatedBy");
     }
+  });
+
+  it("durationMs is a non-negative integer", () => {
+    const report = buildSampleReport();
+    expect(typeof report.durationMs).toBe("number");
+    expect(report.durationMs).toBeGreaterThanOrEqual(0);
+    expect(Number.isInteger(report.durationMs)).toBe(true);
+  });
+
+  it("command is a non-empty string", () => {
+    const report = buildSampleReport();
+    expect(typeof report.command).toBe("string");
+    expect(report.command.length).toBeGreaterThan(0);
+  });
+
+  it("runner is a string", () => {
+    const report = buildSampleReport();
+    expect(typeof report.runner).toBe("string");
+    expect(report.runner.length).toBeGreaterThan(0);
   });
 
   it("regression category has exitCode 1", () => {

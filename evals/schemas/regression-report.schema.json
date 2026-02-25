@@ -68,6 +68,19 @@
           }
         }
       ]
+    },
+    "durationMs": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Wall-clock duration of the gate run in milliseconds"
+    },
+    "command": {
+      "type": "string",
+      "description": "The shell command used to run tests (e.g. 'npm test')"
+    },
+    "runner": {
+      "type": "string",
+      "description": "Detected test runner (vitest, jest, mocha, node:test, unknown)"
     }
   },
   "additionalProperties": false

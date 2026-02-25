@@ -71,9 +71,36 @@ function parseGateArgs(argv) {
     }
     return args;
 }
+function detectRunner(cwd) {
+    const pkgPath = path.join(cwd, "package.json");
+    try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+        const testCmd = pkg.scripts?.test ?? "";
+        if (testCmd.includes("vitest"))
+            return "vitest";
+        if (testCmd.includes("jest"))
+            return "jest";
+        if (testCmd.includes("mocha"))
+            return "mocha";
+        if (testCmd.includes("node --test"))
+            return "node:test";
+        if (testCmd.includes("ava"))
+            return "ava";
+        if (testCmd.includes("tap"))
+            return "tap";
+    }
+    catch {
+        // ignore
+    }
+    return "unknown";
+}
 function runBuiltinGate(cwd) {
+    const t0 = Date.now();
     const baselinePath = path.join(cwd, BASELINE_REL);
     const now = new Date().toISOString();
+    const pm = detectPackageManager(cwd);
+    const command = `${pm} test`;
+    const runner = detectRunner(cwd);
     // Load baseline
     if (!fs.existsSync(baselinePath)) {
         return {
@@ -84,11 +111,15 @@ function runBuiltinGate(cwd) {
             passed: false,
             failures: ["Baseline file not found. Run: npx evalai init"],
             deltas: [],
+            baseline: null,
+            durationMs: Date.now() - t0,
+            command,
+            runner,
         };
     }
-    let baseline;
+    let baselineData;
     try {
-        baseline = JSON.parse(fs.readFileSync(baselinePath, "utf-8"));
+        baselineData = JSON.parse(fs.readFileSync(baselinePath, "utf-8"));
     }
     catch {
         return {
@@ -99,10 +130,16 @@ function runBuiltinGate(cwd) {
             passed: false,
             failures: ["Failed to parse evals/baseline.json"],
             deltas: [],
+            baseline: null,
+            durationMs: Date.now() - t0,
+            command,
+            runner,
         };
     }
+    const baselineMeta = baselineData.updatedAt
+        ? { updatedAt: baselineData.updatedAt, updatedBy: baselineData.updatedBy ?? "unknown" }
+        : null;
     // Run tests
-    const pm = detectPackageManager(cwd);
     const isWin = process.platform === "win32";
     const result = (0, node_child_process_1.spawnSync)(pm, ["test"], {
         cwd,
@@ -114,15 +151,15 @@ function runBuiltinGate(cwd) {
     const output = (result.stdout?.toString() ?? "") + (result.stderr?.toString() ?? "");
     // Try to extract test count
     let testCount = 0;
-    const countMatch = output.match(/(\d+)\s+(?:tests?|specs?)\s+(?:passed|completed)/i)
-        ?? output.match(/Tests:\s+(\d+)\s+passed/i)
-        ?? output.match(/(\d+)\s+passing/i)
-        ?? output.match(/Test Files\s+\d+\s+passed.*\n\s+Tests\s+(\d+)\s+passed/i);
+    const countMatch = output.match(/(\d+)\s+(?:tests?|specs?)\s+(?:passed|completed)/i) ??
+        output.match(/Tests:\s+(\d+)\s+passed/i) ??
+        output.match(/(\d+)\s+passing/i) ??
+        output.match(/Test Files\s+\d+\s+passed.*\n\s+Tests\s+(\d+)\s+passed/i);
     if (countMatch)
         testCount = parseInt(countMatch[1], 10);
     // Compare against baseline
-    const baselinePassed = baseline.confidenceTests?.passed ?? true;
-    const baselineTotal = baseline.confidenceTests?.total ?? 0;
+    const baselinePassed = baselineData.confidenceTests?.passed ?? true;
+    const baselineTotal = baselineData.confidenceTests?.total ?? 0;
     const failures = [];
     const deltas = [];
     // Delta: tests passing
@@ -159,6 +196,10 @@ function runBuiltinGate(cwd) {
         passed: !hasRegression,
         failures,
         deltas,
+        baseline: baselineMeta,
+        durationMs: Date.now() - t0,
+        command,
+        runner,
     };
 }
 // ── Format helpers ──

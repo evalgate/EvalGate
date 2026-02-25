@@ -112,9 +112,9 @@ function createBaseline(cwd, project) {
         testsPassed = result.status === 0;
         // Try to extract test count from output
         const output = (result.stdout?.toString() ?? "") + (result.stderr?.toString() ?? "");
-        const countMatch = output.match(/(\d+)\s+(?:tests?|specs?)\s+(?:passed|completed)/i)
-            ?? output.match(/Tests:\s+(\d+)\s+passed/i)
-            ?? output.match(/(\d+)\s+passing/i);
+        const countMatch = output.match(/(\d+)\s+(?:tests?|specs?)\s+(?:passed|completed)/i) ??
+            output.match(/Tests:\s+(\d+)\s+passed/i) ??
+            output.match(/(\d+)\s+passing/i);
         if (countMatch)
             testTotal = parseInt(countMatch[1], 10);
     }

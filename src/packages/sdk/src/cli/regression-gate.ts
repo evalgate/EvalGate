@@ -57,11 +57,36 @@ interface BuiltinReport {
     delta: string;
     status: "pass" | "fail";
   }>;
+  baseline: { updatedAt: string; updatedBy: string } | null;
+  durationMs: number;
+  command: string;
+  runner: string;
+}
+
+function detectRunner(cwd: string): string {
+  const pkgPath = path.join(cwd, "package.json");
+  try {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+    const testCmd: string = pkg.scripts?.test ?? "";
+    if (testCmd.includes("vitest")) return "vitest";
+    if (testCmd.includes("jest")) return "jest";
+    if (testCmd.includes("mocha")) return "mocha";
+    if (testCmd.includes("node --test")) return "node:test";
+    if (testCmd.includes("ava")) return "ava";
+    if (testCmd.includes("tap")) return "tap";
+  } catch {
+    // ignore
+  }
+  return "unknown";
 }
 
 function runBuiltinGate(cwd: string): BuiltinReport {
+  const t0 = Date.now();
   const baselinePath = path.join(cwd, BASELINE_REL);
   const now = new Date().toISOString();
+  const pm = detectPackageManager(cwd);
+  const command = `${pm} test`;
+  const runner = detectRunner(cwd);
 
   // Load baseline
   if (!fs.existsSync(baselinePath)) {
@@ -73,14 +98,20 @@ function runBuiltinGate(cwd: string): BuiltinReport {
       passed: false,
       failures: ["Baseline file not found. Run: npx evalai init"],
       deltas: [],
+      baseline: null,
+      durationMs: Date.now() - t0,
+      command,
+      runner,
     };
   }
 
-  let baseline: {
+  let baselineData: {
     confidenceTests?: { passed?: boolean; total?: number };
+    updatedAt?: string;
+    updatedBy?: string;
   };
   try {
-    baseline = JSON.parse(fs.readFileSync(baselinePath, "utf-8"));
+    baselineData = JSON.parse(fs.readFileSync(baselinePath, "utf-8"));
   } catch {
     return {
       schemaVersion: 1,
@@ -90,11 +121,18 @@ function runBuiltinGate(cwd: string): BuiltinReport {
       passed: false,
       failures: ["Failed to parse evals/baseline.json"],
       deltas: [],
+      baseline: null,
+      durationMs: Date.now() - t0,
+      command,
+      runner,
     };
   }
 
+  const baselineMeta = baselineData.updatedAt
+    ? { updatedAt: baselineData.updatedAt, updatedBy: baselineData.updatedBy ?? "unknown" }
+    : null;
+
   // Run tests
-  const pm = detectPackageManager(cwd);
   const isWin = process.platform === "win32";
   const result = spawnSync(pm, ["test"], {
     cwd,
@@ -116,8 +154,8 @@ function runBuiltinGate(cwd: string): BuiltinReport {
   if (countMatch) testCount = parseInt(countMatch[1], 10);
 
   // Compare against baseline
-  const baselinePassed = baseline.confidenceTests?.passed ?? true;
-  const baselineTotal = baseline.confidenceTests?.total ?? 0;
+  const baselinePassed = baselineData.confidenceTests?.passed ?? true;
+  const baselineTotal = baselineData.confidenceTests?.total ?? 0;
 
   const failures: string[] = [];
   const deltas: BuiltinReport["deltas"] = [];
@@ -161,6 +199,10 @@ function runBuiltinGate(cwd: string): BuiltinReport {
     passed: !hasRegression,
     failures,
     deltas,
+    baseline: baselineMeta,
+    durationMs: Date.now() - t0,
+    command,
+    runner,
   };
 }
 

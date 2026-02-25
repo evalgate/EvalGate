@@ -1,22 +1,107 @@
 # @pauly4010/evalai-sdk
 
-[![npm version](https://img.shields.io/npm/v/@pauly4010/evalai-sdk.svg)](https://www.npmjs.com/package/@pauly4010/evalai-sdk)  
+[![npm version](https://img.shields.io/npm/v/@pauly4010/evalai-sdk.svg)](https://www.npmjs.com/package/@pauly4010/evalai-sdk)
 [![npm downloads](https://img.shields.io/npm/dm/@pauly4010/evalai-sdk.svg)](https://www.npmjs.com/package/@pauly4010/evalai-sdk)
 
 **Stop LLM regressions in CI in minutes.**
 
-Evaluate locally in 60 seconds. Add an optional CI gate in 2 minutes.  
-No lock-in — remove by deleting `evalai.config.json`.
+Zero to gate in under 5 minutes. No infra. No lock-in. Remove anytime.
 
 ---
 
-# 🚀 1) 60 seconds: Run locally (no account)
+## Quick Start (2 minutes)
 
-Install, run, get a score.  
-No EvalAI account. No API key. No dashboard required.
+```bash
+npx @pauly4010/evalai-sdk init
+git add evals/ .github/workflows/evalai-gate.yml evalai.config.json
+git commit -m "chore: add EvalAI regression gate"
+git push
+```
+
+That's it. Open a PR and CI blocks regressions automatically.
+
+`evalai init` detects your project, creates a baseline from your current tests, and installs a GitHub Actions workflow. No manual config needed.
+
+---
+
+## What `evalai init` does
+
+1. **Detects** your Node repo and package manager (npm/yarn/pnpm)
+2. **Runs your tests** to capture a real baseline (pass/fail + test count)
+3. **Creates `evals/baseline.json`** with provenance metadata
+4. **Installs `.github/workflows/evalai-gate.yml`** (package-manager aware)
+5. **Creates `evalai.config.json`**
+6. **Prints next steps** — just commit and push
+
+---
+
+## CLI Commands
+
+### Regression Gate (local, no account needed)
+
+| Command | Description |
+|---------|-------------|
+| `npx evalai init` | Full project scaffolder — creates everything you need |
+| `npx evalai gate` | Run regression gate locally |
+| `npx evalai gate --format json` | Machine-readable JSON output |
+| `npx evalai gate --format github` | GitHub Step Summary with delta table |
+| `npx evalai baseline init` | Create starter `evals/baseline.json` |
+| `npx evalai baseline update` | Re-run tests and update baseline with real scores |
+
+### API Gate (requires account)
+
+| Command | Description |
+|---------|-------------|
+| `npx evalai check` | Gate on quality score from dashboard |
+| `npx evalai doctor` | Verify CI/CD setup |
+| `npx evalai share` | Create share link for a run |
+
+### Gate Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Pass — no regression |
+| 1 | Regression detected |
+| 2 | Infra error (baseline missing, tests crashed) |
+
+### Check Exit Codes (API mode)
+
+| Code | Meaning |
+|------|---------|
+| 0 | Pass |
+| 1 | Score below threshold |
+| 2 | Regression failure |
+| 3 | Policy violation |
+| 4 | API error |
+| 5 | Bad arguments |
+| 6 | Low test count |
+| 7 | Weak evidence |
+| 8 | Warn (soft regression) |
+
+---
+
+## How the Gate Works
+
+**Built-in mode** (any Node project, no config needed):
+- Runs `<pm> test`, captures exit code + test count
+- Compares against `evals/baseline.json`
+- Writes `evals/regression-report.json`
+- Fails CI if tests regress
+
+**Project mode** (advanced, for full regression gate):
+- If `eval:regression-gate` script exists in `package.json`, delegates to it
+- Supports golden eval scores, confidence tests, p95 latency, cost tracking
+- Full delta table with tolerances
+
+---
+
+## Run a Regression Test Locally (no account)
 
 ```bash
 npm install @pauly4010/evalai-sdk openai
+```
+
+```typescript
 import { openAIChatEval } from "@pauly4010/evalai-sdk";
 
 await openAIChatEval({
@@ -26,14 +111,14 @@ await openAIChatEval({
     { input: "2 + 2 = ?", expectedOutput: "4" },
   ],
 });
-Set:
+```
 
-OPENAI_API_KEY=...
-✅ Vitest integration (recommended)
-import {
-  openAIChatEval,
-  extendExpectWithToPassGate,
-} from "@pauly4010/evalai-sdk";
+Output: `PASS 2/2 (score: 100)`. No account needed. Just a score.
+
+### Vitest Integration
+
+```typescript
+import { openAIChatEval, extendExpectWithToPassGate } from "@pauly4010/evalai-sdk";
 import { expect } from "vitest";
 
 extendExpectWithToPassGate(expect);
@@ -46,278 +131,111 @@ it("passes gate", async () => {
       { input: "2 + 2 = ?", expectedOutput: "4" },
     ],
   });
-
   expect(result).toPassGate();
 });
-Example output
-PASS 2/2 (score: 100)
+```
 
-Tip: Want dashboards and history?
-Set EVALAI_API_KEY and connect this to the platform.
-Failures show:
+---
 
-FAIL 9/10 (score: 90)
-with failed cases and CI guidance.
+## SDK Exports
 
-⚡ 2) Optional: Add a CI gate (2 minutes)
-When you're ready to gate PRs on quality and regressions:
+### Regression Gate Constants
 
-npx -y @pauly4010/evalai-sdk@^1 init
-Create an evaluation in the dashboard and paste its ID into:
+```typescript
+import {
+  GATE_EXIT,           // { PASS: 0, REGRESSION: 1, INFRA_ERROR: 2, ... }
+  GATE_CATEGORY,       // { PASS: "pass", REGRESSION: "regression", INFRA_ERROR: "infra_error" }
+  REPORT_SCHEMA_VERSION,
+  ARTIFACTS,           // { BASELINE, REGRESSION_REPORT, CONFIDENCE_SUMMARY, LATENCY_BENCHMARK }
+} from "@pauly4010/evalai-sdk";
 
-{
-  "evaluationId": "42"
-}
-Add to your CI:
+// Or tree-shakeable:
+import { GATE_EXIT } from "@pauly4010/evalai-sdk/regression";
+```
 
-- name: EvalAI gate
-  env:
-    EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
-  run: npx -y @pauly4010/evalai-sdk@^1 check --format github --onFail import --warnDrop 1
-You’ll get:
+### Types
 
-GitHub annotations
+```typescript
+import type {
+  RegressionReport,
+  RegressionDelta,
+  Baseline,
+  BaselineTolerance,
+  GateExitCode,
+  GateCategory,
+} from "@pauly4010/evalai-sdk/regression";
+```
 
-Step summary
+### Platform Client
 
-Optional dashboard link
-
-PASS / WARN / FAIL (v1.5.7)
-EvalAI introduces a WARN band so teams can see meaningful regressions without always blocking merges.
-
-Behavior
-
-PASS → within thresholds
-
-WARN → regression > warnDrop but < maxDrop
-
-FAIL → regression > maxDrop
-
-Key flags
-
---warnDrop → soft regression warning
-
---maxDrop → hard regression fail
-
---fail-on-flake → fail if unknown test is unstable
-
-This lets teams tune signal vs noise in CI.
-
-🔒 3) No lock-in
-To stop using EvalAI:
-
-rm evalai.config.json
-Your local openAIChatEval runs continue to work exactly the same.
-
-No account cancellation. No data export required.
-
-📦 Installation
-npm install @pauly4010/evalai-sdk openai
-# or
-yarn add @pauly4010/evalai-sdk openai
-# or
-pnpm add @pauly4010/evalai-sdk openai
-🖥️ Environment Support
-This SDK works in both Node.js and browsers, with some Node-only features.
-
-✅ Works Everywhere (Node.js + Browser)
-Traces API
-
-Evaluations API
-
-LLM Judge API
-
-Annotations API
-
-Developer API (API Keys, Webhooks, Usage)
-
-Organizations API
-
-Assertions Library
-
-Test Suites
-
-Error Handling
-
-CJS/ESM Compatibility
-
-🟡 Node.js Only
-These require Node.js:
-
-Snapshot Testing
-
-Local Storage Mode
-
-CLI Tool
-
-Export to File
-
-🔄 Context Propagation
-Node.js: full async context via AsyncLocalStorage
-
-Browser: basic support (not safe across all async boundaries)
-
-🧠 AIEvalClient (Platform API)
+```typescript
 import { AIEvalClient } from "@pauly4010/evalai-sdk";
 
-// From env
-const client = AIEvalClient.init();
+const client = AIEvalClient.init(); // from EVALAI_API_KEY env
+// or
+const client = new AIEvalClient({ apiKey: "...", organizationId: 123 });
+```
 
-// Explicit
-const client2 = new AIEvalClient({
-  apiKey: "your-api-key",
-  organizationId: 123,
-  debug: true,
-});
-🧪 evalai CLI (v1.5.7)
-The CLI gates deployments on quality, regression, and policy.
+### Framework Integrations
 
-Quick start
-npx -y @pauly4010/evalai-sdk@^1 check \
-  --evaluationId 42 \
-  --apiKey $EVALAI_API_KEY
-evalai check
-Option	Description
---evaluationId <id>	Required. Evaluation to gate on
---apiKey <key>	API key (or EVALAI_API_KEY)
---format <fmt>	human, json, or github
---onFail import	Import failing run to dashboard
---explain	Show score breakdown
---minScore <n>	Fail if score < n
---warnDrop <n>	Warn if regression exceeds n
---maxDrop <n>	Fail if regression exceeds n
---minN <n>	Fail if test count < n
---allowWeakEvidence	Permit weak evidence
---policy <name>	HIPAA, SOC2, GDPR, PCI_DSS, FINRA_4511
---baseline <mode>	published, previous, production
---fail-on-flake	Fail if unknown case is flaky
---baseUrl <url>	Override API base URL
-
-Exit codes
-Code	Meaning
-0	PASS
-8	WARN
-1	Score below threshold
-2	Regression failure
-3	Policy violation
-4	API error
-5	Bad arguments
-6	Low test count
-7	Weak evidence
-evalai doctor
-Verify CI setup before running the gate:
-
-npx -y @pauly4010/evalai-sdk@^1 doctor \
-  --evaluationId 42 \
-  --apiKey $EVALAI_API_KEY
-If doctor passes, check will work.
-
-🧯 Error Handling
-import { EvalAIError, RateLimitError } from "@pauly4010/evalai-sdk";
-
-try {
-  await client.traces.create({ name: "User Query" });
-} catch (err) {
-  if (err instanceof RateLimitError) {
-    console.log("Retry after:", err.retryAfter);
-  } else if (err instanceof EvalAIError) {
-    console.log(err.code, err.message, err.requestId);
-  }
-}
-
-
-🔍 Traces
-const trace = await client.traces.create({
-  name: "User Query",
-  traceId: "trace-123",
-  metadata: { userId: "456" },
-});
-
-
-📝 Evaluations
-import { EvaluationTemplates } from "@pauly4010/evalai-sdk";
-
-const evaluation = await client.evaluations.create({
-  name: "Chatbot Responses",
-  type: EvaluationTemplates.OUTPUT_QUALITY,
-  createdBy: userId,
-});
-
-
-🔌 Framework Integrations
+```typescript
 import { traceOpenAI } from "@pauly4010/evalai-sdk/integrations/openai";
-import OpenAI from "openai";
+import { traceAnthropic } from "@pauly4010/evalai-sdk/integrations/anthropic";
+```
 
-const openai = traceOpenAI(new OpenAI(), client);
+---
 
-await openai.chat.completions.create({
-  model: "gpt-4",
-  messages: [{ role: "user", content: "Hello" }],
-});
+## Installation
 
+```bash
+npm install @pauly4010/evalai-sdk
+# or
+yarn add @pauly4010/evalai-sdk
+# or
+pnpm add @pauly4010/evalai-sdk
+```
 
-🧭 Changelog
-v1.5.8 (Latest)
-Fixed secureRoute TypeScript overload compatibility
+Add `openai` as a peer dependency if using `openAIChatEval`:
 
-Fixed test infrastructure (expect.any, NextRequest constructor)
+```bash
+npm install openai
+```
 
-Fixed 304 response handling in exports API
+## Environment Support
 
-Improved error catalog test coverage
+| Feature | Node.js | Browser |
+|---------|---------|---------|
+| Platform APIs (Traces, Evaluations, LLM Judge) | ✅ | ✅ |
+| Assertions, Test Suites, Error Handling | ✅ | ✅ |
+| CJS/ESM | ✅ | ✅ |
+| CLI, Snapshots, File Export | ✅ | — |
+| Context Propagation | ✅ Full | ⚠️ Basic |
 
-v1.5.7
-Documentation updates for CJS compatibility
+## No Lock-in
 
-Version alignment across README and changelog
+```bash
+rm evalai.config.json
+```
 
-Environment support section updated
+Your local `openAIChatEval` runs continue to work. No account cancellation. No data export required.
 
-v1.5.6
-PASS/WARN/FAIL gate semantics
+## Changelog
 
---warnDrop soft regression band
+See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
-Flake intelligence + per-case pass rates
+**v1.6.0** — `evalai init` scaffolder, `evalai gate`, `evalai baseline`, regression gate constants & types
 
---fail-on-flake enforcement
+**v1.5.8** — secureRoute fix, test infra fixes, 304 handling fix
 
-Golden regression suite
+**v1.5.5** — PASS/WARN/FAIL semantics, flake intelligence, golden regression suite
 
-Nightly determinism + performance audits
+**v1.5.0** — GitHub annotations, `--onFail import`, `evalai doctor`
 
-Audit trail, observability, retention, and migration safety docs
+## License
 
-CJS compatibility for all subpath exports
-
-v1.5.0
-GitHub annotations formatter
-
-JSON formatter
-
---onFail import
-
---explain
-
-evalai doctor
-
-CI pinned invocation guidance
-
-
-Environment Variable Safety
-
-The SDK never assumes `process.env` exists. All environment reads are guarded, so the client can initialize safely in browser, edge, and server runtimes.
-
-If environment variables are unavailable, the SDK falls back to explicit config.
-
-
-📄 License
 MIT
 
-🤝 Support
-Documentation:
-https://v0-ai-evaluation-platform-nu.vercel.app/documentation
+## Support
 
-Issues:
-https://github.com/pauly7610/ai-evaluation-platform/issues
-```
+- **Docs:** https://v0-ai-evaluation-platform-nu.vercel.app/documentation
+- **Issues:** https://github.com/pauly7610/ai-evaluation-platform/issues

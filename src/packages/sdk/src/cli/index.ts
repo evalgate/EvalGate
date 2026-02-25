@@ -13,6 +13,7 @@ import { runDoctor } from "./doctor";
 import { runInit } from "./init";
 import { runGate } from "./regression-gate";
 import { parseShareArgs, runShare } from "./share";
+import { runUpgrade } from "./upgrade";
 
 const argv = process.argv.slice(2);
 const subcommand = argv[0];
@@ -26,6 +27,9 @@ if (subcommand === "init") {
   process.exit(code);
 } else if (subcommand === "gate") {
   const code = runGate(argv.slice(1));
+  process.exit(code);
+} else if (subcommand === "upgrade") {
+  const code = runUpgrade(argv.slice(1));
   process.exit(code);
 } else if (subcommand === "doctor") {
   runDoctor(argv.slice(1))
@@ -66,6 +70,7 @@ Usage:
   evalai baseline init       Create starter evals/baseline.json
   evalai baseline update     Run tests and update baseline with real scores
   evalai gate [options]      Run regression gate (local test-based)
+  evalai upgrade --full      Upgrade from Tier 1 to Tier 2 (full gate)
   evalai doctor [options]    Verify CI/CD setup (same endpoint as check)
   evalai check [options]     CI/CD evaluation gate (API-based)
   evalai share [options]     Create share link for a run
