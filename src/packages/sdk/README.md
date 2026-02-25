@@ -47,6 +47,7 @@ That's it. Open a PR and CI blocks regressions automatically.
 | `npx evalai gate --format github` | GitHub Step Summary with delta table |
 | `npx evalai baseline init` | Create starter `evals/baseline.json` |
 | `npx evalai baseline update` | Re-run tests and update baseline with real scores |
+| `npx evalai upgrade --full` | Upgrade from Tier 1 (built-in) to Tier 2 (full gate) |
 
 ### API Gate (requires account)
 
@@ -223,7 +224,9 @@ Your local `openAIChatEval` runs continue to work. No account cancellation. No d
 
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
-**v1.6.0** — `evalai init` scaffolder, `evalai gate`, `evalai baseline`, regression gate constants & types
+**v1.7.0** — `evalai init` scaffolder, `evalai upgrade --full`, `detectRunner()`, machine-readable gate output, init test matrix
+
+**v1.6.0** — `evalai gate`, `evalai baseline`, regression gate constants & types
 
 **v1.5.8** — secureRoute fix, test infra fixes, 304 handling fix
 

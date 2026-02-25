@@ -56,9 +56,14 @@ evalai.config.json             ← SDK config (baseline + report paths)
   "category": "pass | regression | infra_error",
   "deltas": [{ "metric": "...", "baseline": 100, "current": 100, "delta": "+0", "status": "pass" }],
   "failures": [],
-  "baseline": { "updatedAt": "...", "updatedBy": "..." }
+  "baseline": { "updatedAt": "...", "updatedBy": "..." },
+  "durationMs": 1234,
+  "command": "pnpm test",
+  "runner": "vitest"
 }
 ```
+
+> **v1.7.0**: `durationMs`, `command`, and `runner` are always emitted by the built-in gate. `runner` is auto-detected from your `package.json` test script (vitest, jest, mocha, node:test, ava, tap, or unknown).
 
 ## Commands
 
@@ -72,6 +77,7 @@ evalai.config.json             ← SDK config (baseline + report paths)
 | `npx evalai gate --format github` | GitHub Step Summary markdown |
 | `npx evalai baseline init` | Create starter `evals/baseline.json` |
 | `npx evalai baseline update` | Re-run tests and update baseline |
+| `npx evalai upgrade --full` | Upgrade from Tier 1 (built-in) to Tier 2 (full gate) |
 
 ### Platform npm scripts (this repo)
 

@@ -79,7 +79,7 @@ No account cancellation. No data export. Your tests keep working.
 
 ### Developer Experience
 - **Full TypeScript SDK** — [`@pauly4010/evalai-sdk`](https://www.npmjs.com/package/@pauly4010/evalai-sdk) with CLI, regression gate, traces, evaluations, LLM judge
-- **CLI commands** — `evalai init`, `evalai gate`, `evalai baseline`, `evalai check`, `evalai doctor`, `evalai share`
+- **CLI commands** — `evalai init`, `evalai gate`, `evalai baseline`, `evalai upgrade`, `evalai check`, `evalai doctor`, `evalai share`
 - **Programmatic exports** — gate exit codes, categories, report types via `@pauly4010/evalai-sdk/regression`
 - **API keys** — scoped keys for CI/CD and production
 

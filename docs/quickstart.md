@@ -2,7 +2,62 @@
 
 Get from zero to a gated evaluation run in CI in under 5 minutes.
 
-## Step 1: Run a regression test locally (no account)
+## Step 1: Init (30 seconds)
+
+```bash
+npx @pauly4010/evalai-sdk init
+```
+
+This detects your Node project, runs your tests to create a baseline, installs a GitHub Actions workflow, and creates `evalai.config.json`. No manual config needed.
+
+## Step 2: Commit and Push
+
+```bash
+git add evals/ .github/workflows/evalai-gate.yml evalai.config.json
+git commit -m "chore: add EvalAI regression gate"
+git push
+```
+
+Open a PR and CI blocks regressions automatically.
+
+## Step 3: Run the gate locally (optional)
+
+```bash
+npx evalai gate                    # run gate locally
+npx evalai gate --format json       # machine-readable output
+npx evalai baseline update          # update baseline after intentional changes
+```
+
+## Step 4: Upgrade to Tier 2 (optional)
+
+For full metric comparison (golden eval, confidence, latency, cost):
+
+```bash
+npx evalai upgrade --full
+```
+
+This creates `scripts/regression-gate.ts`, adds npm scripts, installs baseline governance, and upgrades the CI workflow to project mode.
+
+## Step 5: Connect to Platform (optional)
+
+For dashboard, history, and LLM judge:
+
+1. Create an evaluation in the [dashboard](https://v0-ai-evaluation-platform-nu.vercel.app)
+2. Paste its ID into `evalai.config.json`:
+   ```json
+   { "evaluationId": "42" }
+   ```
+3. Add to your CI workflow:
+   ```yaml
+   - name: EvalAI gate
+     env:
+       EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
+     run: npx -y @pauly4010/evalai-sdk@^1 check --format github --onFail import
+   ```
+
+`--format github` gives annotations + step summary; `--onFail import` uploads failing runs to the dashboard for debugging.
+
+## Run a standalone eval (no CI, no account)
 
 ```bash
 npm install @pauly4010/evalai-sdk openai
@@ -21,54 +76,6 @@ await openAIChatEval({
 ```
 
 You'll see: `PASS 2/2 (score: 100)`. No account required. Just a score.
-
-## Step 2: Connect to CI
-
-Create a config file:
-
-```bash
-npx -y @pauly4010/evalai-sdk@^1 init
-```
-
-Create an evaluation in the [dashboard](https://v0-ai-evaluation-platform-nu.vercel.app), then paste its ID into `evalai.config.json`:
-
-```json
-{ "evaluationId": "42" }
-```
-
-## Step 3: Gate CI
-
-Add to your CI workflow:
-
-```yaml
-- name: EvalAI gate
-  env:
-    EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
-  run: npx -y @pauly4010/evalai-sdk@^1 check --format github --onFail import
-```
-
-If your score drops below the baseline, CI fails. That's your regression gate. `--format github` gives annotations + step summary; `--onFail import` uploads failing runs to the dashboard for debugging.
-
-## Step 4 (optional): Local Regression Gate in 3 Steps
-
-For projects that want a **self-contained** regression gate without an API key:
-
-### 1. Init baseline
-```bash
-pnpm eval:baseline-init
-```
-Creates `evals/baseline.json` with sample values. Commit this file.
-
-### 2. Add workflow
-Copy `.github/workflows/evalai.yml` to your repo (or use it as a reference).
-
-### 3. Open a PR and see the gate
-The regression gate runs automatically. It compares golden eval scores, confidence test counts, and product metrics against the baseline and fails if regression exceeds tolerance.
-
-To update baseline with live scores:
-```bash
-pnpm eval:baseline-update
-```
 
 ## Complete GitHub Actions Workflow (copy-paste)
 
@@ -115,14 +122,21 @@ Delete `evalai.config.json`. That's it.
 ## CLI Reference
 
 ```bash
-npx -y @pauly4010/evalai-sdk@^1 init     # Create evalai.config.json
-npx -y @pauly4010/evalai-sdk@^1 check    # Gate on quality score (reads config or --evaluationId)
-npx -y @pauly4010/evalai-sdk@^1 doctor   # Verify CI setup
+npx evalai init                # Full scaffolder — creates baseline, workflow, config
+npx evalai gate                # Run regression gate (built-in or project mode)
+npx evalai gate --format json  # Machine-readable JSON output
+npx evalai gate --format github # GitHub Step Summary markdown
+npx evalai baseline init       # Create starter evals/baseline.json
+npx evalai baseline update     # Re-run tests and update baseline
+npx evalai upgrade --full      # Upgrade from Tier 1 to Tier 2 (full gate)
+npx evalai check               # Gate on quality score (requires API key)
+npx evalai doctor              # Verify CI/CD setup
+npx evalai share               # Create share link for a run
 ```
 
 **check options:** `--evaluationId`, `--minScore`, `--minN`, `--allowWeakEvidence`, `--maxDrop`, `--policy`, `--format github|json|human`, `--onFail import`, `--explain`
 
-## Local Regression Gate Commands
+## Local Regression Gate Commands (this repo)
 
 ```bash
 pnpm eval:regression-gate     # Compare current vs baseline, fail on regression

@@ -5,6 +5,50 @@ All notable changes to the @pauly4010/evalai-sdk package will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-02-25
+
+### ✨ Added
+
+#### CLI — `evalai init` Full Project Scaffolder
+
+- **`evalai init`** — Zero-to-gate in under 5 minutes:
+  - Detects Node repo + package manager (npm/yarn/pnpm)
+  - Runs existing tests to capture real pass/fail + test count
+  - Creates `evals/baseline.json` with provenance metadata
+  - Installs `.github/workflows/evalai-gate.yml` (package-manager aware)
+  - Creates `evalai.config.json`
+  - Prints copy-paste next steps — just commit and push
+  - Idempotent: skips files that already exist
+
+#### CLI — `evalai upgrade --full` (Tier 1 → Tier 2)
+
+- **`evalai upgrade --full`** — Upgrade from built-in gate to full gate:
+  - Creates `scripts/regression-gate.ts` (full gate with `--update-baseline`)
+  - Adds `eval:regression-gate` + `eval:baseline-update` npm scripts
+  - Creates `.github/workflows/baseline-governance.yml` (label + diff enforcement)
+  - Upgrades `evalai-gate.yml` to project mode
+  - Adds `CODEOWNERS` entry for `evals/baseline.json`
+
+#### Gate Output — Machine-Readable Improvements
+
+- **`detectRunner()`** — Identifies test runner from `package.json` scripts: vitest, jest, mocha, node:test, ava, tap, or unknown
+- **BuiltinReport** now always emits: `durationMs`, `command`, `runner`, `baseline` metadata
+- Report schema updated with optional `durationMs`, `command`, `runner` properties
+
+#### Init Scaffolder Integration Tests
+
+- 4 fixtures: npm+jest, pnpm+vitest, yarn+jest, pnpm monorepo
+- 25 tests: files created, YAML valid, pm-aware workflow, idempotent runs
+- All fixtures use `node:test` (zero external deps)
+
+### 🔧 Changed
+
+- CLI help text updated to include `upgrade` command
+- Gate report includes runner detection and timing metadata
+- SDK test count: 147 → 172 tests (12 → 15 contract tests)
+
+---
+
 ## [1.6.0] - 2026-02-24
 
 ### ✨ Added
