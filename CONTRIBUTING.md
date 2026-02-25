@@ -97,6 +97,9 @@ Sentry.setUser({ email: user.email, ip_address: req.ip });
 
 ## Need Help?
 
-- Check existing docs in `/docs` for architecture details
+- **[Contributor Map](docs/CONTRIBUTOR_MAP.md)** — one-page guide: what lives where, test tiers, how to run locally
+- **[Architecture](docs/ARCHITECTURE.md)** — system diagram, product split, data flow
+- **[All Docs](docs/INDEX.md)** — canonical index of every doc in the project
+- **[Releasing](docs/RELEASING.md)** — how to cut an SDK release
 - Open an issue for questions or feature requests
 - See `SECURITY.md` for vulnerability reporting

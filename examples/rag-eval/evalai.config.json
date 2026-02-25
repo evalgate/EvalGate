@@ -1,0 +1,7 @@
+{
+  "evaluationId": "",
+  "gate": {
+    "baseline": "evals/baseline.json",
+    "report": "evals/regression-report.json"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "agent-tool-use-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "eval": "npx tsx agent-eval.ts",
+    "gate": "npx evalai gate"
+  },
+  "dependencies": {
+    "@pauly4010/evalai-sdk": "^1.7.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0"
+  }
+}

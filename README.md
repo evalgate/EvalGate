@@ -58,7 +58,7 @@ No account cancellation. No data export. Your tests keep working.
 
 **Live demo:** [https://v0-ai-evaluation-platform-nu.vercel.app](https://v0-ai-evaluation-platform-nu.vercel.app)
 
-**Docs:** [Regression Gate](docs/REGRESSION_GATE.md) · [Quickstart](docs/quickstart.md) · [GitHub Actions](docs/ci/github-actions.md) · [API Contract](docs/api-contract.md) · [Observability](docs/observability.md) · [Security](SECURITY.md)
+**Docs:** [Quickstart](docs/quickstart.md) · [Architecture](docs/ARCHITECTURE.md) · [Regression Gate](docs/REGRESSION_GATE.md) · [Contributor Map](docs/CONTRIBUTOR_MAP.md) · [Releasing](docs/RELEASING.md) · [Share Security](docs/SHARE_SECURITY.md) · [All Docs](docs/INDEX.md)
 
 ---
 

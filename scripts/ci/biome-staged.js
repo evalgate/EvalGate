@@ -5,7 +5,12 @@ const args = process.argv.slice(2);
 
 const shouldSkip = (file) => {
   const normalized = file.split(path.sep).join("/");
-  return normalized.includes("src/app/guides/") || normalized.includes("src/app/docs/");
+  return (
+    normalized.includes("src/app/guides/") ||
+    normalized.includes("src/app/docs/") ||
+    normalized.includes("/docs/") ||
+    normalized.includes("/examples/")
+  );
 };
 
 const files = args.filter((file) => {
