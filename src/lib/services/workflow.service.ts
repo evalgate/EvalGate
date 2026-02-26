@@ -141,7 +141,7 @@ class WorkflowService {
    * Create a new workflow
    */
   async create(params: CreateWorkflowParams) {
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const result = await db
       .insert(workflows)
@@ -167,7 +167,7 @@ class WorkflowService {
     const existing = await this.getById(id, organizationId);
     if (!existing) return null;
 
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const result = await db
       .update(workflows)
@@ -279,7 +279,7 @@ class WorkflowService {
    * Create a workflow run
    */
   async createRun(params: CreateWorkflowRunParams) {
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const result = await db
       .insert(workflowRuns)
@@ -304,7 +304,7 @@ class WorkflowService {
     const existing = await this.getRunById(runId);
     if (!existing) return null;
 
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const result = await db
       .update(workflowRuns)
@@ -373,7 +373,7 @@ class WorkflowService {
    * Create a handoff
    */
   async createHandoff(params: CreateHandoffParams) {
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const result = await db
       .insert(agentHandoffs)

@@ -70,8 +70,8 @@ class RegressionService {
       .update(goldenSets)
       .set({
         lastStatus: status,
-        lastRunAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        lastRunAt: new Date(),
+        updatedAt: new Date(),
       })
       .where(eq(goldenSets.id, goldenSet.id));
 
@@ -108,7 +108,7 @@ class RegressionService {
       )
       .limit(1);
 
-    const now = new Date().toISOString();
+    const now = new Date();
     if (existing.length > 0) {
       await db
         .update(goldenSets)

@@ -36,8 +36,8 @@ export const PATCH = secureRoute(async (req: NextRequest, ctx: AuthContext, para
       return notFound("API key not found");
     }
 
-    const updateData: { name?: string; scopes?: string; updatedAt: string } = {
-      updatedAt: new Date().toISOString(),
+    const updateData: { name?: string; scopes?: string; updatedAt: Date } = {
+      updatedAt: new Date(),
     };
 
     if (name !== undefined) {
@@ -95,7 +95,7 @@ export const DELETE = secureRoute(async (_req: NextRequest, ctx: AuthContext, pa
       return conflict("API key is already revoked");
     }
 
-    const revokedAt = new Date().toISOString();
+    const revokedAt = new Date();
     const revoked = await db
       .update(apiKeys)
       .set({ revokedAt })

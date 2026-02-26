@@ -137,7 +137,9 @@ export const evaluationTestCases = sqliteTable("evaluation_test_cases", {
   input: text("input").notNull(),
   expectedOutput: text("expected_output"),
   metadata: text("metadata", { mode: "json" }),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 export const evaluationRuns = sqliteTable("evaluation_runs", {
@@ -199,8 +201,12 @@ export const annotationTasks = sqliteTable("annotation_tasks", {
     .references(() => user.id)
     .notNull(),
   annotationSettings: text("annotation_settings", { mode: "json" }),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 export const annotationItems = sqliteTable("annotation_items", {
@@ -211,8 +217,10 @@ export const annotationItems = sqliteTable("annotation_items", {
   content: text("content").notNull(),
   annotation: text("annotation", { mode: "json" }),
   annotatedBy: text("annotated_by").references(() => user.id),
-  annotatedAt: text("annotated_at"),
-  createdAt: text("created_at").notNull(),
+  annotatedAt: integer("annotated_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // LLM Judge
@@ -229,8 +237,12 @@ export const llmJudgeConfigs = sqliteTable("llm_judge_configs", {
   createdBy: text("created_by")
     .references(() => user.id)
     .notNull(),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 export const llmJudgeResults = sqliteTable("llm_judge_results", {
@@ -245,7 +257,9 @@ export const llmJudgeResults = sqliteTable("llm_judge_results", {
   score: integer("score"),
   reasoning: text("reasoning"),
   metadata: text("metadata", { mode: "json" }),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // Developer Experience Tables
@@ -305,13 +319,17 @@ export const providerKeys = sqliteTable("provider_keys", {
   tag: text("tag").notNull(), // Authentication tag for integrity
   metadata: text("metadata", { mode: "json" }), // Additional key information
   isActive: integer("is_active", { mode: "boolean" }).default(true),
-  lastUsedAt: text("last_used_at"),
-  expiresAt: text("expires_at"), // Optional expiry date
+  lastUsedAt: integer("last_used_at", { mode: "timestamp" }),
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
   createdBy: text("created_by")
     .references(() => user.id)
     .notNull(),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 export const webhookDeliveries = sqliteTable(
@@ -328,7 +346,9 @@ export const webhookDeliveries = sqliteTable(
     responseStatus: integer("response_status"),
     responseBody: text("response_body"),
     attemptCount: integer("attempt_count").default(0),
-    createdAt: text("created_at").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (table) => ({
     dedupIndex: uniqueIndex("idx_webhook_deliveries_dedup").on(
@@ -350,7 +370,9 @@ export const apiUsageLogs = sqliteTable("api_usage_logs", {
   method: text("method").notNull(),
   statusCode: integer("status_code").notNull(),
   responseTimeMs: integer("response_time_ms").notNull(),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 export const humanAnnotations = sqliteTable("human_annotations", {
@@ -368,7 +390,9 @@ export const humanAnnotations = sqliteTable("human_annotations", {
   feedback: text("feedback"),
   labels: text("labels", { mode: "json" }),
   metadata: text("metadata", { mode: "json" }),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 export const testCases = sqliteTable("test_cases", {
@@ -381,7 +405,9 @@ export const testCases = sqliteTable("test_cases", {
   inputHash: text("input_hash"), // SHA-256 of normalized input for trace-linked matching
   expectedOutput: text("expected_output"),
   metadata: text("metadata", { mode: "json" }),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 export const testResults = sqliteTable("test_results", {
@@ -440,12 +466,18 @@ export const emailSubscribers = sqliteTable("email_subscribers", {
   context: text("context", { mode: "json" }), // Additional context like scenario, score, etc.
   status: text("status").notNull().default("active"), // 'active', 'unsubscribed', 'bounced'
   tags: text("tags", { mode: "json" }), // ['playground-lead', 'high-intent', etc.]
-  subscribedAt: text("subscribed_at").notNull(),
-  unsubscribedAt: text("unsubscribed_at"),
-  lastEmailSentAt: text("last_email_sent_at"),
+  subscribedAt: integer("subscribed_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  unsubscribedAt: integer("unsubscribed_at", { mode: "timestamp" }),
+  lastEmailSentAt: integer("last_email_sent_at", { mode: "timestamp" }),
   emailCount: integer("email_count").notNull().default(0),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // ============================================
@@ -470,8 +502,12 @@ export const workflows = sqliteTable("workflows", {
   createdBy: text("created_by")
     .references(() => user.id)
     .notNull(),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // Individual workflow executions
@@ -494,8 +530,8 @@ export const workflowRuns = sqliteTable("workflow_runs", {
   retryCount: integer("retry_count").default(0),
   errorMessage: text("error_message"),
   metadata: text("metadata", { mode: "json" }),
-  startedAt: text("started_at").notNull(),
-  completedAt: text("completed_at"),
+  startedAt: integer("started_at", { mode: "timestamp" }).notNull(),
+  completedAt: integer("completed_at", { mode: "timestamp" }),
 });
 
 // Agent handoff events between agents in a workflow
@@ -513,7 +549,7 @@ export const agentHandoffs = sqliteTable("agent_handoffs", {
   toAgent: text("to_agent").notNull(),
   handoffType: text("handoff_type").notNull(), // 'delegation', 'escalation', 'parallel', 'fallback'
   context: text("context", { mode: "json" }), // data passed between agents
-  timestamp: text("timestamp").notNull(),
+  timestamp: integer("timestamp", { mode: "timestamp" }).notNull(),
 });
 
 // ============================================
@@ -537,7 +573,9 @@ export const agentDecisions = sqliteTable("agent_decisions", {
   reasoning: text("reasoning"), // why this choice was made
   confidence: integer("confidence"), // 0-100 confidence score
   inputContext: text("input_context", { mode: "json" }), // context that influenced the decision
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // ============================================
@@ -566,7 +604,9 @@ export const costRecords = sqliteTable("cost_records", {
   isRetry: integer("is_retry", { mode: "boolean" }).default(false),
   retryNumber: integer("retry_number").default(0),
   costCategory: text("cost_category").notNull(), // 'llm', 'tool', 'embedding', 'other'
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // Provider pricing table (admin-managed)
@@ -578,7 +618,9 @@ export const providerPricing = sqliteTable("provider_pricing", {
   outputPricePerMillion: text("output_price_per_million").notNull(), // price per 1M output tokens
   effectiveDate: text("effective_date").notNull(),
   isActive: integer("is_active", { mode: "boolean" }).default(true),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // ============================================
@@ -600,8 +642,12 @@ export const benchmarks = sqliteTable("benchmarks", {
   createdBy: text("created_by")
     .references(() => user.id)
     .notNull(),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // Agent configurations being benchmarked
@@ -618,8 +664,12 @@ export const agentConfigs = sqliteTable("agent_configs", {
   createdBy: text("created_by")
     .references(() => user.id)
     .notNull(),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // Benchmark results
@@ -640,7 +690,9 @@ export const benchmarkResults = sqliteTable("benchmark_results", {
   toolUseEfficiency: integer("tool_use_efficiency"), // 0-100
   customMetrics: text("custom_metrics", { mode: "json" }),
   runCount: integer("run_count").default(1),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // ============================================
@@ -659,10 +711,14 @@ export const goldenSets = sqliteTable("golden_sets", {
   name: text("name").notNull().default("Default Golden Set"),
   testCaseIds: text("test_case_ids", { mode: "json" }).notNull(), // number[] — the 5 most important
   lastStatus: text("last_status").default("unknown"), // 'passed', 'failed', 'unknown'
-  lastRunAt: text("last_run_at"),
+  lastRunAt: integer("last_run_at", { mode: "timestamp" }),
   passThreshold: integer("pass_threshold").default(70), // Minimum score to pass (0-100)
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // Arena Matches for LLM Battle Arena (Social Proof)
@@ -680,7 +736,9 @@ export const arenaMatches = sqliteTable("arena_matches", {
   createdBy: text("created_by")
     .references(() => user.id)
     .notNull(),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // Report Cards for Shareable Evaluation Certificates (Marketing Asset)
@@ -700,12 +758,14 @@ export const reportCards = sqliteTable("report_cards", {
   description: text("description"),
   isPublic: integer("is_public", { mode: "boolean" }).default(true),
   reportData: text("report_data", { mode: "json" }).notNull(), // Snapshot of scores/results
-  expiresAt: text("expires_at"), // Optional expiry
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
   viewCount: integer("view_count").default(0),
   createdBy: text("created_by")
     .references(() => user.id)
     .notNull(),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // ============================================
@@ -725,7 +785,9 @@ export const auditLogs = sqliteTable("audit_logs", {
   metadata: text("metadata", { mode: "json" }),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // ============================================
@@ -759,7 +821,9 @@ export const qualityScores = sqliteTable("quality_scores", {
   inputsHash: text("inputs_hash"),
   scoringSpecHash: text("scoring_spec_hash"),
   scoringCommit: text("scoring_commit"),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // ============================================
@@ -778,7 +842,9 @@ export const evaluationVersions = sqliteTable("evaluation_versions", {
   createdBy: text("created_by")
     .references(() => user.id)
     .notNull(),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // ============================================
@@ -800,8 +866,10 @@ export const driftAlerts = sqliteTable("drift_alerts", {
   baselineValue: text("baseline_value"),
   zScoreValue: text("z_score_value"),
   metadata: text("metadata", { mode: "json" }),
-  acknowledgedAt: text("acknowledged_at"),
-  createdAt: text("created_at").notNull(),
+  acknowledgedAt: integer("acknowledged_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // ============================================
@@ -823,12 +891,14 @@ export const sharedReports = sqliteTable("shared_reports", {
   shareToken: text("share_token").notNull().unique(),
   reportBody: text("report_body").notNull(),
   signature: text("signature").notNull(),
-  expiresAt: text("expires_at"),
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
   viewCount: integer("view_count").default(0),
   createdBy: text("created_by")
     .references(() => user.id)
     .notNull(),
-  createdAt: text("created_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 // ============================================
@@ -849,12 +919,14 @@ export const sharedExports = sqliteTable(
     exportData: text("export_data", { mode: "json" }).notNull(),
     exportHash: text("export_hash").notNull(),
     isPublic: integer("is_public", { mode: "boolean" }).default(true),
-    revokedAt: text("revoked_at"),
+    revokedAt: integer("revoked_at", { mode: "timestamp" }),
     revokedBy: text("revoked_by"),
     revokedReason: text("revoked_reason"), // Admin only; never exposed in public 410 response
-    createdAt: text("created_at").notNull(),
-    updatedAt: text("updated_at"),
-    expiresAt: text("expires_at"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date())
+      .notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }),
+    expiresAt: integer("expires_at", { mode: "timestamp" }),
     viewCount: integer("view_count").default(0),
   },
   (table) => ({

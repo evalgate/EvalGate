@@ -128,7 +128,7 @@ export class VersioningService {
       snapshotJson: stableStringify(snapshot),
       diffSummary,
       createdBy,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     });
 
     // Update evaluation

@@ -18,7 +18,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, param
     );
 
     const slug = randomUUID().slice(0, 10);
-    const now = new Date().toISOString();
+    const now = new Date();
     const [card] = await db
       .insert(reportCards)
       .values({

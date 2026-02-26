@@ -50,7 +50,7 @@ export const POST = secureRoute(
 
     const expiresAt =
       typeof expiresInDays === "number" && expiresInDays > 0
-        ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
+        ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
         : undefined;
 
     // Single write path: sanitize and validate (no unsanitized export can be persisted)
@@ -99,7 +99,7 @@ export const POST = secureRoute(
         } else {
           shareId = customShareId || row.shareId;
         }
-        const now = new Date().toISOString();
+        const now = new Date();
         const runId = bodyRunId != null ? Number(bodyRunId) : null;
         await db
           .update(sharedExports)
@@ -138,7 +138,7 @@ export const POST = secureRoute(
           exportData: sanitized,
           exportHash,
           isPublic: true,
-          createdAt: new Date().toISOString(),
+          createdAt: new Date(),
         });
       }
     } else {
@@ -172,7 +172,7 @@ export const POST = secureRoute(
         exportData: sanitized,
         exportHash,
         isPublic: true,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
         expiresAt: expiresAt ?? undefined,
       });
     }
@@ -242,7 +242,7 @@ export const DELETE = secureRoute(
       return notFound("Share not found");
     }
 
-    const now = new Date().toISOString();
+    const now = new Date();
     const revokedBy = ctx.userId ?? undefined;
     await db
       .update(sharedExports)

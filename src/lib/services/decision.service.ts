@@ -48,7 +48,7 @@ class DecisionService {
    * Create a new decision record
    */
   async create(params: CreateDecisionParams) {
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const result = await db
       .insert(agentDecisions)

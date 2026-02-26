@@ -132,7 +132,7 @@ export const POST = secureRoute(
           resourceType: "job",
           resourceId: succeeded.join(","),
           metadata: { mode, count: succeeded.length },
-          createdAt: now.toISOString(),
+          createdAt: now,
         });
       } catch {
         // Best-effort audit

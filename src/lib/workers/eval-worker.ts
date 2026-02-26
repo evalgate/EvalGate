@@ -217,7 +217,8 @@ class EvalWorker {
 
       // 5. Finalize the run
       const finalStatus = failedCount === 0 ? "completed" : "completed_with_failures";
-      const completedAt = new Date().toISOString();
+      const completedAtDate = new Date();
+      const completedAtISO = completedAtDate.toISOString();
 
       await db
         .update(evaluationRuns)
@@ -226,10 +227,10 @@ class EvalWorker {
           processedCount,
           passedCases: passedCount,
           failedCases: failedCount,
-          completedAt,
+          completedAt: completedAtDate,
           traceLog: JSON.stringify({
             ...traceLog,
-            completedAt,
+            completedAt: completedAtISO,
             summary: {
               totalCases: testCaseIds.length,
               processedCount,

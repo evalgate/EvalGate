@@ -95,7 +95,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
       return validationError("Prompt template is required and must be a non-empty string");
     }
 
-    const now = new Date().toISOString();
+    const now = new Date();
     const insertData = {
       name: name.trim(),
       organizationId: ctx.organizationId,
@@ -153,7 +153,7 @@ export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
     const { name, model, promptTemplate, criteria } = body;
 
     const updates: Record<string, unknown> = {
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
 
     if (name !== undefined) {

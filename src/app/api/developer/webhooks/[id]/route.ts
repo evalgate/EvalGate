@@ -54,7 +54,7 @@ export const PATCH = secureRoute(async (req: NextRequest, ctx: AuthContext, para
   const { url, events, status, secret } = parsed.data;
 
   const updates: Record<string, unknown> = {
-    updatedAt: new Date().toISOString(),
+    updatedAt: new Date(),
   };
 
   if (url !== undefined) {

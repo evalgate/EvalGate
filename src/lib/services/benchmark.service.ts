@@ -101,7 +101,7 @@ class BenchmarkService {
    * Create a new benchmark
    */
   async createBenchmark(params: CreateBenchmarkParams) {
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const result = await db
       .insert(benchmarks)
@@ -165,7 +165,7 @@ class BenchmarkService {
    * Create a new agent config
    */
   async createAgentConfig(params: CreateAgentConfigParams) {
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const result = await db
       .insert(agentConfigs)
@@ -206,7 +206,7 @@ class BenchmarkService {
    * Submit a benchmark result
    */
   async submitResult(params: SubmitBenchmarkResultParams) {
-    const now = new Date().toISOString();
+    const now = new Date();
 
     // Check if there's an existing result for this benchmark/agent combo
     const existing = await db

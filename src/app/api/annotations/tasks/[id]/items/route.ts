@@ -82,15 +82,15 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, param
     return validationError("Content is required and must be a non-empty string");
   }
 
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const insertData: {
     taskId: number;
     content: string;
     annotation?: unknown;
     annotatedBy?: string;
-    annotatedAt?: string;
-    createdAt: string;
+    annotatedAt?: Date;
+    createdAt: Date;
   } = {
     taskId,
     content: content.trim(),
@@ -106,7 +106,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext, param
   }
 
   if (annotatedAt !== undefined && annotatedAt !== null) {
-    insertData.annotatedAt = annotatedAt;
+    insertData.annotatedAt = new Date(annotatedAt);
   }
 
   const newItem = await db.insert(annotationItems).values(insertData).returning();
@@ -142,9 +142,9 @@ export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
   const updateData: {
     annotation?: unknown;
     annotatedBy?: string;
-    annotatedAt: string;
+    annotatedAt: Date;
   } = {
-    annotatedAt: annotatedAt || new Date().toISOString(),
+    annotatedAt: annotatedAt ? new Date(annotatedAt) : new Date(),
   };
 
   if (annotation !== undefined) {

@@ -72,16 +72,14 @@ async function main() {
   }
 
   // Helper to generate timestamp in last 7 days with bias towards recent
-  function getWeightedTimestamp(): string {
+  function getWeightedTimestamp(): Date {
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     // Use exponential distribution to bias towards recent dates
     const random = Math.random() ** 2; // Square for stronger bias
     const timeDiff = now.getTime() - sevenDaysAgo.getTime();
-    const timestamp = new Date(now.getTime() - timeDiff * (1 - random));
-
-    return timestamp.toISOString();
+    return new Date(now.getTime() - timeDiff * (1 - random));
   }
 
   const sampleLogs = [];
@@ -112,7 +110,7 @@ async function main() {
   }
 
   // Sort by createdAt to maintain chronological order
-  sampleLogs.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  sampleLogs.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
   await db.insert(apiUsageLogs).values(sampleLogs);
 

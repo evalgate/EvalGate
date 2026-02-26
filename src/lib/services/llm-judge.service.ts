@@ -110,8 +110,8 @@ export class LLMJudgeService {
         promptTemplate: data.promptTemplate,
         criteria: data.criteria ? JSON.stringify(data.criteria) : null,
         settings: data.settings ? JSON.stringify(data.settings) : null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning();
 
@@ -139,7 +139,7 @@ export class LLMJudgeService {
         ...data,
         criteria: data.criteria ? JSON.stringify(data.criteria) : undefined,
         settings: data.settings ? JSON.stringify(data.settings) : undefined,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       })
       .where(and(eq(llmJudgeConfigs.id, id), eq(llmJudgeConfigs.organizationId, organizationId)))
       .returning();
@@ -209,7 +209,7 @@ export class LLMJudgeService {
           context: data.context,
           details: judgement.details,
         }),
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
       })
       .returning();
 
@@ -610,7 +610,7 @@ export class LLMJudgeService {
             passed: evaluation.passed,
             evaluationRunId,
           }),
-          createdAt: new Date().toISOString(),
+          createdAt: new Date(),
         });
 
         judgeResults.push({
@@ -641,7 +641,7 @@ export class LLMJudgeService {
             evaluationRunId,
             error: (error as any).message,
           }),
-          createdAt: new Date().toISOString(),
+          createdAt: new Date(),
         });
 
         judgeResults.push({

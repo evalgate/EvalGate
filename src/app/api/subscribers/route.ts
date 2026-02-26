@@ -48,9 +48,9 @@ export async function POST(request: NextRequest) {
             status: "active",
             source, // Update source
             context: JSON.stringify(context),
-            subscribedAt: new Date().toISOString(),
+            subscribedAt: new Date(),
             unsubscribedAt: null,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
           })
           .where(eq(emailSubscribers.email, email));
 
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     const tags = generateTags(source, context);
 
     // Create new subscriber
-    const now = new Date().toISOString();
+    const now = new Date();
     const [newSubscriber] = await db
       .insert(emailSubscribers)
       .values({
@@ -153,8 +153,8 @@ export async function DELETE(request: NextRequest) {
       .update(emailSubscribers)
       .set({
         status: "unsubscribed",
-        unsubscribedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        unsubscribedAt: new Date(),
+        updatedAt: new Date(),
       })
       .where(eq(emailSubscribers.email, email));
 

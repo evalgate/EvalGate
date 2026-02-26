@@ -14,12 +14,10 @@ async function main() {
   const now = new Date();
   const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
 
-  const getRandomDate = (isPending: boolean = false) => {
+  const getRandomDate = (isPending: boolean = false): Date => {
     const start = isPending ? new Date(now.getTime() - 2 * 60 * 60 * 1000) : fiveDaysAgo;
     const end = now;
-    return new Date(
-      start.getTime() + Math.random() * (end.getTime() - start.getTime()),
-    ).toISOString();
+    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
   };
 
   const sampleDeliveries = [

@@ -1,6 +1,6 @@
 # Stability Matrix
 
-> Last updated: 2026-02-18
+> Last updated: 2026-02-25
 
 This document classifies every major feature by maturity level and provides API compatibility guarantees for each tier.
 
@@ -51,8 +51,10 @@ This document classifies every major feature by maturity level and provides API 
 | Feature | Tier | Since | Notes |
 |---------|------|-------|-------|
 | `evalai check` CLI | **Stable** | v1.1 | `--minScore`, `--maxDrop`, `--format github|json|human`, `--onFail import`, `--explain` |
-| `evalai init` CLI | **Stable** | v1.4 | Creates `evalai.config.json` |
+| `evalai init` CLI | **Stable** | v1.4 | Full project scaffolder (detects PM, creates baseline, installs GH workflow) |
 | `evalai doctor` CLI | **Stable** | v1.5 | Verify CI setup (config, API key, quality endpoint) |
+| `evalai gate` CLI | **Stable** | v1.6 | Local regression gate with exit code taxonomy (0–4) |
+| `evalai baseline init\|update` | **Stable** | v1.6 | Create/update `evals/baseline.json` from real test runs |
 | `--policy` flag | **Beta** | v1.2 | HIPAA, SOC2, GDPR, PCI_DSS, FINRA_4511 |
 | `--baseline` flag | **Stable** | v1.4 | `published`, `previous`, or `production` |
 | Standardized exit codes | **Stable** | v1.2 | 0-7 range, documented |
@@ -103,7 +105,7 @@ This document classifies every major feature by maturity level and provides API 
 | Cost Records | **Stable** | v1.0 | Per-call token + cost tracking |
 | LLM Judge | **Beta** | v1.0 | Meta-judge post-eval hook |
 
-### SDK (`@pauly4010/evalai-sdk`)
+### SDK (`@pauly4010/evalai-sdk`) — v1.7.0
 
 | Feature | Tier | Since | Notes |
 |---------|------|-------|-------|
@@ -112,6 +114,15 @@ This document classifies every major feature by maturity level and provides API 
 | `createTestSuite` + `expect` | **Stable** | v1.0 | Testing DSL |
 | Assertions library | **Stable** | v1.0 | 15+ assertion types |
 | Framework integrations | **Beta** | v1.0 | Jest, Vitest adapters |
+| Regression gate exports | **Stable** | v1.6 | `@pauly4010/evalai-sdk/regression` |
+
+### Database
+
+| Feature | Tier | Since | Notes |
+|---------|------|-------|-------|
+| Integer timestamps (auth tables) | **Stable** | v1.2 | user, session, account, verification, organizations |
+| Integer timestamps (hot-path) | **Stable** | v1.7 | evaluationRuns, testResults, spans, apiKeys, webhooks (migration 0039) |
+| Nonce-based CSP | **Stable** | v1.7 | middleware + layout.tsx |
 
 ---
 
@@ -122,3 +133,4 @@ This document classifies every major feature by maturity level and provides API 
 | `evaluationTestCases` table | v1.2 | v2.0 | Use `testCases` table |
 | `requireAuthWithOrg` (direct use in routes) | v1.2 | v2.0 | Wrap with `secureRoute()` |
 | `role: string` in AuthContext | v1.2 | v2.0 | Use `role: Role` (typed enum) |
+| String timestamps (hot-path tables) | v1.7 | v2.0 | Now integer timestamps via migration 0039 |

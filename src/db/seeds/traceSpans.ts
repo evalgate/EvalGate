@@ -14,7 +14,7 @@ async function main() {
       output: "Request validated and routed to LLM service",
       durationMs: 245,
       metadata: JSON.stringify({ endpoint: "/api/chat", method: "POST", statusCode: 200 }),
-      createdAt: new Date("2024-01-15T10:00:00Z").toISOString(),
+      createdAt: new Date("2024-01-15T10:00:00Z"),
     },
     {
       traceId: 1,
@@ -27,7 +27,7 @@ async function main() {
         "Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed.",
       durationMs: 3420,
       metadata: JSON.stringify({ model: "gpt-4", tokens: 156, temperature: 0.7 }),
-      createdAt: new Date("2024-01-15T10:00:00.245Z").toISOString(),
+      createdAt: new Date("2024-01-15T10:00:00.245Z"),
     },
     {
       traceId: 1,
@@ -39,7 +39,7 @@ async function main() {
       output: "JSON formatted response with metadata",
       durationMs: 125,
       metadata: JSON.stringify({ format: "json", includeMetadata: true }),
-      createdAt: new Date("2024-01-15T10:00:03.665Z").toISOString(),
+      createdAt: new Date("2024-01-15T10:00:03.665Z"),
     },
 
     // Trace 2 (trace_002): Document Loading -> Text Processing -> Summary Generation
@@ -53,7 +53,7 @@ async function main() {
       output: "Document loaded successfully, 25 pages, 12,450 words",
       durationMs: 1850,
       metadata: JSON.stringify({ fileSize: "2.4MB", pages: 25 }),
-      createdAt: new Date("2024-01-16T14:30:00Z").toISOString(),
+      createdAt: new Date("2024-01-16T14:30:00Z"),
     },
     {
       traceId: 2,
@@ -65,7 +65,7 @@ async function main() {
       output: "Cleaned text ready for summarization, 11,230 words after processing",
       durationMs: 890,
       metadata: JSON.stringify({ removedChars: 1220, cleanedSections: 8 }),
-      createdAt: new Date("2024-01-16T14:30:01.850Z").toISOString(),
+      createdAt: new Date("2024-01-16T14:30:01.850Z"),
     },
     {
       traceId: 2,
@@ -78,7 +78,7 @@ async function main() {
         "This research paper explores novel approaches to neural network optimization, focusing on adaptive learning rates and gradient descent variations. Key findings include 23% improvement in convergence speed.",
       durationMs: 4560,
       metadata: JSON.stringify({ model: "gpt-4-turbo", originalLength: 11230, summaryLength: 187 }),
-      createdAt: new Date("2024-01-16T14:30:02.740Z").toISOString(),
+      createdAt: new Date("2024-01-16T14:30:02.740Z"),
     },
 
     // Trace 3 (trace_003): Prompt Construction -> Code Generation
@@ -92,7 +92,7 @@ async function main() {
       output: "System prompt + user context + code generation instructions assembled",
       durationMs: 180,
       metadata: JSON.stringify({ language: "python", context: "fibonacci" }),
-      createdAt: new Date("2024-01-17T09:15:00Z").toISOString(),
+      createdAt: new Date("2024-01-17T09:15:00Z"),
     },
     {
       traceId: 3,
@@ -105,7 +105,7 @@ async function main() {
         "def fibonacci(n, memo={}):\n    if n in memo:\n        return memo[n]\n    if n <= 1:\n        return n\n    memo[n] = fibonacci(n-1, memo) + fibonacci(n-2, memo)\n    return memo[n]",
       durationMs: 2340,
       metadata: JSON.stringify({ model: "gpt-4", language: "python", linesOfCode: 7 }),
-      createdAt: new Date("2024-01-17T09:15:00.180Z").toISOString(),
+      createdAt: new Date("2024-01-17T09:15:00.180Z"),
     },
 
     // Trace 4 (trace_004): Text Preprocessing -> Model Inference
@@ -120,7 +120,7 @@ async function main() {
         'Preprocessed text: "this product is absolutely amazing best purchase ever", tokens: [2023, 4561, 8823, ...]',
       durationMs: 340,
       metadata: JSON.stringify({ originalLength: 61, processedLength: 52, tokensGenerated: 12 }),
-      createdAt: new Date("2024-01-18T11:45:00Z").toISOString(),
+      createdAt: new Date("2024-01-18T11:45:00Z"),
     },
     {
       traceId: 4,
@@ -132,7 +132,7 @@ async function main() {
       output: "Sentiment: POSITIVE, Confidence: 0.96, Score: 4.8/5.0",
       durationMs: 1560,
       metadata: JSON.stringify({ model: "sentiment-bert-v2", confidence: 0.96 }),
-      createdAt: new Date("2024-01-18T11:45:00.340Z").toISOString(),
+      createdAt: new Date("2024-01-18T11:45:00.340Z"),
     },
 
     // Trace 5 (trace_005): Source Text Loading -> Translation -> Post-processing
@@ -146,7 +146,7 @@ async function main() {
       output: "Text loaded: 450 words, 2,340 characters",
       durationMs: 420,
       metadata: JSON.stringify({ sourceLanguage: "en", wordCount: 450 }),
-      createdAt: new Date("2024-01-19T16:20:00Z").toISOString(),
+      createdAt: new Date("2024-01-19T16:20:00Z"),
     },
     {
       traceId: 5,
@@ -164,7 +164,7 @@ async function main() {
         targetLanguage: "es",
         model: "translation-v3",
       }),
-      createdAt: new Date("2024-01-19T16:20:00.420Z").toISOString(),
+      createdAt: new Date("2024-01-19T16:20:00.420Z"),
     },
     {
       traceId: 5,
@@ -176,7 +176,7 @@ async function main() {
       output: "Formatted translation with proper punctuation and capitalization",
       durationMs: 230,
       metadata: JSON.stringify({ corrections: 3, formatting: "applied" }),
-      createdAt: new Date("2024-01-19T16:20:03.310Z").toISOString(),
+      createdAt: new Date("2024-01-19T16:20:03.310Z"),
     },
 
     // Trace 6 (trace_006): Request Validation -> API Call Failure
@@ -191,7 +191,7 @@ async function main() {
       output: "Validation completed, proceeding with API call",
       durationMs: 95,
       metadata: JSON.stringify({ validationRules: 5, passed: 5 }),
-      createdAt: new Date("2024-01-20T08:10:00Z").toISOString(),
+      createdAt: new Date("2024-01-20T08:10:00Z"),
     },
     {
       traceId: 6,
@@ -207,7 +207,7 @@ async function main() {
         errorType: "AuthenticationError",
         retryable: false,
       }),
-      createdAt: new Date("2024-01-20T08:10:00.095Z").toISOString(),
+      createdAt: new Date("2024-01-20T08:10:00.095Z"),
     },
 
     // Trace 7 (trace_007): Data Loading -> Batch Processing -> Results Aggregation
@@ -221,7 +221,7 @@ async function main() {
       output: "Loaded 15,430 records for processing",
       durationMs: 2340,
       metadata: JSON.stringify({ recordCount: 15430, dataSize: "8.2MB" }),
-      createdAt: new Date("2024-01-21T13:00:00Z").toISOString(),
+      createdAt: new Date("2024-01-21T13:00:00Z"),
     },
     {
       traceId: 7,
@@ -233,7 +233,7 @@ async function main() {
       output: "Classified interactions: 8,450 positive, 4,230 neutral, 2,750 negative",
       durationMs: 12450,
       metadata: JSON.stringify({ batchSize: 100, batches: 155, model: "classification-v2" }),
-      createdAt: new Date("2024-01-21T13:00:02.340Z").toISOString(),
+      createdAt: new Date("2024-01-21T13:00:02.340Z"),
     },
     {
       traceId: 7,
@@ -245,7 +245,7 @@ async function main() {
       output: "Summary report: 54.8% positive sentiment, average engagement score: 7.2/10",
       durationMs: 780,
       metadata: JSON.stringify({ metricsCalculated: 12, chartsGenerated: 5 }),
-      createdAt: new Date("2024-01-21T13:00:14.790Z").toISOString(),
+      createdAt: new Date("2024-01-21T13:00:14.790Z"),
     },
 
     // Trace 8 (trace_008): Model Loading -> Inference
@@ -259,7 +259,7 @@ async function main() {
       output: "Model loaded successfully into memory, ready for inference",
       durationMs: 1890,
       metadata: JSON.stringify({ modelSize: "350MB", cacheHit: true }),
-      createdAt: new Date("2024-01-22T10:30:00Z").toISOString(),
+      createdAt: new Date("2024-01-22T10:30:00Z"),
     },
     {
       traceId: 8,
@@ -271,7 +271,7 @@ async function main() {
       output: "Embedding vector generated: [0.023, -0.156, 0.089, ...] (1536 dimensions)",
       durationMs: 450,
       metadata: JSON.stringify({ dimensions: 1536, model: "text-embedding-ada-002" }),
-      createdAt: new Date("2024-01-22T10:30:01.890Z").toISOString(),
+      createdAt: new Date("2024-01-22T10:30:01.890Z"),
     },
   ];
 

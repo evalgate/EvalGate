@@ -307,7 +307,7 @@ export async function computeAndStoreQualityScore(
     inputsHash,
     scoringSpecHash,
     scoringCommit,
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(),
   });
 
   logger.info("Quality score computed", {

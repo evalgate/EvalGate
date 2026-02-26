@@ -126,7 +126,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
       }
     }
 
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const inserted = await db
       .insert(annotationTasks)
@@ -193,14 +193,14 @@ export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
     }
 
     const updateData: {
-      updatedAt: string;
+      updatedAt: Date;
       name?: string;
       description?: string | null;
       status?: string;
       totalItems?: number;
       completedItems?: number;
     } = {
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
 
     if (name !== undefined) updateData.name = name.trim();

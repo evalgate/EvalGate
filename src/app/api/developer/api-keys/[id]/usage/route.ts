@@ -44,12 +44,10 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params
     const days = periodMap[period] || 7;
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
-    const startDateStr = startDate.toISOString();
-
     const allLogs = await db
       .select()
       .from(apiUsageLogs)
-      .where(and(eq(apiUsageLogs.apiKeyId, apiKeyId), gte(apiUsageLogs.createdAt, startDateStr)));
+      .where(and(eq(apiUsageLogs.apiKeyId, apiKeyId), gte(apiUsageLogs.createdAt, startDate)));
 
     const totalRequests = allLogs.length;
 
@@ -73,7 +71,9 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params
 
     const dateMap = new Map<string, number>();
     allLogs.forEach((log) => {
-      const date = log.createdAt.split("T")[0];
+      const date = (
+        log.createdAt instanceof Date ? log.createdAt.toISOString() : String(log.createdAt)
+      ).split("T")[0];
       const count = dateMap.get(date) || 0;
       dateMap.set(date, count + 1);
     });
@@ -85,7 +85,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext, params
     const recentLogs = await db
       .select()
       .from(apiUsageLogs)
-      .where(and(eq(apiUsageLogs.apiKeyId, apiKeyId), gte(apiUsageLogs.createdAt, startDateStr)))
+      .where(and(eq(apiUsageLogs.apiKeyId, apiKeyId), gte(apiUsageLogs.createdAt, startDate)))
       .orderBy(desc(apiUsageLogs.createdAt))
       .limit(limit)
       .offset(offset);

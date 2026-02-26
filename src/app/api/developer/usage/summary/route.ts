@@ -16,7 +16,8 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 
   const now = new Date();
   const endDate = now.toISOString();
-  let startDate: string | null = null;
+  let startDateStr: string | null = null;
+  let startDateObj: Date | null = null;
 
   if (period !== "all") {
     const daysMap: Record<string, number> = {
@@ -27,7 +28,8 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
     const daysAgo = daysMap[period];
     const start = new Date(now);
     start.setDate(start.getDate() - daysAgo);
-    startDate = start.toISOString();
+    startDateStr = start.toISOString();
+    startDateObj = start;
   }
 
   // Use ctx.organizationId instead of query param
@@ -36,7 +38,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
       ? eq(apiUsageLogs.organizationId, ctx.organizationId)
       : and(
           eq(apiUsageLogs.organizationId, ctx.organizationId),
-          gte(apiUsageLogs.createdAt, startDate!),
+          gte(apiUsageLogs.createdAt, startDateObj!),
         );
 
   const logs = await db.select().from(apiUsageLogs).where(whereConditions);
@@ -55,7 +57,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
         requestsOverTime: [],
       },
       period: {
-        start: startDate,
+        start: startDateStr,
         end: endDate,
       },
     });
@@ -99,8 +101,10 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 
   const dateCounts: Record<string, number> = {};
   logs.forEach((log) => {
-    const date = log.createdAt.split("T")[0];
-    dateCounts[date] = (dateCounts[date] || 0) + 1;
+    const date =
+      log.createdAt instanceof Date ? log.createdAt.toISOString() : String(log.createdAt);
+    const dateStr = date.split("T")[0];
+    dateCounts[dateStr] = (dateCounts[dateStr] || 0) + 1;
   });
 
   const requestsOverTime = Object.entries(dateCounts)
@@ -120,7 +124,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
       requestsOverTime,
     },
     period: {
-      start: startDate,
+      start: startDateStr,
       end: endDate,
     },
   });

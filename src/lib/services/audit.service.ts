@@ -34,7 +34,7 @@ export class AuditService {
         metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
         ipAddress: entry.ipAddress ?? null,
         userAgent: entry.userAgent ?? null,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
       });
     } catch (err) {
       // Audit logging should never break the request — fire and forget

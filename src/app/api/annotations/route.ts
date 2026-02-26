@@ -80,7 +80,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
     return validationError("Evaluation run not found or does not belong to your organization");
   }
 
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const newAnnotation = await db
     .insert(humanAnnotations)

@@ -101,7 +101,7 @@ export class ArenaMatchesService {
     const scores = this.calculateScores(results);
 
     // Save arena match
-    const now = new Date().toISOString();
+    const now = new Date();
     const [match] = await db
       .insert(arenaMatches)
       .values({
@@ -514,8 +514,8 @@ Provide a clear explanation for your choice.`,
           maxTokens: 500,
         },
         createdBy,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning({
         id: llmJudgeConfigs.id,

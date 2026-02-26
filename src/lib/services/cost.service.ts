@@ -130,7 +130,7 @@ class CostService {
    * Create a cost record
    */
   async createRecord(params: CreateCostRecordParams) {
-    const now = new Date().toISOString();
+    const now = new Date();
     const totalTokens = params.inputTokens + params.outputTokens;
 
     // Calculate costs
@@ -310,17 +310,20 @@ class CostService {
   ): Promise<CostTrend[]> {
     // This would need to join with traces to filter by organization
     // For now, aggregate by date from all cost records
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate + "T23:59:59Z");
+
     const results = await db
       .select({
-        date: sql<string>`date(${costRecords.createdAt})`,
+        date: sql<string>`date(${costRecords.createdAt}, 'unixepoch')`,
         totalCost: sql<string>`sum(cast(${costRecords.totalCost} as real))`,
         tokenCount: sql<number>`sum(${costRecords.totalTokens})`,
         requestCount: sql<number>`count(*)`,
       })
       .from(costRecords)
-      .where(and(gte(costRecords.createdAt, startDate), lte(costRecords.createdAt, endDate)))
-      .groupBy(sql`date(${costRecords.createdAt})`)
-      .orderBy(sql`date(${costRecords.createdAt})`);
+      .where(and(gte(costRecords.createdAt, startDateObj), lte(costRecords.createdAt, endDateObj)))
+      .groupBy(sql`date(${costRecords.createdAt}, 'unixepoch')`)
+      .orderBy(sql`date(${costRecords.createdAt}, 'unixepoch')`);
 
     return results.map((r) => ({
       date: r.date,
@@ -347,7 +350,7 @@ class CostService {
         requestCount: sql<number>`count(*)`,
       })
       .from(costRecords)
-      .where(gte(costRecords.createdAt, thirtyDaysAgo.toISOString()));
+      .where(gte(costRecords.createdAt, thirtyDaysAgo));
 
     // Last 7 days
     const last7Days = await db
@@ -357,7 +360,7 @@ class CostService {
         requestCount: sql<number>`count(*)`,
       })
       .from(costRecords)
-      .where(gte(costRecords.createdAt, sevenDaysAgo.toISOString()));
+      .where(gte(costRecords.createdAt, sevenDaysAgo));
 
     // Top models by cost
     const topModels = await db
@@ -368,7 +371,7 @@ class CostService {
         requestCount: sql<number>`count(*)`,
       })
       .from(costRecords)
-      .where(gte(costRecords.createdAt, thirtyDaysAgo.toISOString()))
+      .where(gte(costRecords.createdAt, thirtyDaysAgo))
       .groupBy(costRecords.provider, costRecords.model)
       .orderBy(desc(sql`sum(cast(${costRecords.totalCost} as real))`))
       .limit(5);
@@ -415,7 +418,7 @@ class CostService {
     inputPricePerMillion: string,
     outputPricePerMillion: string,
   ) {
-    const now = new Date().toISOString();
+    const now = new Date();
 
     // Deactivate old pricing
     await db
@@ -431,7 +434,7 @@ class CostService {
         model,
         inputPricePerMillion,
         outputPricePerMillion,
-        effectiveDate: now.split("T")[0],
+        effectiveDate: now.toISOString().split("T")[0],
         isActive: true,
         createdAt: now,
       })

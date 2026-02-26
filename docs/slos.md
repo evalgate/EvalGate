@@ -92,9 +92,10 @@ For Phase 4 cron monitoring:
 
 ## Data Retention Notes
 
-- `apiUsageLogs` and `webhookDeliveries` use `text("created_at")` (ISO strings)
-- ISO 8601 string comparisons work correctly in SQLite for date range filtering
-- No migration required for Phase 0 queries
+- `apiUsageLogs` and `webhookDeliveries` use `text("created_at")` (ISO strings) — date range filtering works via string comparison
+- Hot-path tables (`evaluationRuns`, `testResults`, `spans`, `apiKeys`, `webhooks`) now use `integer("created_at")` (Unix seconds) as of migration 0039
+- For integer timestamp queries, use `unixepoch('now', '-24 hours')` instead of `datetime('now', '-24 hours')`
+- Drizzle ORM handles the conversion automatically when using `Date` objects in application code
 
 ## Future Improvements
 

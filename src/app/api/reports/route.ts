@@ -211,7 +211,7 @@ export const POST = secureRoute(
 
     const shareToken = randomBytes(16).toString("hex");
     const expiresAt = body.expiresInDays
-      ? new Date(Date.now() + body.expiresInDays * 86400000).toISOString()
+      ? new Date(Date.now() + body.expiresInDays * 86400000)
       : null;
 
     await db.insert(sharedReports).values({
@@ -223,7 +223,7 @@ export const POST = secureRoute(
       signature: sig,
       expiresAt,
       createdBy: ctx.userId,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     });
 
     return NextResponse.json(

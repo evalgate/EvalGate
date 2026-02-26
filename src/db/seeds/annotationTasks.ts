@@ -23,8 +23,8 @@ async function main() {
       totalItems: 20,
       completedItems: 12,
       createdBy: userId,
-      createdAt: new Date("2024-01-10").toISOString(),
-      updatedAt: new Date("2024-01-15").toISOString(),
+      createdAt: new Date("2024-01-10"),
+      updatedAt: new Date("2024-01-15"),
     },
     {
       name: "Toxicity Classification",
@@ -35,8 +35,8 @@ async function main() {
       totalItems: 50,
       completedItems: 35,
       createdBy: userId,
-      createdAt: new Date("2024-01-12").toISOString(),
-      updatedAt: new Date("2024-01-18").toISOString(),
+      createdAt: new Date("2024-01-12"),
+      updatedAt: new Date("2024-01-18"),
     },
     {
       name: "Model Output Comparison",
@@ -47,8 +47,8 @@ async function main() {
       totalItems: 15,
       completedItems: 15,
       createdBy: userId,
-      createdAt: new Date("2024-01-05").toISOString(),
-      updatedAt: new Date("2024-01-20").toISOString(),
+      createdAt: new Date("2024-01-05"),
+      updatedAt: new Date("2024-01-20"),
     },
   ];
 

@@ -258,7 +258,7 @@ export class WebhookService {
         responseStatus: responseCode || null,
         responseBody: error ? `Error: ${error}` : responseBody,
         attemptCount: 1,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
       })
       .returning();
 

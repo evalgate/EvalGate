@@ -8,13 +8,12 @@ import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
  * GET /api/metrics/slo
  *
  * Returns platform SLO values over a rolling 24-hour window.
- * Admin-only. All createdAt columns are ISO-8601 text — string comparison
- * is safe for SQLite because ISO format is lexicographically ordered.
+ * Admin-only. All createdAt columns are integer (Unix epoch seconds).
  */
 export const GET = secureRoute(
   async (_req: NextRequest, _ctx: AuthContext) => {
-    // ISO string for 24 h ago — safe to compare against text createdAt columns
-    const windowStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    // Unix epoch seconds for 24 h ago — compare against integer createdAt columns
+    const windowStart = Math.floor((Date.now() - 24 * 60 * 60 * 1000) / 1000);
 
     // ── p95 latency helpers ──────────────────────────────────────────────────
 

@@ -12,7 +12,7 @@ async function main() {
       reasoning:
         "The response accurately covers all four fundamental OOP principles with clear explanations. Each principle is well-defined and the answer is comprehensive. The structure is logical and easy to understand. Minor deduction for not providing practical examples to illustrate each concept.",
       metadata: { evaluationTime: 1247, modelVersion: "gpt-4" },
-      createdAt: new Date("2024-01-15T10:30:00").toISOString(),
+      createdAt: new Date("2024-01-15T10:30:00"),
     },
     {
       configId: 1,
@@ -23,7 +23,7 @@ async function main() {
       reasoning:
         "The response provides a basic distinction between SQL and NoSQL databases but lacks depth. While it correctly identifies structured vs. unstructured nature, it misses important aspects like ACID properties, scalability differences, use cases, and specific examples. The explanation is accurate but superficial and would benefit from more comprehensive coverage of transaction handling, consistency models, and when to use each type.",
       metadata: { evaluationTime: 1156, modelVersion: "gpt-4" },
-      createdAt: new Date("2024-01-16T14:20:00").toISOString(),
+      createdAt: new Date("2024-01-16T14:20:00"),
     },
     {
       configId: 2,
@@ -34,7 +34,7 @@ async function main() {
       reasoning:
         "Excellent explanation that captures the fundamental distinction between traditional programming and machine learning. The response clearly articulates the rule-based nature of traditional programming versus the pattern-learning approach of ML. It effectively highlights the deterministic vs. probabilistic nature and mentions adaptability. The answer could be strengthened by including specific examples or discussing limitations of each approach.",
       metadata: { evaluationTime: 1389, modelVersion: "gpt-4-turbo" },
-      createdAt: new Date("2024-01-18T09:15:00").toISOString(),
+      createdAt: new Date("2024-01-18T09:15:00"),
     },
     {
       configId: 2,
@@ -45,7 +45,7 @@ async function main() {
       reasoning:
         "The response provides a correct but very basic explanation of containerization. While it captures the core concept of packaging and consistency, it lacks important details about isolation, resource efficiency, portability benefits, and comparison with virtual machines. The answer would significantly benefit from discussing specific advantages like faster deployment, microservices architecture support, and DevOps workflow improvements. It is technically accurate but insufficiently comprehensive for a thorough understanding.",
       metadata: { evaluationTime: 982, modelVersion: "gpt-4-turbo" },
-      createdAt: new Date("2024-01-20T16:45:00").toISOString(),
+      createdAt: new Date("2024-01-20T16:45:00"),
     },
     {
       configId: 1,
@@ -56,7 +56,7 @@ async function main() {
       reasoning:
         "Outstanding comprehensive answer that thoroughly explains API rate limiting. The response covers both the concept and importance with well-structured points. It successfully addresses security, fairness, infrastructure protection, and business aspects. The inclusion of specific implementation algorithms demonstrates deep understanding. Minor point deduction for not mentioning HTTP headers like X-RateLimit-Remaining or discussing client-side handling strategies, but overall this is an excellent, well-rounded explanation.",
       metadata: { evaluationTime: 1523, modelVersion: "gpt-4" },
-      createdAt: new Date("2024-01-22T11:30:00").toISOString(),
+      createdAt: new Date("2024-01-22T11:30:00"),
     },
   ];
 

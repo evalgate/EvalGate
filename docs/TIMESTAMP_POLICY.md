@@ -33,23 +33,27 @@ Integer timestamps provide several advantages over string timestamps:
 | `spans` | `startTime`, `endTime`, `createdAt` | ✅ Complete (migration 0039) |
 | `apiKeys` | `lastUsedAt`, `expiresAt`, `revokedAt`, `createdAt` | ✅ Complete (migration 0039) |
 | `webhooks` | `lastDeliveredAt`, `createdAt`, `updatedAt` | ✅ Complete (migration 0039) |
+| `testCases` | `createdAt` | ✅ Complete (migration 0040) |
+| `annotationTasks` | `createdAt`, `updatedAt` | ✅ Complete (migration 0040) |
+| `annotationItems` | `annotatedAt`, `createdAt` | ✅ Complete (migration 0040) |
+| `llmJudgeConfigs` | `createdAt`, `updatedAt` | ✅ Complete (migration 0040) |
+| `llmJudgeResults` | `createdAt` | ✅ Complete (migration 0040) |
+| `costRecords` | `createdAt` | ✅ Complete (migration 0040) |
+| `qualityScores` | `createdAt` | ✅ Complete (migration 0040) |
+| `driftAlerts` | `createdAt` | ✅ Complete (migration 0040) |
+| `sharedReports` | `createdAt` | ✅ Complete (migration 0040) |
+| `sharedExports` | `createdAt`, `updatedAt`, `expiresAt` | ✅ Complete (migration 0040) |
+| `humanAnnotations` | `annotatedAt`, `createdAt` | ✅ Complete (migration 0040) |
+| `emailSubscribers` | `subscribedAt`, `unsubscribedAt`, `lastEmailSentAt`, `createdAt`, `updatedAt` | ✅ Complete (migration 0040) |
+| `webhookDeliveries` | `createdAt` | ✅ Complete (migration 0040) |
+| `apiUsageLogs` | `createdAt` | ✅ Complete (migration 0040) |
+| `providerPricing` | `createdAt` | ✅ Complete (migration 0040) |
+| `auditLogs` | `createdAt` | ✅ Complete (migration 0040) |
+| `benchmarks` | `createdAt`, `updatedAt` | ✅ Complete (migration 0040) |
+| `agentConfigs` | `createdAt`, `updatedAt` | ✅ Complete (migration 0040) |
+| `benchmarkResults` | `createdAt` | ✅ Complete (migration 0040) |
 
-### ⚠️ Pending Migration (String Timestamps)
-
-| Table | Timestamp Columns | Priority |
-|-------|-------------------|----------|
-| `testCases` | `createdAt` | **Medium** |
-| `annotationTasks` | `createdAt`, `updatedAt` | **Medium** |
-| `annotationItems` | `annotatedAt`, `createdAt` | **Medium** |
-| `llmJudgeConfigs` | `createdAt`, `updatedAt` | **Medium** |
-| `llmJudgeResults` | `createdAt` | **Medium** |
-| `costRecords` | `createdAt` | **Medium** |
-| `qualityScores` | `createdAt` | **Medium** |
-| `driftAlerts` | `createdAt` | **Low** |
-| `sharedReports` | `createdAt` | **Low** |
-| `sharedExports` | `createdAt`, `updatedAt`, `expiresAt` | **Low** |
-| `humanAnnotations` | `annotatedAt`, `createdAt` | **Low** |
-| `emailSubscribers` | `subscribedAt`, `unsubscribedAt`, `lastEmailSentAt`, `createdAt`, `updatedAt` | **Low** |
+**All tables migrated — no pending migrations remain.**
 
 ## Hot-Path Tables (Batch 1 — Completed)
 
@@ -62,6 +66,32 @@ The following hot-path tables were migrated in **migration 0039** (recreate-tabl
 5. **`webhooks`** — `lastDeliveredAt`, `createdAt`, `updatedAt`
 
 All app code (services, routes, gateway, worker, seeds) updated to write `Date` objects.
+
+## Remaining Tables (Batch 2 — Completed)
+
+All remaining tables were migrated in **migration 0040** (recreate-table pattern with `strftime('%s', col)` backfill):
+
+1. **`testCases`** — `createdAt`
+2. **`annotationTasks`** — `createdAt`, `updatedAt`
+3. **`annotationItems`** — `annotatedAt`, `createdAt`
+4. **`llmJudgeConfigs`** — `createdAt`, `updatedAt`
+5. **`llmJudgeResults`** — `createdAt`
+6. **`costRecords`** — `createdAt`
+7. **`qualityScores`** — `createdAt`
+8. **`driftAlerts`** — `createdAt`
+9. **`sharedReports`** — `createdAt`
+10. **`sharedExports`** — `createdAt`, `updatedAt`, `expiresAt`
+11. **`humanAnnotations`** — `annotatedAt`, `createdAt`
+12. **`emailSubscribers`** — `subscribedAt`, `unsubscribedAt`, `lastEmailSentAt`, `createdAt`, `updatedAt`
+13. **`webhookDeliveries`** — `createdAt`
+14. **`apiUsageLogs`** — `createdAt`
+15. **`providerPricing`** — `createdAt`
+16. **`auditLogs`** — `createdAt`
+17. **`benchmarks`** — `createdAt`, `updatedAt`
+18. **`agentConfigs`** — `createdAt`, `updatedAt`
+19. **`benchmarkResults`** — `createdAt`
+
+All app code (30+ files: API routes, services, seed files) updated to write `Date` objects.
 
 ## Implementation Guidelines
 
@@ -183,6 +213,6 @@ Exceptions to this policy require explicit approval and must include:
 
 ---
 
-**Last Updated:** February 19, 2026  
+**Last Updated:** February 25, 2026  
 **Next Review:** March 19, 2026  
 **Approved By:** Development Team

@@ -40,7 +40,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
     .where(
       and(
         eq(apiUsageLogs.organizationId, ctx.organizationId),
-        gte(apiUsageLogs.createdAt, startDateStr),
+        gte(apiUsageLogs.createdAt, startDate),
       ),
     );
 

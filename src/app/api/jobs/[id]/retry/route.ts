@@ -93,7 +93,7 @@ export const POST = secureRoute(
         resourceType: "job",
         resourceId: String(jobId),
         metadata: { mode, previousAttempt: job.attempt },
-        createdAt: now.toISOString(),
+        createdAt: now,
       });
     } catch {
       // Best-effort audit — don't fail the retry

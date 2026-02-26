@@ -23,7 +23,7 @@ export async function trackMcpToolExecution(params: {
       organizationId: params.organizationId,
       userId: params.userId,
       apiKeyId: params.apiKeyId ?? null,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     });
   } catch (err) {
     // Fire-and-forget; don't block the response

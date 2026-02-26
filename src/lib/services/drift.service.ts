@@ -202,10 +202,10 @@ export class DriftService {
 
     await db
       .update(driftAlerts)
-      .set({ acknowledgedAt: new Date().toISOString() })
+      .set({ acknowledgedAt: new Date() })
       .where(eq(driftAlerts.id, alertId));
 
-    return { ...alert, acknowledgedAt: new Date().toISOString() };
+    return { ...alert, acknowledgedAt: new Date() };
   }
 
   private async createAlert(
@@ -225,7 +225,7 @@ export class DriftService {
       currentValue: String(latest.score),
       baselineValue: String(baselineValue),
       zScoreValue: String(zScoreValue),
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     });
   }
 }

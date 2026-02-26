@@ -34,8 +34,8 @@ async function main() {
         },
       },
       createdBy: userId,
-      createdAt: new Date("2024-01-15").toISOString(),
-      updatedAt: new Date("2024-01-15").toISOString(),
+      createdAt: new Date("2024-01-15"),
+      updatedAt: new Date("2024-01-15"),
     },
     {
       name: "Accuracy Checker",
@@ -58,8 +58,8 @@ async function main() {
         },
       },
       createdBy: userId,
-      createdAt: new Date("2024-01-20").toISOString(),
-      updatedAt: new Date("2024-01-20").toISOString(),
+      createdAt: new Date("2024-01-20"),
+      updatedAt: new Date("2024-01-20"),
     },
   ];
 

@@ -110,8 +110,8 @@ export class ProviderKeysService {
         metadata: JSON.stringify(input.metadata || {}),
         isActive: true,
         createdBy,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning({
         id: providerKeys.id,
@@ -219,10 +219,7 @@ export class ProviderKeysService {
     }
 
     // Update last used timestamp
-    await db
-      .update(providerKeys)
-      .set({ lastUsedAt: new Date().toISOString() })
-      .where(eq(providerKeys.id, keyId));
+    await db.update(providerKeys).set({ lastUsedAt: new Date() }).where(eq(providerKeys.id, keyId));
 
     return {
       id: key.id,
@@ -294,12 +291,12 @@ export class ProviderKeysService {
     }
 
     const updateData: {
-      updatedAt: string;
+      updatedAt: Date;
       keyName?: string;
       metadata?: string;
       isActive?: boolean;
     } = {
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
 
     if (input.keyName !== undefined) {

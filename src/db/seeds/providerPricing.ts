@@ -2,7 +2,7 @@ import { db } from "@/db";
 import { providerPricing } from "@/db/schema";
 
 async function main() {
-  const now = new Date().toISOString();
+  const now = new Date();
   const effectiveDate = "2024-01-01";
 
   // Current pricing data for major LLM providers (prices per million tokens)
