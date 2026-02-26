@@ -1,6 +1,6 @@
 # EvalAI — AI Evaluation Platform
 
-> Observability, evaluation, and governance platform for AI agents and LLM applications. Published SDK on npm. REST API for unknown language.
+> Observability, evaluation, and governance platform for AI agents and LLM applications. Published SDK on npm. REST API for any language.
 
 ## What is EvalAI?
 
@@ -16,12 +16,31 @@ You sign up, create an organization, add API keys or use the web UI, then instru
 
 1. **Evaluations**: Create an evaluation (unit_test, human_eval, model_eval, ab_test), add test cases (input + expected output or rubric), then run it. The platform executes tests, scores outputs, and stores results. Use the visual builder or SDK.
 2. **Workflows**: Instrument multi-agent pipelines with WorkflowTracer. Start a workflow, record agent spans, handoffs, decisions, and costs. View DAGs and run history in the dashboard.
-3. **Traces**: Create traces and spans for unknown AI call. Attach metadata, record decisions, and track costs. Useful for debugging and auditing.
+3. **Traces**: Create traces and spans for any AI call. Attach metadata, record decisions, and track costs. Useful for debugging and auditing.
 4. **Auth**: Use API keys (Settings → Developer) or OAuth (Google/GitHub). All API calls use `Authorization: Bearer <key>`.
 
-## Quick Install
+## Quick Start (2 minutes)
+
+```bash
+npx @pauly4010/evalai-sdk init    # scaffold everything — baseline, CI workflow, config
+git push                           # open a PR → CI blocks regressions automatically
+```
+
+## Install (SDK only)
 
 npm install @pauly4010/evalai-sdk
+
+## CLI Commands
+
+```bash
+npx evalai init              # Full scaffolder — detects repo, creates baseline, installs CI workflow
+npx evalai gate              # Run regression gate (built-in or project mode)
+npx evalai gate --format json # Machine-readable JSON output
+npx evalai baseline update   # Re-run tests and update baseline
+npx evalai upgrade --full    # Upgrade to full metric gate (golden eval, confidence, latency, cost)
+npx evalai check             # Gate on quality score (requires API key)
+npx evalai doctor            # Verify CI/CD setup
+```
 
 ## What EvalAI Provides
 
