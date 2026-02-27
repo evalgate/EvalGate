@@ -5,6 +5,76 @@ All notable changes to the @pauly4010/evalai-sdk package will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-02-26
+
+### ✨ Added
+
+#### CLI — `evalai doctor` Rewrite (Comprehensive Checklist)
+
+- **9 itemized checks** with pass/fail/warn/skip status and exact remediation commands:
+  1. Project detection (package.json + lockfile + package manager)
+  2. Config file validity (evalai.config.json)
+  3. Baseline file (evals/baseline.json — schema, staleness)
+  4. Authentication (API key presence, redacted display)
+  5. Evaluation target (evaluationId configured)
+  6. API connectivity (reachable, latency)
+  7. Evaluation access (permissions, baseline presence)
+  8. CI wiring (.github/workflows/evalai-gate.yml)
+  9. Provider env vars (OpenAI/Anthropic/Azure — optional)
+- **Exit codes**: `0` ready, `2` not ready, `3` infrastructure error
+- **`--report`** flag outputs full JSON diagnostic bundle (versions, hashes, latency, all checks)
+- **`--format json`** for machine-readable output
+
+#### CLI — `evalai explain` (New Command)
+
+- **Offline report explainer** — reads `.evalai/last-report.json` or `evals/regression-report.json` with zero flags
+- **Top 3 failing test cases** with input/expected/actual
+- **What changed** — baseline vs current with directional indicators
+- **Root cause classification**: prompt drift, retrieval drift, formatting drift, tool-use drift, safety/cost/latency regression, coverage drop, baseline stale
+- **Prioritized suggested fixes** with actionable commands
+- Works with both `evalai check` reports (CheckReport) and `evalai gate` reports (BuiltinReport)
+- **`--format json`** for CI pipeline consumption
+
+#### Guided Failure Flow
+
+- **`evalai check` now writes `.evalai/last-report.json`** automatically after every run
+- **Failure hint**: prints `Next: evalai explain` on gate failure
+- **GitHub step summary**: adds tip about `evalai explain` and report artifact location on failure
+
+#### CI Template Improvements
+
+- **Doctor preflight step** added to generated workflow (`continue-on-error: true`)
+- **Report artifact upload** now includes both `evals/regression-report.json` and `.evalai/last-report.json`
+
+#### `evalai init` Output Updated
+
+- First recommendation: `npx evalai doctor` (verify setup)
+- Full command reference: doctor, gate, check, explain, baseline update
+
+#### CLI — `evalai print-config` (New Command)
+
+- **Resolved config viewer** — prints every config field with its current value
+- **Source-of-truth annotations**: `[file]`, `[env]`, `[default]`, `[profile]`, `[arg]` for each field
+- **Secrets redacted** — API keys shown as `sk_t...abcd`
+- **Environment summary** — shows all relevant env vars (EVALAI_API_KEY, OPENAI_API_KEY, CI, etc.)
+- **`--format json`** for machine-readable output
+- Accepts `--evaluationId`, `--baseUrl`, etc. to show how CLI args would merge
+
+#### Minimal Green Example
+
+- **`examples/minimal-green/`** — passes on first run, no account needed
+- Zero dependencies, 3 `node:test` tests
+- Clone → init → doctor → gate → ✅
+
+### 🔧 Changed
+
+- `evalai doctor` exit codes changed: was `0`/`1`, now `0`/`2`/`3`
+- SDK README: added Debugging & Diagnostics section with guided flow diagram
+- SDK README: added Doctor Exit Codes table
+- Doctor test count: 4 → 29 tests; added 9 explain tests (38 total new tests)
+
+---
+
 ## [1.7.0] - 2026-02-25
 
 ### ✨ Added

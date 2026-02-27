@@ -58,8 +58,32 @@ That's it. Open a PR and CI blocks regressions automatically.
 | Command | Description |
 |---------|-------------|
 | `npx evalai check` | Gate on quality score from dashboard |
-| `npx evalai doctor` | Verify CI/CD setup |
 | `npx evalai share` | Create share link for a run |
+
+### Debugging & Diagnostics
+
+| Command | Description |
+|---------|-------------|
+| `npx evalai doctor` | Comprehensive preflight checklist — verifies config, baseline, auth, API, CI wiring |
+| `npx evalai explain` | Offline report explainer — top failures, root cause classification, suggested fixes |
+| `npx evalai print-config` | Show resolved config with source-of-truth annotations (file/env/default/arg) |
+
+**Guided failure flow:**
+
+```
+evalai check  →  fails  →  "Next: evalai explain"
+                              ↓
+                   evalai explain  →  root causes + fixes
+```
+
+<!-- TODO: Add screenshots once recorded
+![GitHub Actions step summary showing gate pass/fail](docs/images/evalai-gate-step-summary.png)
+![Terminal output of evalai explain](docs/images/evalai-explain-terminal.png)
+-->
+
+`check` automatically writes `.evalai/last-report.json` so `explain` works with zero flags.
+
+`doctor` uses exit codes: **0** = ready, **2** = not ready, **3** = infra error. Use `--report` for a JSON diagnostic bundle.
 
 ### Gate Exit Codes
 
@@ -82,6 +106,14 @@ That's it. Open a PR and CI blocks regressions automatically.
 | 6 | Low test count |
 | 7 | Weak evidence |
 | 8 | Warn (soft regression) |
+
+### Doctor Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Ready — all checks passed |
+| 2 | Not ready — one or more checks failed |
+| 3 | Infrastructure error |
 
 ---
 
@@ -227,6 +259,8 @@ Your local `openAIChatEval` runs continue to work. No account cancellation. No d
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
+
+**v1.8.0** — `evalai doctor` rewrite (9-check checklist), `evalai explain` command, guided failure flow, CI template with doctor preflight
 
 **v1.7.0** — `evalai init` scaffolder, `evalai upgrade --full`, `detectRunner()`, machine-readable gate output, init test matrix
 

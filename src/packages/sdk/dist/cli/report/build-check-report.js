@@ -5,6 +5,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildCheckReport = buildCheckReport;
+const types_1 = require("../formatters/types");
 const snippet_1 = require("../render/snippet");
 const sort_1 = require("../render/sort");
 const TOP_N = 3;
@@ -69,6 +70,7 @@ function buildCheckReport(input) {
         : (gateResult.reasonMessage ?? undefined);
     const verdict = gateResult.reasonCode === "WARN_REGRESSION" ? "warn" : gateResult.passed ? "pass" : "fail";
     const report = {
+        schemaVersion: types_1.CHECK_REPORT_SCHEMA_VERSION,
         evaluationId: args.evaluationId,
         runId: evaluationRunId,
         verdict,

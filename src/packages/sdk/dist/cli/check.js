@@ -77,6 +77,7 @@ exports.EXIT = void 0;
 exports.parseArgs = parseArgs;
 exports.runCheck = runCheck;
 const fs = __importStar(require("node:fs"));
+const path = __importStar(require("node:path"));
 const api_1 = require("./api");
 const ci_context_1 = require("./ci-context");
 const config_1 = require("./config");
@@ -260,12 +261,26 @@ async function runCheck(args) {
         baselineRunId: quality?.baselineRunId ?? undefined,
         ciRunUrl: ci?.runUrl ?? undefined,
     });
+    // Persist report artifact so `evalai explain` works with zero flags
+    try {
+        const reportDir = path.join(process.cwd(), ".evalai");
+        if (!fs.existsSync(reportDir))
+            fs.mkdirSync(reportDir, { recursive: true });
+        fs.writeFileSync(path.join(reportDir, "last-report.json"), JSON.stringify(report, null, 2), "utf8");
+    }
+    catch {
+        // Non-fatal: best-effort artifact write
+    }
     const formatted = args.format === "json"
         ? (0, json_1.formatJson)(report)
         : args.format === "github"
             ? (0, github_1.formatGitHub)(report)
             : (0, human_1.formatHuman)(report);
     console.log(formatted);
+    // Guided flow hint on failure
+    if (!gateResult.passed) {
+        console.error("\nNext: evalai explain");
+    }
     // --pr-comment-out: write markdown to file for GitHub Action to post
     if (args.prCommentOut) {
         try {

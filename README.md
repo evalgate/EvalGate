@@ -48,6 +48,24 @@ npx evalai check --format github --onFail import
 
 Adds quality score tracking, baseline comparisons, trace coverage, and PR annotations.
 
+## Debug in 30 Seconds
+
+When CI fails, don't guess — follow the guided flow:
+
+```bash
+npx evalai doctor              # preflight: is everything wired correctly?
+npx evalai check               # run the gate (writes .evalai/last-report.json)
+npx evalai explain             # what failed, why, and how to fix it
+```
+
+`check` automatically saves a report artifact. `explain` reads it with zero flags and prints:
+- **Top failing test cases** with input/expected/actual
+- **What changed** from baseline (score, pass rate, safety)
+- **Root cause classification** (prompt drift, retrieval drift, safety regression, …)
+- **Suggested fixes** with exact commands
+
+Works offline. No API calls needed for `explain`.
+
 ## Remove anytime
 
 ```bash
@@ -58,7 +76,7 @@ No account cancellation. No data export. Your tests keep working.
 
 **Live demo:** [https://v0-ai-evaluation-platform-nu.vercel.app](https://v0-ai-evaluation-platform-nu.vercel.app)
 
-**Docs:** [Quickstart](docs/quickstart.md) · [Architecture](docs/ARCHITECTURE.md) · [Regression Gate](docs/REGRESSION_GATE.md) · [Contributor Map](docs/CONTRIBUTOR_MAP.md) · [Releasing](docs/RELEASING.md) · [Share Security](docs/SHARE_SECURITY.md) · [All Docs](docs/INDEX.md)
+**Docs:** [Quickstart](docs/quickstart.md) · [Architecture](docs/ARCHITECTURE.md) · [Regression Gate](docs/REGRESSION_GATE.md) · [CI Artifacts](docs/CI_ARTIFACTS.md) · [AI Assistant Integration](docs/AI_ASSISTANT_INTEGRATION.md) · [Contributor Map](docs/CONTRIBUTOR_MAP.md) · [Releasing](docs/RELEASING.md) · [All Docs](docs/INDEX.md)
 
 ---
 
@@ -79,7 +97,7 @@ No account cancellation. No data export. Your tests keep working.
 
 ### Developer Experience
 - **Full TypeScript SDK** — [`@pauly4010/evalai-sdk`](https://www.npmjs.com/package/@pauly4010/evalai-sdk) with CLI, regression gate, traces, evaluations, LLM judge
-- **CLI commands** — `evalai init`, `evalai gate`, `evalai baseline`, `evalai upgrade`, `evalai check`, `evalai doctor`, `evalai share`
+- **CLI commands** — `evalai init`, `evalai gate`, `evalai baseline`, `evalai upgrade`, `evalai check`, `evalai doctor`, `evalai explain`, `evalai print-config`, `evalai share`
 - **Programmatic exports** — gate exit codes, categories, report types via `@pauly4010/evalai-sdk/regression`
 - **API keys** — scoped keys for CI/CD and production
 

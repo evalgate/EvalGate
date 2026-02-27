@@ -92,6 +92,11 @@ function appendStepSummary(report) {
         lines.push(`[View Dashboard](${report.dashboardUrl})`);
         lines.push("");
     }
+    if (!passed) {
+        lines.push("> **Tip:** Run `evalai explain` locally to see root causes and suggested fixes.");
+        lines.push("> Report saved to `.evalai/last-report.json` — upload as a build artifact for offline analysis.");
+        lines.push("");
+    }
     try {
         fs.appendFileSync(path, lines.join("\n"), "utf8");
     }

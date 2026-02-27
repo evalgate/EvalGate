@@ -54,7 +54,10 @@ export type CiContext = {
     runUrl?: string;
     actor?: string;
 };
+/** Current schema version for CheckReport (.evalai/last-report.json). Bump on breaking changes. */
+export declare const CHECK_REPORT_SCHEMA_VERSION = 1;
 export type CheckReport = {
+    schemaVersion?: number;
     evaluationId: string;
     runId?: number;
     verdict: GateVerdict;

@@ -207,6 +207,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 ${setupSteps}
+      - name: EvalAI Doctor (preflight)
+        continue-on-error: true  # Strict: set to false, or use: evalai doctor --strict
+        run: npx -y @pauly4010/evalai-sdk@^1 doctor
+
       - name: EvalAI Regression Gate
         run: npx -y @pauly4010/evalai-sdk@^1 gate --format github
 
@@ -214,8 +218,10 @@ ${setupSteps}
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: regression-report
-          path: evals/regression-report.json
+          name: evalai-report
+          path: |
+            evals/regression-report.json
+            .evalai/last-report.json
           if-no-files-found: ignore
 `;
     fs.writeFileSync(workflowPath, workflow);
@@ -263,6 +269,10 @@ function runInit(cwd = process.cwd()) {
     console.log("");
     console.log("  Done! Next:");
     console.log("");
+    console.log("    npx evalai doctor             Verify your setup is complete");
+    console.log("");
+    console.log("  Then commit:");
+    console.log("");
     console.log("    git add evals/ .github/workflows/evalai-gate.yml evalai.config.json");
     console.log("    git commit -m 'chore: add EvalAI regression gate'");
     console.log("    git push");
@@ -270,8 +280,10 @@ function runInit(cwd = process.cwd()) {
     console.log("  That's it. Open a PR and the gate runs automatically.");
     console.log("");
     console.log("  Commands:");
-    console.log("    npx evalai gate              Run gate locally");
-    console.log("    npx evalai gate --format json Machine-readable output");
+    console.log("    npx evalai doctor             Preflight check — verify config, baseline, CI");
+    console.log("    npx evalai gate               Run regression gate locally");
+    console.log("    npx evalai check              API-based gate (requires account)");
+    console.log("    npx evalai explain            Explain last failure with root causes + fixes");
     console.log("    npx evalai baseline update    Update baseline after intentional changes");
     console.log("");
     console.log("  To remove: delete evals/, evalai.config.json, and .github/workflows/evalai-gate.yml");

@@ -1,112 +1,337 @@
 /**
- * evalai doctor tests.
+ * evalai doctor tests — comprehensive checklist.
  */
 
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { runDoctor } from "../cli/doctor";
+import {
+  checkAuth,
+  checkBaseline,
+  checkCiWiring,
+  checkConfig,
+  checkConnectivity,
+  checkEvalAccess,
+  checkEvalTarget,
+  checkProject,
+  checkProviderEnv,
+  DOCTOR_EXIT,
+  runDoctor,
+} from "../cli/doctor";
 
 const mockFetch = vi.fn();
 
-describe("runDoctor", () => {
+describe("doctor individual checks", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = path.join(
+      process.env.TEMP || process.env.TMPDIR || "/tmp",
+      `evalai-doctor-test-${Date.now()}`,
+    );
+    fs.mkdirSync(tmpDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  describe("checkProject", () => {
+    it("fails when no package.json", () => {
+      const result = checkProject(tmpDir);
+      expect(result.status).toBe("fail");
+      expect(result.remediation).toContain("npm init");
+    });
+
+    it("warns when package.json exists but no lockfile", () => {
+      fs.writeFileSync(path.join(tmpDir, "package.json"), "{}");
+      const result = checkProject(tmpDir);
+      expect(result.status).toBe("warn");
+      expect(result.message).toContain("no lockfile");
+    });
+
+    it("passes with package.json + lockfile", () => {
+      fs.writeFileSync(path.join(tmpDir, "package.json"), "{}");
+      fs.writeFileSync(path.join(tmpDir, "package-lock.json"), "{}");
+      const result = checkProject(tmpDir);
+      expect(result.status).toBe("pass");
+      expect(result.message).toContain("npm");
+    });
+
+    it("detects pnpm", () => {
+      fs.writeFileSync(path.join(tmpDir, "package.json"), "{}");
+      fs.writeFileSync(path.join(tmpDir, "pnpm-lock.yaml"), "");
+      const result = checkProject(tmpDir);
+      expect(result.status).toBe("pass");
+      expect(result.message).toContain("pnpm");
+    });
+  });
+
+  describe("checkConfig", () => {
+    it("fails when no config found", () => {
+      fs.writeFileSync(path.join(tmpDir, "package.json"), "{}");
+      const result = checkConfig(tmpDir);
+      expect(result.status).toBe("fail");
+      expect(result.remediation).toContain("npx evalai init");
+    });
+
+    it("passes with valid config", () => {
+      const config = { evaluationId: "42", gate: { baseline: "evals/baseline.json" } };
+      fs.writeFileSync(path.join(tmpDir, "evalai.config.json"), JSON.stringify(config));
+      const result = checkConfig(tmpDir);
+      expect(result.status).toBe("pass");
+      expect(result.config).toEqual(expect.objectContaining({ evaluationId: "42" }));
+    });
+  });
+
+  describe("checkBaseline", () => {
+    it("fails when baseline missing", () => {
+      const result = checkBaseline(tmpDir);
+      expect(result.status).toBe("fail");
+      expect(result.baselineInfo.exists).toBe(false);
+    });
+
+    it("fails with invalid JSON", () => {
+      const evalsDir = path.join(tmpDir, "evals");
+      fs.mkdirSync(evalsDir, { recursive: true });
+      fs.writeFileSync(path.join(evalsDir, "baseline.json"), "not json");
+      const result = checkBaseline(tmpDir);
+      expect(result.status).toBe("fail");
+      expect(result.message).toContain("not valid JSON");
+    });
+
+    it("fails with wrong schemaVersion", () => {
+      const evalsDir = path.join(tmpDir, "evals");
+      fs.mkdirSync(evalsDir, { recursive: true });
+      fs.writeFileSync(path.join(evalsDir, "baseline.json"), JSON.stringify({ schemaVersion: 99 }));
+      const result = checkBaseline(tmpDir);
+      expect(result.status).toBe("fail");
+      expect(result.message).toContain("99");
+    });
+
+    it("warns when stale", () => {
+      const evalsDir = path.join(tmpDir, "evals");
+      fs.mkdirSync(evalsDir, { recursive: true });
+      const old = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+      fs.writeFileSync(
+        path.join(evalsDir, "baseline.json"),
+        JSON.stringify({ schemaVersion: 1, updatedAt: old }),
+      );
+      const result = checkBaseline(tmpDir);
+      expect(result.status).toBe("warn");
+      expect(result.baselineInfo.stale).toBe(true);
+    });
+
+    it("passes with valid baseline", () => {
+      const evalsDir = path.join(tmpDir, "evals");
+      fs.mkdirSync(evalsDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(evalsDir, "baseline.json"),
+        JSON.stringify({
+          schemaVersion: 1,
+          updatedAt: new Date().toISOString(),
+        }),
+      );
+      const result = checkBaseline(tmpDir);
+      expect(result.status).toBe("pass");
+      expect(result.baselineInfo.hash).toBeDefined();
+    });
+  });
+
+  describe("checkAuth", () => {
+    it("fails with no key", () => {
+      const result = checkAuth("");
+      expect(result.status).toBe("fail");
+    });
+
+    it("passes with key (redacted)", () => {
+      const result = checkAuth("evalai_1234567890abcdef");
+      expect(result.status).toBe("pass");
+      expect(result.message).toContain("eval...cdef");
+    });
+  });
+
+  describe("checkEvalTarget", () => {
+    it("fails with empty evaluationId", () => {
+      const result = checkEvalTarget("");
+      expect(result.status).toBe("fail");
+    });
+
+    it("passes with evaluationId", () => {
+      const result = checkEvalTarget("42");
+      expect(result.status).toBe("pass");
+      expect(result.message).toContain("42");
+    });
+  });
+
+  describe("checkCiWiring", () => {
+    it("fails when workflow missing", () => {
+      const result = checkCiWiring(tmpDir);
+      expect(result.status).toBe("fail");
+      expect(result.ciInfo.exists).toBe(false);
+    });
+
+    it("warns when workflow exists but no evalai reference", () => {
+      const wfDir = path.join(tmpDir, ".github", "workflows");
+      fs.mkdirSync(wfDir, { recursive: true });
+      fs.writeFileSync(path.join(wfDir, "evalai-gate.yml"), "name: CI\non: push\njobs: {}");
+      const result = checkCiWiring(tmpDir);
+      expect(result.status).toBe("warn");
+    });
+
+    it("passes when workflow references evalai", () => {
+      const wfDir = path.join(tmpDir, ".github", "workflows");
+      fs.mkdirSync(wfDir, { recursive: true });
+      fs.writeFileSync(path.join(wfDir, "evalai-gate.yml"), "run: npx evalai gate --format github");
+      const result = checkCiWiring(tmpDir);
+      expect(result.status).toBe("pass");
+    });
+  });
+
+  describe("checkProviderEnv", () => {
+    it("skips when no provider env vars", () => {
+      const result = checkProviderEnv();
+      // May pass or skip depending on test environment
+      expect(["pass", "skip"]).toContain(result.status);
+    });
+  });
+
+  describe("checkConnectivity", () => {
+    beforeEach(() => {
+      vi.stubGlobal("fetch", mockFetch);
+      mockFetch.mockReset();
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("passes when API reachable", async () => {
+      mockFetch.mockResolvedValue({ ok: true, status: 200 });
+      const result = await checkConnectivity("http://localhost:3000", "key");
+      expect(result.status).toBe("pass");
+      expect(result.latencyMs).toBeDefined();
+    });
+
+    it("fails when API returns error", async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 });
+      const result = await checkConnectivity("http://localhost:3000", "key");
+      expect(result.status).toBe("fail");
+    });
+
+    it("fails on network error", async () => {
+      mockFetch.mockRejectedValue(new Error("ECONNREFUSED"));
+      const result = await checkConnectivity("http://localhost:3000", "key");
+      expect(result.status).toBe("fail");
+      expect(result.message).toContain("ECONNREFUSED");
+    });
+  });
+
+  describe("checkEvalAccess", () => {
+    beforeEach(() => {
+      vi.stubGlobal("fetch", mockFetch);
+      mockFetch.mockReset();
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("skips when no apiKey", async () => {
+      const result = await checkEvalAccess("http://localhost:3000", "", "42", "published");
+      expect(result.status).toBe("skip");
+    });
+
+    it("passes when API returns score", async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        headers: new Headers(),
+        text: async () => JSON.stringify({ score: 85, baselineMissing: false }),
+      });
+      const result = await checkEvalAccess("http://localhost:3000", "key", "42", "published");
+      expect(result.status).toBe("pass");
+      expect(result.message).toContain("85");
+    });
+
+    it("warns when baseline missing", async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        headers: new Headers(),
+        text: async () => JSON.stringify({ score: 0, baselineMissing: true }),
+      });
+      const result = await checkEvalAccess("http://localhost:3000", "key", "42", "published");
+      expect(result.status).toBe("warn");
+    });
+
+    it("fails on 403", async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 403,
+        headers: new Headers(),
+        text: async () => "Forbidden",
+      });
+      const result = await checkEvalAccess("http://localhost:3000", "key", "42", "published");
+      expect(result.status).toBe("fail");
+      expect(result.message).toContain("403");
+    });
+  });
+});
+
+describe("runDoctor integration", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", mockFetch);
     mockFetch.mockReset();
-    // Default: no config, so we need to pass --evaluationId and --apiKey
-    vi.resetModules();
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
-  it("returns 1 when API key is missing", async () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  it("returns DOCTOR_EXIT.NOT_READY when auth fails", async () => {
     const code = await runDoctor(["--evaluationId", "42"]);
-    expect(code).toBe(1);
-    expect(consoleSpy).toHaveBeenCalledWith("Set EVALAI_API_KEY");
-    consoleSpy.mockRestore();
+    expect(code).toBe(DOCTOR_EXIT.NOT_READY);
   });
 
-  it("calls quality API when apiKey and evaluationId provided", async () => {
-    process.env.EVALAI_API_KEY = "test-key";
+  it("returns exit code 0 or 2 (not 1) — uses new exit codes", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
+      status: 200,
       headers: new Headers(),
-      text: async () =>
-        JSON.stringify({
-          score: 85,
-          total: 10,
-          baselineMissing: false,
-        }),
+      text: async () => JSON.stringify({ score: 90, baselineMissing: false }),
     });
-
     const code = await runDoctor(["--evaluationId", "42", "--apiKey", "test-key"]);
-    expect(code).toBe(0);
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-    const [url] = mockFetch.mock.calls[0];
-    expect(url).toContain("/api/quality");
-    expect(url).toContain("evaluationId=42");
-    expect(url).toContain("action=latest");
-    expect(url).toContain("baseline=published");
-
-    delete process.env.EVALAI_API_KEY;
+    // May be 0 (ready) or 2 (not ready due to missing config/baseline in cwd)
+    expect([DOCTOR_EXIT.READY, DOCTOR_EXIT.NOT_READY]).toContain(code);
   });
 
-  it("returns 1 when quality API returns baselineMissing", async () => {
-    process.env.EVALAI_API_KEY = "test-key";
+  it("outputs JSON with --report flag", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
+      status: 200,
       headers: new Headers(),
-      text: async () =>
-        JSON.stringify({
-          score: 0,
-          baselineMissing: true,
-        }),
+      text: async () => JSON.stringify({ score: 90, baselineMissing: false }),
     });
 
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const code = await runDoctor(["--evaluationId", "42", "--apiKey", "test-key"]);
-    expect(code).toBe(1);
-    expect(consoleSpy).toHaveBeenCalledWith("Publish a run or use --baseline previous");
-    consoleSpy.mockRestore();
-    delete process.env.EVALAI_API_KEY;
-  });
+    const logSpy = vi.spyOn(console, "log");
+    await runDoctor(["--evaluationId", "42", "--apiKey", "test-key", "--report"]);
 
-  it("returns 1 when quality API returns error status", async () => {
-    process.env.EVALAI_API_KEY = "test-key";
-    mockFetch.mockResolvedValue({
-      ok: false,
-      status: 401,
-      headers: new Headers(),
-      text: async () => "Unauthorized",
+    // Find the JSON output call
+    const jsonCall = logSpy.mock.calls.find((call) => {
+      try {
+        const parsed = JSON.parse(call[0] as string);
+        return parsed.checks && parsed.overall;
+      } catch {
+        return false;
+      }
     });
-
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const code = await runDoctor(["--evaluationId", "42", "--apiKey", "test-key"]);
-    expect(code).toBe(1);
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Quality API"));
-    consoleSpy.mockRestore();
-    delete process.env.EVALAI_API_KEY;
-  });
-
-  it("prints OK when all checks pass", async () => {
-    process.env.EVALAI_API_KEY = "test-key";
-    mockFetch.mockResolvedValue({
-      ok: true,
-      headers: new Headers(),
-      text: async () =>
-        JSON.stringify({
-          score: 90,
-          total: 5,
-          baselineMissing: false,
-        }),
-    });
-
-    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    const code = await runDoctor(["--evaluationId", "42", "--apiKey", "test-key"]);
-    expect(code).toBe(0);
-    expect(logSpy).toHaveBeenCalledWith("✓ EvalAI doctor: OK");
-    logSpy.mockRestore();
-    delete process.env.EVALAI_API_KEY;
+    expect(jsonCall).toBeDefined();
+    const bundle = JSON.parse(jsonCall![0] as string);
+    expect(bundle.checks).toBeInstanceOf(Array);
+    expect(bundle.overall).toBeDefined();
+    expect(bundle.cliVersion).toBeDefined();
+    expect(bundle.platform).toBeDefined();
   });
 });

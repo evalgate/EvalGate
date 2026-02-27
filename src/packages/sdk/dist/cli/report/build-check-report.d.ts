@@ -4,7 +4,7 @@
  */
 import type { QualityLatestData, RunDetailsData } from "../api";
 import type { CheckArgs } from "../check";
-import type { CheckReport } from "../formatters/types";
+import { type CheckReport } from "../formatters/types";
 import type { GateResult } from "../gate";
 export type BuildReportInput = {
     args: CheckArgs;

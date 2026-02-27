@@ -5,11 +5,12 @@
 
 import type { QualityLatestData, RunDetailsData } from "../api";
 import type { CheckArgs } from "../check";
-import type {
-  CheckReport,
-  FailedCase,
-  ScoreBreakdown01,
-  ScoreContribPts,
+import {
+  CHECK_REPORT_SCHEMA_VERSION,
+  type CheckReport,
+  type FailedCase,
+  type ScoreBreakdown01,
+  type ScoreContribPts,
 } from "../formatters/types";
 import type { GateResult } from "../gate";
 import { truncateSnippet } from "../render/snippet";
@@ -101,6 +102,7 @@ export function buildCheckReport(input: BuildReportInput): CheckReport {
     gateResult.reasonCode === "WARN_REGRESSION" ? "warn" : gateResult.passed ? "pass" : "fail";
 
   const report: CheckReport = {
+    schemaVersion: CHECK_REPORT_SCHEMA_VERSION,
     evaluationId: args.evaluationId,
     runId: evaluationRunId,
     verdict,
