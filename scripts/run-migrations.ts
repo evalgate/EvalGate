@@ -19,9 +19,17 @@ async function loadEnv() {
   for (const f of [".env.local", ".env"]) {
     try {
       const content = await readFile(join(process.cwd(), f), "utf-8");
-      for (const line of content.split("\n")) {
-        const m = line.match(/^([^#=]+)=(.*)$/);
-        if (m) process.env[m[1].trim()] = m[2].trim().replace(/^["']|["']$/g, "");
+      for (const rawLine of content.split(/\r?\n/)) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith("#")) continue;
+        const idx = line.indexOf("=");
+        if (idx === -1) continue;
+        const key = line.slice(0, idx).trim();
+        const val = line
+          .slice(idx + 1)
+          .trim()
+          .replace(/^["']|["']$/g, "");
+        if (key) process.env[key] = val;
       }
       break;
     } catch {
