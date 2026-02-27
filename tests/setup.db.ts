@@ -29,10 +29,18 @@ const sqlFiles = files
 
 for (const file of sqlFiles) {
   const content = await readFile(join(drizzleDir, file), "utf-8");
-  try {
-    await pg.exec(content);
-  } catch {
-    // Skip migration errors (already exists, etc.)
+  // Split on statement-breakpoint markers so each statement runs independently
+  const statements = content.includes("--> statement-breakpoint")
+    ? content.split(/--> statement-breakpoint/)
+    : [content];
+  for (const raw of statements) {
+    const stmt = raw.trim();
+    if (!stmt) continue;
+    try {
+      await pg.exec(stmt);
+    } catch {
+      // Skip migration errors (already exists, etc.)
+    }
   }
 }
 

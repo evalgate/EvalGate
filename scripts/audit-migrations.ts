@@ -30,18 +30,33 @@ async function main(): Promise<number> {
     console.log(`Running ${sqlFiles.length} migration(s)...\n`);
     for (const file of sqlFiles) {
       const content = await readFile(join(drizzleDir, file), "utf-8");
-      try {
-        await pg.exec(content);
-        console.log(`  [ok]   ${file}`);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.includes("already exists") || msg.includes("does not exist")) {
-          console.log(`  [skip] ${file}: ${msg}`);
-        } else {
-          console.error(`  [fail] ${file}: ${msg}`);
-          return 1;
+      // Split on statement-breakpoint markers so each statement runs independently.
+      // This prevents a single "already exists" error from aborting the entire file.
+      const statements = content.includes("--> statement-breakpoint")
+        ? content.split(/--> statement-breakpoint/)
+        : [content];
+
+      let applied = 0;
+      let skipped = 0;
+      for (const raw of statements) {
+        const stmt = raw.trim();
+        if (!stmt || /^\s*--/.test(stmt)) continue;
+        try {
+          await pg.exec(stmt);
+          applied++;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          if (msg.includes("already exists") || msg.includes("does not exist")) {
+            skipped++;
+          } else {
+            console.error(`  [fail] ${file}: ${msg}`);
+            return 1;
+          }
         }
       }
+      console.log(
+        `  [ok]   ${file} (${applied} applied${skipped > 0 ? `, ${skipped} skipped` : ""})`,
+      );
     }
 
     // 2. Sanity queries — verify key tables exist and are queryable
