@@ -76,10 +76,13 @@ evalai check  →  fails  →  "Next: evalai explain"
                    evalai explain  →  root causes + fixes
 ```
 
-<!-- TODO: Add screenshots once recorded
-![GitHub Actions step summary showing gate pass/fail](docs/images/evalai-gate-step-summary.png)
-![Terminal output of evalai explain](docs/images/evalai-explain-terminal.png)
--->
+**GitHub Actions step summary** — gate result at a glance:
+
+![GitHub Actions step summary showing gate pass/fail with delta table](../../docs/images/evalai-gate-step-summary.svg)
+
+**`evalai explain` terminal output** — root causes + fix commands:
+
+![Terminal output of evalai explain showing top failures and suggested fixes](../../docs/images/evalai-explain-terminal.svg)
 
 `check` automatically writes `.evalai/last-report.json` so `explain` works with zero flags.
 

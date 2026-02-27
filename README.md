@@ -66,6 +66,19 @@ npx evalai explain             # what failed, why, and how to fix it
 
 Works offline. No API calls needed for `explain`.
 
+<details>
+<summary><strong>See it in action</strong> (click to expand)</summary>
+
+**GitHub Actions step summary** — gate result at a glance:
+
+![GitHub Actions step summary](docs/images/evalai-gate-step-summary.svg)
+
+**`evalai explain` terminal output** — root causes + fix commands:
+
+![evalai explain terminal output](docs/images/evalai-explain-terminal.svg)
+
+</details>
+
 ## Remove anytime
 
 ```bash

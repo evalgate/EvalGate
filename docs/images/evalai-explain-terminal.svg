@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="520" viewBox="0 0 720 520">
+  <defs>
+    <style>
+      .bg { fill: #1e1e2e; }
+      .border { fill: none; stroke: #45475a; stroke-width: 1; rx: 8; }
+      .titlebar { fill: #181825; }
+      .dot-red { fill: #f38ba8; }
+      .dot-yellow { fill: #f9e2af; }
+      .dot-green { fill: #a6e3a1; }
+      .title-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; fill: #6c7086; }
+      .mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 13px; }
+      .white { fill: #cdd6f4; }
+      .dim { fill: #6c7086; }
+      .red { fill: #f38ba8; }
+      .green { fill: #a6e3a1; }
+      .yellow { fill: #f9e2af; }
+      .blue { fill: #89b4fa; }
+      .cyan { fill: #94e2d5; }
+      .bold { font-weight: 700; }
+      .prompt { fill: #a6e3a1; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect class="bg" width="720" height="520" rx="8"/>
+  <rect class="border" x="0.5" y="0.5" width="719" height="519"/>
+
+  <!-- Title bar -->
+  <rect class="titlebar" x="1" y="1" width="718" height="32" rx="8"/>
+  <rect class="titlebar" x="1" y="20" width="718" height="13"/>
+  <circle class="dot-red" cx="20" cy="17" r="6"/>
+  <circle class="dot-yellow" cx="40" cy="17" r="6"/>
+  <circle class="dot-green" cx="60" cy="17" r="6"/>
+  <text class="title-text" x="320" y="21" text-anchor="middle">Terminal — evalai explain</text>
+
+  <!-- Prompt line -->
+  <text class="mono prompt" x="16" y="58">$</text>
+  <text class="mono white" x="30" y="58"> npx evalai explain</text>
+
+  <!-- Blank line -->
+  <!-- Verdict -->
+  <text class="mono white bold" x="16" y="88">  evalai explain</text>
+
+  <text class="mono red bold" x="16" y="116">  ❌ Verdict: FAIL</text>
+  <text class="mono white" x="16" y="138">  Score: 72 (baseline: 90, delta: -18)</text>
+  <text class="mono dim" x="16" y="158">  Reason: score 72 &lt; minScore 90</text>
+
+  <!-- What changed -->
+  <text class="mono yellow bold" x="16" y="188">  What changed:</text>
+  <text class="mono red" x="16" y="210">    ↓ Score: 90 → 72</text>
+  <text class="mono red" x="16" y="230">    ↓ Pass rate: 95% → 78%</text>
+
+  <!-- Top failures -->
+  <text class="mono yellow bold" x="16" y="260">  Top failing cases (2 of 5):</text>
+
+  <text class="mono cyan" x="16" y="288">    1. greeting test</text>
+  <text class="mono dim" x="16" y="308">       Input:    Hello</text>
+  <text class="mono dim" x="16" y="328">       Expected: Hi there!</text>
+  <text class="mono red" x="16" y="348">       Actual:   Greetings, human.</text>
+
+  <text class="mono cyan" x="16" y="376">    2. farewell test</text>
+  <text class="mono dim" x="16" y="396">       Input:    Goodbye</text>
+  <text class="mono dim" x="16" y="416">       Expected: Bye!</text>
+  <text class="mono red" x="16" y="436">       Actual:   Farewell, human.</text>
+
+  <!-- Root causes + fixes -->
+  <text class="mono yellow bold" x="16" y="466">  Likely root causes:</text>
+  <text class="mono white" x="16" y="486">    • prompt drift</text>
+
+  <text class="mono green bold" x="16" y="510">  ‼️ Review prompt changes  ❗ Pin model version</text>
+</svg>
