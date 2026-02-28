@@ -1,7 +1,7 @@
 // src/lib/db/scoped-db.ts
 
 import { eq } from "drizzle-orm";
-import type { PgTable } from "drizzle-orm/pg-core";
+import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 
 /**
@@ -16,14 +16,14 @@ import { db } from "@/db";
 export function scopedDb(organizationId: number) {
 	return {
 		/** Scoped select: auto-appends org filter */
-		selectFrom<T extends PgTable & { organizationId: any }>(table: T) {
+		selectFrom<T extends PgTable & { organizationId: PgColumn }>(table: T) {
 			return db
 				.select()
 				.from(table)
 				.where(eq(table.organizationId, organizationId));
 		},
 		/** Scoped delete: prevents cross-tenant deletion */
-		deleteFrom<T extends PgTable & { organizationId: any }>(table: T) {
+		deleteFrom<T extends PgTable & { organizationId: PgColumn }>(table: T) {
 			return db.delete(table).where(eq(table.organizationId, organizationId));
 		},
 		/** Raw db for tables without org column (join-through patterns) */

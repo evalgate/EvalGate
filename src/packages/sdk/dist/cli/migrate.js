@@ -164,7 +164,7 @@ function generateGlobalHelpers(config, _options) {
         ` * Legacy test evaluation function`,
         ` * TODO: Adapt based on your original test logic`,
         ` */`,
-        `async function evaluateLegacyTest(input: string, expected?: string): Promise<any> {`,
+        `async function evaluateLegacyTest(input: string, expected?: string): Promise<unknown> {`,
         `  const output = await legacyExecutor(input);`,
         `  const passed = evaluateAssertions(output, expected);`,
         `  `,

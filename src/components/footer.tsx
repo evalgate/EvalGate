@@ -117,6 +117,11 @@ export function Footer() {
 									Terms
 								</button>
 							</li>
+							<li>
+								<Link href="/security" className="hover:text-foreground">
+									Security
+								</Link>
+							</li>
 						</ul>
 					</div>
 				</div>

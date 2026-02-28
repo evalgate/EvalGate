@@ -89,7 +89,20 @@ No account cancellation. No data export. Your tests keep working.
 
 **Live demo:** [https://v0-ai-evaluation-platform-nu.vercel.app](https://v0-ai-evaluation-platform-nu.vercel.app)
 
-## 🚀 CI in One Command
+## Platform Readiness
+
+| Capability | Status |
+|---|---|
+| CI regression gate (`evalai ci`, `evalai gate`) | Production |
+| SDK ([`@pauly4010/evalai-sdk`](https://www.npmjs.com/package/@pauly4010/evalai-sdk)) | Production (v1.9.0) |
+| Multi-tenant auth & RBAC | Production |
+| Evaluation engine (50+ templates, 4 types) | Production |
+| Audit logging & governance presets | Production |
+| Observability (traces, spans, cost tracking) | Production |
+| Self-hosted Docker | Beta |
+| Advanced product analytics | Planned |
+
+## CI in One Command
 
 Add to your `.github/workflows/evalai.yml`:
 
@@ -118,7 +131,7 @@ jobs:
 - ✅ Posts rich summary in PR with regressions
 - ✅ Exits with proper codes (0=clean, 1=regressions, 2=config)
 
-**Docs:** [CI Quickstart](docs/CI_QUICKSTART.md) · [Quickstart](docs/quickstart.md) · [Architecture](docs/ARCHITECTURE.md) · [Regression Gate](docs/REGRESSION_GATE.md) · [CI Artifacts](docs/CI_ARTIFACTS.md) · [AI Assistant Integration](docs/AI_ASSISTANT_INTEGRATION.md) · [Contributor Map](docs/CONTRIBUTOR_MAP.md) · [Releasing](docs/RELEASING.md) · [All Docs](docs/INDEX.md)
+**Docs:** [Features](FEATURES.md) · [CI Quickstart](docs/CI_QUICKSTART.md) · [Quickstart](docs/quickstart.md) · [Architecture](docs/ARCHITECTURE.md) · [Regression Gate](docs/REGRESSION_GATE.md) · [CI Artifacts](docs/CI_ARTIFACTS.md) · [AI Assistant Integration](docs/AI_ASSISTANT_INTEGRATION.md) · [Contributor Map](docs/CONTRIBUTOR_MAP.md) · [Releasing](docs/RELEASING.md) · [All Docs](docs/INDEX.md)
 
 ---
 

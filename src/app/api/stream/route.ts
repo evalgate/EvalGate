@@ -1,5 +1,6 @@
 // src/app/api/stream/route.ts
 import { type NextRequest, NextResponse } from "next/server";
+import { getCorsHeaders } from "@/lib/api/cors";
 import { internalError, validationError } from "@/lib/api/errors";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
 import { logger } from "@/lib/logger";
@@ -65,8 +66,7 @@ export const GET = secureRoute(
 					"Content-Type": "text/event-stream",
 					"Cache-Control": "no-cache",
 					Connection: "keep-alive",
-					"Access-Control-Allow-Origin": "*",
-					"Access-Control-Allow-Headers": "Cache-Control",
+					...getCorsHeaders(request.headers.get("origin")),
 				},
 			},
 		);

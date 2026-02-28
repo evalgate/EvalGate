@@ -64,5 +64,5 @@ export const POST = secureRoute(
 
 		return response;
 	},
-	{ requireOrg: false },
+	{ requireOrg: false, routeRisk: "sensitive" },
 );

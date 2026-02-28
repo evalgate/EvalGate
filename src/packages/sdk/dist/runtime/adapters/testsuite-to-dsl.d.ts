@@ -38,7 +38,7 @@ export declare function generateDefineEvalCode(suite: TestSuite, options?: Parti
  */
 export interface TestSuiteConfig {
     /** Test cases to run */
-    cases: any[];
+    cases: unknown[];
     /** Function that generates output from input */
     executor?: (input: string) => Promise<string>;
     /** Run tests in parallel (default: true) */

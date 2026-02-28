@@ -114,6 +114,7 @@ export const PATCH = secureRoute(
 		} = updated[0];
 		return NextResponse.json(webhookWithoutSecret, { status: 200 });
 	},
+	{ routeRisk: "sensitive" },
 );
 
 export const DELETE = secureRoute(
@@ -150,4 +151,5 @@ export const DELETE = secureRoute(
 			{ status: 200 },
 		);
 	},
+	{ routeRisk: "sensitive" },
 );

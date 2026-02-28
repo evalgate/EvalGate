@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/sonner";
 import CustomAutumnProvider from "@/lib/autumn-provider";
 import "./globals.css";
 import Script from "next/script";
+import { AnalyticsProvider } from "@/components/analytics-provider";
 import ErrorReporter from "@/components/ErrorReporter";
 import { KeyboardShortcutsHelp } from "@/components/ui/keyboard-shortcuts-help";
 import { SkipToContent } from "@/components/ui/skip-to-content";
@@ -37,10 +38,10 @@ export const metadata: Metadata = {
 		"autogen",
 	],
 	openGraph: {
-		title: "EvalAI — AI Evaluation Platform",
-		description:
-			"Open-source observability, evaluation, and governance for AI agents. npm SDK + REST API.",
+		title: "EvalAI",
+		description: "Stop LLM regressions in CI in 2 minutes",
 		type: "website",
+		url: "https://v0-ai-evaluation-platform-nu.vercel.app",
 		siteName: "EvalAI",
 	},
 	alternates: {
@@ -85,22 +86,24 @@ export default function RootLayout({
 					data-debug="true"
 					data-custom-data='{"appName": "YourApp", "version": "1.0.0", "greeting": "hi"}'
 				/>
-				<Suspense fallback={null}>
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="dark"
-						enableSystem
-						disableTransitionOnChange
-					>
-						<CustomAutumnProvider>
-							<main id="main-content" tabIndex={-1}>
-								{children}
-							</main>
-						</CustomAutumnProvider>
-						<Toaster />
-						<KeyboardShortcutsHelp />
-					</ThemeProvider>
-				</Suspense>
+				<AnalyticsProvider>
+					<Suspense fallback={null}>
+						<ThemeProvider
+							attribute="class"
+							defaultTheme="dark"
+							enableSystem
+							disableTransitionOnChange
+						>
+							<CustomAutumnProvider>
+								<main id="main-content" tabIndex={-1}>
+									{children}
+								</main>
+							</CustomAutumnProvider>
+							<Toaster />
+							<KeyboardShortcutsHelp />
+						</ThemeProvider>
+					</Suspense>
+				</AnalyticsProvider>
 				<Analytics />
 				<WebMCPProvider />
 				<VisualEditsMessenger />

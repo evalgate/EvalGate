@@ -78,6 +78,45 @@ export function HomeHero() {
 					</p>
 				)}
 			</div>
+
+			<section className="mt-16 max-w-5xl mx-auto">
+				<h2 className="text-2xl font-bold text-center mb-8">
+					See it in action
+				</h2>
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+					{[
+						{
+							title: "Dashboard",
+							description:
+								"Track evaluation quality scores, pass rates, and trends",
+						},
+						{
+							title: "Trace Viewer",
+							description:
+								"Inspect multi-agent workflow decisions and handoffs",
+						},
+						{
+							title: "Evaluation Builder",
+							description: "50+ templates with drag-and-drop configuration",
+						},
+					].map((item) => (
+						<div
+							key={item.title}
+							className="rounded-lg border border-border bg-card p-6 text-center"
+						>
+							<div className="h-40 bg-muted/50 rounded-md flex items-center justify-center mb-4">
+								<span className="text-muted-foreground text-sm">
+									Screenshot coming soon
+								</span>
+							</div>
+							<h3 className="font-semibold">{item.title}</h3>
+							<p className="text-sm text-muted-foreground mt-1">
+								{item.description}
+							</p>
+						</div>
+					))}
+				</div>
+			</section>
 		</section>
 	);
 }

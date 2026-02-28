@@ -1,0 +1,38 @@
+name: PR Lint
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title follows conventional commits
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+          subjectPattern: ^.+$
+          subjectPatternError: |
+            PR title must follow conventional commit format:
+            <type>: <description>
+            
+            Examples:
+              feat: add evaluation templates
+              fix: correct rate limit fallback
+              docs: update security page
+              ci: add version consistency check

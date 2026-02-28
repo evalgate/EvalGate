@@ -376,6 +376,31 @@ jobs:
           fi
           echo "✓ SDK versions match: $PKG_VERSION"
 
+          # Verify manifest.ts re-exports from version.ts (no hardcoded version)
+          if grep -qE 'SDK_VERSION\s*=\s*"' src/packages/sdk/src/cli/manifest.ts; then
+            echo "::error::manifest.ts has a hardcoded SDK_VERSION — must re-export from version.ts"
+            exit 1
+          fi
+          if ! grep -qE 'from\s+["\x27]\.\.\/version["\x27]' src/packages/sdk/src/cli/manifest.ts; then
+            echo "::error::manifest.ts must import SDK_VERSION from ../version"
+            exit 1
+          fi
+          echo "✓ manifest.ts re-exports SDK_VERSION from version.ts"
+
+          # Verify docs/stability.md references current version
+          if ! grep -q "v$PKG_VERSION" docs/stability.md; then
+            echo "::error::docs/stability.md does not reference current SDK version v$PKG_VERSION"
+            exit 1
+          fi
+          echo "✓ docs/stability.md references v$PKG_VERSION"
+
+          # Verify CHANGELOG.md has an entry for current version
+          if ! grep -q "\[$PKG_VERSION\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md missing entry for version $PKG_VERSION"
+            exit 1
+          fi
+          echo "✓ CHANGELOG.md has entry for $PKG_VERSION"
+
       - name: SDK CI summary
         if: always()
         run: |

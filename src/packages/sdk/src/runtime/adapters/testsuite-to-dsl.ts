@@ -164,7 +164,7 @@ function evaluateTestCase(
 	try {
 		let passed = true;
 		let score = 100;
-		const assertions: any[] = [];
+		const assertions: import("../../assertions").AssertionResult[] = [];
 
 		// If there are assertions, run them
 		if (test.hasAssertions && test.assertionCount > 0) {
@@ -296,7 +296,7 @@ function generateHelperFunctions(
 
 	// Add helper for test evaluation
 	helpers.push(
-		`async function evaluateLegacyTest(input: string, expected?: string): Promise<any> {`,
+		`async function evaluateLegacyTest(input: string, expected?: string): Promise<unknown> {`,
 		`  // This function simulates the legacy test evaluation`,
 		`  const output = await simulateLegacyExecutor(input);`,
 		`  `,
@@ -358,7 +358,7 @@ function generateHelperFunctionsForSuite(
 function generateEvaluationFunction(): string {
 	return [
 		`// Legacy test evaluation function`,
-		`function evaluateLegacyTest(input: string, expected?: string): any {`,
+		`function evaluateLegacyTest(input: string, expected?: string): unknown {`,
 		`  // This function evaluates legacy test logic`,
 		`  // In a real migration, this would contain the actual test logic`,
 		`  `,
@@ -385,7 +385,7 @@ function generateEvaluationFunction(): string {
  */
 export interface TestSuiteConfig {
 	/** Test cases to run */
-	cases: any[];
+	cases: unknown[];
 	/** Function that generates output from input */
 	executor?: (input: string) => Promise<string>;
 	/** Run tests in parallel (default: true) */

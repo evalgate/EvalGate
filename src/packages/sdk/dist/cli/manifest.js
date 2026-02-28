@@ -41,7 +41,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SDK_VERSION = exports.MANIFEST_SCHEMA_VERSION = void 0;
+exports.MANIFEST_SCHEMA_VERSION = exports.SDK_VERSION = void 0;
 exports.generateManifest = generateManifest;
 exports.writeManifest = writeManifest;
 exports.readManifest = readManifest;
@@ -49,14 +49,12 @@ exports.readLock = readLock;
 const crypto = __importStar(require("node:crypto"));
 const fs = __importStar(require("node:fs/promises"));
 const path = __importStar(require("node:path"));
+const version_1 = require("../version");
+Object.defineProperty(exports, "SDK_VERSION", { enumerable: true, get: function () { return version_1.SDK_VERSION; } });
 /**
  * Manifest schema version
  */
 exports.MANIFEST_SCHEMA_VERSION = 1;
-/**
- * SDK version from package.json
- */
-exports.SDK_VERSION = "1.8.0";
 /**
  * Generate evaluation manifest from discovery results
  */
@@ -100,7 +98,7 @@ async function generateManifest(specs, projectRoot, projectName, executionMode) 
         },
         runtime: {
             mode: executionMode.mode,
-            sdkVersion: exports.SDK_VERSION,
+            sdkVersion: version_1.SDK_VERSION,
         },
         specFiles,
         specs: processedSpecs,

@@ -11,17 +11,15 @@ import * as crypto from "node:crypto";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import type { ExecutionModeConfig } from "../runtime/execution-mode";
+import { SDK_VERSION } from "../version";
 import type { SpecAnalysis } from "./discover";
+
+export { SDK_VERSION };
 
 /**
  * Manifest schema version
  */
 export const MANIFEST_SCHEMA_VERSION = 1;
-
-/**
- * SDK version from package.json
- */
-export const SDK_VERSION = "1.8.0";
 
 /**
  * Evaluation Manifest Schema

@@ -1,6 +1,11 @@
+import bundleAnalyzer from "@next/bundle-analyzer";
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 import { withAxiom } from "next-axiom";
+
+const withBundleAnalyzer = bundleAnalyzer({
+	enabled: process.env.ANALYZE === "true",
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
@@ -85,8 +90,8 @@ const nextConfig: NextConfig = {
 	turbopack: {},
 };
 
-// Apply Axiom logging, then Sentry wrapping (single pass)
-const configWithAxiom = withAxiom(nextConfig);
+// Apply bundle analyzer, then Axiom logging, then Sentry wrapping
+const configWithAxiom = withAxiom(withBundleAnalyzer(nextConfig));
 
 export default withSentryConfig(configWithAxiom, {
 	org: "paul-carpenter",

@@ -68,6 +68,17 @@ Canonical paths for all project documentation. If you're linking to a doc, use t
 | **Jobs** | [`docs/jobs.md`](jobs.md) | Contributors |
 | **Webhook Executor** | [`docs/webhook-executor-verification.md`](webhook-executor-verification.md) | Integrators |
 
+## Architecture Decisions
+
+| ADR | Path | Summary |
+|-----|------|---------|
+| **000 — Template** | [`docs/adr/000-template.md`](adr/000-template.md) | ADR template for new decisions |
+| **001 — App Router over Pages** | [`docs/adr/001-app-router-over-pages.md`](adr/001-app-router-over-pages.md) | Next.js App Router for server components, streaming, nested layouts |
+| **002 — Drizzle over Prisma** | [`docs/adr/002-drizzle-over-prisma.md`](adr/002-drizzle-over-prisma.md) | Type-safe SQL with zero runtime overhead |
+| **003 — Biome over ESLint** | [`docs/adr/003-biome-over-eslint.md`](adr/003-biome-over-eslint.md) | Unified linting/formatting, faster performance |
+| **004 — Per-Route Auth** | [`docs/adr/004-per-route-auth-over-middleware.md`](adr/004-per-route-auth-over-middleware.md) | secureRoute() over Edge middleware for reliable auth |
+| **005 — Upstash Rate Limiting** | [`docs/adr/005-upstash-rate-limiting.md`](adr/005-upstash-rate-limiting.md) | Serverless Redis with sliding window and in-memory fallback |
+
 ## Release & Security
 
 | Doc | Path | Audience |

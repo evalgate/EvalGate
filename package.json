@@ -4,6 +4,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
+		"analyze": "ANALYZE=true next build",
 		"build": "next build",
 		"dev": "next dev",
 		"typecheck": "tsc --noEmit",
@@ -52,6 +53,7 @@
 		"eval:baseline-init": "npx tsx scripts/baseline-init.ts",
 		"eval:latency-benchmark": "npx tsx scripts/latency-benchmark.ts",
 		"openapi:generate-paths": "npx tsx scripts/generate-openapi-paths.ts",
+		"release:preflight": "npx tsx scripts/release-preflight.ts",
 		"prepare": "husky"
 	},
 	"lint-staged": {
@@ -106,7 +108,6 @@
 		"cmdk": "1.0.4",
 		"commander": "^14.0.1",
 		"date-fns": "4.1.0",
-		"drizzle-kit": "^0.31.8",
 		"drizzle-orm": "^0.44.6",
 		"embla-carousel-react": "8.5.1",
 		"estree-walker": "2.0.2",
@@ -120,6 +121,7 @@
 		"next": "^16.1.6",
 		"next-themes": "^0.4.6",
 		"postgres": "^3.4.8",
+		"posthog-js": "^1.356.1",
 		"react": "^19",
 		"react-day-picker": "9.8.0",
 		"react-dom": "^19",
@@ -138,6 +140,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.2",
 		"@electric-sql/pglite": "^0.3.15",
+		"@next/bundle-analyzer": "^16.1.6",
 		"@playwright/test": "^1.58.2",
 		"@remotion/bundler": "^4.0.419",
 		"@remotion/cli": "^4.0.419",
@@ -153,6 +156,7 @@
 		"baseline-browser-mapping": "^2.9.0",
 		"concurrently": "^9.2.1",
 		"critters": "^0.0.25",
+		"drizzle-kit": "^0.31.8",
 		"happy-dom": "^20.0.7",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.2.7",

@@ -6,8 +6,11 @@ import { z } from "zod";
  */
 
 // Common schemas
+/** Validates a positive integer ID (e.g. primary key). */
 export const idSchema = z.number().int().positive();
+/** Validates a positive integer organization ID. */
 export const organizationIdSchema = z.number().int().positive();
+/** Validates pagination params with sensible defaults (limit 1–1000, offset ≥ 0). */
 export const paginationSchema = z.object({
 	limit: z.number().int().min(1).max(1000).default(50),
 	offset: z.number().int().min(0).default(0),
@@ -33,7 +36,7 @@ export function parsePaginationParams(searchParams: URLSearchParams): {
 	});
 }
 
-// Trace schemas
+/** Full trace creation schema including server-side fields (organizationId). */
 export const createTraceSchema = z.object({
 	name: z.string().min(1).max(255),
 	traceId: z.string().min(1).max(255),
@@ -43,6 +46,7 @@ export const createTraceSchema = z.object({
 	metadata: z.record(z.unknown()).optional().nullable(),
 });
 
+/** Query parameters for GET /api/traces (filtering, search, pagination). */
 export const listTracesSchema = z.object({
 	organizationId: organizationIdSchema.optional(),
 	status: z.enum(["pending", "success", "error"]).optional(),
@@ -100,6 +104,7 @@ export type CreateEvaluationBodyInput = z.infer<
 	typeof createEvaluationBodySchema
 >;
 
+/** Full evaluation creation schema including server-side fields (organizationId, createdBy). */
 export const createEvaluationSchema = z.object({
 	name: z.string().min(1).max(255),
 	description: z.string().optional(),
@@ -194,7 +199,7 @@ export const createTestCaseBodySchema = z.object({
 	metadata: z.unknown().optional(),
 });
 
-// Trace schemas (POST /api/traces)
+/** Client-provided body for POST /api/traces (org added server-side). */
 export const createTraceBodySchema = z.object({
 	name: z.string().min(1).max(255),
 	traceId: z.string().min(1).max(255),
@@ -225,7 +230,7 @@ export const createSpanBodySchema = z.object({
 	evaluationRunId: z.number().int().positive().optional().nullable(),
 });
 
-// API Key schemas
+/** Full API key creation schema including organizationId. */
 export const createAPIKeySchema = z.object({
 	name: z.string().min(1).max(255),
 	organizationId: organizationIdSchema,
@@ -252,7 +257,7 @@ export const updateAPIKeyBodySchema = z
 		message: "At least one field (name or scopes) must be provided",
 	});
 
-// Webhook schemas
+/** Full webhook creation schema including organizationId and optional secret. */
 export const createWebhookSchema = z.object({
 	url: z.string().url(),
 	events: z.array(z.string()).min(1),
@@ -287,7 +292,7 @@ export const updateWebhookBodySchema = z.object({
 	secret: z.string().min(1).optional(),
 });
 
-// Annotation schemas
+/** Body for creating an annotation task with instructions and optional config. */
 export const createAnnotationTaskSchema = z.object({
 	name: z.string().min(1).max(255),
 	description: z.string().optional(),
@@ -297,7 +302,7 @@ export const createAnnotationTaskSchema = z.object({
 	annotationSettings: z.unknown().optional(),
 });
 
-// LLM Judge schemas
+/** Body for creating an LLM judge configuration (model, prompt, rubric). */
 export const createLLMJudgeConfigSchema = z.object({
 	name: z.string().min(1).max(255),
 	prompt: z.string().min(1),
@@ -307,10 +312,7 @@ export const createLLMJudgeConfigSchema = z.object({
 	organizationId: organizationIdSchema,
 });
 
-/**
- * Validation helper function
- * Validates request body against schema and returns parsed data or throws
- */
+/** Validate `data` against a Zod schema, returning parsed data or structured errors. */
 export function validateRequest<T>(
 	schema: z.ZodSchema<T>,
 	data: unknown,
@@ -351,9 +353,7 @@ export function safeParseInt(
 	return Number.isNaN(parsed) ? defaultValue : parsed;
 }
 
-/**
- * Format Zod errors for API responses
- */
+/** Format a ZodError into a `{ message, fields }` object suitable for API responses. */
 export function formatValidationErrors(errors: z.ZodError): {
 	message: string;
 	fields: Record<string, string[]>;

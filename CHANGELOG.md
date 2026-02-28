@@ -2,6 +2,18 @@
 
 Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANGELOG.md](src/packages/sdk/CHANGELOG.md).
 
+## [1.9.0] - 2026-02-27
+
+### Added
+
+- **SDK 1.9.0** — `evalai ci` one-command CI loop, durable run history & diff system, centralized architecture, CI friendliness improvements. See [SDK CHANGELOG](src/packages/sdk/CHANGELOG.md) for details.
+
+## [1.8.0] - 2026-02-26
+
+### Added
+
+- **SDK 1.8.0** — `evalai doctor` rewrite (9-check checklist), `evalai explain` (offline report explainer), `evalai print-config`, guided failure flow, minimal green example. See [SDK CHANGELOG](src/packages/sdk/CHANGELOG.md) for details.
+
 ## [1.7.0] - 2026-02-26
 
 ### Added

@@ -17,6 +17,7 @@ import { ZodError } from "zod";
 import {
 	type ApiErrorCode,
 	apiError,
+	classifyDatabaseError,
 	internalError,
 	zodValidationError,
 } from "@/lib/api/errors";
@@ -84,6 +85,8 @@ export type SecureRouteOptions = {
 	minRole?: Role;
 	/** Cache-Control header value for GET responses (e.g. "public, max-age=60, stale-while-revalidate=300"). */
 	cacheControl?: string;
+	/** Route risk classification for rate-limit fallback — `"sensitive"` routes are blocked when Redis is down. */
+	routeRisk?: import("@/lib/rate-limit").RouteRisk;
 };
 
 // ── Role ranking & helpers ──
@@ -186,6 +189,7 @@ export function secureRoute(
 		requireAuth: needsAuth = true,
 		allowAnonymous = false,
 		rateLimit: tier,
+		routeRisk,
 	} = options;
 
 	return async (
@@ -217,7 +221,7 @@ export function secureRoute(
 					const res = await withRateLimit(
 						req,
 						async () => handler(req, { authType: "anonymous" }, resolvedParams),
-						{ customTier: tier ?? "anonymous" },
+						{ customTier: tier ?? "anonymous", routeRisk },
 					);
 					const durationMs = Math.round(performance.now() - start);
 					logger.info("Request completed", {
@@ -294,6 +298,7 @@ export function secureRoute(
 							async () => handler(request, ctx, resolvedParams),
 							{
 								customTier: ctx.rateLimitTier ?? "free",
+								routeRisk,
 							},
 						);
 					} else {
@@ -326,6 +331,7 @@ export function secureRoute(
 							async () => handler(request, ctx, resolvedParams),
 							{
 								customTier: ctx.rateLimitTier ?? "free",
+								routeRisk,
 							},
 						);
 					}
@@ -341,6 +347,9 @@ export function secureRoute(
 				if (err instanceof ZodError) {
 					return zodValidationError(err);
 				}
+				const dbError = classifyDatabaseError(err);
+				if (dbError) return dbError;
+
 				const message =
 					err instanceof Error ? err.message : "Internal server error";
 				logger.error("Unhandled route error", {
@@ -360,7 +369,7 @@ export function secureRoute(
 			});
 			const start = performance.now();
 			const res = tier
-				? await withRateLimit(req, coreHandler, { customTier: tier })
+				? await withRateLimit(req, coreHandler, { customTier: tier, routeRisk })
 				: await coreHandler(req);
 			const durationMs = Math.round(performance.now() - start);
 			const reqCtx = getRequestContext();

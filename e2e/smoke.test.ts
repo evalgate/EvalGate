@@ -27,6 +27,20 @@ test("public pricing page loads", async ({ page }) => {
 	await expect(page.locator("text=Internal Server Error")).not.toBeAttached();
 });
 
+test("security page loads", async ({ page }) => {
+	await page.goto("/security");
+	await page.waitForLoadState("domcontentloaded");
+	await expect(page.locator("body")).toBeAttached();
+	await expect(page.getByText("Application error")).not.toBeAttached();
+});
+
+test("changelog page loads", async ({ page }) => {
+	await page.goto("/changelog");
+	await page.waitForLoadState("domcontentloaded");
+	await expect(page.locator("body")).toBeAttached();
+	await expect(page.getByText("Application error")).not.toBeAttached();
+});
+
 test("/api/health/deep returns 401 or 403 when unauthenticated", async ({
 	request,
 }) => {

@@ -113,7 +113,6 @@ export function KeyboardShortcutsHelp() {
 										<div className="flex items-center gap-1">
 											{shortcut.keys.map((key, keyIndex) => (
 												<span
-													// biome-ignore lint/suspicious/noArrayIndexKey: keyboard shortcut keys
 													key={keyIndex}
 													className="flex items-center gap-1"
 												>

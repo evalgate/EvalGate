@@ -21,6 +21,31 @@
 import type { AIEvalClient } from "../client";
 import { mergeWithContext } from "../context";
 
+interface OpenAIChatParams {
+	model: string;
+	messages: unknown[];
+	temperature?: number;
+	max_tokens?: number;
+	[key: string]: unknown;
+}
+
+interface OpenAIChatCompletion {
+	choices: Array<{ message?: unknown; finish_reason?: unknown }>;
+	usage?: unknown;
+	[key: string]: unknown;
+}
+
+interface OpenAIClient {
+	chat: {
+		completions: {
+			create: (
+				params: OpenAIChatParams,
+				requestOptions?: Record<string, unknown>,
+			) => Promise<OpenAIChatCompletion>;
+		};
+	};
+}
+
 export interface OpenAITraceOptions {
 	/** Whether to capture input (default: true) */
 	captureInput?: boolean;
@@ -53,10 +78,10 @@ export interface OpenAITraceOptions {
  * ```
  */
 export function traceOpenAI(
-	openai: any,
+	openai: OpenAIClient,
 	evalClient: AIEvalClient,
 	options: OpenAITraceOptions = {},
-): any {
+): OpenAIClient {
 	const {
 		captureInput = true,
 		captureOutput = true,
@@ -71,8 +96,8 @@ export function traceOpenAI(
 	);
 
 	openai.chat.completions.create = async (
-		params: any,
-		requestOptions?: any,
+		params: OpenAIChatParams,
+		requestOptions?: Record<string, unknown>,
 	) => {
 		const startTime = Date.now();
 		const traceId = `${tracePrefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

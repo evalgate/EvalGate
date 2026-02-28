@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
 	boolean,
+	index,
 	integer,
 	jsonb,
 	pgTable,
@@ -93,28 +94,37 @@ export const organizationMembers = pgTable(
 );
 
 // Evaluations
-export const evaluations = pgTable("evaluations", {
-	id: serial("id").primaryKey(),
-	name: text("name").notNull(),
-	description: text("description"),
-	type: text("type").notNull(),
-	status: text("status").notNull().default("draft"),
-	organizationId: integer("organization_id")
-		.references(() => organizations.id)
-		.notNull(),
-	createdBy: text("created_by")
-		.references(() => user.id)
-		.notNull(),
-	executionSettings: jsonb("execution_settings"),
-	modelSettings: jsonb("model_settings"),
-	customMetrics: jsonb("custom_metrics"),
-	executorType: text("executor_type"),
-	executorConfig: jsonb("executor_config"),
-	publishedRunId: integer("published_run_id"),
-	publishedVersion: integer("published_version"),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const evaluations = pgTable(
+	"evaluations",
+	{
+		id: serial("id").primaryKey(),
+		name: text("name").notNull(),
+		description: text("description"),
+		type: text("type").notNull(),
+		status: text("status").notNull().default("draft"),
+		organizationId: integer("organization_id")
+			.references(() => organizations.id)
+			.notNull(),
+		createdBy: text("created_by")
+			.references(() => user.id)
+			.notNull(),
+		executionSettings: jsonb("execution_settings"),
+		modelSettings: jsonb("model_settings"),
+		customMetrics: jsonb("custom_metrics"),
+		executorType: text("executor_type"),
+		executorConfig: jsonb("executor_config"),
+		publishedRunId: integer("published_run_id"),
+		publishedVersion: integer("published_version"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("idx_evaluations_org_created").on(
+			table.organizationId,
+			table.createdAt,
+		),
+	],
+);
 
 /**
  * @deprecated Use `testCases` table instead. This table is retained only for
@@ -131,64 +141,87 @@ export const evaluationTestCases = pgTable("evaluation_test_cases", {
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const evaluationRuns = pgTable("evaluation_runs", {
-	id: serial("id").primaryKey(),
-	evaluationId: integer("evaluation_id")
-		.references(() => evaluations.id)
-		.notNull(),
-	organizationId: integer("organization_id")
-		.references(() => organizations.id)
-		.notNull(),
-	idempotencyKey: text("idempotency_key").unique(),
-	status: text("status").notNull().default("pending"),
-	totalCases: integer("total_cases").default(0),
-	passedCases: integer("passed_cases").default(0),
-	failedCases: integer("failed_cases").default(0),
-	processedCount: integer("processed_count").default(0), // Heartbeat counter for progress tracking
-	traceLog: jsonb("trace_log"), // Full journey JSON with messages array
-	startedAt: timestamp("started_at"),
-	completedAt: timestamp("completed_at"),
-	environment: text("environment").default("dev"), // dev | staging | prod (for baseline=production)
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const evaluationRuns = pgTable(
+	"evaluation_runs",
+	{
+		id: serial("id").primaryKey(),
+		evaluationId: integer("evaluation_id")
+			.references(() => evaluations.id)
+			.notNull(),
+		organizationId: integer("organization_id")
+			.references(() => organizations.id)
+			.notNull(),
+		idempotencyKey: text("idempotency_key").unique(),
+		status: text("status").notNull().default("pending"),
+		totalCases: integer("total_cases").default(0),
+		passedCases: integer("passed_cases").default(0),
+		failedCases: integer("failed_cases").default(0),
+		processedCount: integer("processed_count").default(0), // Heartbeat counter for progress tracking
+		traceLog: jsonb("trace_log"), // Full journey JSON with messages array
+		startedAt: timestamp("started_at"),
+		completedAt: timestamp("completed_at"),
+		environment: text("environment").default("dev"), // dev | staging | prod (for baseline=production)
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("idx_evaluation_runs_eval_status").on(
+			table.evaluationId,
+			table.status,
+		),
+		index("idx_evaluation_runs_org_created").on(
+			table.organizationId,
+			table.createdAt,
+		),
+	],
+);
 
 // Traces
-export const traces = pgTable("traces", {
-	id: serial("id").primaryKey(),
-	name: text("name").notNull(),
-	traceId: text("trace_id").notNull().unique(),
-	organizationId: integer("organization_id")
-		.references(() => organizations.id)
-		.notNull(),
-	status: text("status").notNull().default("pending"),
-	durationMs: integer("duration_ms"),
-	metadata: jsonb("metadata"),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const traces = pgTable(
+	"traces",
+	{
+		id: serial("id").primaryKey(),
+		name: text("name").notNull(),
+		traceId: text("trace_id").notNull().unique(),
+		organizationId: integer("organization_id")
+			.references(() => organizations.id)
+			.notNull(),
+		status: text("status").notNull().default("pending"),
+		durationMs: integer("duration_ms"),
+		metadata: jsonb("metadata"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("idx_traces_org_created").on(table.organizationId, table.createdAt),
+	],
+);
 
 // DEPRECATED: traceSpans table removed in span unification (Phase 2).
 // All span data now lives in the `spans` table which has startTime/endTime
 // and a UNIQUE constraint on spanId. See spans definition below.
 
 // Annotations
-export const annotationTasks = pgTable("annotation_tasks", {
-	id: serial("id").primaryKey(),
-	name: text("name").notNull(),
-	description: text("description"),
-	organizationId: integer("organization_id")
-		.references(() => organizations.id)
-		.notNull(),
-	type: text("type").notNull(),
-	status: text("status").notNull().default("active"),
-	totalItems: integer("total_items").default(0),
-	completedItems: integer("completed_items").default(0),
-	createdBy: text("created_by")
-		.references(() => user.id)
-		.notNull(),
-	annotationSettings: jsonb("annotation_settings"),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const annotationTasks = pgTable(
+	"annotation_tasks",
+	{
+		id: serial("id").primaryKey(),
+		name: text("name").notNull(),
+		description: text("description"),
+		organizationId: integer("organization_id")
+			.references(() => organizations.id)
+			.notNull(),
+		type: text("type").notNull(),
+		status: text("status").notNull().default("active"),
+		totalItems: integer("total_items").default(0),
+		completedItems: integer("completed_items").default(0),
+		createdBy: text("created_by")
+			.references(() => user.id)
+			.notNull(),
+		annotationSettings: jsonb("annotation_settings"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	},
+	(table) => [index("idx_annotation_tasks_org").on(table.organizationId)],
+);
 
 export const annotationItems = pgTable("annotation_items", {
 	id: serial("id").primaryKey(),
@@ -203,22 +236,26 @@ export const annotationItems = pgTable("annotation_items", {
 });
 
 // LLM Judge
-export const llmJudgeConfigs = pgTable("llm_judge_configs", {
-	id: serial("id").primaryKey(),
-	name: text("name").notNull(),
-	organizationId: integer("organization_id")
-		.references(() => organizations.id)
-		.notNull(),
-	model: text("model").notNull(),
-	promptTemplate: text("prompt_template").notNull(),
-	criteria: jsonb("criteria"),
-	settings: jsonb("settings"),
-	createdBy: text("created_by")
-		.references(() => user.id)
-		.notNull(),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const llmJudgeConfigs = pgTable(
+	"llm_judge_configs",
+	{
+		id: serial("id").primaryKey(),
+		name: text("name").notNull(),
+		organizationId: integer("organization_id")
+			.references(() => organizations.id)
+			.notNull(),
+		model: text("model").notNull(),
+		promptTemplate: text("prompt_template").notNull(),
+		criteria: jsonb("criteria"),
+		settings: jsonb("settings"),
+		createdBy: text("created_by")
+			.references(() => user.id)
+			.notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	},
+	(table) => [index("idx_llm_judge_configs_org").on(table.organizationId)],
+);
 
 export const llmJudgeResults = pgTable("llm_judge_results", {
 	id: serial("id").primaryKey(),
@@ -322,19 +359,29 @@ export const webhookDeliveries = pgTable(
 	}),
 );
 
-export const apiUsageLogs = pgTable("api_usage_logs", {
-	id: serial("id").primaryKey(),
-	apiKeyId: integer("api_key_id").references(() => apiKeys.id),
-	userId: text("user_id").references(() => user.id),
-	organizationId: integer("organization_id")
-		.references(() => organizations.id)
-		.notNull(),
-	endpoint: text("endpoint").notNull(),
-	method: text("method").notNull(),
-	statusCode: integer("status_code").notNull(),
-	responseTimeMs: integer("response_time_ms").notNull(),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const apiUsageLogs = pgTable(
+	"api_usage_logs",
+	{
+		id: serial("id").primaryKey(),
+		apiKeyId: integer("api_key_id").references(() => apiKeys.id),
+		userId: text("user_id").references(() => user.id),
+		organizationId: integer("organization_id")
+			.references(() => organizations.id)
+			.notNull(),
+		endpoint: text("endpoint").notNull(),
+		method: text("method").notNull(),
+		statusCode: integer("status_code").notNull(),
+		responseTimeMs: integer("response_time_ms").notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("idx_api_usage_logs_key_created").on(table.apiKeyId, table.createdAt),
+		index("idx_api_usage_logs_org_created").on(
+			table.organizationId,
+			table.createdAt,
+		),
+	],
+);
 
 export const humanAnnotations = pgTable("human_annotations", {
 	id: serial("id").primaryKey(),
@@ -367,51 +414,64 @@ export const testCases = pgTable("test_cases", {
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const testResults = pgTable("test_results", {
-	id: serial("id").primaryKey(),
-	evaluationRunId: integer("evaluation_run_id")
-		.references(() => evaluationRuns.id)
-		.notNull(),
-	testCaseId: integer("test_case_id")
-		.references(() => testCases.id)
-		.notNull(),
-	organizationId: integer("organization_id")
-		.references(() => organizations.id)
-		.notNull(),
-	status: text("status").notNull().default("pending"),
-	output: text("output"),
-	score: integer("score"),
-	error: text("error"),
-	assertionsJson: jsonb("assertions_json"), // Structured assertion outcomes: { pii: false, toxicity: false, ... }
-	traceLinkedMatched: boolean("trace_linked_matched"), // true=matched, false=no span, null=not trace-linked
-	hasProvenance: boolean("has_provenance"), // true=model/provider from cost; null=unknown
-	durationMs: integer("duration_ms"),
-	messages: jsonb("messages"), // Raw LLM messages array for each turn
-	toolCalls: jsonb("tool_calls"), // Tool arguments and outputs per turn
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const testResults = pgTable(
+	"test_results",
+	{
+		id: serial("id").primaryKey(),
+		evaluationRunId: integer("evaluation_run_id")
+			.references(() => evaluationRuns.id)
+			.notNull(),
+		testCaseId: integer("test_case_id")
+			.references(() => testCases.id)
+			.notNull(),
+		organizationId: integer("organization_id")
+			.references(() => organizations.id)
+			.notNull(),
+		status: text("status").notNull().default("pending"),
+		output: text("output"),
+		score: integer("score"),
+		error: text("error"),
+		assertionsJson: jsonb("assertions_json"), // Structured assertion outcomes: { pii: false, toxicity: false, ... }
+		traceLinkedMatched: boolean("trace_linked_matched"), // true=matched, false=no span, null=not trace-linked
+		hasProvenance: boolean("has_provenance"), // true=model/provider from cost; null=unknown
+		durationMs: integer("duration_ms"),
+		messages: jsonb("messages"), // Raw LLM messages array for each turn
+		toolCalls: jsonb("tool_calls"), // Tool arguments and outputs per turn
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("idx_test_results_run").on(table.evaluationRunId),
+		index("idx_test_results_case").on(table.testCaseId),
+	],
+);
 
-export const spans = pgTable("spans", {
-	id: serial("id").primaryKey(),
-	traceId: integer("trace_id")
-		.references(() => traces.id)
-		.notNull(),
-	spanId: text("span_id").notNull().unique(),
-	parentSpanId: text("parent_span_id"),
-	name: text("name").notNull(),
-	type: text("type").notNull(),
-	startTime: timestamp("start_time"),
-	endTime: timestamp("end_time"),
-	durationMs: integer("duration_ms"),
-	input: text("input"),
-	inputHash: text("input_hash"), // SHA-256 of normalized input for deterministic matching
-	output: text("output"),
-	evaluationRunId: integer("evaluation_run_id").references(
-		() => evaluationRuns.id,
-	), // when consumed by trace-linked run
-	metadata: jsonb("metadata"),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const spans = pgTable(
+	"spans",
+	{
+		id: serial("id").primaryKey(),
+		traceId: integer("trace_id")
+			.references(() => traces.id)
+			.notNull(),
+		spanId: text("span_id").notNull().unique(),
+		parentSpanId: text("parent_span_id"),
+		name: text("name").notNull(),
+		type: text("type").notNull(),
+		startTime: timestamp("start_time"),
+		endTime: timestamp("end_time"),
+		durationMs: integer("duration_ms"),
+		input: text("input"),
+		inputHash: text("input_hash"), // SHA-256 of normalized input for deterministic matching
+		output: text("output"),
+		evaluationRunId: integer("evaluation_run_id").references(
+			() => evaluationRuns.id,
+		), // when consumed by trace-linked run
+		metadata: jsonb("metadata"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("idx_spans_trace_start").on(table.traceId, table.startTime),
+	],
+);
 
 // Email Subscribers (for lead capture)
 export const emailSubscribers = pgTable("email_subscribers", {
@@ -434,50 +494,63 @@ export const emailSubscribers = pgTable("email_subscribers", {
 // ============================================
 
 // Workflow definitions for multi-agent evaluation
-export const workflows = pgTable("workflows", {
-	id: serial("id").primaryKey(),
-	name: text("name").notNull(),
-	description: text("description"),
-	organizationId: integer("organization_id")
-		.references(() => organizations.id)
-		.notNull(),
-	definition: jsonb("definition").notNull(), // DAG structure with nodes and edges
-	version: integer("version").default(1),
-	status: text("status").notNull().default("draft"), // 'draft', 'active', 'archived'
-	// SLA Configuration
-	slaLatencyMs: integer("sla_latency_ms"), // Maximum allowed latency in milliseconds
-	slaCostDollars: text("sla_cost_dollars"), // Maximum allowed cost per run (decimal as string)
-	slaErrorRate: integer("sla_error_rate"), // Maximum allowed error rate (0-100)
-	createdBy: text("created_by")
-		.references(() => user.id)
-		.notNull(),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const workflows = pgTable(
+	"workflows",
+	{
+		id: serial("id").primaryKey(),
+		name: text("name").notNull(),
+		description: text("description"),
+		organizationId: integer("organization_id")
+			.references(() => organizations.id)
+			.notNull(),
+		definition: jsonb("definition").notNull(), // DAG structure with nodes and edges
+		version: integer("version").default(1),
+		status: text("status").notNull().default("draft"), // 'draft', 'active', 'archived'
+		// SLA Configuration
+		slaLatencyMs: integer("sla_latency_ms"), // Maximum allowed latency in milliseconds
+		slaCostDollars: text("sla_cost_dollars"), // Maximum allowed cost per run (decimal as string)
+		slaErrorRate: integer("sla_error_rate"), // Maximum allowed error rate (0-100)
+		createdBy: text("created_by")
+			.references(() => user.id)
+			.notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	},
+	(table) => [index("idx_workflows_org").on(table.organizationId)],
+);
 
 // Individual workflow executions
-export const workflowRuns = pgTable("workflow_runs", {
-	id: serial("id").primaryKey(),
-	workflowId: integer("workflow_id").references(() => workflows.id),
-	traceId: integer("trace_id")
-		.references(() => traces.id)
-		.notNull(),
-	organizationId: integer("organization_id")
-		.references(() => organizations.id)
-		.notNull(),
-	status: text("status").notNull().default("running"), // 'running', 'completed', 'failed', 'cancelled'
-	input: jsonb("input"),
-	output: jsonb("output"),
-	totalCost: text("total_cost"), // decimal as string for precision
-	totalDurationMs: integer("total_duration_ms"),
-	agentCount: integer("agent_count"),
-	handoffCount: integer("handoff_count"),
-	retryCount: integer("retry_count").default(0),
-	errorMessage: text("error_message"),
-	metadata: jsonb("metadata"),
-	startedAt: timestamp("started_at").notNull(),
-	completedAt: timestamp("completed_at"),
-});
+export const workflowRuns = pgTable(
+	"workflow_runs",
+	{
+		id: serial("id").primaryKey(),
+		workflowId: integer("workflow_id").references(() => workflows.id),
+		traceId: integer("trace_id")
+			.references(() => traces.id)
+			.notNull(),
+		organizationId: integer("organization_id")
+			.references(() => organizations.id)
+			.notNull(),
+		status: text("status").notNull().default("running"), // 'running', 'completed', 'failed', 'cancelled'
+		input: jsonb("input"),
+		output: jsonb("output"),
+		totalCost: text("total_cost"), // decimal as string for precision
+		totalDurationMs: integer("total_duration_ms"),
+		agentCount: integer("agent_count"),
+		handoffCount: integer("handoff_count"),
+		retryCount: integer("retry_count").default(0),
+		errorMessage: text("error_message"),
+		metadata: jsonb("metadata"),
+		startedAt: timestamp("started_at").notNull(),
+		completedAt: timestamp("completed_at"),
+	},
+	(table) => [
+		index("idx_workflow_runs_workflow_status").on(
+			table.workflowId,
+			table.status,
+		),
+	],
+);
 
 // Agent handoff events between agents in a workflow
 export const agentHandoffs = pgTable("agent_handoffs", {
@@ -526,31 +599,41 @@ export const agentDecisions = pgTable("agent_decisions", {
 // ============================================
 
 // Cost records for individual LLM calls and operations
-export const costRecords = pgTable("cost_records", {
-	id: serial("id").primaryKey(),
-	spanId: integer("span_id")
-		.references(() => spans.id)
-		.notNull(),
-	workflowRunId: integer("workflow_run_id").references(() => workflowRuns.id),
-	evaluationRunId: integer("evaluation_run_id").references(
-		() => evaluationRuns.id,
-	),
-	organizationId: integer("organization_id")
-		.references(() => organizations.id)
-		.notNull(),
-	provider: text("provider").notNull(), // 'openai', 'anthropic', 'google', etc.
-	model: text("model").notNull(),
-	inputTokens: integer("input_tokens").notNull(),
-	outputTokens: integer("output_tokens").notNull(),
-	totalTokens: integer("total_tokens").notNull(),
-	inputCost: text("input_cost").notNull(), // decimal as string
-	outputCost: text("output_cost").notNull(),
-	totalCost: text("total_cost").notNull(),
-	isRetry: boolean("is_retry").default(false),
-	retryNumber: integer("retry_number").default(0),
-	costCategory: text("cost_category").notNull(), // 'llm', 'tool', 'embedding', 'other'
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const costRecords = pgTable(
+	"cost_records",
+	{
+		id: serial("id").primaryKey(),
+		spanId: integer("span_id")
+			.references(() => spans.id)
+			.notNull(),
+		workflowRunId: integer("workflow_run_id").references(() => workflowRuns.id),
+		evaluationRunId: integer("evaluation_run_id").references(
+			() => evaluationRuns.id,
+		),
+		organizationId: integer("organization_id")
+			.references(() => organizations.id)
+			.notNull(),
+		provider: text("provider").notNull(), // 'openai', 'anthropic', 'google', etc.
+		model: text("model").notNull(),
+		inputTokens: integer("input_tokens").notNull(),
+		outputTokens: integer("output_tokens").notNull(),
+		totalTokens: integer("total_tokens").notNull(),
+		inputCost: text("input_cost").notNull(), // decimal as string
+		outputCost: text("output_cost").notNull(),
+		totalCost: text("total_cost").notNull(),
+		isRetry: boolean("is_retry").default(false),
+		retryNumber: integer("retry_number").default(0),
+		costCategory: text("cost_category").notNull(), // 'llm', 'tool', 'embedding', 'other'
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("idx_cost_records_org_created").on(
+			table.organizationId,
+			table.createdAt,
+		),
+		index("idx_cost_records_run").on(table.evaluationRunId),
+	],
+);
 
 // Provider pricing table (admin-managed)
 export const providerPricing = pgTable("provider_pricing", {
@@ -696,20 +779,29 @@ export const reportCards = pgTable("report_cards", {
 // ============================================
 
 // Immutable audit log for security events and data mutations
-export const auditLogs = pgTable("audit_logs", {
-	id: serial("id").primaryKey(),
-	organizationId: integer("organization_id")
-		.references(() => organizations.id)
-		.notNull(),
-	userId: text("user_id"),
-	action: text("action").notNull(),
-	resourceType: text("resource_type"),
-	resourceId: text("resource_id"),
-	metadata: jsonb("metadata"),
-	ipAddress: text("ip_address"),
-	userAgent: text("user_agent"),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const auditLogs = pgTable(
+	"audit_logs",
+	{
+		id: serial("id").primaryKey(),
+		organizationId: integer("organization_id")
+			.references(() => organizations.id)
+			.notNull(),
+		userId: text("user_id"),
+		action: text("action").notNull(),
+		resourceType: text("resource_type"),
+		resourceId: text("resource_id"),
+		metadata: jsonb("metadata"),
+		ipAddress: text("ip_address"),
+		userAgent: text("user_agent"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("idx_audit_logs_org_created").on(
+			table.organizationId,
+			table.createdAt,
+		),
+	],
+);
 
 // ============================================
 // QUALITY SCORING
@@ -859,29 +951,37 @@ export const sharedExports = pgTable(
 // BACKGROUND JOBS
 // ============================================
 
-export const jobs = pgTable("jobs", {
-	id: serial("id").primaryKey(),
-	type: text("type").notNull(), // 'webhook_delivery'
-	payload: jsonb("payload").notNull(),
-	status: text("status").notNull().default("pending"), // pending | running | success | dead_letter
-	attempt: integer("attempt").notNull().default(0),
-	maxAttempts: integer("max_attempts").notNull().default(5),
-	nextRunAt: timestamp("next_run_at").notNull(),
-	lastError: text("last_error"),
-	lastErrorCode: text("last_error_code"),
-	idempotencyKey: text("idempotency_key").unique(),
-	organizationId: integer("organization_id").references(() => organizations.id),
-	// Lock / TTL fields (set on claim, cleared on finish)
-	lockedAt: timestamp("locked_at"),
-	lockedUntil: timestamp("locked_until"),
-	lockedBy: text("locked_by"),
-	// Attempt timing
-	lastStartedAt: timestamp("last_started_at"),
-	lastFinishedAt: timestamp("last_finished_at"),
-	lastDurationMs: integer("last_duration_ms"),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const jobs = pgTable(
+	"jobs",
+	{
+		id: serial("id").primaryKey(),
+		type: text("type").notNull(), // 'webhook_delivery'
+		payload: jsonb("payload").notNull(),
+		status: text("status").notNull().default("pending"), // pending | running | success | dead_letter
+		attempt: integer("attempt").notNull().default(0),
+		maxAttempts: integer("max_attempts").notNull().default(5),
+		nextRunAt: timestamp("next_run_at").notNull(),
+		lastError: text("last_error"),
+		lastErrorCode: text("last_error_code"),
+		idempotencyKey: text("idempotency_key").unique(),
+		organizationId: integer("organization_id").references(
+			() => organizations.id,
+		),
+		// Lock / TTL fields (set on claim, cleared on finish)
+		lockedAt: timestamp("locked_at"),
+		lockedUntil: timestamp("locked_until"),
+		lockedBy: text("locked_by"),
+		// Attempt timing
+		lastStartedAt: timestamp("last_started_at"),
+		lastFinishedAt: timestamp("last_finished_at"),
+		lastDurationMs: integer("last_duration_ms"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("idx_jobs_status_next_run").on(table.status, table.nextRunAt),
+	],
+);
 
 export const jobRunnerLocks = pgTable("job_runner_locks", {
 	lockName: text("lock_name").primaryKey(),

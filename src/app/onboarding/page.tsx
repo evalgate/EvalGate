@@ -1,8 +1,9 @@
 "use client";
 
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,9 +17,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSession } from "@/lib/auth-client";
 
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function validateSlug(slug: string): string | null {
+	if (!slug) return null;
+	if (slug.length < 2) return "Slug must be at least 2 characters";
+	if (slug.length > 48) return "Slug must be 48 characters or fewer";
+	if (!SLUG_PATTERN.test(slug))
+		return "Slug must be lowercase letters, numbers, and hyphens (no leading/trailing hyphens)";
+	return null;
+}
+
 export default function OnboardingPage() {
 	const [organizationName, setOrganizationName] = useState("");
 	const [organizationSlug, setOrganizationSlug] = useState("");
+	const [slugTouched, setSlugTouched] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const { data: session, isPending } = useSession();
@@ -51,7 +64,15 @@ export default function OnboardingPage() {
 			.replace(/[^a-z0-9]+/g, "-")
 			.replace(/^-|-$/g, "");
 		setOrganizationSlug(slug);
+		setSlugTouched(false);
 	}, [organizationName]);
+
+	const slugError = useMemo(
+		() =>
+			slugTouched || organizationSlug ? validateSlug(organizationSlug) : null,
+		[organizationSlug, slugTouched],
+	);
+	const slugValid = organizationSlug.length > 0 && !slugError;
 
 	const handleCreateOrganization = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -148,18 +169,43 @@ export default function OnboardingPage() {
 									<Label htmlFor="organizationSlug" className="text-sm">
 										Organization slug
 									</Label>
-									<Input
-										id="organizationSlug"
-										type="text"
-										placeholder="acme-inc"
-										required
-										value={organizationSlug}
-										onChange={(e) => setOrganizationSlug(e.target.value)}
-										className="font-mono text-xs sm:text-sm h-9 sm:h-10"
-									/>
-									<p className="text-xs text-muted-foreground">
-										This will be used in your organization's URL
-									</p>
+									<div className="relative">
+										<Input
+											id="organizationSlug"
+											type="text"
+											placeholder="acme-inc"
+											required
+											value={organizationSlug}
+											onChange={(e) => {
+												setOrganizationSlug(e.target.value);
+												setSlugTouched(true);
+											}}
+											onBlur={() => setSlugTouched(true)}
+											className={`font-mono text-xs sm:text-sm h-9 sm:h-10 pr-9 ${
+												slugTouched && slugError
+													? "border-destructive focus-visible:ring-destructive"
+													: slugValid
+														? "border-green-500 focus-visible:ring-green-500"
+														: ""
+											}`}
+										/>
+										{organizationSlug && (
+											<div className="absolute right-3 top-1/2 -translate-y-1/2">
+												{slugValid ? (
+													<CheckCircle2 className="h-4 w-4 text-green-500" />
+												) : slugError ? (
+													<XCircle className="h-4 w-4 text-destructive" />
+												) : null}
+											</div>
+										)}
+									</div>
+									{slugTouched && slugError ? (
+										<p className="text-xs text-destructive">{slugError}</p>
+									) : (
+										<p className="text-xs text-muted-foreground">
+											This will be used in your organization's URL
+										</p>
+									)}
 								</div>
 								{error && (
 									<div className="rounded-md bg-destructive/10 p-2 sm:p-3 text-xs sm:text-sm text-destructive">
@@ -169,8 +215,11 @@ export default function OnboardingPage() {
 								<Button
 									type="submit"
 									className="w-full h-9 sm:h-10"
-									disabled={isLoading}
+									disabled={isLoading || !!slugError}
 								>
+									{isLoading && (
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									)}
 									{isLoading ? "Creating..." : "Create organization"}
 								</Button>
 							</div>

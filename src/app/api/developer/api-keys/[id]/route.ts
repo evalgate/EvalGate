@@ -81,6 +81,7 @@ export const PATCH = secureRoute(
 			return internalError();
 		}
 	},
+	{ routeRisk: "sensitive" },
 );
 
 export const DELETE = secureRoute(
@@ -140,4 +141,5 @@ export const DELETE = secureRoute(
 			return internalError();
 		}
 	},
+	{ routeRisk: "sensitive" },
 );

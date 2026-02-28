@@ -9,6 +9,7 @@ interface LogContext {
 	[key: string]: unknown;
 }
 
+/** Structured JSON logger that writes to the console and can be extended with child contexts. */
 class Logger {
 	private context: LogContext;
 
@@ -47,18 +48,22 @@ class Logger {
 		}
 	}
 
+	/** Log at DEBUG level (suppressed outside development). */
 	debug(message: string, meta?: LogContext) {
 		this.log("debug", message, meta);
 	}
 
+	/** Log at INFO level. */
 	info(message: string, meta?: LogContext) {
 		this.log("info", message, meta);
 	}
 
+	/** Log at WARN level. */
 	warn(message: string, meta?: LogContext) {
 		this.log("warn", message, meta);
 	}
 
+	/** Log at ERROR level. Accepts `(message, error?, meta?)` or `(meta, message)` signatures. */
 	error(
 		metaOrMessage: LogContext | string,
 		messageOrError?: string | Error | unknown,
@@ -89,18 +94,19 @@ class Logger {
 		this.log("error", message, meta);
 	}
 
+	/** Create a child logger that inherits this logger's context plus additional fields. */
 	child(context: LogContext): Logger {
 		return new Logger({ ...this.context, ...context });
 	}
 }
 
-// Default logger instance
+/** Default application-wide logger instance. */
 export const logger = new Logger({
 	service: "ai-evaluation-platform",
 	environment: process.env.NODE_ENV || "development",
 });
 
-// Create logger for specific modules
+/** Create a child logger scoped to a specific module name. */
 export function createModuleLogger(module: string): Logger {
 	return logger.child({ module });
 }

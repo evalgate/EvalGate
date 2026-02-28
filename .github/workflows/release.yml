@@ -45,6 +45,46 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
+      - name: Validate release consistency
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Validating release v$VERSION..."
+
+          # 1. SDK package.json version must match tag
+          PKG_VERSION=$(node -e "console.log(require('./src/packages/sdk/package.json').version)")
+          if [ "$PKG_VERSION" != "$VERSION" ]; then
+            echo "::error::Tag version ($VERSION) does not match SDK package.json ($PKG_VERSION)"
+            echo "Update src/packages/sdk/package.json and src/packages/sdk/src/version.ts to $VERSION before tagging."
+            exit 1
+          fi
+          echo "✓ package.json matches tag: $PKG_VERSION"
+
+          # 2. version.ts must match tag
+          SRC_VERSION=$(node -e "const fs=require('fs'); const m=fs.readFileSync('src/packages/sdk/src/version.ts','utf8').match(/SDK_VERSION\s*=\s*\"([^\"]+)\"/); console.log(m[1])")
+          if [ "$SRC_VERSION" != "$VERSION" ]; then
+            echo "::error::Tag version ($VERSION) does not match version.ts ($SRC_VERSION)"
+            exit 1
+          fi
+          echo "✓ version.ts matches tag: $SRC_VERSION"
+
+          # 3. SDK CHANGELOG.md must have an entry for this version
+          if ! grep -q "\[$VERSION\]" src/packages/sdk/CHANGELOG.md; then
+            echo "::error::SDK CHANGELOG.md missing entry for [$VERSION]"
+            echo "Add a ## [$VERSION] section to src/packages/sdk/CHANGELOG.md before releasing."
+            exit 1
+          fi
+          echo "✓ SDK CHANGELOG.md has entry for $VERSION"
+
+          # 4. Root CHANGELOG.md must have an entry for this version
+          if ! grep -q "\[$VERSION\]" CHANGELOG.md; then
+            echo "::error::Root CHANGELOG.md missing entry for [$VERSION]"
+            echo "Add a ## [$VERSION] section to CHANGELOG.md before releasing."
+            exit 1
+          fi
+          echo "✓ Root CHANGELOG.md has entry for $VERSION"
+
+          echo "All release consistency checks passed for v$VERSION"
+
       - name: Build SDK
         run: pnpm sdk:build
 

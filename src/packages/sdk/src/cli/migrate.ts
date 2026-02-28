@@ -9,7 +9,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { Command } from "commander";
 import { generateDefineEvalCode } from "../runtime/adapters/testsuite-to-dsl";
-import { createTestSuite } from "../testing";
+import { createTestSuite, type TestSuite } from "../testing";
 
 /**
  * Migration options
@@ -32,10 +32,12 @@ interface MigrateOptions {
 /**
  * Read and parse evalai.config.json
  */
-async function readConfigFile(filePath: string): Promise<any> {
+async function readConfigFile(
+	filePath: string,
+): Promise<Record<string, unknown>> {
 	try {
 		const content = await fs.readFile(filePath, "utf-8");
-		return JSON.parse(content);
+		return JSON.parse(content) as Record<string, unknown>;
 	} catch (error) {
 		throw new Error(
 			`Failed to read config file ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
@@ -47,9 +49,9 @@ async function readConfigFile(filePath: string): Promise<any> {
  * Extract TestSuite data from config
  */
 function extractTestSuitesFromConfig(
-	config: any,
-): Array<{ name: string; suite: any }> {
-	const suites: Array<{ name: string; suite: any }> = [];
+	config: Record<string, unknown>,
+): Array<{ name: string; suite: TestSuite }> {
+	const suites: Array<{ name: string; suite: TestSuite }> = [];
 
 	// Handle different config structures
 	if (config.tests) {
@@ -61,16 +63,19 @@ function extractTestSuitesFromConfig(
 			parallel: config.parallel,
 			stopOnFailure: config.stopOnFailure,
 			retries: config.retries,
-		});
+		} as Parameters<typeof createTestSuite>[1]);
 		suites.push({ name: "config-tests", suite });
 	}
 
 	if (config.suites) {
 		// Multiple named suites
 		for (const [suiteName, suiteConfig] of Object.entries(
-			config.suites as Record<string, any>,
+			config.suites as Record<string, unknown>,
 		)) {
-			const suite = createTestSuite(suiteName, suiteConfig as any);
+			const suite = createTestSuite(
+				suiteName,
+				suiteConfig as Parameters<typeof createTestSuite>[1],
+			);
 			suites.push({ name: suiteName, suite });
 		}
 	}
@@ -78,9 +83,12 @@ function extractTestSuitesFromConfig(
 	if (config.testSuites) {
 		// Alternative property name
 		for (const [suiteName, suiteConfig] of Object.entries(
-			config.testSuites as Record<string, any>,
+			config.testSuites as Record<string, unknown>,
 		)) {
-			const suite = createTestSuite(suiteName, suiteConfig as any);
+			const suite = createTestSuite(
+				suiteName,
+				suiteConfig as Parameters<typeof createTestSuite>[1],
+			);
 			suites.push({ name: suiteName, suite });
 		}
 	}
@@ -91,7 +99,10 @@ function extractTestSuitesFromConfig(
 /**
  * Generate DSL file header
  */
-function generateFileHeader(_config: any, options: MigrateOptions): string {
+function generateFileHeader(
+	_config: Record<string, unknown>,
+	options: MigrateOptions,
+): string {
 	const timestamp = new Date().toISOString();
 	const inputPath = path.resolve(options.input);
 	const outputPath = path.resolve(options.output);
@@ -123,7 +134,10 @@ function generateFileHeader(_config: any, options: MigrateOptions): string {
 /**
  * Generate helper functions for the entire file
  */
-function generateGlobalHelpers(config: any, _options: MigrateOptions): string {
+function generateGlobalHelpers(
+	config: Record<string, unknown>,
+	_options: MigrateOptions,
+): string {
 	const helpers: string[] = [];
 
 	// Add executor helper if config has executor
@@ -168,7 +182,7 @@ function generateGlobalHelpers(config: any, _options: MigrateOptions): string {
 			` * Legacy test evaluation function`,
 			` * TODO: Adapt based on your original test logic`,
 			` */`,
-			`async function evaluateLegacyTest(input: string, expected?: string): Promise<any> {`,
+			`async function evaluateLegacyTest(input: string, expected?: string): Promise<unknown> {`,
 			`  const output = await legacyExecutor(input);`,
 			`  const passed = evaluateAssertions(output, expected);`,
 			`  `,
@@ -190,7 +204,7 @@ function generateGlobalHelpers(config: any, _options: MigrateOptions): string {
  */
 function generateSuiteDSL(
 	suiteName: string,
-	suite: any,
+	suite: TestSuite,
 	options: MigrateOptions,
 ): string {
 	const dslCode = generateDefineEvalCode(suite, {
@@ -220,7 +234,7 @@ function generateSuiteDSL(
  * Generate migration summary
  */
 function generateSummary(
-	suites: Array<{ name: string; suite: any }>,
+	suites: Array<{ name: string; suite: TestSuite }>,
 	options: MigrateOptions,
 ): string {
 	const totalTests = suites.reduce(
@@ -386,7 +400,7 @@ export async function previewMigration(filePath: string): Promise<void> {
 				console.log(
 					`     Tests: ${tests
 						.slice(0, 3)
-						.map((t: any) => t.id)
+						.map((t) => t.id)
 						.join(", ")}${tests.length > 3 ? "..." : ""}`,
 				);
 			}

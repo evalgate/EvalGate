@@ -228,7 +228,7 @@ function generateHelperFunctions(spec, options) {
         helpers.push(`function evaluateLegacyAssertion(output: string, expected: string): boolean {`, `  return output === expected;`, `}`);
     }
     // Add helper for test evaluation
-    helpers.push(`async function evaluateLegacyTest(input: string, expected?: string): Promise<any> {`, `  // This function simulates the legacy test evaluation`, `  const output = await simulateLegacyExecutor(input);`, `  `, `  if (expected !== undefined) {`, `    const passed = evaluateLegacyAssertion(output, expected);`, `    return createResult({`, `      pass: passed,`, `      score: passed ? 100 : 0,`, `      metadata: {`, `        input,`, `        expected,`, `      },`, `    });`, `  }`, `  `, `  return createResult({`, `    pass: output.length > 0,`, `    score: output.length > 0 ? 100 : 0,`, `    metadata: { input },`, `  });`, `}`);
+    helpers.push(`async function evaluateLegacyTest(input: string, expected?: string): Promise<unknown> {`, `  // This function simulates the legacy test evaluation`, `  const output = await simulateLegacyExecutor(input);`, `  `, `  if (expected !== undefined) {`, `    const passed = evaluateLegacyAssertion(output, expected);`, `    return createResult({`, `      pass: passed,`, `      score: passed ? 100 : 0,`, `      metadata: {`, `        input,`, `        expected,`, `      },`, `    });`, `  }`, `  `, `  return createResult({`, `    pass: output.length > 0,`, `    score: output.length > 0 ? 100 : 0,`, `    metadata: { input },`, `  });`, `}`);
     // Add executor simulation
     helpers.push(`async function simulateLegacyExecutor(input: string): Promise<string> {`, `  // This function simulates the legacy executor`, `  // In a real migration, this would be replaced with the actual executor`, `  return input; // Echo for demonstration`, `}`);
     return helpers.join("\n\n");
@@ -253,7 +253,7 @@ function generateHelperFunctionsForSuite(specs, options) {
 function generateEvaluationFunction() {
     return [
         `// Legacy test evaluation function`,
-        `function evaluateLegacyTest(input: string, expected?: string): any {`,
+        `function evaluateLegacyTest(input: string, expected?: string): unknown {`,
         `  // This function evaluates legacy test logic`,
         `  // In a real migration, this would contain the actual test logic`,
         `  `,

@@ -12,6 +12,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import {
 	Select,
@@ -237,48 +244,46 @@ export default function EvaluationsPage() {
 					))}
 				</div>
 			) : evaluations.length > 0 ? (
-				<Card className="border-dashed">
-					<CardContent className="flex flex-col items-center justify-center py-10 sm:py-12 px-4">
-						<Search className="h-8 w-8 text-muted-foreground mb-3" />
-						<h3 className="text-sm sm:text-base font-semibold mb-1">
-							No results found
-						</h3>
-						<p className="text-xs sm:text-sm text-muted-foreground mb-4 text-center">
+				<Empty className="border">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Search className="h-5 w-5" />
+						</EmptyMedia>
+						<EmptyTitle>No results found</EmptyTitle>
+						<EmptyDescription>
 							Try adjusting your search or filters
-						</p>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => {
-								setSearchQuery("");
-								setTypeFilter("all");
-							}}
-						>
-							Clear filters
-						</Button>
-					</CardContent>
-				</Card>
+						</EmptyDescription>
+					</EmptyHeader>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => {
+							setSearchQuery("");
+							setTypeFilter("all");
+						}}
+					>
+						Clear filters
+					</Button>
+				</Empty>
 			) : (
-				<Card className="border-dashed">
-					<CardContent className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
-						<div className="rounded-full bg-primary/10 p-3 sm:p-4 mb-4">
-							<Beaker className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-						</div>
-						<h3 className="text-base sm:text-lg font-semibold mb-2">
-							No evaluations yet
-						</h3>
-						<p className="text-muted-foreground text-center mb-4 sm:mb-6 max-w-sm text-sm sm:text-base px-2">
+				<Empty className="border py-12 sm:py-16">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Beaker className="h-5 w-5" />
+						</EmptyMedia>
+						<EmptyTitle>No evaluations yet</EmptyTitle>
+						<EmptyDescription>
 							Create your first evaluation to start testing your AI models with
 							unit tests, human feedback, or model judges.
-						</p>
-						<Button asChild size="lg">
-							<Link href="/evaluations/new">
-								<Plus className="mr-2 h-4 w-4" />
-								Create Your First Evaluation
-							</Link>
-						</Button>
-					</CardContent>
-				</Card>
+						</EmptyDescription>
+					</EmptyHeader>
+					<Button asChild size="lg">
+						<Link href="/evaluations/new">
+							<Plus className="mr-2 h-4 w-4" />
+							Create your first evaluation
+						</Link>
+					</Button>
+				</Empty>
 			)}
 		</div>
 	);

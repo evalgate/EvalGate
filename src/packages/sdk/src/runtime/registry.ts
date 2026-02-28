@@ -410,9 +410,9 @@ export function createEvalRuntime(
 
 	// Create bound defineEval function
 	const boundDefineEval = ((
-		nameOrConfig: any,
-		executor?: any,
-		options?: any,
+		nameOrConfig: unknown,
+		executor?: unknown,
+		options?: unknown,
 	) => {
 		// Temporarily set this runtime as active
 		const previousRuntime = activeRuntime;

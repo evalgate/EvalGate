@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -146,7 +147,11 @@ export default function LoginPage() {
 								disabled={isLoading !== null}
 								onClick={() => handleSocialSignIn("github")}
 							>
-								<GitHubIcon className="mr-2 h-5 w-5" />
+								{isLoading === "github" ? (
+									<Loader2 className="mr-2 h-5 w-5 animate-spin" />
+								) : (
+									<GitHubIcon className="mr-2 h-5 w-5" />
+								)}
 								{isLoading === "github"
 									? "Redirecting..."
 									: "Continue with GitHub"}
@@ -158,7 +163,11 @@ export default function LoginPage() {
 								disabled={isLoading !== null}
 								onClick={() => handleSocialSignIn("google")}
 							>
-								<GoogleIcon className="mr-2 h-5 w-5" />
+								{isLoading === "google" ? (
+									<Loader2 className="mr-2 h-5 w-5 animate-spin" />
+								) : (
+									<GoogleIcon className="mr-2 h-5 w-5" />
+								)}
 								{isLoading === "google"
 									? "Redirecting..."
 									: "Continue with Google"}

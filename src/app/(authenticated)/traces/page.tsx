@@ -25,6 +25,13 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -478,56 +485,49 @@ export default function TracesPage() {
 					))}
 				</div>
 			) : traces.length > 0 ? (
-				<Card className="border-dashed">
-					<CardContent className="flex flex-col items-center justify-center py-10 sm:py-12 px-4">
-						<Search className="h-8 w-8 text-muted-foreground mb-3" />
-						<h3 className="text-sm sm:text-base font-semibold mb-1">
-							No results found
-						</h3>
-						<p className="text-xs sm:text-sm text-muted-foreground mb-4 text-center">
+				<Empty className="border">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Search className="h-5 w-5" />
+						</EmptyMedia>
+						<EmptyTitle>No results found</EmptyTitle>
+						<EmptyDescription>
 							Try adjusting your search or tag filters
-						</p>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => {
-								setSearchQuery("");
-								setSelectedTags([]);
-							}}
-						>
-							Clear filters
-						</Button>
-					</CardContent>
-				</Card>
+						</EmptyDescription>
+					</EmptyHeader>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => {
+							setSearchQuery("");
+							setSelectedTags([]);
+						}}
+					>
+						Clear filters
+					</Button>
+				</Empty>
 			) : (
-				<Card className="border-dashed">
-					<CardContent className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
-						<div className="rounded-full bg-primary/10 p-3 sm:p-4 mb-4">
-							<Activity className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-						</div>
-						<h3 className="text-base sm:text-lg font-semibold mb-2">
-							No traces yet
-						</h3>
-						<p className="text-xs sm:text-sm text-muted-foreground text-center mb-4 sm:mb-6 max-w-sm">
+				<Empty className="border py-12 sm:py-16">
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Activity className="h-5 w-5" />
+						</EmptyMedia>
+						<EmptyTitle>No traces yet</EmptyTitle>
+						<EmptyDescription>
 							Start capturing traces from your LLM applications to monitor
 							performance, debug issues, and analyze behavior.
-						</p>
-						<Button
-							onClick={() => setShowIntegrationGuide(true)}
-							className="mb-4"
-						>
+						</EmptyDescription>
+					</EmptyHeader>
+					<div className="flex flex-col items-center gap-4">
+						<Button onClick={() => setShowIntegrationGuide(true)}>
 							<Code className="mr-2 h-4 w-4" />
 							View Integration Guide
 						</Button>
-						<div className="text-xs sm:text-sm text-muted-foreground bg-muted px-3 sm:px-4 py-2 sm:py-3 rounded-lg w-full max-w-md">
-							<p className="font-medium mb-1">Quick Start:</p>
-							<p>
-								Add our tracing SDK to automatically capture LLM calls, track
-								performance, and debug issues in real-time.
-							</p>
-						</div>
-					</CardContent>
-				</Card>
+						<Button variant="outline" size="sm" asChild>
+							<Link href="/developer/api-reference">Connect your SDK</Link>
+						</Button>
+					</div>
+				</Empty>
 			)}
 		</div>
 	);

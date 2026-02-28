@@ -12,62 +12,65 @@ import {
 	parsePaginationParams,
 } from "@/lib/validation";
 
-export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
-	const parsed = await parseBody(req, createWebhookBodySchema);
-	if (!parsed.ok) return parsed.response;
+export const POST = secureRoute(
+	async (req: NextRequest, ctx: AuthContext) => {
+		const parsed = await parseBody(req, createWebhookBodySchema);
+		if (!parsed.ok) return parsed.response;
 
-	const { organizationId, url, events } = parsed.data;
+		const { organizationId, url, events } = parsed.data;
 
-	if (organizationId !== ctx.organizationId) {
-		return forbidden("Organization ID must match your current organization");
-	}
-
-	try {
-		const trimmedUrl = url.trim();
-		const secret = crypto.randomBytes(32).toString("hex");
-		const encryptedSecret = encryptWebhookSecret(ctx.organizationId, secret);
-
-		const now = new Date();
-		const newWebhook = await db
-			.insert(webhooks)
-			.values({
-				organizationId: ctx.organizationId,
-				url: trimmedUrl,
-				events: JSON.stringify(events),
-				secret: encryptedSecret.secretPlaceholder,
-				encryptedSecret: encryptedSecret.encryptedSecret,
-				secretIv: encryptedSecret.secretIv,
-				secretTag: encryptedSecret.secretTag,
-				status: "active",
-				lastDeliveredAt: null,
-				createdAt: now,
-				updatedAt: now,
-			})
-			.returning();
-
-		if (newWebhook.length === 0) {
-			return internalError("Failed to create webhook");
+		if (organizationId !== ctx.organizationId) {
+			return forbidden("Organization ID must match your current organization");
 		}
 
-		const created = newWebhook[0];
-		return NextResponse.json(
-			{
-				id: created.id,
-				url: created.url,
-				events:
-					typeof created.events === "string"
-						? JSON.parse(created.events)
-						: created.events,
-				secret,
-				status: created.status,
-				createdAt: created.createdAt,
-			},
-			{ status: 201 },
-		);
-	} catch (_error: unknown) {
-		return internalError();
-	}
-});
+		try {
+			const trimmedUrl = url.trim();
+			const secret = crypto.randomBytes(32).toString("hex");
+			const encryptedSecret = encryptWebhookSecret(ctx.organizationId, secret);
+
+			const now = new Date();
+			const newWebhook = await db
+				.insert(webhooks)
+				.values({
+					organizationId: ctx.organizationId,
+					url: trimmedUrl,
+					events: JSON.stringify(events),
+					secret: encryptedSecret.secretPlaceholder,
+					encryptedSecret: encryptedSecret.encryptedSecret,
+					secretIv: encryptedSecret.secretIv,
+					secretTag: encryptedSecret.secretTag,
+					status: "active",
+					lastDeliveredAt: null,
+					createdAt: now,
+					updatedAt: now,
+				})
+				.returning();
+
+			if (newWebhook.length === 0) {
+				return internalError("Failed to create webhook");
+			}
+
+			const created = newWebhook[0];
+			return NextResponse.json(
+				{
+					id: created.id,
+					url: created.url,
+					events:
+						typeof created.events === "string"
+							? JSON.parse(created.events)
+							: created.events,
+					secret,
+					status: created.status,
+					createdAt: created.createdAt,
+				},
+				{ status: 201 },
+			);
+		} catch (_error: unknown) {
+			return internalError();
+		}
+	},
+	{ routeRisk: "sensitive" },
+);
 
 export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 	try {

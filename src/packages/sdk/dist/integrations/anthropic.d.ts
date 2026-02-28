@@ -19,6 +19,24 @@
  * ```
  */
 import type { AIEvalClient } from "../client";
+interface AnthropicMessageParams {
+    model: string;
+    messages: unknown[];
+    temperature?: number;
+    max_tokens?: number;
+    [key: string]: unknown;
+}
+interface AnthropicMessage {
+    content: unknown;
+    usage?: unknown;
+    stop_reason?: unknown;
+    [key: string]: unknown;
+}
+interface AnthropicClient {
+    messages: {
+        create: (params: AnthropicMessageParams, requestOptions?: Record<string, unknown>) => Promise<AnthropicMessage>;
+    };
+}
 export interface AnthropicTraceOptions {
     /** Whether to capture input (default: true) */
     captureInput?: boolean;
@@ -50,7 +68,7 @@ export interface AnthropicTraceOptions {
  * });
  * ```
  */
-export declare function traceAnthropic(anthropic: any, evalClient: AIEvalClient, options?: AnthropicTraceOptions): any;
+export declare function traceAnthropic(anthropic: AnthropicClient, evalClient: AIEvalClient, options?: AnthropicTraceOptions): AnthropicClient;
 /**
  * Manual trace wrapper for Anthropic calls
  *
@@ -70,3 +88,4 @@ export declare function traceAnthropic(anthropic: any, evalClient: AIEvalClient,
  * ```
  */
 export declare function traceAnthropicCall<T>(evalClient: AIEvalClient, name: string, fn: () => Promise<T>, options?: AnthropicTraceOptions): Promise<T>;
+export {};

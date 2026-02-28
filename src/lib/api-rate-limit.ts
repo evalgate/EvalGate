@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import * as Sentry from "@sentry/nextjs";
 import { type NextRequest, NextResponse } from "next/server";
 import { rateLimited } from "@/lib/api/errors";
+import type { RouteRisk } from "./rate-limit";
 import { checkRateLimit } from "./rate-limit";
 
 export async function withRateLimit(
@@ -10,6 +11,7 @@ export async function withRateLimit(
 	options?: {
 		customIdentifier?: string;
 		customTier?: "free" | "pro" | "enterprise" | "anonymous" | "mcp";
+		routeRisk?: RouteRisk;
 	},
 ) {
 	try {
@@ -35,9 +37,15 @@ export async function withRateLimit(
 
 		// Determine rate limit tier
 		const tier = options?.customTier || "anonymous";
+		const routeRisk = options?.routeRisk ?? "read-only";
 
 		// Check rate limit
-		const { success, headers } = await checkRateLimit(identifier, tier);
+		const { success, headers } = await checkRateLimit(
+			identifier,
+			tier,
+			routeRisk,
+			{ route: request.nextUrl.pathname, tier },
+		);
 
 		if (!success) {
 			const res = rateLimited();

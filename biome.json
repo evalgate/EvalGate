@@ -1,4 +1,4 @@
-﻿{
+{
 	"$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
 	"files": {
 		"includes": [
@@ -52,6 +52,17 @@
 			}
 		},
 		{
+			"includes": ["src/components/ui/sidebar.tsx"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off",
+						"noDocumentCookie": "off"
+					}
+				}
+			}
+		},
+		{
 			"includes": ["src/lib/auth.ts"],
 			"linter": {
 				"rules": {
@@ -62,11 +73,21 @@
 			}
 		},
 		{
-			"includes": ["tests/**/*.test.ts"],
+			"includes": [
+				"tests/**/*.test.ts",
+				"tests/helpers/**/*.ts",
+				"tests/setup.*.ts"
+			],
 			"linter": {
 				"rules": {
 					"suspicious": {
 						"noExplicitAny": "off"
+					},
+					"style": {
+						"noNonNullAssertion": "off"
+					},
+					"complexity": {
+						"noStaticOnlyClass": "off"
 					}
 				}
 			}
@@ -88,6 +109,9 @@
 					"suspicious": {
 						"noArrayIndexKey": "off"
 					},
+					"style": {
+						"noNonNullAssertion": "off"
+					},
 					"a11y": {
 						"noSvgWithoutTitle": "off"
 					}
@@ -100,13 +124,84 @@
 				"rules": {
 					"suspicious": {
 						"noAssignInExpressions": "off",
-						"noArrayIndexKey": "off"
+						"noArrayIndexKey": "off",
+						"noExplicitAny": "off"
+					},
+					"complexity": {
+						"noCommaOperator": "off"
 					},
 					"correctness": {
 						"useExhaustiveDependencies": "off"
 					},
 					"a11y": {
 						"noStaticElementInteractions": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/lib/services/**/*"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"src/lib/api/secure-route.ts",
+				"src/lib/export-templates.ts",
+				"src/lib/jobs/runner-in-memory.ts",
+				"src/components/webmcp-provider.tsx"
+			],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"src/lib/scoring/algorithms.ts",
+				"src/lib/security/encryption.ts"
+			],
+			"linter": {
+				"rules": {
+					"complexity": {
+						"noStaticOnlyClass": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/lib/templates/**/*"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off"
+					},
+					"style": {
+						"noNonNullAssertion": "off"
+					},
+					"complexity": {
+						"noStaticOnlyClass": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/packages/sdk/**/*"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off"
+					},
+					"style": {
+						"noNonNullAssertion": "off"
 					}
 				}
 			}

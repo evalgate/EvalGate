@@ -89,22 +89,27 @@ export function apiError(
 
 // ── Convenience helpers ──
 
+/** Return a 401 Unauthorized error response. */
 export function unauthorized(message = "Unauthorized") {
 	return apiError("UNAUTHORIZED", message);
 }
 
+/** Return a 403 Forbidden error response. */
 export function forbidden(message = "Forbidden") {
 	return apiError("FORBIDDEN", message);
 }
 
+/** Return a 404 Not Found error response. */
 export function notFound(message = "Resource not found") {
 	return apiError("NOT_FOUND", message);
 }
 
+/** Return a 400 Validation Error response with optional structured details. */
 export function validationError(message: string, details?: unknown) {
 	return apiError("VALIDATION_ERROR", message, undefined, details);
 }
 
+/** Return a 429 Rate Limited error response. */
 export function rateLimited(
 	message = "Too many requests. Please try again later.",
 ) {
@@ -116,18 +121,68 @@ export function quotaExceeded(message: string, details?: unknown) {
 	return apiError("QUOTA_EXCEEDED", message, 403, details);
 }
 
+/** Return a 409 Conflict error response. */
 export function conflict(message: string) {
 	return apiError("CONFLICT", message);
 }
 
+/** Return a 500 Internal Server Error response. */
 export function internalError(message = "Internal server error") {
 	return apiError("INTERNAL_ERROR", message);
 }
 
+/** Return a 503 Service Unavailable error response. */
 export function serviceUnavailable(
 	message = "Service temporarily unavailable",
 ) {
 	return apiError("SERVICE_UNAVAILABLE", message);
+}
+
+// ── Database error classification ──
+
+/**
+ * Map well-known Postgres / connection errors to structured API responses.
+ * Returns `null` for unrecognised errors so the caller can fall back to a generic 500.
+ */
+export function classifyDatabaseError(error: unknown): NextResponse | null {
+	const pgCode = (error as Record<string, unknown>)?.code;
+
+	if (pgCode === "23505") {
+		return NextResponse.json(
+			{ error: { code: "CONFLICT", message: "Resource already exists" } },
+			{ status: 409 },
+		);
+	}
+	if (pgCode === "23503") {
+		return NextResponse.json(
+			{
+				error: {
+					code: "REFERENCE_ERROR",
+					message: "Referenced resource not found",
+				},
+			},
+			{ status: 409 },
+		);
+	}
+
+	const msg = String((error as Record<string, unknown>)?.message || "");
+	if (
+		msg.includes("connection") ||
+		msg.includes("ECONNREFUSED") ||
+		msg.includes("ENOTFOUND")
+	) {
+		return NextResponse.json(
+			{
+				error: {
+					code: "SERVICE_UNAVAILABLE",
+					message: "Service temporarily unavailable",
+				},
+			},
+			{ status: 503 },
+		);
+	}
+
+	return null;
 }
 
 // ── Zod helper ──

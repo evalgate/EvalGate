@@ -1,6 +1,10 @@
 {
 	"name": "@pauly4010/evalai-sdk",
 	"version": "1.9.0",
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
 	"description": "AI Evaluation Platform SDK - Complete API Coverage with Performance Optimizations",
 	"main": "dist/index.js",
 	"module": "dist/index.js",

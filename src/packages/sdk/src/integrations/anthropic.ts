@@ -22,6 +22,30 @@
 import type { AIEvalClient } from "../client";
 import { mergeWithContext } from "../context";
 
+interface AnthropicMessageParams {
+	model: string;
+	messages: unknown[];
+	temperature?: number;
+	max_tokens?: number;
+	[key: string]: unknown;
+}
+
+interface AnthropicMessage {
+	content: unknown;
+	usage?: unknown;
+	stop_reason?: unknown;
+	[key: string]: unknown;
+}
+
+interface AnthropicClient {
+	messages: {
+		create: (
+			params: AnthropicMessageParams,
+			requestOptions?: Record<string, unknown>,
+		) => Promise<AnthropicMessage>;
+	};
+}
+
 export interface AnthropicTraceOptions {
 	/** Whether to capture input (default: true) */
 	captureInput?: boolean;
@@ -55,10 +79,10 @@ export interface AnthropicTraceOptions {
  * ```
  */
 export function traceAnthropic(
-	anthropic: any,
+	anthropic: AnthropicClient,
 	evalClient: AIEvalClient,
 	options: AnthropicTraceOptions = {},
-): any {
+): AnthropicClient {
 	const {
 		captureInput = true,
 		captureOutput = true,
@@ -70,7 +94,10 @@ export function traceAnthropic(
 	// Create proxy for messages.create
 	const originalCreate = anthropic.messages.create.bind(anthropic.messages);
 
-	anthropic.messages.create = async (params: any, requestOptions?: any) => {
+	anthropic.messages.create = async (
+		params: AnthropicMessageParams,
+		requestOptions?: Record<string, unknown>,
+	) => {
 		const startTime = Date.now();
 		const traceId = `${tracePrefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 

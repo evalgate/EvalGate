@@ -123,7 +123,7 @@ export const POST = secureRoute(
 			return internalError();
 		}
 	},
-	{ minRole: "admin" },
+	{ minRole: "admin", routeRisk: "sensitive" },
 );
 
 export const GET = secureRoute(

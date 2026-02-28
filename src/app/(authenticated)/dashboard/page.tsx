@@ -3,7 +3,7 @@ import { Activity, FileText, Plus } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { PlanUsageIndicator } from "@/components/plan-usage-indicator";
 import {
 	Card,
@@ -17,7 +17,7 @@ import { db } from "@/db";
 import { evaluationRuns, evaluations, traces } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
-async function getDashboardStats(organizationId: number) {
+const getDashboardStats = cache(async (organizationId: number) => {
 	const sevenDaysAgo = new Date(
 		Date.now() - 7 * 24 * 60 * 60 * 1000,
 	).toISOString();
@@ -42,7 +42,7 @@ async function getDashboardStats(organizationId: number) {
 		totalTraces: traceCount[0]?.count || 0,
 		recentRuns: recentRuns[0]?.count || 0,
 	};
-}
+});
 
 async function getRecentEvaluationRuns(organizationId: number) {
 	return db
