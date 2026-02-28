@@ -1,16 +1,12 @@
-"""Tests for all new modules: context, logger, pagination, batch, cache, streaming, regression, snapshot, export, runtime, matchers."""
+"""Tests for new modules: context, logger, pagination, batch, cache, streaming, regression, snapshot, export, etc."""
 
-import asyncio
 import json
-import tempfile
-import time
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-
 # ── Context ──────────────────────────────────────────────────────────
+
 
 class TestContext:
     def test_create_and_read(self):
@@ -79,6 +75,7 @@ class TestContext:
 
 # ── Logger ───────────────────────────────────────────────────────────
 
+
 class TestLogger:
     def test_create_logger(self):
         from evalai_sdk.logger import create_logger
@@ -105,7 +102,7 @@ class TestLogger:
         assert calls[0] == ("info", "hello")
 
     def test_global_logger(self):
-        from evalai_sdk.logger import get_logger, set_logger, Logger
+        from evalai_sdk.logger import Logger, get_logger, set_logger
 
         custom = Logger(level="warn")
         set_logger(custom)
@@ -125,9 +122,10 @@ class TestLogger:
 
 # ── Pagination ───────────────────────────────────────────────────────
 
+
 class TestPagination:
     def test_encode_decode_cursor(self):
-        from evalai_sdk.pagination import encode_cursor, decode_cursor
+        from evalai_sdk.pagination import decode_cursor, encode_cursor
 
         data = {"offset": 20, "id": "abc"}
         cursor = encode_cursor(data)
@@ -182,9 +180,10 @@ class TestPagination:
 
 # ── Cache ────────────────────────────────────────────────────────────
 
+
 class TestCache:
     def test_set_and_get(self):
-        from evalai_sdk.cache import RequestCache, CacheTTL
+        from evalai_sdk.cache import CacheTTL, RequestCache
 
         cache = RequestCache(max_size=10)
         cache.set("GET", "/api/test", {"data": 1}, CacheTTL.SHORT)
@@ -234,6 +233,7 @@ class TestCache:
 
 # ── Batch ────────────────────────────────────────────────────────────
 
+
 class TestBatch:
     def test_can_batch(self):
         from evalai_sdk.batch import can_batch
@@ -267,6 +267,7 @@ class TestBatch:
 
 
 # ── Streaming ────────────────────────────────────────────────────────
+
 
 class TestStreaming:
     def test_chunk(self):
@@ -315,9 +316,10 @@ class TestStreaming:
 
 # ── Regression ───────────────────────────────────────────────────────
 
+
 class TestRegression:
     def test_constants(self):
-        from evalai_sdk.regression import GATE_EXIT, GATE_CATEGORY, ARTIFACTS
+        from evalai_sdk.regression import ARTIFACTS, GATE_CATEGORY, GATE_EXIT
 
         assert GATE_EXIT.PASS == 0
         assert GATE_EXIT.REGRESSION == 1
@@ -332,7 +334,7 @@ class TestRegression:
         assert report.gate_exit == 0
 
     def test_evaluate_regression_fail(self):
-        from evalai_sdk.regression import Baseline, evaluate_regression, GATE_EXIT
+        from evalai_sdk.regression import GATE_EXIT, Baseline, evaluate_regression
 
         baseline = Baseline(scores={"test-1": 0.9})
         report = evaluate_regression(baseline, {"test-1": 0.5})
@@ -341,6 +343,7 @@ class TestRegression:
 
 
 # ── Snapshot ─────────────────────────────────────────────────────────
+
 
 class TestSnapshot:
     def test_save_and_load(self, tmp_path):
@@ -388,7 +391,7 @@ class TestSnapshot:
         assert len(snaps) == 2
 
     def test_module_functions(self, tmp_path):
-        from evalai_sdk.snapshot import snapshot, load_snapshot, compare_with_snapshot
+        from evalai_sdk.snapshot import compare_with_snapshot, load_snapshot, snapshot
 
         snapshot("test output", "func-test", directory=str(tmp_path))
         loaded = load_snapshot("func-test", directory=str(tmp_path))
@@ -399,6 +402,7 @@ class TestSnapshot:
 
 
 # ── Export ───────────────────────────────────────────────────────────
+
 
 class TestExport:
     def test_export_to_json_file(self, tmp_path):
@@ -457,6 +461,7 @@ class TestExport:
 
 # ── Runtime ──────────────────────────────────────────────────────────
 
+
 class TestRuntime:
     def test_create_runtime(self):
         from evalai_sdk.runtime import create_eval_runtime
@@ -467,7 +472,7 @@ class TestRuntime:
 
     def test_register_and_list(self):
         from evalai_sdk.runtime import create_eval_runtime
-        from evalai_sdk.runtime.types import EvalSpec, SpecOptions
+        from evalai_sdk.runtime.types import EvalSpec
 
         handle = create_eval_runtime()
         spec = EvalSpec(id="s1", name="test-spec", executor=lambda ctx: True)
@@ -543,7 +548,7 @@ class TestExecutor:
     @pytest.mark.asyncio
     async def test_execute_passing(self):
         from evalai_sdk.runtime.executor import create_local_executor
-        from evalai_sdk.runtime.types import EvalContext, EvalSpec, SpecOptions
+        from evalai_sdk.runtime.types import EvalContext, EvalSpec
 
         executor = create_local_executor()
         spec = EvalSpec(id="p", name="pass", executor=lambda ctx: {"passed": True, "score": 1.0})
@@ -581,12 +586,14 @@ class TestExecutor:
 
 # ── Matchers ─────────────────────────────────────────────────────────
 
+
 class TestMatchers:
     def test_to_pass_gate_true(self):
         from evalai_sdk.matchers import to_pass_gate
 
         class FakeResult:
             passed = True
+
         assert to_pass_gate(FakeResult())
 
     def test_to_pass_gate_false(self):
@@ -595,10 +602,11 @@ class TestMatchers:
         assert not to_pass_gate({"passed": False})
 
     def test_assert_passes_gate(self):
-        from evalai_sdk.matchers import assert_passes_gate, GateAssertionError
+        from evalai_sdk.matchers import GateAssertionError, assert_passes_gate
 
         class Ok:
             passed = True
+
         assert_passes_gate(Ok())
 
         class Fail:
@@ -606,5 +614,6 @@ class TestMatchers:
             score = 0.3
             total = 10
             passed_count = 3
+
         with pytest.raises(GateAssertionError):
             assert_passes_gate(Fail())

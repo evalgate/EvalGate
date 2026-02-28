@@ -4,15 +4,12 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional, TypeVar
+from typing import Any, Callable, TypeVar
 
 from evalai_sdk.types import (
     AgentHandoff,
     AgentSpanContext,
-    CostCategory,
     CostRecord,
-    DecisionAlternative,
-    DecisionType,
     HandoffType,
     RecordCostParams,
     RecordDecisionParams,
@@ -36,22 +33,22 @@ class WorkflowTracer:
         await tracer.end_workflow()
     """
 
-    def __init__(self, client: Any, *, session_id: Optional[str] = None) -> None:
+    def __init__(self, client: Any, *, session_id: str | None = None) -> None:
         self._client = client
         self._session_id = session_id or str(uuid.uuid4())
-        self._workflow: Optional[WorkflowContext] = None
-        self._handoffs: List[AgentHandoff] = []
-        self._decisions: List[RecordDecisionParams] = []
-        self._costs: List[CostRecord] = []
-        self._spans: List[AgentSpanContext] = []
+        self._workflow: WorkflowContext | None = None
+        self._handoffs: list[AgentHandoff] = []
+        self._decisions: list[RecordDecisionParams] = []
+        self._costs: list[CostRecord] = []
+        self._spans: list[AgentSpanContext] = []
 
     # ── Workflow lifecycle ────────────────────────────────────────
 
     async def start_workflow(
         self,
         name: str,
-        definition: Optional[WorkflowDefinition] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        definition: WorkflowDefinition | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> WorkflowContext:
         from evalai_sdk.types import CreateTraceParams
 
@@ -79,7 +76,7 @@ class WorkflowTracer:
 
     async def end_workflow(
         self,
-        output: Optional[Dict[str, Any]] = None,
+        output: dict[str, Any] | None = None,
         status: WorkflowStatus = WorkflowStatus.COMPLETED,
     ) -> None:
         if self._workflow is None:
@@ -106,8 +103,8 @@ class WorkflowTracer:
     async def start_agent_span(
         self,
         agent_name: str,
-        input: Optional[Dict[str, Any]] = None,
-        parent_span_id: Optional[str] = None,
+        input: dict[str, Any] | None = None,
+        parent_span_id: str | None = None,
     ) -> AgentSpanContext:
         span_id = str(uuid.uuid4())
         trace_id = self._workflow.trace_id if self._workflow else None
@@ -139,8 +136,8 @@ class WorkflowTracer:
     async def end_agent_span(
         self,
         span: AgentSpanContext,
-        output: Optional[Dict[str, Any]] = None,
-        error: Optional[str] = None,
+        output: dict[str, Any] | None = None,
+        error: str | None = None,
     ) -> None:
         # Span completion is tracked via the trace API if needed
         pass
@@ -149,9 +146,9 @@ class WorkflowTracer:
 
     async def record_handoff(
         self,
-        from_agent: Optional[str],
+        from_agent: str | None,
         to_agent: str,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
         handoff_type: HandoffType = HandoffType.DELEGATION,
     ) -> None:
         handoff = AgentHandoff(
@@ -187,8 +184,8 @@ class WorkflowTracer:
     def get_total_cost(self) -> float:
         return sum(c.amount for c in self._costs)
 
-    def get_cost_breakdown(self) -> Dict[str, float]:
-        breakdown: Dict[str, float] = {}
+    def get_cost_breakdown(self) -> dict[str, float]:
+        breakdown: dict[str, float] = {}
         for c in self._costs:
             key = c.category.value
             breakdown[key] = breakdown.get(key, 0.0) + c.amount
@@ -196,19 +193,19 @@ class WorkflowTracer:
 
     # ── Accessors ────────────────────────────────────────────────
 
-    def get_current_workflow(self) -> Optional[WorkflowContext]:
+    def get_current_workflow(self) -> WorkflowContext | None:
         return self._workflow
 
     def is_workflow_active(self) -> bool:
         return self._workflow is not None and self._workflow.status == WorkflowStatus.RUNNING
 
-    def get_handoffs(self) -> List[AgentHandoff]:
+    def get_handoffs(self) -> list[AgentHandoff]:
         return list(self._handoffs)
 
-    def get_decisions(self) -> List[RecordDecisionParams]:
+    def get_decisions(self) -> list[RecordDecisionParams]:
         return list(self._decisions)
 
-    def get_costs(self) -> List[CostRecord]:
+    def get_costs(self) -> list[CostRecord]:
         return list(self._costs)
 
 
@@ -221,7 +218,7 @@ async def trace_workflow_step(
     tracer: WorkflowTracer,
     agent_name: str,
     fn: Callable[[], Any],
-    input: Optional[Dict[str, Any]] = None,
+    input: dict[str, Any] | None = None,
 ) -> Any:
     """Convenience wrapper: open a span, run *fn*, close the span."""
     span = await tracer.start_agent_span(agent_name, input)

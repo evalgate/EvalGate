@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import time
-from typing import Any, Callable, Coroutine, Dict, List, Optional, Sequence
+from typing import Any
 
-from evalai_sdk.assertions import AssertionResult, Expectation, expect
+from evalai_sdk.assertions import AssertionResult, expect
 from evalai_sdk.types import (
     TestSuiteCase,
     TestSuiteCaseResult,
@@ -31,7 +31,7 @@ class TestSuite:
     def __init__(self, name: str, config: TestSuiteConfig) -> None:
         self._name = name
         self._config = config
-        self._cases: List[TestSuiteCase] = list(config.test_cases)
+        self._cases: list[TestSuiteCase] = list(config.test_cases)
 
     @property
     def name(self) -> str:
@@ -43,7 +43,7 @@ class TestSuite:
     def get_config(self) -> TestSuiteConfig:
         return self._config
 
-    def get_cases(self) -> List[TestSuiteCase]:
+    def get_cases(self) -> list[TestSuiteCase]:
         return list(self._cases)
 
     async def run(self) -> TestSuiteResult:
@@ -51,22 +51,18 @@ class TestSuite:
         if evaluator is None:
             raise ValueError("No evaluator provided in TestSuiteConfig")
 
-        results: List[TestSuiteCaseResult] = []
+        results: list[TestSuiteCaseResult] = []
         suite_start = time.monotonic()
 
         for case in self._cases:
             case_start = time.monotonic()
-            output: Optional[str] = None
-            error: Optional[str] = None
-            assertions: List[AssertionResult] = []
+            output: str | None = None
+            error: str | None = None
+            assertions: list[AssertionResult] = []
 
             try:
                 raw = evaluator(case.input)
-                if hasattr(raw, "__await__") or hasattr(raw, "__anext__"):
-                    import asyncio
-                    output = str(await raw)
-                else:
-                    output = str(raw)
+                output = str(await raw) if hasattr(raw, "__await__") or hasattr(raw, "__anext__") else str(raw)
             except Exception as exc:
                 error = str(exc)
 
@@ -114,7 +110,7 @@ class TestSuite:
             results=results,
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self._name,
             "config": self._config.model_dump(),

@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
-from evalai_sdk.types import CreateSpanParams, CreateTraceParams
+from evalai_sdk.types import CreateTraceParams
 
 
 async def trace_openai_call(
@@ -13,7 +13,7 @@ async def trace_openai_call(
     name: str,
     fn: Any,
     *,
-    metadata: Optional[Dict[str, Any]] = None,
+    metadata: dict[str, Any] | None = None,
 ) -> Any:
     """Trace a single OpenAI call.
 
@@ -36,7 +36,7 @@ async def trace_openai_call(
         from evalai_sdk.types import UpdateTraceParams
 
         output_text = ""
-        usage: Dict[str, Any] = {}
+        usage: dict[str, Any] = {}
         if hasattr(result, "choices") and result.choices:
             msg = result.choices[0].message
             output_text = getattr(msg, "content", "") or ""

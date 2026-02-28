@@ -7,7 +7,7 @@ import io
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 ExportFormat = Literal["json", "csv", "jsonl"]
 
@@ -19,43 +19,44 @@ class ExportOptions:
     include_evaluations: bool = True
     include_test_cases: bool = True
     include_runs: bool = True
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
-    organization_id: Optional[int] = None
+    start_date: str | None = None
+    end_date: str | None = None
+    organization_id: int | None = None
 
 
 @dataclass
 class ImportOptions:
     skip_duplicates: bool = True
     dry_run: bool = False
-    organization_id: Optional[int] = None
+    organization_id: int | None = None
 
 
 @dataclass
 class ExportData:
     format: ExportFormat = "json"
-    traces: List[Dict[str, Any]] = field(default_factory=list)
-    evaluations: List[Dict[str, Any]] = field(default_factory=list)
-    test_cases: List[Dict[str, Any]] = field(default_factory=list)
-    runs: List[Dict[str, Any]] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    traces: list[dict[str, Any]] = field(default_factory=list)
+    evaluations: list[dict[str, Any]] = field(default_factory=list)
+    test_cases: list[dict[str, Any]] = field(default_factory=list)
+    runs: list[dict[str, Any]] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class ImportResult:
     imported: int = 0
     skipped: int = 0
-    errors: List[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
     dry_run: bool = False
 
 
-async def export_data(client: Any, options: Optional[ExportOptions] = None) -> ExportData:
+async def export_data(client: Any, options: ExportOptions | None = None) -> ExportData:
     """Export traces, evaluations, test cases, and runs from the platform."""
     opts = options or ExportOptions()
     data = ExportData(format=opts.format)
 
     if opts.include_traces:
         from evalai_sdk.types import ListTracesParams
+
         params = ListTracesParams(limit=100)
         if opts.organization_id:
             params.organization_id = opts.organization_id
@@ -80,7 +81,7 @@ async def export_data(client: Any, options: Optional[ExportOptions] = None) -> E
     return data
 
 
-async def import_data(client: Any, data: ExportData, options: Optional[ImportOptions] = None) -> ImportResult:
+async def import_data(client: Any, data: ExportData, options: ImportOptions | None = None) -> ImportResult:
     """Import data back into the platform."""
     opts = options or ImportOptions()
     result = ImportResult(dry_run=opts.dry_run)
@@ -93,10 +94,12 @@ async def import_data(client: Any, data: ExportData, options: Optional[ImportOpt
 
     for trace_data in data.traces:
         try:
-            await client.traces.create(CreateTraceParams(
-                name=trace_data.get("name", "imported"),
-                metadata=trace_data.get("metadata"),
-            ))
+            await client.traces.create(
+                CreateTraceParams(
+                    name=trace_data.get("name", "imported"),
+                    metadata=trace_data.get("metadata"),
+                )
+            )
             result.imported += 1
         except Exception as exc:
             if opts.skip_duplicates and "duplicate" in str(exc).lower():
@@ -106,10 +109,12 @@ async def import_data(client: Any, data: ExportData, options: Optional[ImportOpt
 
     for eval_data in data.evaluations:
         try:
-            await client.evaluations.create(CreateEvaluationParams(
-                name=eval_data.get("name", "imported"),
-                description=eval_data.get("description"),
-            ))
+            await client.evaluations.create(
+                CreateEvaluationParams(
+                    name=eval_data.get("name", "imported"),
+                    description=eval_data.get("description"),
+                )
+            )
             result.imported += 1
         except Exception as exc:
             if opts.skip_duplicates and "duplicate" in str(exc).lower():
@@ -126,16 +131,23 @@ def export_to_file(data: ExportData, file_path: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
     if data.format == "json":
-        path.write_text(json.dumps({
-            "traces": data.traces,
-            "evaluations": data.evaluations,
-            "test_cases": data.test_cases,
-            "runs": data.runs,
-            "metadata": data.metadata,
-        }, indent=2, default=str), encoding="utf-8")
+        path.write_text(
+            json.dumps(
+                {
+                    "traces": data.traces,
+                    "evaluations": data.evaluations,
+                    "test_cases": data.test_cases,
+                    "runs": data.runs,
+                    "metadata": data.metadata,
+                },
+                indent=2,
+                default=str,
+            ),
+            encoding="utf-8",
+        )
 
     elif data.format == "jsonl":
-        lines: List[str] = []
+        lines: list[str] = []
         for t in data.traces:
             lines.append(json.dumps({"type": "trace", **t}, default=str))
         for e in data.evaluations:
@@ -191,19 +203,22 @@ def import_from_langsmith(langsmith_data: Any) -> ExportData:
     data = ExportData()
     if isinstance(langsmith_data, list):
         for item in langsmith_data:
-            data.traces.append({
-                "name": item.get("name", item.get("run_type", "langsmith-import")),
-                "input": json.dumps(item.get("inputs", {})),
-                "output": json.dumps(item.get("outputs", {})),
-                "metadata": {
-                    "langsmith_id": item.get("id"),
-                    "run_type": item.get("run_type"),
-                    "source": "langsmith",
-                },
-            })
+            data.traces.append(
+                {
+                    "name": item.get("name", item.get("run_type", "langsmith-import")),
+                    "input": json.dumps(item.get("inputs", {})),
+                    "output": json.dumps(item.get("outputs", {})),
+                    "metadata": {
+                        "langsmith_id": item.get("id"),
+                        "run_type": item.get("run_type"),
+                        "source": "langsmith",
+                    },
+                }
+            )
     return data
 
 
 def _now_iso() -> str:
     from datetime import datetime, timezone
+
     return datetime.now(timezone.utc).isoformat()

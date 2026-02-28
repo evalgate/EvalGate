@@ -5,9 +5,8 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import sys
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -29,6 +28,7 @@ def _run_async(coro: Any) -> Any:
 
 # ── init ─────────────────────────────────────────────────────────────
 
+
 def init(
     directory: str = typer.Argument(".", help="Project directory"),
 ) -> None:
@@ -39,22 +39,32 @@ def init(
 
     baseline_path = evalai_dir / "baseline.json"
     if not baseline_path.exists():
-        baseline_path.write_text(json.dumps({
-            "version": 1,
-            "scores": {},
-            "latencies": {},
-            "tolerance": {"score_drop": 0.05, "latency_increase_pct": 20.0, "min_confidence": 0.8},
-        }, indent=2))
+        baseline_path.write_text(
+            json.dumps(
+                {
+                    "version": 1,
+                    "scores": {},
+                    "latencies": {},
+                    "tolerance": {"score_drop": 0.05, "latency_increase_pct": 20.0, "min_confidence": 0.8},
+                },
+                indent=2,
+            )
+        )
         console.print(f"[green]✓[/green] Created {baseline_path.relative_to(cwd)}")
 
     config_path = evalai_dir / "config.json"
     if not config_path.exists():
-        config_path.write_text(json.dumps({
-            "version": 1,
-            "project_name": cwd.name,
-            "eval_dir": "evals",
-            "baseline": str(baseline_path.relative_to(cwd)),
-        }, indent=2))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "version": 1,
+                    "project_name": cwd.name,
+                    "eval_dir": "evals",
+                    "baseline": str(baseline_path.relative_to(cwd)),
+                },
+                indent=2,
+            )
+        )
         console.print(f"[green]✓[/green] Created {config_path.relative_to(cwd)}")
 
     evals_dir = cwd / "evals"
@@ -66,7 +76,7 @@ def init(
             '"""Example evaluation spec."""\n\n'
             "from evalai_sdk.runtime import define_eval, create_result, EvalContext\n\n\n"
             "def my_first_eval(ctx: EvalContext):\n"
-            '    output = ctx.input  # replace with your LLM call\n'
+            "    output = ctx.input  # replace with your LLM call\n"
             "    return create_result(passed=len(output) > 0, score=1.0)\n\n\n"
             'define_eval("example-eval", my_first_eval)\n'
         )
@@ -79,10 +89,11 @@ def init(
 
 # ── run ──────────────────────────────────────────────────────────────
 
+
 def run(
     eval_dir: str = typer.Option("evals", "--dir", "-d", help="Eval spec directory"),
-    spec_ids: Optional[str] = typer.Option(None, "--spec-ids", help="Comma-separated spec IDs to run"),
-    output: Optional[str] = typer.Option(None, "--output", "-o", help="Output file for results"),
+    spec_ids: str | None = typer.Option(None, "--spec-ids", help="Comma-separated spec IDs to run"),
+    output: str | None = typer.Option(None, "--output", "-o", help="Output file for results"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
 ) -> None:
     """Run evaluation specs."""
@@ -110,6 +121,7 @@ def run(
             continue
         try:
             import importlib.util
+
             spec_module = importlib.util.spec_from_file_location(spec_file.stem, spec_file)
             if spec_module and spec_module.loader:
                 mod = importlib.util.module_from_spec(spec_module)
@@ -136,7 +148,14 @@ def run(
         result = _run_async(executor.execute(spec, ctx))
         status = "[green]✓ PASS[/green]" if result.passed else "[red]✗ FAIL[/red]"
         console.print(f"  {status} {spec.name} ({result.duration_ms:.0f}ms, score={result.score:.2f})")
-        results.append({"spec": spec.name, "passed": result.passed, "score": result.score, "duration_ms": result.duration_ms})
+        results.append(
+            {
+                "spec": spec.name,
+                "passed": result.passed,
+                "score": result.score,
+                "duration_ms": result.duration_ms,
+            }
+        )
 
     passed = sum(1 for r in results if r["passed"])
     total = len(results)
@@ -154,9 +173,10 @@ def run(
 
 # ── gate ─────────────────────────────────────────────────────────────
 
+
 def gate(
     baseline_path: str = typer.Option(".evalai/baseline.json", "--baseline", "-b", help="Baseline file"),
-    report_path: Optional[str] = typer.Option(None, "--report", help="Run report file"),
+    report_path: str | None = typer.Option(None, "--report", help="Run report file"),
     min_score: float = typer.Option(0.8, "--min-score", help="Minimum passing score"),
     max_drop: float = typer.Option(0.05, "--max-drop", help="Max allowed score drop"),
 ) -> None:
@@ -204,10 +224,11 @@ def gate(
 
 # ── check ────────────────────────────────────────────────────────────
 
+
 def check(
-    api_key: Optional[str] = typer.Option(None, "--api-key", envvar="EVALAI_API_KEY"),
-    base_url: Optional[str] = typer.Option(None, "--base-url", envvar="EVALAI_BASE_URL"),
-    evaluation_id: Optional[int] = typer.Option(None, "--evaluation-id", help="Evaluation to check"),
+    api_key: str | None = typer.Option(None, "--api-key", envvar="EVALAI_API_KEY"),
+    base_url: str | None = typer.Option(None, "--base-url", envvar="EVALAI_BASE_URL"),
+    evaluation_id: int | None = typer.Option(None, "--evaluation-id", help="Evaluation to check"),
     min_score: float = typer.Option(0.8, "--min-score"),
 ) -> None:
     """CI/CD gate — check evaluation scores via the API."""
@@ -245,6 +266,7 @@ def check(
 
 # ── ci ───────────────────────────────────────────────────────────────
 
+
 def ci(
     eval_dir: str = typer.Option("evals", "--dir", "-d"),
     baseline_path: str = typer.Option(".evalai/baseline.json", "--baseline", "-b"),
@@ -259,13 +281,14 @@ def ci(
     except SystemExit as e:
         if e.code != 0:
             console.print("[red]Evaluations failed — skipping gate[/red]")
-            raise typer.Exit(e.code or 1)
+            raise typer.Exit(e.code or 1) from e
 
     console.print("\n[bold]Step 2/2:[/bold] Running regression gate...")
     gate(baseline_path=baseline_path, report_path=output)
 
 
 # ── doctor ───────────────────────────────────────────────────────────
+
 
 def doctor() -> None:
     """Pre-flight check — verify environment and configuration."""
@@ -274,6 +297,7 @@ def doctor() -> None:
 
     # Python version
     import platform
+
     py_ver = platform.python_version()
     py_ok = tuple(int(x) for x in py_ver.split(".")[:2]) >= (3, 9)
     checks.append(("Python >= 3.9", py_ok, py_ver))
@@ -330,6 +354,7 @@ def doctor() -> None:
 
 # ── discover ─────────────────────────────────────────────────────────
 
+
 def discover(
     eval_dir: str = typer.Option("evals", "--dir", "-d"),
     manifest: bool = typer.Option(False, "--manifest", help="Output JSON manifest"),
@@ -350,6 +375,7 @@ def discover(
             continue
         try:
             import importlib.util
+
             spec_module = importlib.util.spec_from_file_location(spec_file.stem, spec_file)
             if spec_module and spec_module.loader:
                 mod = importlib.util.module_from_spec(spec_module)
@@ -376,6 +402,7 @@ def discover(
 
 
 # ── diff ─────────────────────────────────────────────────────────────
+
 
 def diff(
     report_a: str = typer.Argument(..., help="First run report"),
@@ -409,6 +436,7 @@ def diff(
 
 # ── explain ──────────────────────────────────────────────────────────
 
+
 def explain(
     report_path: str = typer.Argument(".evalai/last-run.json", help="Run report to explain"),
 ) -> None:
@@ -436,10 +464,11 @@ def explain(
 
 # ── baseline ─────────────────────────────────────────────────────────
 
+
 def baseline(
     action: str = typer.Argument("init", help="Action: init or update"),
     path: str = typer.Option(".evalai/baseline.json", "--path", "-p"),
-    report_path: Optional[str] = typer.Option(None, "--from-report", help="Update baseline from a run report"),
+    report_path: str | None = typer.Option(None, "--from-report", help="Update baseline from a run report"),
 ) -> None:
     """Manage baselines — init or update from a run report."""
     bp = Path(path)
@@ -449,12 +478,17 @@ def baseline(
         if bp.exists():
             console.print(f"[yellow]Baseline already exists at {path}[/yellow]")
             return
-        bp.write_text(json.dumps({
-            "version": 1,
-            "scores": {},
-            "latencies": {},
-            "tolerance": {"score_drop": 0.05, "latency_increase_pct": 20.0, "min_confidence": 0.8},
-        }, indent=2))
+        bp.write_text(
+            json.dumps(
+                {
+                    "version": 1,
+                    "scores": {},
+                    "latencies": {},
+                    "tolerance": {"score_drop": 0.05, "latency_increase_pct": 20.0, "min_confidence": 0.8},
+                },
+                indent=2,
+            )
+        )
         console.print(f"[green]✓[/green] Created baseline at {path}")
 
     elif action == "update":

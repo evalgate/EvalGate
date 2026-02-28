@@ -32,9 +32,7 @@ class GateAssertionError(AssertionError):
         score = getattr(result, "score", "?")
         total = getattr(result, "total", "?")
         passed = getattr(result, "passed_count", "?")
-        super().__init__(
-            f"Gate assertion failed: {passed}/{total} passed (score={score})"
-        )
+        super().__init__(f"Gate assertion failed: {passed}/{total} passed (score={score})")
 
 
 def assert_passes_gate(result: Any) -> None:

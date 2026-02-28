@@ -66,11 +66,13 @@ class TestWorkflowTracer:
         client = _make_mock_client()
         tracer = WorkflowTracer(client)
 
-        await tracer.record_decision(RecordDecisionParams(
-            agent_name="router",
-            chosen="path-a",
-            reasoning="higher confidence",
-        ))
+        await tracer.record_decision(
+            RecordDecisionParams(
+                agent_name="router",
+                chosen="path-a",
+                reasoning="higher confidence",
+            )
+        )
         decisions = tracer.get_decisions()
         assert len(decisions) == 1
         assert decisions[0].chosen == "path-a"
@@ -80,18 +82,22 @@ class TestWorkflowTracer:
         client = _make_mock_client()
         tracer = WorkflowTracer(client)
 
-        await tracer.record_cost(RecordCostParams(
-            agent_name="gpt-agent",
-            category=CostCategory.LLM_INPUT,
-            amount=0.05,
-            tokens=1000,
-        ))
-        await tracer.record_cost(RecordCostParams(
-            agent_name="gpt-agent",
-            category=CostCategory.LLM_OUTPUT,
-            amount=0.10,
-            tokens=500,
-        ))
+        await tracer.record_cost(
+            RecordCostParams(
+                agent_name="gpt-agent",
+                category=CostCategory.LLM_INPUT,
+                amount=0.05,
+                tokens=1000,
+            )
+        )
+        await tracer.record_cost(
+            RecordCostParams(
+                agent_name="gpt-agent",
+                category=CostCategory.LLM_OUTPUT,
+                amount=0.10,
+                tokens=500,
+            )
+        )
 
         assert tracer.get_total_cost() == pytest.approx(0.15)
         breakdown = tracer.get_cost_breakdown()

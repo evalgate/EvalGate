@@ -4,23 +4,25 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar, Union
+from typing import Any, Literal, TypeVar
 
 from pydantic import BaseModel, Field
 
-TMetadata = TypeVar("TMetadata", bound=Dict[str, Any])
+TMetadata = TypeVar("TMetadata", bound=dict[str, Any])
 
 # ── Client config ────────────────────────────────────────────────────
+
 
 class RetryConfig(BaseModel):
     max_attempts: int = 3
     backoff: Literal["exponential", "linear", "fixed"] = "exponential"
-    retryable_errors: List[str] = Field(default_factory=lambda: ["RATE_LIMIT_EXCEEDED", "TIMEOUT", "NETWORK_ERROR"])
+    retryable_errors: list[str] = Field(default_factory=lambda: ["RATE_LIMIT_EXCEEDED", "TIMEOUT", "NETWORK_ERROR"])
+
 
 class ClientConfig(BaseModel):
-    api_key: Optional[str] = None
-    base_url: Optional[str] = None
-    organization_id: Optional[int] = None
+    api_key: str | None = None
+    base_url: str | None = None
+    organization_id: int | None = None
     timeout: int = 30_000
     debug: bool = False
     log_level: Literal["trace", "debug", "info", "warn", "error"] = "info"
@@ -32,7 +34,9 @@ class ClientConfig(BaseModel):
     batch_delay: int = 50
     keep_alive: bool = True
 
+
 # ── Evaluation templates ─────────────────────────────────────────────
+
 
 class EvaluationTemplates(str, Enum):
     UNIT_TESTING = "unit-testing"
@@ -48,339 +52,398 @@ class EvaluationTemplates(str, Enum):
     CODE_GENERATION = "code-generation"
     SUMMARIZATION = "summarization"
 
+
 # ── Feature usage ────────────────────────────────────────────────────
+
 
 class FeatureUsage(BaseModel):
     feature_id: str
     unlimited: bool
     interval: str
-    remaining: Optional[int] = None
-    limit: Optional[int] = None
-    used: Optional[int] = None
+    remaining: int | None = None
+    limit: int | None = None
+    used: int | None = None
+
 
 class OrganizationLimits(BaseModel):
     organization_id: int
     plan: str
-    features: List[FeatureUsage]
+    features: list[FeatureUsage]
+
 
 class Organization(BaseModel):
     id: int
     name: str
-    slug: Optional[str] = None
-    plan: Optional[str] = None
+    slug: str | None = None
+    plan: str | None = None
+
 
 # ── Traces & Spans ───────────────────────────────────────────────────
+
 
 class Trace(BaseModel):
     id: int
     trace_id: str
-    name: Optional[str] = None
-    organization_id: Optional[int] = None
-    status: Optional[str] = None
-    input: Optional[str] = None
-    output: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    duration: Optional[int] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    name: str | None = None
+    organization_id: int | None = None
+    status: str | None = None
+    input: str | None = None
+    output: str | None = None
+    metadata: dict[str, Any] | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    duration: int | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
 
 class CreateTraceParams(BaseModel):
     name: str
-    trace_id: Optional[str] = None
-    input: Optional[str] = None
-    output: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    organization_id: Optional[int] = None
+    trace_id: str | None = None
+    input: str | None = None
+    output: str | None = None
+    metadata: dict[str, Any] | None = None
+    organization_id: int | None = None
+
 
 class UpdateTraceParams(BaseModel):
-    name: Optional[str] = None
-    output: Optional[str] = None
-    status: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    name: str | None = None
+    output: str | None = None
+    status: str | None = None
+    metadata: dict[str, Any] | None = None
+
 
 class ListTracesParams(BaseModel):
     limit: int = 20
     offset: int = 0
-    organization_id: Optional[int] = None
-    status: Optional[str] = None
+    organization_id: int | None = None
+    status: str | None = None
+
 
 class Span(BaseModel):
     id: int
     span_id: str
     trace_id: int
-    name: Optional[str] = None
-    type: Optional[str] = None
-    input: Optional[str] = None
-    output: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    duration: Optional[int] = None
+    name: str | None = None
+    type: str | None = None
+    input: str | None = None
+    output: str | None = None
+    metadata: dict[str, Any] | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    duration: int | None = None
+
 
 class CreateSpanParams(BaseModel):
     name: str
-    span_id: Optional[str] = None
-    type: Optional[str] = None
-    input: Optional[str] = None
-    output: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    span_id: str | None = None
+    type: str | None = None
+    input: str | None = None
+    output: str | None = None
+    metadata: dict[str, Any] | None = None
+
 
 # ── Evaluations ──────────────────────────────────────────────────────
+
 
 class Evaluation(BaseModel):
     id: int
     name: str
-    description: Optional[str] = None
-    type: Optional[str] = None
-    status: Optional[str] = None
-    organization_id: Optional[int] = None
-    created_by: Optional[str] = None
-    model_settings: Optional[Dict[str, Any]] = None
-    execution_settings: Optional[Dict[str, Any]] = None
-    custom_metrics: Optional[List[Dict[str, Any]]] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    description: str | None = None
+    type: str | None = None
+    status: str | None = None
+    organization_id: int | None = None
+    created_by: str | None = None
+    model_settings: dict[str, Any] | None = None
+    execution_settings: dict[str, Any] | None = None
+    custom_metrics: list[dict[str, Any]] | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
 
 class CreateEvaluationParams(BaseModel):
     name: str
-    description: Optional[str] = None
-    type: Optional[str] = None
-    organization_id: Optional[int] = None
-    model_settings: Optional[Dict[str, Any]] = None
-    execution_settings: Optional[Dict[str, Any]] = None
-    assertions: Optional[List[Dict[str, Any]]] = None
-    test_cases: Optional[List[Dict[str, Any]]] = None
+    description: str | None = None
+    type: str | None = None
+    organization_id: int | None = None
+    model_settings: dict[str, Any] | None = None
+    execution_settings: dict[str, Any] | None = None
+    assertions: list[dict[str, Any]] | None = None
+    test_cases: list[dict[str, Any]] | None = None
+
 
 class UpdateEvaluationParams(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    status: Optional[str] = None
-    model_settings: Optional[Dict[str, Any]] = None
-    execution_settings: Optional[Dict[str, Any]] = None
+    name: str | None = None
+    description: str | None = None
+    status: str | None = None
+    model_settings: dict[str, Any] | None = None
+    execution_settings: dict[str, Any] | None = None
+
 
 class ListEvaluationsParams(BaseModel):
     limit: int = 20
     offset: int = 0
-    status: Optional[str] = None
+    status: str | None = None
+
 
 # ── Test Cases ───────────────────────────────────────────────────────
+
 
 class TestCase(BaseModel):
     id: int
     evaluation_id: int
-    name: Optional[str] = None
-    input: Optional[str] = None
-    expected_output: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    name: str | None = None
+    input: str | None = None
+    expected_output: str | None = None
+    metadata: dict[str, Any] | None = None
+
 
 class CreateTestCaseParams(BaseModel):
-    name: Optional[str] = None
+    name: str | None = None
     input: str
-    expected_output: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    expected_output: str | None = None
+    metadata: dict[str, Any] | None = None
+
 
 # ── Evaluation Runs ──────────────────────────────────────────────────
+
 
 class EvaluationRun(BaseModel):
     id: int
     evaluation_id: int
-    status: Optional[str] = None
-    score: Optional[float] = None
-    trace_log: Optional[Dict[str, Any]] = None
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    created_at: Optional[datetime] = None
+    status: str | None = None
+    score: float | None = None
+    trace_log: dict[str, Any] | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    created_at: datetime | None = None
+
 
 class CreateRunParams(BaseModel):
-    model_settings: Optional[Dict[str, Any]] = None
-    execution_settings: Optional[Dict[str, Any]] = None
+    model_settings: dict[str, Any] | None = None
+    execution_settings: dict[str, Any] | None = None
+
 
 # ── LLM Judge ────────────────────────────────────────────────────────
+
 
 class LLMJudgeConfig(BaseModel):
     id: int
     name: str
-    model: Optional[str] = None
-    criteria: Optional[Dict[str, Any]] = None
-    settings: Optional[Dict[str, Any]] = None
+    model: str | None = None
+    criteria: dict[str, Any] | None = None
+    settings: dict[str, Any] | None = None
+
 
 class CreateLLMJudgeConfigParams(BaseModel):
     name: str
     model: str = "gpt-4"
-    criteria: Optional[Dict[str, Any]] = None
-    settings: Optional[Dict[str, Any]] = None
-    organization_id: Optional[int] = None
+    criteria: dict[str, Any] | None = None
+    settings: dict[str, Any] | None = None
+    organization_id: int | None = None
+
 
 class LLMJudgeResult(BaseModel):
     id: int
-    config_id: Optional[int] = None
-    score: Optional[float] = None
-    reasoning: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    created_at: Optional[datetime] = None
+    config_id: int | None = None
+    score: float | None = None
+    reasoning: str | None = None
+    metadata: dict[str, Any] | None = None
+    created_at: datetime | None = None
+
 
 class RunLLMJudgeParams(BaseModel):
     config_id: int
     input: str
     output: str
-    expected_output: Optional[str] = None
-    context: Optional[str] = None
+    expected_output: str | None = None
+    context: str | None = None
+
 
 class ListLLMJudgeConfigsParams(BaseModel):
     limit: int = 20
     offset: int = 0
 
+
 class ListLLMJudgeResultsParams(BaseModel):
-    config_id: Optional[int] = None
+    config_id: int | None = None
     limit: int = 20
     offset: int = 0
 
+
 class LLMJudgeAlignment(BaseModel):
-    alignment_score: Optional[float] = None
-    details: Optional[Dict[str, Any]] = None
+    alignment_score: float | None = None
+    details: dict[str, Any] | None = None
+
 
 class GetLLMJudgeAlignmentParams(BaseModel):
     config_id: int
 
+
 # ── Annotations ──────────────────────────────────────────────────────
+
 
 class Annotation(BaseModel):
     id: int
-    evaluation_run_id: Optional[int] = None
-    test_case_id: Optional[int] = None
-    annotator_id: Optional[str] = None
-    rating: Optional[int] = None
-    feedback: Optional[str] = None
-    labels: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
-    created_at: Optional[datetime] = None
+    evaluation_run_id: int | None = None
+    test_case_id: int | None = None
+    annotator_id: str | None = None
+    rating: int | None = None
+    feedback: str | None = None
+    labels: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
+    created_at: datetime | None = None
+
 
 class CreateAnnotationParams(BaseModel):
     evaluation_run_id: int
     test_case_id: int
-    rating: Optional[int] = None
-    feedback: Optional[str] = None
-    labels: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    rating: int | None = None
+    feedback: str | None = None
+    labels: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
+
 
 class ListAnnotationsParams(BaseModel):
-    evaluation_run_id: Optional[int] = None
-    test_case_id: Optional[int] = None
+    evaluation_run_id: int | None = None
+    test_case_id: int | None = None
     limit: int = 20
     offset: int = 0
 
+
 class AnnotationTask(BaseModel):
     id: int
-    name: Optional[str] = None
-    status: Optional[str] = None
-    settings: Optional[Dict[str, Any]] = None
-    created_at: Optional[datetime] = None
+    name: str | None = None
+    status: str | None = None
+    settings: dict[str, Any] | None = None
+    created_at: datetime | None = None
+
 
 class CreateAnnotationTaskParams(BaseModel):
     name: str
     evaluation_id: int
-    settings: Optional[Dict[str, Any]] = None
-    organization_id: Optional[int] = None
+    settings: dict[str, Any] | None = None
+    organization_id: int | None = None
+
 
 class ListAnnotationTasksParams(BaseModel):
     limit: int = 20
     offset: int = 0
 
+
 class AnnotationItem(BaseModel):
     id: int
     task_id: int
-    content: Optional[Dict[str, Any]] = None
-    status: Optional[str] = None
+    content: dict[str, Any] | None = None
+    status: str | None = None
+
 
 class CreateAnnotationItemParams(BaseModel):
-    content: Dict[str, Any]
+    content: dict[str, Any]
+
 
 class ListAnnotationItemsParams(BaseModel):
-    status: Optional[str] = None
+    status: str | None = None
     limit: int = 20
     offset: int = 0
 
+
 # ── API Keys ─────────────────────────────────────────────────────────
+
 
 class APIKey(BaseModel):
     id: int
     name: str
-    key_prefix: Optional[str] = None
-    scopes: Optional[List[str]] = None
-    last_used_at: Optional[datetime] = None
-    expires_at: Optional[datetime] = None
-    created_at: Optional[datetime] = None
+    key_prefix: str | None = None
+    scopes: list[str] | None = None
+    last_used_at: datetime | None = None
+    expires_at: datetime | None = None
+    created_at: datetime | None = None
+
 
 class APIKeyWithSecret(APIKey):
     key: str
 
+
 class CreateAPIKeyParams(BaseModel):
     name: str
-    scopes: Optional[List[str]] = None
-    expires_at: Optional[str] = None
-    organization_id: Optional[int] = None
+    scopes: list[str] | None = None
+    expires_at: str | None = None
+    organization_id: int | None = None
+
 
 class UpdateAPIKeyParams(BaseModel):
-    name: Optional[str] = None
-    scopes: Optional[List[str]] = None
+    name: str | None = None
+    scopes: list[str] | None = None
+
 
 class ListAPIKeysParams(BaseModel):
-    organization_id: Optional[int] = None
+    organization_id: int | None = None
+
 
 class APIKeyUsage(BaseModel):
     total_requests: int = 0
     requests_today: int = 0
-    last_used_at: Optional[datetime] = None
+    last_used_at: datetime | None = None
+
 
 # ── Webhooks ─────────────────────────────────────────────────────────
+
 
 class Webhook(BaseModel):
     id: int
     url: str
-    events: Optional[List[str]] = None
+    events: list[str] | None = None
     active: bool = True
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
+
 
 class CreateWebhookParams(BaseModel):
     url: str
-    events: List[str]
-    organization_id: Optional[int] = None
+    events: list[str]
+    organization_id: int | None = None
+
 
 class UpdateWebhookParams(BaseModel):
-    url: Optional[str] = None
-    events: Optional[List[str]] = None
-    active: Optional[bool] = None
+    url: str | None = None
+    events: list[str] | None = None
+    active: bool | None = None
+
 
 class ListWebhooksParams(BaseModel):
-    organization_id: Optional[int] = None
+    organization_id: int | None = None
+
 
 class WebhookDelivery(BaseModel):
     id: int
     webhook_id: int
-    event: Optional[str] = None
-    status_code: Optional[int] = None
-    response_body: Optional[str] = None
-    created_at: Optional[datetime] = None
+    event: str | None = None
+    status_code: int | None = None
+    response_body: str | None = None
+    created_at: datetime | None = None
+
 
 class ListWebhookDeliveriesParams(BaseModel):
     limit: int = 20
     offset: int = 0
 
+
 # ── Usage ────────────────────────────────────────────────────────────
+
 
 class UsageStats(BaseModel):
     total_requests: int = 0
     total_evaluations: int = 0
     total_traces: int = 0
-    period_start: Optional[datetime] = None
-    period_end: Optional[datetime] = None
+    period_start: datetime | None = None
+    period_end: datetime | None = None
+
 
 class GetUsageParams(BaseModel):
     organization_id: int
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
+    start_date: str | None = None
+    end_date: str | None = None
+
 
 class UsageSummary(BaseModel):
     evaluations: int = 0
@@ -388,25 +451,29 @@ class UsageSummary(BaseModel):
     test_cases: int = 0
     api_calls: int = 0
 
+
 # ── Test Suite ───────────────────────────────────────────────────────
+
 
 class TestSuiteCase(BaseModel):
     name: str
     input: str
-    expected_output: Optional[str] = None
-    assertions: Optional[List[Dict[str, Any]]] = None
-    metadata: Optional[Dict[str, Any]] = None
-    tags: Optional[List[str]] = None
+    expected_output: str | None = None
+    assertions: list[dict[str, Any]] | None = None
+    metadata: dict[str, Any] | None = None
+    tags: list[str] | None = None
+
 
 class TestSuiteConfig(BaseModel):
-    model: Optional[str] = None
-    provider: Optional[str] = None
-    temperature: Optional[float] = None
-    max_tokens: Optional[int] = None
-    system_prompt: Optional[str] = None
-    evaluator: Optional[Any] = None
-    test_cases: List[TestSuiteCase] = Field(default_factory=list)
+    model: str | None = None
+    provider: str | None = None
+    temperature: float | None = None
+    max_tokens: int | None = None
+    system_prompt: str | None = None
+    evaluator: Any | None = None
+    test_cases: list[TestSuiteCase] = Field(default_factory=list)
     timeout: int = 30_000
+
 
 class TestSuiteCaseResult(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
@@ -415,10 +482,11 @@ class TestSuiteCaseResult(BaseModel):
     passed: bool
     duration_ms: int = 0
     input: str
-    output: Optional[str] = None
-    expected_output: Optional[str] = None
-    assertions: List[Any] = Field(default_factory=list)
-    error: Optional[str] = None
+    output: str | None = None
+    expected_output: str | None = None
+    assertions: list[Any] = Field(default_factory=list)
+    error: str | None = None
+
 
 class TestSuiteResult(BaseModel):
     suite_name: str
@@ -427,29 +495,34 @@ class TestSuiteResult(BaseModel):
     passed_count: int = 0
     failed_count: int = 0
     duration_ms: int = 0
-    results: List[TestSuiteCaseResult] = Field(default_factory=list)
+    results: list[TestSuiteCaseResult] = Field(default_factory=list)
+
 
 # ── Workflow types ───────────────────────────────────────────────────
+
 
 class WorkflowNode(BaseModel):
     id: str
     type: str
-    name: Optional[str] = None
-    config: Optional[Dict[str, Any]] = None
+    name: str | None = None
+    config: dict[str, Any] | None = None
+
 
 class WorkflowEdge(BaseModel):
     source: str = Field(alias="from")
     target: str = Field(alias="to")
-    condition: Optional[str] = None
-    label: Optional[str] = None
+    condition: str | None = None
+    label: str | None = None
 
     model_config = {"populate_by_name": True}
 
+
 class WorkflowDefinition(BaseModel):
-    nodes: List[WorkflowNode]
-    edges: List[WorkflowEdge]
-    entrypoint: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    nodes: list[WorkflowNode]
+    edges: list[WorkflowEdge]
+    entrypoint: str | None = None
+    metadata: dict[str, Any] | None = None
+
 
 class WorkflowStatus(str, Enum):
     RUNNING = "running"
@@ -457,18 +530,21 @@ class WorkflowStatus(str, Enum):
     FAILED = "failed"
     CANCELLED = "cancelled"
 
+
 class HandoffType(str, Enum):
     DELEGATION = "delegation"
     ESCALATION = "escalation"
     COLLABORATION = "collaboration"
     FALLBACK = "fallback"
 
+
 class AgentHandoff(BaseModel):
-    from_agent: Optional[str] = None
+    from_agent: str | None = None
     to_agent: str
-    context: Optional[Dict[str, Any]] = None
+    context: dict[str, Any] | None = None
     handoff_type: HandoffType = HandoffType.DELEGATION
-    timestamp: Optional[datetime] = None
+    timestamp: datetime | None = None
+
 
 class DecisionType(str, Enum):
     ROUTING = "routing"
@@ -476,19 +552,22 @@ class DecisionType(str, Enum):
     FILTERING = "filtering"
     PRIORITIZATION = "prioritization"
 
+
 class DecisionAlternative(BaseModel):
     name: str
-    score: Optional[float] = None
-    reasoning: Optional[str] = None
+    score: float | None = None
+    reasoning: str | None = None
+
 
 class RecordDecisionParams(BaseModel):
     agent_name: str
     decision_type: DecisionType = DecisionType.ROUTING
     chosen: str
-    alternatives: List[DecisionAlternative] = Field(default_factory=list)
-    reasoning: Optional[str] = None
-    confidence: Optional[float] = None
-    input_context: Optional[Dict[str, Any]] = None
+    alternatives: list[DecisionAlternative] = Field(default_factory=list)
+    reasoning: str | None = None
+    confidence: float | None = None
+    input_context: dict[str, Any] | None = None
+
 
 class CostCategory(str, Enum):
     LLM_INPUT = "llm_input"
@@ -497,37 +576,41 @@ class CostCategory(str, Enum):
     TOOL_CALL = "tool_call"
     OTHER = "other"
 
+
 class RecordCostParams(BaseModel):
     agent_name: str
     category: CostCategory
     amount: float
     currency: str = "USD"
-    model: Optional[str] = None
-    tokens: Optional[int] = None
-    metadata: Optional[Dict[str, Any]] = None
+    model: str | None = None
+    tokens: int | None = None
+    metadata: dict[str, Any] | None = None
+
 
 class CostRecord(BaseModel):
     agent_name: str
     category: CostCategory
     amount: float
     currency: str = "USD"
-    model: Optional[str] = None
-    tokens: Optional[int] = None
-    metadata: Optional[Dict[str, Any]] = None
-    timestamp: Optional[datetime] = None
+    model: str | None = None
+    tokens: int | None = None
+    metadata: dict[str, Any] | None = None
+    timestamp: datetime | None = None
+
 
 class WorkflowContext(BaseModel):
-    workflow_id: Optional[str] = None
-    trace_id: Optional[int] = None
+    workflow_id: str | None = None
+    trace_id: int | None = None
     name: str
     status: WorkflowStatus = WorkflowStatus.RUNNING
-    definition: Optional[WorkflowDefinition] = None
-    metadata: Optional[Dict[str, Any]] = None
-    started_at: Optional[datetime] = None
+    definition: WorkflowDefinition | None = None
+    metadata: dict[str, Any] | None = None
+    started_at: datetime | None = None
+
 
 class AgentSpanContext(BaseModel):
-    span_id: Optional[str] = None
+    span_id: str | None = None
     agent_name: str
-    trace_id: Optional[int] = None
-    parent_span_id: Optional[str] = None
-    started_at: Optional[datetime] = None
+    trace_id: int | None = None
+    parent_span_id: str | None = None
+    started_at: datetime | None = None

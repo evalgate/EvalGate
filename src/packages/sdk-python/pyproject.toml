@@ -64,7 +64,7 @@ asyncio_mode = "auto"
 
 [tool.ruff]
 target-version = "py39"
-line-length = 99
+line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

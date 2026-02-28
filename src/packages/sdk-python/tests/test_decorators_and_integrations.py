@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import asyncio
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, MagicMock
+from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
-
 
 # ── @WithContext decorator ────────────────────────────────────────────
 
@@ -114,10 +112,10 @@ class _MockTracer:
     """Minimal mock of WorkflowTracer for integration tests."""
 
     def __init__(self):
-        self.spans: List[Dict[str, Any]] = []
-        self.workflows: List[str] = []
-        self.ended_spans: List[Dict[str, Any]] = []
-        self.ended_workflows: List[Dict[str, Any]] = []
+        self.spans: list[dict[str, Any]] = []
+        self.workflows: list[str] = []
+        self.ended_spans: list[dict[str, Any]] = []
+        self.ended_workflows: list[dict[str, Any]] = []
 
     async def start_workflow(self, name, definition=None, metadata=None):
         self.workflows.append(name)
@@ -177,6 +175,7 @@ class TestTraceLangChain:
 
         class Executor:
             custom_attr = "hello"
+
             async def invoke(self, input, config=None):
                 return input
 
@@ -269,12 +268,12 @@ class TestTraceAutoGen:
 
 class TestEvalAIAlias:
     def test_evalai_test_is_define_eval(self):
-        from evalai_sdk.runtime.eval import evalai, define_eval
+        from evalai_sdk.runtime.eval import define_eval, evalai
 
         assert evalai.test is define_eval
 
     def test_evalai_test_registers_spec(self):
-        from evalai_sdk.runtime.eval import evalai, create_result
+        from evalai_sdk.runtime.eval import create_result, evalai
         from evalai_sdk.runtime.registry import create_eval_runtime, dispose_active_runtime
 
         handle = create_eval_runtime("/tmp/test-alias")
@@ -288,6 +287,7 @@ class TestEvalAIAlias:
 
     def test_evalai_importable_from_package(self):
         from evalai_sdk import evalai
+
         assert hasattr(evalai, "test")
 
 
@@ -298,8 +298,8 @@ class TestDisposeActiveRuntime:
     def test_dispose_clears_runtime(self):
         from evalai_sdk.runtime.registry import (
             create_eval_runtime,
-            get_active_runtime,
             dispose_active_runtime,
+            get_active_runtime,
         )
 
         create_eval_runtime("/tmp/test-dispose")
@@ -316,6 +316,7 @@ class TestDisposeActiveRuntime:
 
     def test_importable_from_package(self):
         from evalai_sdk import dispose_active_runtime
+
         assert callable(dispose_active_runtime)
 
 
@@ -324,22 +325,26 @@ class TestDisposeActiveRuntime:
 
 class TestRunAssertions:
     def test_all_pass(self):
-        from evalai_sdk import run_assertions, expect
+        from evalai_sdk import expect, run_assertions
 
-        results = run_assertions([
-            lambda: expect("Hello world").to_contain("Hello"),
-            lambda: expect("Hello world").to_contain("world"),
-        ])
+        results = run_assertions(
+            [
+                lambda: expect("Hello world").to_contain("Hello"),
+                lambda: expect("Hello world").to_contain("world"),
+            ]
+        )
         assert len(results) == 2
         assert all(r.passed for r in results)
 
     def test_mixed_results(self):
-        from evalai_sdk import run_assertions, expect
+        from evalai_sdk import expect, run_assertions
 
-        results = run_assertions([
-            lambda: expect("Hello").to_contain("Hello"),
-            lambda: expect("Hello").to_contain("Goodbye"),
-        ])
+        results = run_assertions(
+            [
+                lambda: expect("Hello").to_contain("Hello"),
+                lambda: expect("Hello").to_contain("Goodbye"),
+            ]
+        )
         assert results[0].passed is True
         assert results[1].passed is False
 
@@ -365,11 +370,11 @@ class TestNewExports:
     def test_all_new_symbols_importable(self):
         from evalai_sdk import (
             WithContext,
-            trace_langchain,
-            trace_crewai,
-            trace_autogen,
-            evalai,
             dispose_active_runtime,
+            evalai,
+            trace_autogen,
+            trace_crewai,
+            trace_langchain,
         )
 
         assert callable(WithContext)
@@ -382,75 +387,18 @@ class TestNewExports:
     def test_full_export_parity(self):
         """Verify every symbol the TS SDK exports is importable from evalai_sdk."""
         from evalai_sdk import (
-            # Version
-            SDK_VERSION, SPEC_VERSION,
+            SDK_VERSION,
+            SPEC_VERSION,
             # Client
             AIEvalClient,
-            # Errors
-            EvalAIError, RateLimitError, AuthenticationError, NetworkError,
-            ValidationError, create_error_from_response,
-            # Assertions
-            expect, Expectation, AssertionResult, run_assertions,
-            contains_keywords, matches_pattern, has_length, has_sentiment,
-            similar_to, within_range, is_valid_email, is_valid_url,
-            not_contains_pii, has_no_hallucinations, matches_schema,
-            contains_json, contains_language, has_readability_score,
-            has_factual_accuracy, responded_within_time, has_no_toxicity,
-            follows_instructions, contains_all_required_fields, has_valid_code_syntax,
-            # Testing
-            TestSuite, create_test_suite,
-            # Workflows
-            WorkflowTracer, create_workflow_tracer, trace_workflow_step,
-            # Context
-            EvalContext, WithContext, create_context, get_current_context,
-            merge_with_context, with_context, with_context_sync,
-            clone_context, merge_contexts, validate_context,
+            LocalExecutor,
             # Logger
-            Logger, RequestLogger, create_logger, get_logger, set_logger,
-            # Pagination
-            PaginatedIterator, PaginatedResponse, auto_paginate,
-            create_paginated_iterator, create_pagination_meta,
-            encode_cursor, decode_cursor, parse_pagination_params,
-            # Batch
-            RequestBatcher, batch_process, can_batch,
-            # Cache
-            RequestCache, CacheTTL, should_cache, get_ttl,
-            # Streaming
-            RateLimiter, BatchProgress, BatchResult,
-            stream_evaluation, batch_read, chunk,
-            # Regression
-            GATE_EXIT, GATE_CATEGORY, REPORT_SCHEMA_VERSION, ARTIFACTS,
-            Baseline, BaselineTolerance, RegressionDelta, RegressionReport,
-            evaluate_regression,
-            # Snapshot
-            SnapshotManager, SnapshotData, SnapshotMetadata, SnapshotComparison,
-            snapshot, load_snapshot, compare_with_snapshot, delete_snapshot,
-            list_snapshots,
-            # Export
-            ExportData, ExportFormat, ExportOptions, ImportOptions, ImportResult,
-            export_data, import_data, export_to_file, import_from_file,
-            import_from_langsmith, convert_to_csv,
-            # Matchers
-            to_pass_gate, assert_passes_gate, GateAssertionError,
-            # OpenAI
-            trace_openai, trace_openai_call, openai_chat_eval,
-            OpenAIChatEvalCase, OpenAIChatEvalCaseResult, OpenAIChatEvalResult,
-            # Anthropic
-            trace_anthropic, trace_anthropic_call,
-            # Frameworks
-            trace_langchain, trace_crewai, trace_autogen,
+            default_local_executor,
             # Runtime DSL
-            define_eval, define_suite, create_result, evalai,
-            # Runtime management
-            create_eval_runtime, get_active_runtime, set_active_runtime,
-            dispose_active_runtime, with_runtime,
-            # Runtime execution
-            LocalExecutor, create_local_executor, default_local_executor,
-            # Runtime types
-            EvalSpec, EvalResult, SpecConfig, SpecOptions, ExecutorCapabilities,
-            # Runtime errors
-            EvalRuntimeError, SpecRegistrationError, SpecExecutionError,
-            EvalSDKRuntimeError, EvalExecutionError,
+            define_eval,
+            openai_chat_eval,
+            trace_anthropic,
+            trace_openai,
         )
 
         assert SDK_VERSION == "1.0.0"

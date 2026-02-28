@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import base64
 import json
-from typing import Any, AsyncIterator, Callable, Dict, Generic, List, Optional, TypeVar
+from collections.abc import AsyncIterator
+from typing import Any, Callable, Generic, TypeVar
 
 T = TypeVar("T")
 
@@ -22,7 +23,7 @@ def decode_cursor(cursor: str) -> Any:
 class PaginatedResponse(Generic[T]):
     """Container for a page of results plus pagination metadata."""
 
-    def __init__(self, data: List[T], has_more: bool, total: Optional[int] = None) -> None:
+    def __init__(self, data: list[T], has_more: bool, total: int | None = None) -> None:
         self.data = data
         self.has_more = has_more
         self.total = total
@@ -55,7 +56,7 @@ class PaginatedIterator(Generic[T]):
     def __aiter__(self) -> PaginatedIterator[T]:
         return self
 
-    async def __anext__(self) -> List[T]:
+    async def __anext__(self) -> list[T]:
         if self._exhausted:
             raise StopAsyncIteration
 
@@ -84,9 +85,9 @@ class PaginatedIterator(Generic[T]):
 
         return data
 
-    async def to_list(self) -> List[T]:
+    async def to_list(self) -> list[T]:
         """Collect all pages into a single flat list."""
-        items: List[T] = []
+        items: list[T] = []
         async for page in self:
             items.extend(page)
         return items
@@ -116,11 +117,11 @@ async def auto_paginate(
 
 
 def create_pagination_meta(
-    items: List[Any],
+    items: list[Any],
     limit: int,
     offset: int,
-    total: Optional[int] = None,
-) -> Dict[str, Any]:
+    total: int | None = None,
+) -> dict[str, Any]:
     """Create pagination metadata for an API response."""
     return {
         "limit": limit,
@@ -132,10 +133,10 @@ def create_pagination_meta(
 
 
 def parse_pagination_params(
-    params: Optional[Dict[str, Any]] = None,
+    params: dict[str, Any] | None = None,
     default_limit: int = 20,
     max_limit: int = 100,
-) -> Dict[str, int]:
+) -> dict[str, int]:
     """Parse and clamp pagination params."""
     if params is None:
         return {"limit": default_limit, "offset": 0}

@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Coroutine, Dict, List, Optional
+from typing import Any, Callable
 
 from evalai_sdk.assertions import expect
 
@@ -13,9 +13,9 @@ from evalai_sdk.assertions import expect
 @dataclass
 class OpenAIChatEvalCase:
     input: str
-    expected_output: Optional[str] = None
-    test_case_id: Optional[str] = None
-    assertions: Optional[List[Dict[str, Any]]] = None
+    expected_output: str | None = None
+    test_case_id: str | None = None
+    assertions: list[dict[str, Any]] | None = None
 
 
 @dataclass
@@ -23,13 +23,13 @@ class OpenAIChatEvalCaseResult:
     test_case_id: str
     input: str
     output: str
-    expected_output: Optional[str]
+    expected_output: str | None
     passed: bool
     score: float
-    assertions: List[Dict[str, Any]] = field(default_factory=list)
+    assertions: list[dict[str, Any]] = field(default_factory=list)
     duration_ms: float = 0
     retries: int = 0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 @dataclass
@@ -41,7 +41,7 @@ class OpenAIChatEvalResult:
     failed_count: int
     score: float
     duration_ms: float
-    results: List[OpenAIChatEvalCaseResult] = field(default_factory=list)
+    results: list[OpenAIChatEvalCaseResult] = field(default_factory=list)
     retried_cases: int = 0
 
 
@@ -54,15 +54,15 @@ async def openai_chat_eval(
     *,
     name: str = "openai-eval",
     model: str = "gpt-4",
-    api_key: Optional[str] = None,
-    cases: List[OpenAIChatEvalCase],
-    system_prompt: Optional[str] = None,
+    api_key: str | None = None,
+    cases: list[OpenAIChatEvalCase],
+    system_prompt: str | None = None,
     retries: int = 0,
     temperature: float = 0.0,
-    call_fn: Optional[Callable[..., Any]] = None,
+    call_fn: Callable[..., Any] | None = None,
     report_to_evalai: bool = False,
-    evalai_client: Optional[Any] = None,
-    evaluation_id: Optional[int] = None,
+    evalai_client: Any | None = None,
+    evaluation_id: int | None = None,
 ) -> OpenAIChatEvalResult:
     """Run a local regression eval suite against an OpenAI-compatible model.
 
@@ -87,7 +87,7 @@ async def openai_chat_eval(
     if call_fn is None:
         call_fn = _make_openai_call(model, api_key, system_prompt, temperature)
 
-    results: List[OpenAIChatEvalCaseResult] = []
+    results: list[OpenAIChatEvalCaseResult] = []
     suite_start = time.monotonic()
     retried_total = 0
 
@@ -99,11 +99,11 @@ async def openai_chat_eval(
         messages.append({"role": "user", "content": case.input})
 
         output = ""
-        error: Optional[str] = None
+        error: str | None = None
         case_retries = 0
         case_start = time.monotonic()
 
-        for attempt in range(1 + retries):
+        for _attempt in range(1 + retries):
             try:
                 output = await call_fn(messages)
                 error = None
@@ -114,7 +114,7 @@ async def openai_chat_eval(
 
         duration = (time.monotonic() - case_start) * 1000
 
-        assertion_results: List[Dict[str, Any]] = []
+        assertion_results: list[dict[str, Any]] = []
         case_passed = error is None
 
         if error is None and case.assertions:
@@ -145,18 +145,20 @@ async def openai_chat_eval(
         if case_retries > 0:
             retried_total += 1
 
-        results.append(OpenAIChatEvalCaseResult(
-            test_case_id=case_id,
-            input=case.input,
-            output=output,
-            expected_output=case.expected_output,
-            passed=case_passed,
-            score=1.0 if case_passed else 0.0,
-            assertions=assertion_results,
-            duration_ms=duration,
-            retries=case_retries,
-            error=error,
-        ))
+        results.append(
+            OpenAIChatEvalCaseResult(
+                test_case_id=case_id,
+                input=case.input,
+                output=output,
+                expected_output=case.expected_output,
+                passed=case_passed,
+                score=1.0 if case_passed else 0.0,
+                assertions=assertion_results,
+                duration_ms=duration,
+                retries=case_retries,
+                error=error,
+            )
+        )
 
     total_duration = (time.monotonic() - suite_start) * 1000
     passed_count = sum(1 for r in results if r.passed)
@@ -177,9 +179,13 @@ async def openai_chat_eval(
     if report_to_evalai and evalai_client and evaluation_id:
         try:
             from evalai_sdk.types import CreateRunParams
-            await evalai_client.evaluations.create_run(evaluation_id, CreateRunParams(
-                execution_settings={"score": score, "results_count": len(results)},
-            ))
+
+            await evalai_client.evaluations.create_run(
+                evaluation_id,
+                CreateRunParams(
+                    execution_settings={"score": score, "results_count": len(results)},
+                ),
+            )
         except Exception:
             pass
 
@@ -188,18 +194,20 @@ async def openai_chat_eval(
 
 def _make_openai_call(
     model: str,
-    api_key: Optional[str],
-    system_prompt: Optional[str],
+    api_key: str | None,
+    system_prompt: str | None,
     temperature: float,
 ) -> Callable[..., Any]:
     """Create an async call function using the OpenAI SDK."""
-    async def _call(messages: List[Dict[str, str]]) -> str:
+
+    async def _call(messages: list[dict[str, str]]) -> str:
         try:
             import openai
-        except ImportError:
-            raise ImportError("Install openai: pip install 'evalai-sdk[openai]'")
+        except ImportError as exc:
+            raise ImportError("Install openai: pip install 'evalai-sdk[openai]'") from exc
 
         import os
+
         key = api_key or os.environ.get("OPENAI_API_KEY", "")
         client = openai.AsyncOpenAI(api_key=key)
         response = await client.chat.completions.create(

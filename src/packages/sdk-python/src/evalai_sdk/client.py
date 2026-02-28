@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
+import builtins
 import logging
 import os
-import time
-from typing import Any, Dict, List, Optional, Type, TypeVar
+from typing import Any, TypeVar
 
 import httpx
 
 from evalai_sdk._version import __version__
 from evalai_sdk.errors import (
-    AuthenticationError,
     EvalAIError,
     NetworkError,
     create_error_from_response,
@@ -73,7 +72,7 @@ logger = logging.getLogger("evalai_sdk")
 T = TypeVar("T")
 
 
-def _env(name: str) -> Optional[str]:
+def _env(name: str) -> str | None:
     return os.environ.get(name)
 
 
@@ -83,16 +82,16 @@ class _BaseAPI:
     def __init__(self, client: AIEvalClient) -> None:
         self._c = client
 
-    async def _get(self, path: str, params: Optional[Dict[str, Any]] = None) -> Any:
+    async def _get(self, path: str, params: dict[str, Any] | None = None) -> Any:
         return await self._c._request("GET", path, params=params)
 
-    async def _post(self, path: str, json: Optional[Dict[str, Any]] = None) -> Any:
+    async def _post(self, path: str, json: dict[str, Any] | None = None) -> Any:
         return await self._c._request("POST", path, json=json)
 
-    async def _patch(self, path: str, json: Optional[Dict[str, Any]] = None) -> Any:
+    async def _patch(self, path: str, json: dict[str, Any] | None = None) -> Any:
         return await self._c._request("PATCH", path, json=json)
 
-    async def _put(self, path: str, json: Optional[Dict[str, Any]] = None) -> Any:
+    async def _put(self, path: str, json: dict[str, Any] | None = None) -> Any:
         return await self._c._request("PUT", path, json=json)
 
     async def _delete(self, path: str) -> Any:
@@ -101,12 +100,13 @@ class _BaseAPI:
 
 # ── API sub-modules ──────────────────────────────────────────────────
 
+
 class TraceAPI(_BaseAPI):
     async def create(self, params: CreateTraceParams) -> Trace:
         data = await self._post("/api/traces", json=params.model_dump(exclude_none=True))
         return Trace.model_validate(data)
 
-    async def list(self, params: Optional[ListTracesParams] = None) -> List[Trace]:
+    async def list(self, params: ListTracesParams | None = None) -> builtins.list[Trace]:
         q = (params or ListTracesParams()).model_dump(exclude_none=True)
         data = await self._get("/api/traces", params=q)
         items = data if isinstance(data, list) else data.get("data", data.get("traces", []))
@@ -120,14 +120,14 @@ class TraceAPI(_BaseAPI):
         data = await self._patch(f"/api/traces/{trace_id}", json=params.model_dump(exclude_none=True))
         return Trace.model_validate(data)
 
-    async def delete(self, trace_id: int) -> Dict[str, str]:
+    async def delete(self, trace_id: int) -> dict[str, str]:
         return await self._delete(f"/api/traces/{trace_id}")
 
     async def create_span(self, trace_id: int, params: CreateSpanParams) -> Span:
         data = await self._post(f"/api/traces/{trace_id}/spans", json=params.model_dump(exclude_none=True))
         return Span.model_validate(data)
 
-    async def list_spans(self, trace_id: int) -> List[Span]:
+    async def list_spans(self, trace_id: int) -> builtins.list[Span]:
         data = await self._get(f"/api/traces/{trace_id}/spans")
         items = data if isinstance(data, list) else data.get("data", data.get("spans", []))
         return [Span.model_validate(s) for s in items]
@@ -142,7 +142,7 @@ class EvaluationAPI(_BaseAPI):
         data = await self._get(f"/api/evaluations/{evaluation_id}")
         return Evaluation.model_validate(data)
 
-    async def list(self, params: Optional[ListEvaluationsParams] = None) -> List[Evaluation]:
+    async def list(self, params: ListEvaluationsParams | None = None) -> builtins.list[Evaluation]:
         q = (params or ListEvaluationsParams()).model_dump(exclude_none=True)
         data = await self._get("/api/evaluations", params=q)
         items = data if isinstance(data, list) else data.get("data", data.get("evaluations", []))
@@ -152,24 +152,27 @@ class EvaluationAPI(_BaseAPI):
         data = await self._patch(f"/api/evaluations/{evaluation_id}", json=params.model_dump(exclude_none=True))
         return Evaluation.model_validate(data)
 
-    async def delete(self, evaluation_id: int) -> Dict[str, str]:
+    async def delete(self, evaluation_id: int) -> dict[str, str]:
         return await self._delete(f"/api/evaluations/{evaluation_id}")
 
     async def create_test_case(self, evaluation_id: int, params: CreateTestCaseParams) -> TestCase:
-        data = await self._post(f"/api/evaluations/{evaluation_id}/test-cases", json=params.model_dump(exclude_none=True))
+        data = await self._post(
+            f"/api/evaluations/{evaluation_id}/test-cases",
+            json=params.model_dump(exclude_none=True),
+        )
         return TestCase.model_validate(data)
 
-    async def list_test_cases(self, evaluation_id: int) -> List[TestCase]:
+    async def list_test_cases(self, evaluation_id: int) -> builtins.list[TestCase]:
         data = await self._get(f"/api/evaluations/{evaluation_id}/test-cases")
         items = data if isinstance(data, list) else data.get("data", data.get("testCases", []))
         return [TestCase.model_validate(tc) for tc in items]
 
-    async def create_run(self, evaluation_id: int, params: Optional[CreateRunParams] = None) -> EvaluationRun:
+    async def create_run(self, evaluation_id: int, params: CreateRunParams | None = None) -> EvaluationRun:
         body = (params or CreateRunParams()).model_dump(exclude_none=True)
         data = await self._post(f"/api/evaluations/{evaluation_id}/runs", json=body)
         return EvaluationRun.model_validate(data)
 
-    async def list_runs(self, evaluation_id: int) -> List[EvaluationRun]:
+    async def list_runs(self, evaluation_id: int) -> builtins.list[EvaluationRun]:
         data = await self._get(f"/api/evaluations/{evaluation_id}/runs")
         items = data if isinstance(data, list) else data.get("data", data.get("runs", []))
         return [EvaluationRun.model_validate(r) for r in items]
@@ -180,20 +183,20 @@ class EvaluationAPI(_BaseAPI):
 
 
 class LLMJudgeAPI(_BaseAPI):
-    async def evaluate(self, params: RunLLMJudgeParams) -> Dict[str, Any]:
+    async def evaluate(self, params: RunLLMJudgeParams) -> dict[str, Any]:
         return await self._post("/api/llm-judge/evaluate", json=params.model_dump(exclude_none=True))
 
     async def create_config(self, params: CreateLLMJudgeConfigParams) -> LLMJudgeConfig:
         data = await self._post("/api/llm-judge/configs", json=params.model_dump(exclude_none=True))
         return LLMJudgeConfig.model_validate(data)
 
-    async def list_configs(self, params: Optional[ListLLMJudgeConfigsParams] = None) -> List[LLMJudgeConfig]:
+    async def list_configs(self, params: ListLLMJudgeConfigsParams | None = None) -> list[LLMJudgeConfig]:
         q = (params or ListLLMJudgeConfigsParams()).model_dump(exclude_none=True)
         data = await self._get("/api/llm-judge/configs", params=q)
         items = data if isinstance(data, list) else data.get("data", [])
         return [LLMJudgeConfig.model_validate(c) for c in items]
 
-    async def list_results(self, params: Optional[ListLLMJudgeResultsParams] = None) -> List[LLMJudgeResult]:
+    async def list_results(self, params: ListLLMJudgeResultsParams | None = None) -> list[LLMJudgeResult]:
         q = (params or ListLLMJudgeResultsParams()).model_dump(exclude_none=True)
         data = await self._get("/api/llm-judge/results", params=q)
         items = data if isinstance(data, list) else data.get("data", [])
@@ -214,7 +217,7 @@ class AnnotationsAPI(_BaseAPI):
         payload = data.get("annotation", data) if isinstance(data, dict) else data
         return Annotation.model_validate(payload)
 
-    async def list(self, params: Optional[ListAnnotationsParams] = None) -> List[Annotation]:
+    async def list(self, params: ListAnnotationsParams | None = None) -> builtins.list[Annotation]:
         q = (params or ListAnnotationsParams()).model_dump(exclude_none=True)
         data = await self._get("/api/annotations", params=q)
         items = data.get("annotations", []) if isinstance(data, dict) else data
@@ -230,7 +233,7 @@ class _AnnotationTasksAPI(_BaseAPI):
         data = await self._post("/api/annotation-tasks", json=params.model_dump(exclude_none=True))
         return AnnotationTask.model_validate(data)
 
-    async def list(self, params: Optional[ListAnnotationTasksParams] = None) -> List[AnnotationTask]:
+    async def list(self, params: ListAnnotationTasksParams | None = None) -> builtins.list[AnnotationTask]:
         q = (params or ListAnnotationTasksParams()).model_dump(exclude_none=True)
         data = await self._get("/api/annotation-tasks", params=q)
         items = data if isinstance(data, list) else data.get("data", [])
@@ -246,7 +249,11 @@ class _AnnotationItemsAPI(_BaseAPI):
         data = await self._post(f"/api/annotation-tasks/{task_id}/items", json=params.model_dump(exclude_none=True))
         return AnnotationItem.model_validate(data)
 
-    async def list(self, task_id: int, params: Optional[ListAnnotationItemsParams] = None) -> List[AnnotationItem]:
+    async def list(
+        self,
+        task_id: int,
+        params: ListAnnotationItemsParams | None = None,
+    ) -> builtins.list[AnnotationItem]:
         q = (params or ListAnnotationItemsParams()).model_dump(exclude_none=True)
         data = await self._get(f"/api/annotation-tasks/{task_id}/items", params=q)
         items = data if isinstance(data, list) else data.get("data", [])
@@ -264,7 +271,7 @@ class DeveloperAPI(_BaseAPI):
         return UsageStats.model_validate(data)
 
     async def get_usage_summary(self, organization_id: int) -> UsageSummary:
-        data = await self._get(f"/api/developer/usage/summary", params={"organizationId": organization_id})
+        data = await self._get("/api/developer/usage/summary", params={"organizationId": organization_id})
         return UsageSummary.model_validate(data)
 
 
@@ -273,7 +280,7 @@ class _APIKeysAPI(_BaseAPI):
         data = await self._post("/api/developer/api-keys", json=params.model_dump(exclude_none=True))
         return APIKeyWithSecret.model_validate(data)
 
-    async def list(self, params: Optional[ListAPIKeysParams] = None) -> List[APIKey]:
+    async def list(self, params: ListAPIKeysParams | None = None) -> builtins.list[APIKey]:
         q = (params or ListAPIKeysParams()).model_dump(exclude_none=True)
         data = await self._get("/api/developer/api-keys", params=q)
         items = data if isinstance(data, list) else data.get("data", data.get("apiKeys", []))
@@ -283,7 +290,7 @@ class _APIKeysAPI(_BaseAPI):
         data = await self._patch(f"/api/developer/api-keys/{key_id}", json=params.model_dump(exclude_none=True))
         return APIKey.model_validate(data)
 
-    async def revoke(self, key_id: int) -> Dict[str, str]:
+    async def revoke(self, key_id: int) -> dict[str, str]:
         return await self._delete(f"/api/developer/api-keys/{key_id}")
 
     async def get_usage(self, key_id: int) -> APIKeyUsage:
@@ -296,7 +303,7 @@ class _WebhooksAPI(_BaseAPI):
         data = await self._post("/api/developer/webhooks", json=params.model_dump(exclude_none=True))
         return Webhook.model_validate(data)
 
-    async def list(self, params: Optional[ListWebhooksParams] = None) -> List[Webhook]:
+    async def list(self, params: ListWebhooksParams | None = None) -> builtins.list[Webhook]:
         q = (params or ListWebhooksParams()).model_dump(exclude_none=True)
         data = await self._get("/api/developer/webhooks", params=q)
         items = data if isinstance(data, list) else data.get("data", [])
@@ -310,12 +317,12 @@ class _WebhooksAPI(_BaseAPI):
         data = await self._patch(f"/api/developer/webhooks/{webhook_id}", json=params.model_dump(exclude_none=True))
         return Webhook.model_validate(data)
 
-    async def delete(self, webhook_id: int) -> Dict[str, str]:
+    async def delete(self, webhook_id: int) -> dict[str, str]:
         return await self._delete(f"/api/developer/webhooks/{webhook_id}")
 
     async def get_deliveries(
-        self, webhook_id: int, params: Optional[ListWebhookDeliveriesParams] = None
-    ) -> List[WebhookDelivery]:
+        self, webhook_id: int, params: ListWebhookDeliveriesParams | None = None
+    ) -> builtins.list[WebhookDelivery]:
         q = (params or ListWebhookDeliveriesParams()).model_dump(exclude_none=True)
         data = await self._get(f"/api/developer/webhooks/{webhook_id}/deliveries", params=q)
         items = data if isinstance(data, list) else data.get("data", [])
@@ -329,6 +336,7 @@ class OrganizationsAPI(_BaseAPI):
 
 
 # ── Main client ──────────────────────────────────────────────────────
+
 
 class AIEvalClient:
     """Async client for the AI Evaluation Platform API.
@@ -345,18 +353,16 @@ class AIEvalClient:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
-        organization_id: Optional[int] = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
+        organization_id: int | None = None,
         timeout: int = 30_000,
         debug: bool = False,
         **kwargs: Any,
     ) -> None:
         self._api_key = api_key or _env("EVALAI_API_KEY") or ""
         self._base_url = (base_url or _env("EVALAI_BASE_URL") or "http://localhost:3000").rstrip("/")
-        self._organization_id = organization_id or (
-            int(v) if (v := _env("EVALAI_ORGANIZATION_ID")) else None
-        )
+        self._organization_id = organization_id or (int(v) if (v := _env("EVALAI_ORGANIZATION_ID")) else None)
         self._timeout = timeout / 1000
         self._debug = debug
         self._config = ClientConfig(
@@ -367,7 +373,7 @@ class AIEvalClient:
             debug=debug,
             **kwargs,
         )
-        self._http: Optional[httpx.AsyncClient] = None
+        self._http: httpx.AsyncClient | None = None
 
         # API sub-modules
         self.traces = TraceAPI(self)
@@ -383,14 +389,14 @@ class AIEvalClient:
         return cls(**kwargs)
 
     @property
-    def organization_id(self) -> Optional[int]:
+    def organization_id(self) -> int | None:
         return self._organization_id
 
     # ── HTTP layer ───────────────────────────────────────────────
 
     def _get_http(self) -> httpx.AsyncClient:
         if self._http is None or self._http.is_closed:
-            headers: Dict[str, str] = {
+            headers: dict[str, str] = {
                 "User-Agent": f"evalai-python/{__version__}",
                 "Content-Type": "application/json",
             }
@@ -411,11 +417,11 @@ class AIEvalClient:
         method: str,
         path: str,
         *,
-        params: Optional[Dict[str, Any]] = None,
-        json: Optional[Dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
     ) -> Any:
         max_attempts = self._config.retry.max_attempts
-        last_error: Optional[Exception] = None
+        last_error: Exception | None = None
 
         for attempt in range(1, max_attempts + 1):
             try:
@@ -437,6 +443,7 @@ class AIEvalClient:
                             wait = err.retry_after
                         logger.warning("Retrying %s %s (attempt %d) in %.1fs", method, path, attempt, wait)
                         import asyncio
+
                         await asyncio.sleep(wait)
                         last_error = err
                         continue
@@ -452,6 +459,7 @@ class AIEvalClient:
                 last_error = EvalAIError(str(exc), "TIMEOUT", 408)
                 if attempt < max_attempts:
                     import asyncio
+
                     await asyncio.sleep(2 ** (attempt - 1))
                     continue
                 raise last_error from exc
@@ -459,6 +467,7 @@ class AIEvalClient:
                 last_error = NetworkError(str(exc))
                 if attempt < max_attempts:
                     import asyncio
+
                     await asyncio.sleep(2 ** (attempt - 1))
                     continue
                 raise last_error from exc

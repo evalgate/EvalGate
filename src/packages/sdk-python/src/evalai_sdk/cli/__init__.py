@@ -6,13 +6,13 @@ from __future__ import annotations
 def _ensure_typer() -> None:
     try:
         import typer  # noqa: F401
-    except ImportError:
-        raise SystemExit("CLI requires typer. Install with: pip install 'evalai-sdk[cli]'")
+    except ImportError as exc:
+        raise SystemExit("CLI requires typer. Install with: pip install 'evalai-sdk[cli]'") from exc
 
 
 _ensure_typer()
 
-import typer
+import typer  # noqa: E402
 
 app = typer.Typer(
     name="evalai",

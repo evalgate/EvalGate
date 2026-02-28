@@ -6,7 +6,7 @@ import hashlib
 import json
 import time
 from collections import OrderedDict
-from typing import Any, Dict, Optional, TypeVar
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 
@@ -63,7 +63,7 @@ class RequestCache:
             raw += f":{json.dumps(params, sort_keys=True, default=str)}"
         return hashlib.sha256(raw.encode()).hexdigest()
 
-    def get(self, method: str, url: str, params: Any = None) -> Optional[Any]:
+    def get(self, method: str, url: str, params: Any = None) -> Any | None:
         key = self._key(method, url, params)
         entry = self._store.get(key)
         if entry is None:
@@ -95,7 +95,7 @@ class RequestCache:
     def clear(self) -> None:
         self._store.clear()
 
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> dict[str, int]:
         return {"size": len(self._store), "max_size": self._max_size}
 
 

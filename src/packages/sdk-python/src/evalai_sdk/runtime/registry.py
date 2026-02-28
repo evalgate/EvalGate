@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
+import builtins
 import hashlib
 import time
-from typing import Any, Callable, Coroutine, Dict, List, Optional, TypeVar
+from typing import Any, Callable, TypeVar
 
 from evalai_sdk.runtime.types import (
-    EvalResult,
-    EvalRuntimeError,
     EvalSpec,
     RuntimeHealth,
     SpecRegistrationError,
@@ -22,7 +21,7 @@ class EvalRuntime:
 
     def __init__(self, namespace: str = "default") -> None:
         self._namespace = namespace
-        self._specs: Dict[str, EvalSpec] = {}
+        self._specs: dict[str, EvalSpec] = {}
         self._started_at = time.monotonic()
 
     @property
@@ -34,10 +33,10 @@ class EvalRuntime:
             raise SpecRegistrationError(f"Spec '{spec.id}' already registered")
         self._specs[spec.id] = spec
 
-    def get(self, spec_id: str) -> Optional[EvalSpec]:
+    def get(self, spec_id: str) -> EvalSpec | None:
         return self._specs.get(spec_id)
 
-    def list(self, *, suite: Optional[str] = None, tags: Optional[List[str]] = None) -> List[EvalSpec]:
+    def list(self, *, suite: str | None = None, tags: builtins.list[str] | None = None) -> builtins.list[EvalSpec]:
         specs = list(self._specs.values())
         if suite is not None:
             specs = [s for s in specs if s.suite == suite]
@@ -46,7 +45,7 @@ class EvalRuntime:
             specs = [s for s in specs if tag_set.issubset(set(s.options.tags))]
         return specs
 
-    def find(self, pattern: str) -> List[EvalSpec]:
+    def find(self, pattern: str) -> builtins.list[EvalSpec]:
         return [s for s in self._specs.values() if pattern in s.name or pattern in s.id]
 
     def clear(self) -> None:
@@ -73,23 +72,22 @@ class RuntimeHandle:
     def dispose(self) -> None:
         self.runtime.clear()
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         return {
             "namespace": self.runtime.namespace,
             "specs": [
-                {"id": s.id, "name": s.name, "suite": s.suite, "tags": s.options.tags}
-                for s in self.runtime.list()
+                {"id": s.id, "name": s.name, "suite": s.suite, "tags": s.options.tags} for s in self.runtime.list()
             ],
         }
 
-    def load(self, data: Dict[str, Any]) -> None:
+    def load(self, data: dict[str, Any]) -> None:
         pass
 
 
-_active_runtime: Optional[EvalRuntime] = None
+_active_runtime: EvalRuntime | None = None
 
 
-def create_eval_runtime(project_root: Optional[str] = None) -> RuntimeHandle:
+def create_eval_runtime(project_root: str | None = None) -> RuntimeHandle:
     namespace = "default"
     if project_root:
         namespace = hashlib.sha256(project_root.encode()).hexdigest()[:12]
@@ -99,7 +97,7 @@ def create_eval_runtime(project_root: Optional[str] = None) -> RuntimeHandle:
     return RuntimeHandle(runtime)
 
 
-def get_active_runtime() -> Optional[EvalRuntime]:
+def get_active_runtime() -> EvalRuntime | None:
     return _active_runtime
 
 

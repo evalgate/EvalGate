@@ -98,14 +98,18 @@ from evalai_sdk.regression import (
     evaluate_regression,
 )
 from evalai_sdk.runtime import (
-    EvalSDKRuntimeError,
     EvalExecutionError,
     EvalRuntimeError,
+    EvalSDKRuntimeError,
     SpecExecutionError,
     SpecRegistrationError,
 )
 from evalai_sdk.runtime.eval import create_result, define_eval, define_suite, evalai
-from evalai_sdk.runtime.executor import LocalExecutor, create_local_executor, default_local_executor
+from evalai_sdk.runtime.executor import (
+    LocalExecutor,
+    create_local_executor,
+    default_local_executor,
+)
 from evalai_sdk.runtime.registry import (
     create_eval_runtime,
     dispose_active_runtime,

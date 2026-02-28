@@ -7,11 +7,11 @@ the TypeScript SDK's assertion surface.
 from __future__ import annotations
 
 import json
-import math
 import re
 import time
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Sequence, Union
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -25,24 +25,23 @@ class AssertionResult:
 
 # ── Standalone assertion functions ───────────────────────────────────
 
+
 def contains_keywords(text: str, keywords: Sequence[str]) -> bool:
     lower = text.lower()
     return all(kw.lower() in lower for kw in keywords)
 
 
-def matches_pattern(text: str, pattern: Union[str, re.Pattern[str]]) -> bool:
+def matches_pattern(text: str, pattern: str | re.Pattern[str]) -> bool:
     if isinstance(pattern, str):
         pattern = re.compile(pattern)
     return pattern.search(text) is not None
 
 
-def has_length(text: str, *, min: Optional[int] = None, max: Optional[int] = None) -> bool:
+def has_length(text: str, *, min: int | None = None, max: int | None = None) -> bool:
     length = len(text)
     if min is not None and length < min:
         return False
-    if max is not None and length > max:
-        return False
-    return True
+    return not (max is not None and length > max)
 
 
 def contains_json(text: str) -> bool:
@@ -61,8 +60,8 @@ def contains_json(text: str) -> bool:
 
 
 _PII_PATTERNS = [
-    re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),          # SSN
-    re.compile(r"\b\d{16}\b"),                       # credit card (no sep)
+    re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),  # SSN
+    re.compile(r"\b\d{16}\b"),  # credit card (no sep)
     re.compile(r"\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b"),  # credit card
     re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"),  # email
     re.compile(r"\b\d{3}[-.)]?\s?\d{3}[-.)]?\s?\d{4}\b"),  # phone
@@ -73,14 +72,37 @@ def not_contains_pii(text: str) -> bool:
     return not any(p.search(text) for p in _PII_PATTERNS)
 
 
-_POSITIVE_WORDS = frozenset([
-    "good", "great", "excellent", "wonderful", "fantastic", "amazing",
-    "love", "best", "happy", "positive", "brilliant", "outstanding",
-])
-_NEGATIVE_WORDS = frozenset([
-    "bad", "terrible", "awful", "horrible", "worst", "hate",
-    "poor", "negative", "disappointing", "dreadful", "ugly",
-])
+_POSITIVE_WORDS = frozenset(
+    [
+        "good",
+        "great",
+        "excellent",
+        "wonderful",
+        "fantastic",
+        "amazing",
+        "love",
+        "best",
+        "happy",
+        "positive",
+        "brilliant",
+        "outstanding",
+    ]
+)
+_NEGATIVE_WORDS = frozenset(
+    [
+        "bad",
+        "terrible",
+        "awful",
+        "horrible",
+        "worst",
+        "hate",
+        "poor",
+        "negative",
+        "disappointing",
+        "dreadful",
+        "ugly",
+    ]
+)
 
 
 def has_sentiment(text: str, expected: str) -> bool:
@@ -127,7 +149,7 @@ def has_no_hallucinations(text: str, ground_truth: Sequence[str]) -> bool:
     return all(fact.lower() in lower for fact in ground_truth)
 
 
-def matches_schema(value: Any, schema: Dict[str, Any]) -> bool:
+def matches_schema(value: Any, schema: dict[str, Any]) -> bool:
     if not isinstance(value, dict):
         return False
     for key, expected_type in schema.items():
@@ -150,7 +172,7 @@ def has_readability_score(text: str, min_score: float) -> bool:
 
 def contains_language(text: str, language: str) -> bool:
     # Simplified heuristic — checks for common words per language
-    _LANG_MARKERS: Dict[str, list[str]] = {
+    _LANG_MARKERS: dict[str, list[str]] = {
         "english": ["the", "is", "and", "of", "to"],
         "spanish": ["el", "la", "de", "en", "es"],
         "french": ["le", "la", "de", "et", "les"],
@@ -173,10 +195,19 @@ def responded_within_time(start_time: float, max_ms: float) -> bool:
     return elapsed <= max_ms
 
 
-_TOXIC_WORDS = frozenset([
-    "idiot", "stupid", "moron", "dumb", "loser", "shut up",
-    "kill", "die", "hate you",
-])
+_TOXIC_WORDS = frozenset(
+    [
+        "idiot",
+        "stupid",
+        "moron",
+        "dumb",
+        "loser",
+        "shut up",
+        "kill",
+        "die",
+        "hate you",
+    ]
+)
 
 
 def has_no_toxicity(text: str) -> bool:
@@ -195,7 +226,7 @@ def contains_all_required_fields(obj: Any, required_fields: Sequence[str]) -> bo
     return all(f in obj for f in required_fields)
 
 
-_CODE_PATTERNS: Dict[str, re.Pattern[str]] = {
+_CODE_PATTERNS: dict[str, re.Pattern[str]] = {
     "python": re.compile(r"(def |class |import |from .+ import |if __name__)"),
     "javascript": re.compile(r"(function |const |let |var |=>|module\.exports)"),
     "typescript": re.compile(r"(interface |type |const |function |=>|export )"),
@@ -213,6 +244,7 @@ def has_valid_code_syntax(code: str, language: str) -> bool:
 
 
 # ── Fluent expect() API ──────────────────────────────────────────────
+
 
 class Expectation:
     """Chainable assertion builder returned by ``expect(value)``."""
@@ -232,23 +264,51 @@ class Expectation:
 
     def to_contain(self, substring: str, message: str = "") -> AssertionResult:
         passed = substring in str(self._value)
-        return AssertionResult(passed=passed, assertion_type="contain", message=message or f"Expected to contain '{substring}'", expected=substring, actual=self._value)
+        return AssertionResult(
+            passed=passed,
+            assertion_type="contain",
+            message=message or f"Expected to contain '{substring}'",
+            expected=substring,
+            actual=self._value,
+        )
 
     def to_contain_keywords(self, keywords: Sequence[str], message: str = "") -> AssertionResult:
         passed = contains_keywords(str(self._value), keywords)
-        return AssertionResult(passed=passed, assertion_type="containsKeywords", message=message or f"Expected keywords {keywords}", expected=keywords, actual=self._value)
+        return AssertionResult(
+            passed=passed,
+            assertion_type="containsKeywords",
+            message=message or f"Expected keywords {keywords}",
+            expected=keywords,
+            actual=self._value,
+        )
 
     def to_not_contain(self, substring: str, message: str = "") -> AssertionResult:
         passed = substring not in str(self._value)
-        return AssertionResult(passed=passed, assertion_type="notContain", message=message or f"Expected not to contain '{substring}'", expected=substring, actual=self._value)
+        return AssertionResult(
+            passed=passed,
+            assertion_type="notContain",
+            message=message or f"Expected not to contain '{substring}'",
+            expected=substring,
+            actual=self._value,
+        )
 
     def to_not_contain_pii(self, message: str = "") -> AssertionResult:
         passed = not_contains_pii(str(self._value))
-        return AssertionResult(passed=passed, assertion_type="notContainsPII", message=message or "Expected no PII")
+        return AssertionResult(
+            passed=passed,
+            assertion_type="notContainsPII",
+            message=message or "Expected no PII",
+        )
 
-    def to_match_pattern(self, pattern: Union[str, re.Pattern[str]], message: str = "") -> AssertionResult:
+    def to_match_pattern(self, pattern: str | re.Pattern[str], message: str = "") -> AssertionResult:
         passed = matches_pattern(str(self._value), pattern)
-        return AssertionResult(passed=passed, assertion_type="matchesPattern", message=message or f"Expected to match pattern", expected=str(pattern), actual=self._value)
+        return AssertionResult(
+            passed=passed,
+            assertion_type="matchesPattern",
+            message=message or "Expected to match pattern",
+            expected=str(pattern),
+            actual=self._value,
+        )
 
     def to_be_valid_json(self, message: str = "") -> AssertionResult:
         try:
@@ -256,64 +316,136 @@ class Expectation:
             passed = True
         except (json.JSONDecodeError, ValueError):
             passed = False
-        return AssertionResult(passed=passed, assertion_type="validJSON", message=message or "Expected valid JSON")
+        return AssertionResult(
+            passed=passed,
+            assertion_type="validJSON",
+            message=message or "Expected valid JSON",
+        )
 
-    def to_match_json(self, schema: Dict[str, Any], message: str = "") -> AssertionResult:
+    def to_match_json(self, schema: dict[str, Any], message: str = "") -> AssertionResult:
         try:
             parsed = json.loads(str(self._value)) if isinstance(self._value, str) else self._value
             passed = matches_schema(parsed, schema)
         except (json.JSONDecodeError, ValueError):
             passed = False
-        return AssertionResult(passed=passed, assertion_type="matchesJSON", message=message or "Expected to match JSON schema", expected=schema, actual=self._value)
+        return AssertionResult(
+            passed=passed,
+            assertion_type="matchesJSON",
+            message=message or "Expected to match JSON schema",
+            expected=schema,
+            actual=self._value,
+        )
 
     def to_have_sentiment(self, expected: str, message: str = "") -> AssertionResult:
         passed = has_sentiment(str(self._value), expected)
-        return AssertionResult(passed=passed, assertion_type="sentiment", message=message or f"Expected {expected} sentiment", expected=expected, actual=self._value)
+        return AssertionResult(
+            passed=passed,
+            assertion_type="sentiment",
+            message=message or f"Expected {expected} sentiment",
+            expected=expected,
+            actual=self._value,
+        )
 
-    def to_have_length(self, *, min: Optional[int] = None, max: Optional[int] = None, message: str = "") -> AssertionResult:
+    def to_have_length(self, *, min: int | None = None, max: int | None = None, message: str = "") -> AssertionResult:
         passed = has_length(str(self._value), min=min, max=max)
-        return AssertionResult(passed=passed, assertion_type="length", message=message or f"Expected length in [{min}, {max}]", expected={"min": min, "max": max}, actual=len(str(self._value)))
+        return AssertionResult(
+            passed=passed,
+            assertion_type="length",
+            message=message or f"Expected length in [{min}, {max}]",
+            expected={"min": min, "max": max},
+            actual=len(str(self._value)),
+        )
 
     def to_not_hallucinate(self, ground_truth: Sequence[str], message: str = "") -> AssertionResult:
         passed = has_no_hallucinations(str(self._value), ground_truth)
-        return AssertionResult(passed=passed, assertion_type="noHallucinations", message=message or "Expected no hallucinations", expected=ground_truth, actual=self._value)
+        return AssertionResult(
+            passed=passed,
+            assertion_type="noHallucinations",
+            message=message or "Expected no hallucinations",
+            expected=ground_truth,
+            actual=self._value,
+        )
 
     def to_be_faster_than(self, max_ms: float, message: str = "") -> AssertionResult:
         passed = isinstance(self._value, (int, float)) and self._value <= max_ms
-        return AssertionResult(passed=passed, assertion_type="fasterThan", message=message or f"Expected < {max_ms}ms", expected=max_ms, actual=self._value)
+        return AssertionResult(
+            passed=passed,
+            assertion_type="fasterThan",
+            message=message or f"Expected < {max_ms}ms",
+            expected=max_ms,
+            actual=self._value,
+        )
 
     def to_be_truthy(self, message: str = "") -> AssertionResult:
         passed = bool(self._value)
-        return AssertionResult(passed=passed, assertion_type="truthy", message=message or "Expected truthy value")
+        return AssertionResult(
+            passed=passed,
+            assertion_type="truthy",
+            message=message or "Expected truthy value",
+        )
 
     def to_be_falsy(self, message: str = "") -> AssertionResult:
         passed = not bool(self._value)
-        return AssertionResult(passed=passed, assertion_type="falsy", message=message or "Expected falsy value")
+        return AssertionResult(
+            passed=passed,
+            assertion_type="falsy",
+            message=message or "Expected falsy value",
+        )
 
     def to_be_greater_than(self, expected: float, message: str = "") -> AssertionResult:
         passed = isinstance(self._value, (int, float)) and self._value > expected
-        return AssertionResult(passed=passed, assertion_type="greaterThan", message=message or f"Expected > {expected}", expected=expected, actual=self._value)
+        return AssertionResult(
+            passed=passed,
+            assertion_type="greaterThan",
+            message=message or f"Expected > {expected}",
+            expected=expected,
+            actual=self._value,
+        )
 
     def to_be_less_than(self, expected: float, message: str = "") -> AssertionResult:
         passed = isinstance(self._value, (int, float)) and self._value < expected
-        return AssertionResult(passed=passed, assertion_type="lessThan", message=message or f"Expected < {expected}", expected=expected, actual=self._value)
+        return AssertionResult(
+            passed=passed,
+            assertion_type="lessThan",
+            message=message or f"Expected < {expected}",
+            expected=expected,
+            actual=self._value,
+        )
 
     def to_be_between(self, min_val: float, max_val: float, message: str = "") -> AssertionResult:
         passed = isinstance(self._value, (int, float)) and within_range(self._value, min_val, max_val)
-        return AssertionResult(passed=passed, assertion_type="between", message=message or f"Expected between {min_val} and {max_val}", expected={"min": min_val, "max": max_val}, actual=self._value)
+        return AssertionResult(
+            passed=passed,
+            assertion_type="between",
+            message=message or f"Expected between {min_val} and {max_val}",
+            expected={"min": min_val, "max": max_val},
+            actual=self._value,
+        )
 
     def to_contain_code(self, message: str = "") -> AssertionResult:
         passed = bool(re.search(r"```|def |function |class |const |import ", str(self._value)))
-        return AssertionResult(passed=passed, assertion_type="containsCode", message=message or "Expected to contain code")
+        return AssertionResult(
+            passed=passed,
+            assertion_type="containsCode",
+            message=message or "Expected to contain code",
+        )
 
     def to_be_professional(self, message: str = "") -> AssertionResult:
         passed = has_no_toxicity(str(self._value))
-        return AssertionResult(passed=passed, assertion_type="professional", message=message or "Expected professional tone")
+        return AssertionResult(
+            passed=passed,
+            assertion_type="professional",
+            message=message or "Expected professional tone",
+        )
 
     def to_have_proper_grammar(self, message: str = "") -> AssertionResult:
         text = str(self._value).strip()
         passed = len(text) > 0 and text[0].isupper() and text[-1] in ".!?"
-        return AssertionResult(passed=passed, assertion_type="properGrammar", message=message or "Expected proper grammar")
+        return AssertionResult(
+            passed=passed,
+            assertion_type="properGrammar",
+            message=message or "Expected proper grammar",
+        )
 
 
 def expect(value: Any) -> Expectation:
@@ -329,7 +461,7 @@ def expect(value: Any) -> Expectation:
 
 def run_assertions(
     assertions: Sequence[Callable[[], AssertionResult]],
-) -> List[AssertionResult]:
+) -> list[AssertionResult]:
     """Run multiple assertions and collect results.
 
     Each assertion is a zero-argument callable that returns an ``AssertionResult``.
@@ -344,16 +476,18 @@ def run_assertions(
         ])
         all_passed = all(r.passed for r in results)
     """
-    results: List[AssertionResult] = []
+    results: list[AssertionResult] = []
     for assertion in assertions:
         try:
             results.append(assertion())
         except Exception as exc:
-            results.append(AssertionResult(
-                passed=False,
-                assertion_type="unknown",
-                message=str(exc),
-                expected=None,
-                actual=None,
-            ))
+            results.append(
+                AssertionResult(
+                    passed=False,
+                    assertion_type="unknown",
+                    message=str(exc),
+                    expected=None,
+                    actual=None,
+                )
+            )
     return results

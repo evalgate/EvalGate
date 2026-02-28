@@ -16,11 +16,13 @@ from evalai_sdk.runtime.types import (
     EvalRuntimeError,
     EvalSpec,
     ExecutorCapabilities,
-    RuntimeError as EvalSDKRuntimeError,
     SpecConfig,
     SpecExecutionError,
     SpecOptions,
     SpecRegistrationError,
+)
+from evalai_sdk.runtime.types import (
+    RuntimeError as EvalSDKRuntimeError,
 )
 
 __all__ = [

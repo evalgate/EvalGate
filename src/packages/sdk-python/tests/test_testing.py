@@ -2,7 +2,7 @@
 
 import pytest
 
-from evalai_sdk.testing import TestSuite, create_test_suite
+from evalai_sdk.testing import create_test_suite
 from evalai_sdk.types import TestSuiteCase, TestSuiteConfig
 
 
@@ -91,6 +91,7 @@ class TestTestSuite:
         )
         with pytest.raises(ValueError, match="No evaluator"):
             import asyncio
+
             asyncio.get_event_loop().run_until_complete(suite.run())
 
     def test_to_dict(self):

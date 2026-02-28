@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 from evalai_sdk.types import CreateTraceParams
 
@@ -13,7 +13,7 @@ async def trace_anthropic_call(
     name: str,
     fn: Any,
     *,
-    metadata: Optional[Dict[str, Any]] = None,
+    metadata: dict[str, Any] | None = None,
 ) -> Any:
     """Trace a single Anthropic call.
 
@@ -37,7 +37,7 @@ async def trace_anthropic_call(
         from evalai_sdk.types import UpdateTraceParams
 
         output_text = ""
-        usage: Dict[str, Any] = {}
+        usage: dict[str, Any] = {}
         if hasattr(result, "content") and result.content:
             parts = result.content
             output_text = parts[0].text if hasattr(parts[0], "text") else str(parts[0])

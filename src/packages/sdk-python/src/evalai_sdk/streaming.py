@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import AsyncIterator, Coroutine
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator, Callable, Coroutine, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Callable, Generic, TypeVar
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -21,8 +22,8 @@ class BatchProgress:
 
 @dataclass
 class BatchResult(Generic[R]):
-    results: List[R] = field(default_factory=list)
-    errors: List[Dict[str, Any]] = field(default_factory=list)
+    results: list[R] = field(default_factory=list)
+    errors: list[dict[str, Any]] = field(default_factory=list)
     total: int = 0
     succeeded: int = 0
     failed: int = 0
@@ -53,18 +54,18 @@ class RateLimiter:
         return await fn()
 
 
-def chunk(items: List[T], size: int) -> List[List[T]]:
+def chunk(items: list[T], size: int) -> list[list[T]]:
     """Split a list into chunks of *size*."""
     return [items[i : i + size] for i in range(0, len(items), size)]
 
 
 async def stream_evaluation(
     evaluator: Callable[[str], Coroutine[Any, Any, str]],
-    inputs: List[str],
+    inputs: list[str],
     *,
     concurrency: int = 3,
-    on_progress: Optional[Callable[[BatchProgress], None]] = None,
-) -> AsyncIterator[Dict[str, Any]]:
+    on_progress: Callable[[BatchProgress], None] | None = None,
+) -> AsyncIterator[dict[str, Any]]:
     """Stream evaluation results as they complete.
 
     Yields dicts with ``input``, ``output``, ``index``, ``duration_ms``, and optionally ``error``.
@@ -73,14 +74,16 @@ async def stream_evaluation(
     progress = BatchProgress(total=len(inputs))
     start = time.monotonic()
 
-    async def _run(index: int, input_text: str) -> Dict[str, Any]:
+    async def _run(index: int, input_text: str) -> dict[str, Any]:
         async with semaphore:
             t0 = time.monotonic()
             try:
                 output = await evaluator(input_text)
-                return {"index": index, "input": input_text, "output": output, "duration_ms": (time.monotonic() - t0) * 1000}
+                elapsed = (time.monotonic() - t0) * 1000
+                return {"index": index, "input": input_text, "output": output, "duration_ms": elapsed}
             except Exception as exc:
-                return {"index": index, "input": input_text, "error": str(exc), "duration_ms": (time.monotonic() - t0) * 1000}
+                elapsed = (time.monotonic() - t0) * 1000
+                return {"index": index, "input": input_text, "error": str(exc), "duration_ms": elapsed}
 
     tasks = [asyncio.create_task(_run(i, inp)) for i, inp in enumerate(inputs)]
 
@@ -96,11 +99,11 @@ async def stream_evaluation(
 
 
 async def batch_read(
-    fetcher: Callable[[int, int], Coroutine[Any, Any, List[T]]],
+    fetcher: Callable[[int, int], Coroutine[Any, Any, list[T]]],
     *,
     limit: int = 100,
     max_pages: int = 100,
-) -> List[T]:
+) -> list[T]:
     """Read all pages from a paginated API endpoint.
 
     Args:
@@ -108,7 +111,7 @@ async def batch_read(
         limit: Page size.
         max_pages: Safety cap on number of pages.
     """
-    all_items: List[T] = []
+    all_items: list[T] = []
     offset = 0
     for _ in range(max_pages):
         page = await fetcher(offset, limit)

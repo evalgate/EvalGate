@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
-from evalai_sdk.workflows import WorkflowTracer, WorkflowStatus
+from evalai_sdk.workflows import WorkflowStatus, WorkflowTracer
 
 
 def trace_autogen(
@@ -42,9 +42,7 @@ def trace_autogen(
 
         async def initiate_chat(self, *args: Any, **kwargs: Any) -> Any:
             await tracer.start_workflow(conversation_name)
-            span = await tracer.start_agent_span(
-                conversation_name, {"args": str(args), "kwargs": str(kwargs)}
-            )
+            span = await tracer.start_agent_span(conversation_name, {"args": str(args), "kwargs": str(kwargs)})
             try:
                 if hasattr(self._original, "a_initiate_chat"):
                     result = await self._original.a_initiate_chat(*args, **kwargs)

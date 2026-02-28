@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-_ERROR_DOCS: Dict[str, Dict[str, Any]] = {
+_ERROR_DOCS: dict[str, dict[str, Any]] = {
     "MISSING_API_KEY": {
         "documentation": "https://docs.ai-eval-platform.com/errors/missing-api-key",
         "solutions": [
@@ -105,19 +105,19 @@ class EvalAIError(Exception):
     code: str
     status_code: int
     documentation: str
-    solutions: List[str]
+    solutions: list[str]
     retryable: bool
-    details: Optional[Any]
-    retry_after: Optional[int]
-    reset_at: Optional[datetime]
-    request_id: Optional[str]
+    details: Any | None
+    retry_after: int | None
+    reset_at: datetime | None
+    request_id: str | None
 
     def __init__(
         self,
         message: str,
         code: str = "UNKNOWN_ERROR",
         status_code: int = 0,
-        details: Optional[Any] = None,
+        details: Any | None = None,
     ) -> None:
         super().__init__(message)
         self.code = code
@@ -125,9 +125,7 @@ class EvalAIError(Exception):
         self.details = details
 
         doc = _ERROR_DOCS.get(code, {})
-        self.documentation = doc.get(
-            "documentation", f"https://docs.ai-eval-platform.com/errors/{code}"
-        )
+        self.documentation = doc.get("documentation", f"https://docs.ai-eval-platform.com/errors/{code}")
         self.solutions = doc.get("solutions", ["Check the error details for more information"])
         self.retryable = doc.get("retryable", False)
         self.retry_after = None
@@ -155,7 +153,7 @@ class EvalAIError(Exception):
             lines.append(f"\nLimit resets at: {self.reset_at.isoformat()}")
         return "\n".join(lines)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "code": self.code,
             "message": str(self),
@@ -170,7 +168,7 @@ class EvalAIError(Exception):
 
 
 class RateLimitError(EvalAIError):
-    def __init__(self, message: str = "Rate limit exceeded", retry_after: Optional[int] = None):
+    def __init__(self, message: str = "Rate limit exceeded", retry_after: int | None = None):
         super().__init__(message, "RATE_LIMIT_EXCEEDED", 429, {"retryAfter": retry_after} if retry_after else None)
 
 
@@ -180,7 +178,7 @@ class AuthenticationError(EvalAIError):
 
 
 class ValidationError(EvalAIError):
-    def __init__(self, message: str = "Validation failed", details: Optional[Any] = None):
+    def __init__(self, message: str = "Validation failed", details: Any | None = None):
         super().__init__(message, "VALIDATION_ERROR", 400, details)
 
 
@@ -208,14 +206,9 @@ def create_error_from_response(status_code: int, data: Any) -> EvalAIError:
             or data.get("message")
             or "Unknown error"
         )
-        request_id = (
-            (error_obj.get("requestId") if isinstance(error_obj, dict) else None)
-            or data.get("requestId")
-        )
+        request_id = (error_obj.get("requestId") if isinstance(error_obj, dict) else None) or data.get("requestId")
     else:
-        code = _STATUS_TO_CODE.get(
-            status_code, "INTERNAL_SERVER_ERROR" if status_code >= 500 else "UNKNOWN_ERROR"
-        )
+        code = _STATUS_TO_CODE.get(status_code, "INTERNAL_SERVER_ERROR" if status_code >= 500 else "UNKNOWN_ERROR")
         message = str(data) if data else "Unknown error"
         request_id = None
 

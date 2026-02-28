@@ -5,11 +5,10 @@ from __future__ import annotations
 import hashlib
 import inspect
 import re
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable
 
 from evalai_sdk.runtime.registry import get_active_runtime
 from evalai_sdk.runtime.types import (
-    EvalContext,
     EvalResult,
     EvalSpec,
     SpecConfig,
@@ -20,7 +19,7 @@ from evalai_sdk.runtime.types import (
 _NAME_PATTERN = re.compile(r"^[\w\-]{1,100}$")
 
 
-def _generate_spec_id(name: str, file_path: Optional[str] = None) -> str:
+def _generate_spec_id(name: str, file_path: str | None = None) -> str:
     """Generate a content-addressable spec ID."""
     source = name
     if file_path is None:
@@ -43,15 +42,15 @@ def _validate_name(name: str) -> None:
 
 def define_eval(
     name_or_config: Any = None,
-    executor: Optional[Callable[..., Any]] = None,
+    executor: Callable[..., Any] | None = None,
     *,
-    name: Optional[str] = None,
-    options: Optional[SpecOptions] = None,
-    description: Optional[str] = None,
-    suite: Optional[str] = None,
-    tags: Optional[List[str]] = None,
+    name: str | None = None,
+    options: SpecOptions | None = None,
+    description: str | None = None,
+    suite: str | None = None,
+    tags: list[str] | None = None,
     timeout_ms: int = 30_000,
-) -> Optional[EvalSpec]:
+) -> EvalSpec | None:
     """Register an eval spec with the active runtime.
 
     Can be called as::
@@ -95,8 +94,17 @@ def define_eval(
     else:
         # Decorator mode — return a decorator
         def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
-            define_eval(fn, name=name or fn.__name__, options=options, description=description, suite=suite, tags=tags, timeout_ms=timeout_ms)
+            define_eval(
+                fn,
+                name=name or fn.__name__,
+                options=options,
+                description=description,
+                suite=suite,
+                tags=tags,
+                timeout_ms=timeout_ms,
+            )
             return fn
+
         if callable(name_or_config):
             return decorator(name_or_config)
         return decorator  # type: ignore[return-value]
@@ -129,7 +137,7 @@ class _EvalAI:
 evalai = _EvalAI()
 
 
-def define_suite(name: str, specs: List[Callable[[], None]]) -> None:
+def define_suite(name: str, specs: list[Callable[[], None]]) -> None:
     """Group multiple define_eval calls into a named suite."""
     for spec_fn in specs:
         spec_fn()
@@ -139,9 +147,9 @@ def create_result(
     *,
     passed: bool,
     score: float = 0.0,
-    assertions: Optional[List[Any]] = None,
-    metadata: Optional[Dict[str, Any]] = None,
-    error: Optional[str] = None,
+    assertions: list[Any] | None = None,
+    metadata: dict[str, Any] | None = None,
+    error: str | None = None,
 ) -> EvalResult:
     """Create an evaluation result."""
     return EvalResult(

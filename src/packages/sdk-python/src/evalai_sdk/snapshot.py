@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -25,7 +23,7 @@ class SnapshotData:
     name: str
     output: str
     metadata: SnapshotMetadata
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -35,7 +33,7 @@ class SnapshotComparison:
     similarity: float
     current_output: str
     snapshot_output: str
-    diff_lines: List[str] = field(default_factory=list)
+    diff_lines: list[str] = field(default_factory=list)
 
 
 _DEFAULT_DIR = ".snapshots"
@@ -80,7 +78,7 @@ class SnapshotManager:
     def _path(self, name: str) -> Path:
         return self._dir / f"{_safe_name(name)}.json"
 
-    def save(self, name: str, output: str, tags: Optional[List[str]] = None) -> SnapshotData:
+    def save(self, name: str, output: str, tags: list[str] | None = None) -> SnapshotData:
         """Save a snapshot to disk."""
         self._dir.mkdir(parents=True, exist_ok=True)
         snap = SnapshotData(
@@ -94,20 +92,26 @@ class SnapshotManager:
             tags=tags or [],
         )
         path = self._path(name)
-        path.write_text(json.dumps({
-            "name": snap.name,
-            "output": snap.output,
-            "metadata": {
-                "name": snap.metadata.name,
-                "created_at": snap.metadata.created_at,
-                "content_hash": snap.metadata.content_hash,
-                "version": snap.metadata.version,
-            },
-            "tags": snap.tags,
-        }, indent=2), encoding="utf-8")
+        path.write_text(
+            json.dumps(
+                {
+                    "name": snap.name,
+                    "output": snap.output,
+                    "metadata": {
+                        "name": snap.metadata.name,
+                        "created_at": snap.metadata.created_at,
+                        "content_hash": snap.metadata.content_hash,
+                        "version": snap.metadata.version,
+                    },
+                    "tags": snap.tags,
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
         return snap
 
-    def load(self, name: str) -> Optional[SnapshotData]:
+    def load(self, name: str) -> SnapshotData | None:
         """Load a snapshot from disk."""
         path = self._path(name)
         if not path.exists():
@@ -126,14 +130,17 @@ class SnapshotManager:
         if existing is None:
             self.save(name, current_output)
             return SnapshotComparison(
-                name=name, matches=True, similarity=1.0,
-                current_output=current_output, snapshot_output=current_output,
+                name=name,
+                matches=True,
+                similarity=1.0,
+                current_output=current_output,
+                snapshot_output=current_output,
             )
 
         matches = existing.output == current_output
         sim = _similarity(existing.output, current_output)
 
-        diff: List[str] = []
+        diff: list[str] = []
         old_lines = existing.output.splitlines()
         new_lines = current_output.splitlines()
         for i in range(max(len(old_lines), len(new_lines))):
@@ -143,8 +150,11 @@ class SnapshotManager:
                 diff.append(f"L{i + 1}: -{old!r} +{new!r}")
 
         return SnapshotComparison(
-            name=name, matches=matches, similarity=sim,
-            current_output=current_output, snapshot_output=existing.output,
+            name=name,
+            matches=matches,
+            similarity=sim,
+            current_output=current_output,
+            snapshot_output=existing.output,
             diff_lines=diff,
         )
 
@@ -155,18 +165,21 @@ class SnapshotManager:
             return True
         return False
 
-    def list_snapshots(self) -> List[SnapshotData]:
+    def list_snapshots(self) -> list[SnapshotData]:
         if not self._dir.exists():
             return []
-        results: List[SnapshotData] = []
+        results: list[SnapshotData] = []
         for p in sorted(self._dir.glob("*.json")):
             try:
                 raw = json.loads(p.read_text(encoding="utf-8"))
-                results.append(SnapshotData(
-                    name=raw["name"], output=raw["output"],
-                    metadata=SnapshotMetadata(**raw["metadata"]),
-                    tags=raw.get("tags", []),
-                ))
+                results.append(
+                    SnapshotData(
+                        name=raw["name"],
+                        output=raw["output"],
+                        metadata=SnapshotMetadata(**raw["metadata"]),
+                        tags=raw.get("tags", []),
+                    )
+                )
             except (json.JSONDecodeError, KeyError):
                 continue
         return results
@@ -174,10 +187,10 @@ class SnapshotManager:
 
 # Module-level convenience functions using a default manager
 
-_default_manager: Optional[SnapshotManager] = None
+_default_manager: SnapshotManager | None = None
 
 
-def _get_manager(directory: Optional[str] = None) -> SnapshotManager:
+def _get_manager(directory: str | None = None) -> SnapshotManager:
     global _default_manager
     if directory is not None:
         return SnapshotManager(directory)
@@ -186,21 +199,21 @@ def _get_manager(directory: Optional[str] = None) -> SnapshotManager:
     return _default_manager
 
 
-def snapshot(output: str, name: str, *, directory: Optional[str] = None, tags: Optional[List[str]] = None) -> SnapshotData:
+def snapshot(output: str, name: str, *, directory: str | None = None, tags: list[str] | None = None) -> SnapshotData:
     return _get_manager(directory).save(name, output, tags)
 
 
-def load_snapshot(name: str, *, directory: Optional[str] = None) -> Optional[SnapshotData]:
+def load_snapshot(name: str, *, directory: str | None = None) -> SnapshotData | None:
     return _get_manager(directory).load(name)
 
 
-def compare_with_snapshot(name: str, current_output: str, *, directory: Optional[str] = None) -> SnapshotComparison:
+def compare_with_snapshot(name: str, current_output: str, *, directory: str | None = None) -> SnapshotComparison:
     return _get_manager(directory).compare(name, current_output)
 
 
-def delete_snapshot(name: str, *, directory: Optional[str] = None) -> bool:
+def delete_snapshot(name: str, *, directory: str | None = None) -> bool:
     return _get_manager(directory).delete(name)
 
 
-def list_snapshots(*, directory: Optional[str] = None) -> List[SnapshotData]:
+def list_snapshots(*, directory: str | None = None) -> list[SnapshotData]:
     return _get_manager(directory).list_snapshots()

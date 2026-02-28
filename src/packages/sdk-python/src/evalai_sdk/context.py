@@ -4,17 +4,14 @@ from __future__ import annotations
 
 import contextvars
 import functools
-from contextlib import asynccontextmanager, contextmanager
-from typing import Any, AsyncIterator, Callable, Dict, Iterator, Optional, TypeVar, overload
+from typing import Any, Callable, TypeVar, overload
 
 T = TypeVar("T")
 F = TypeVar("F", bound=Callable[..., Any])
 
-ContextMetadata = Dict[str, Any]
+ContextMetadata = dict[str, Any]
 
-_ctx_var: contextvars.ContextVar[Optional[ContextMetadata]] = contextvars.ContextVar(
-    "evalai_context", default=None
-)
+_ctx_var: contextvars.ContextVar[ContextMetadata | None] = contextvars.ContextVar("evalai_context", default=None)
 
 
 class EvalContext:
@@ -22,7 +19,7 @@ class EvalContext:
 
     def __init__(self, metadata: ContextMetadata) -> None:
         self._metadata = dict(metadata)
-        self._token: Optional[contextvars.Token[Optional[ContextMetadata]]] = None
+        self._token: contextvars.Token[ContextMetadata | None] | None = None
 
     @property
     def metadata(self) -> ContextMetadata:
@@ -58,12 +55,12 @@ def create_context(metadata: ContextMetadata) -> EvalContext:
     return EvalContext(metadata)
 
 
-def get_current_context() -> Optional[ContextMetadata]:
+def get_current_context() -> ContextMetadata | None:
     """Get the current context metadata, or None if no context is active."""
     return _ctx_var.get()
 
 
-def merge_with_context(metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def merge_with_context(metadata: dict[str, Any] | None = None) -> dict[str, Any]:
     """Merge provided metadata with the current context."""
     current = _ctx_var.get() or {}
     return {**current, **(metadata or {})}
@@ -89,6 +86,7 @@ def with_context_sync(metadata: ContextMetadata, fn: Callable[[], T]) -> T:
 def clone_context(metadata: ContextMetadata) -> ContextMetadata:
     """Deep-copy metadata."""
     import copy
+
     return copy.deepcopy(metadata)
 
 
@@ -133,16 +131,20 @@ class WithContext:
         import asyncio
 
         if asyncio.iscoroutinefunction(fn):
+
             @functools.wraps(fn)
             async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
                 ctx = create_context(self._metadata)
                 async with ctx:
                     return await fn(*args, **kwargs)
+
             return async_wrapper  # type: ignore[return-value]
         else:
+
             @functools.wraps(fn)
             def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
                 ctx = create_context(self._metadata)
                 with ctx:
                     return fn(*args, **kwargs)
+
             return sync_wrapper  # type: ignore[return-value]

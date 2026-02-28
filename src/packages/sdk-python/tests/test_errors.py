@@ -80,8 +80,8 @@ class TestCreateErrorFromResponse:
         assert err.code == "INTERNAL_SERVER_ERROR"
 
     def test_nested_error(self):
-        err = create_error_from_response(400, {
-            "error": {"code": "VALIDATION_ERROR", "message": "bad field", "requestId": "req-1"}
-        })
+        err = create_error_from_response(
+            400, {"error": {"code": "VALIDATION_ERROR", "message": "bad field", "requestId": "req-1"}}
+        )
         assert err.code == "VALIDATION_ERROR"
         assert err.request_id == "req-1"

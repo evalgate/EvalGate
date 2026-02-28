@@ -1,12 +1,12 @@
 """Tests for AIEvalClient — uses respx to mock HTTP requests."""
 
-import pytest
 import httpx
+import pytest
 import respx
 
 from evalai_sdk.client import AIEvalClient
 from evalai_sdk.errors import EvalAIError
-from evalai_sdk.types import CreateTraceParams, ListTracesParams
+from evalai_sdk.types import CreateTraceParams
 
 
 @pytest.fixture
@@ -49,10 +49,13 @@ class TestTraceAPI:
     @pytest.mark.asyncio
     async def test_list_traces(self, client: AIEvalClient):
         respx.get("https://api.test.com/api/traces").mock(
-            return_value=httpx.Response(200, json=[
-                {"id": 1, "trace_id": "t-1"},
-                {"id": 2, "trace_id": "t-2"},
-            ])
+            return_value=httpx.Response(
+                200,
+                json=[
+                    {"id": 1, "trace_id": "t-1"},
+                    {"id": 2, "trace_id": "t-2"},
+                ],
+            )
         )
         traces = await client.traces.list()
         assert len(traces) == 2
@@ -122,9 +125,7 @@ class TestErrorHandling:
     @respx.mock
     @pytest.mark.asyncio
     async def test_204_returns_empty(self, client: AIEvalClient):
-        respx.delete("https://api.test.com/api/traces/1").mock(
-            return_value=httpx.Response(204)
-        )
+        respx.delete("https://api.test.com/api/traces/1").mock(return_value=httpx.Response(204))
         result = await client.traces.delete(1)
         assert result == {}
 

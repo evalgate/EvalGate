@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
-from evalai_sdk.workflows import WorkflowTracer, WorkflowStatus
+from evalai_sdk.workflows import WorkflowStatus, WorkflowTracer
 
 
 def trace_crewai(

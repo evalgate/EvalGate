@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-import time
 import uuid
-from typing import Any, Callable, Coroutine, Dict, Generic, List, Optional, TypeVar
+from collections.abc import Coroutine
+from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -29,36 +29,38 @@ class RequestBatcher:
 
     def __init__(
         self,
-        flush_fn: Callable[[List[Dict[str, Any]]], Any],
+        flush_fn: Callable[[list[dict[str, Any]]], Any],
         max_batch_size: int = 10,
         delay_ms: int = 50,
     ) -> None:
         self._flush_fn = flush_fn
         self._max_batch_size = max_batch_size
         self._delay = delay_ms / 1000
-        self._queue: List[Dict[str, Any]] = []
-        self._pending: Dict[str, asyncio.Future[Any]] = {}
-        self._timer: Optional[asyncio.TimerHandle] = None
+        self._queue: list[dict[str, Any]] = []
+        self._pending: dict[str, asyncio.Future[Any]] = {}
+        self._timer: asyncio.TimerHandle | None = None
 
     async def enqueue(
         self,
         method: str,
         endpoint: str,
-        body: Optional[Any] = None,
-        headers: Optional[Dict[str, str]] = None,
+        body: Any | None = None,
+        headers: dict[str, str] | None = None,
     ) -> Any:
         request_id = str(uuid.uuid4())
         loop = asyncio.get_running_loop()
         future: asyncio.Future[Any] = loop.create_future()
         self._pending[request_id] = future
 
-        self._queue.append({
-            "id": request_id,
-            "method": method,
-            "endpoint": endpoint,
-            "body": body,
-            "headers": headers or {},
-        })
+        self._queue.append(
+            {
+                "id": request_id,
+                "method": method,
+                "endpoint": endpoint,
+                "body": body,
+                "headers": headers or {},
+            }
+        )
 
         if len(self._queue) >= self._max_batch_size:
             await self.flush()
@@ -106,18 +108,18 @@ class RequestBatcher:
         self._queue.clear()
         self._pending.clear()
 
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> dict[str, int]:
         return {"queue_size": len(self._queue), "max_batch_size": self._max_batch_size}
 
 
 async def batch_process(
-    items: List[T],
+    items: list[T],
     processor: Callable[[T], Coroutine[Any, Any, R]],
     concurrency: int = 5,
     *,
     continue_on_error: bool = False,
-    on_progress: Optional[Callable[[int, int], None]] = None,
-) -> List[R]:
+    on_progress: Callable[[int, int], None] | None = None,
+) -> list[R]:
     """Process items with bounded concurrency.
 
     Args:
@@ -131,8 +133,8 @@ async def batch_process(
         Results in same order as items.
     """
     semaphore = asyncio.Semaphore(concurrency)
-    results: List[Optional[R]] = [None] * len(items)
-    errors: List[Optional[Exception]] = [None] * len(items)
+    results: list[R | None] = [None] * len(items)
+    errors: list[Exception | None] = [None] * len(items)
     completed = 0
 
     async def _run(index: int, item: T) -> None:

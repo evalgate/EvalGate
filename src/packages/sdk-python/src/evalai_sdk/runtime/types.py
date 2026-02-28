@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Coroutine, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 
 @dataclass
 class SpecOptions:
     timeout_ms: int = 30_000
     retries: int = 0
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
     skip: bool = False
     only: bool = False
 
@@ -20,8 +20,8 @@ class SpecConfig:
     name: str
     executor: Any = None
     options: SpecOptions = field(default_factory=SpecOptions)
-    description: Optional[str] = None
-    suite: Optional[str] = None
+    description: str | None = None
+    suite: str | None = None
 
 
 @dataclass
@@ -30,26 +30,26 @@ class EvalSpec:
     name: str
     executor: Any
     options: SpecOptions = field(default_factory=SpecOptions)
-    file_path: Optional[str] = None
-    suite: Optional[str] = None
-    description: Optional[str] = None
+    file_path: str | None = None
+    suite: str | None = None
+    description: str | None = None
 
 
 @dataclass
 class EvalContext:
     input: Any = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    options: Dict[str, Any] = field(default_factory=dict)
-    trace_id: Optional[str] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    options: dict[str, Any] = field(default_factory=dict)
+    trace_id: str | None = None
 
 
 @dataclass
 class EvalResult:
     passed: bool
     score: float = 0.0
-    assertions: List[Any] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    error: Optional[str] = None
+    assertions: list[Any] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    error: str | None = None
     duration_ms: float = 0.0
     status: Literal["passed", "failed", "error", "timeout"] = "passed"
 
@@ -66,7 +66,7 @@ class ExecutorCapabilities:
 class ExecutionErrorEnvelope:
     error_type: str
     message: str
-    stack: Optional[str] = None
+    stack: str | None = None
     retryable: bool = False
 
 
@@ -80,30 +80,35 @@ class RuntimeHealth:
 
 # ── Error classes ────────────────────────────────────────────────────
 
+
 class EvalRuntimeError(Exception):
     """Base error for runtime operations."""
+
     pass
 
 
 class SpecRegistrationError(EvalRuntimeError):
     """Raised when a spec fails to register."""
+
     pass
 
 
 class SpecExecutionError(EvalRuntimeError):
     """Raised when a spec fails to execute."""
+
     pass
 
 
 class RuntimeError(EvalRuntimeError):
     """Raised for general runtime errors."""
+
     pass
 
 
 class EvalExecutionError(EvalRuntimeError):
     """Raised during eval execution with context."""
 
-    def __init__(self, message: str, spec_id: str, cause: Optional[Exception] = None) -> None:
+    def __init__(self, message: str, spec_id: str, cause: Exception | None = None) -> None:
         super().__init__(message)
         self.spec_id = spec_id
         self.cause = cause

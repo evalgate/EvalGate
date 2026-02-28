@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 
 class GATE_EXIT:
@@ -40,11 +40,11 @@ class BaselineTolerance:
 @dataclass
 class Baseline:
     version: int = REPORT_SCHEMA_VERSION
-    scores: Dict[str, float] = field(default_factory=dict)
-    latencies: Dict[str, float] = field(default_factory=dict)
-    created_at: Optional[str] = None
+    scores: dict[str, float] = field(default_factory=dict)
+    latencies: dict[str, float] = field(default_factory=dict)
+    created_at: str | None = None
     tolerance: BaselineTolerance = field(default_factory=BaselineTolerance)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -65,17 +65,17 @@ class RegressionReport:
     run_id: str = ""
     gate_exit: int = GATE_EXIT.PASS
     gate_category: str = GATE_CATEGORY.PASS
-    deltas: List[RegressionDelta] = field(default_factory=list)
-    summary: Dict[str, Any] = field(default_factory=dict)
-    created_at: Optional[str] = None
+    deltas: list[RegressionDelta] = field(default_factory=list)
+    summary: dict[str, Any] = field(default_factory=dict)
+    created_at: str | None = None
 
 
 def evaluate_regression(
     baseline: Baseline,
-    current_scores: Dict[str, float],
+    current_scores: dict[str, float],
 ) -> RegressionReport:
     """Compare current scores against a baseline and produce a regression report."""
-    deltas: List[RegressionDelta] = []
+    deltas: list[RegressionDelta] = []
     gate_exit = GATE_EXIT.PASS
     gate_category = GATE_CATEGORY.PASS
 
@@ -88,27 +88,31 @@ def evaluate_regression(
 
         if delta < -baseline.tolerance.score_drop:
             severity: Literal["low", "medium", "high", "critical"] = "high" if abs(delta_pct) > 20 else "medium"
-            deltas.append(RegressionDelta(
-                test_id=test_id,
-                metric="score",
-                baseline_value=baseline_score,
-                current_value=current,
-                delta=delta,
-                delta_pct=delta_pct,
-                category=GATE_CATEGORY.REGRESSION,
-                severity=severity,
-            ))
+            deltas.append(
+                RegressionDelta(
+                    test_id=test_id,
+                    metric="score",
+                    baseline_value=baseline_score,
+                    current_value=current,
+                    delta=delta,
+                    delta_pct=delta_pct,
+                    category=GATE_CATEGORY.REGRESSION,
+                    severity=severity,
+                )
+            )
             gate_exit = GATE_EXIT.REGRESSION
             gate_category = GATE_CATEGORY.REGRESSION
         else:
-            deltas.append(RegressionDelta(
-                test_id=test_id,
-                metric="score",
-                baseline_value=baseline_score,
-                current_value=current,
-                delta=delta,
-                delta_pct=delta_pct,
-            ))
+            deltas.append(
+                RegressionDelta(
+                    test_id=test_id,
+                    metric="score",
+                    baseline_value=baseline_score,
+                    current_value=current,
+                    delta=delta,
+                    delta_pct=delta_pct,
+                )
+            )
 
     return RegressionReport(
         gate_exit=gate_exit,

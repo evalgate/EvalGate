@@ -5,11 +5,11 @@ from __future__ import annotations
 import logging
 import sys
 import time
-from typing import Any, Callable, Dict, List, Literal, Optional
+from typing import Any, Callable, Literal
 
 LogLevel = Literal["trace", "debug", "info", "warn", "error"]
 
-_LEVEL_MAP: Dict[str, int] = {
+_LEVEL_MAP: dict[str, int] = {
     "trace": 5,
     "debug": logging.DEBUG,
     "info": logging.INFO,
@@ -26,7 +26,7 @@ class Logger:
         *,
         level: LogLevel = "info",
         prefix: str = "evalai",
-        handler: Optional[Callable[[str, str, Any], None]] = None,
+        handler: Callable[[str, str, Any], None] | None = None,
     ) -> None:
         self._level = level
         self._prefix = prefix
@@ -103,7 +103,7 @@ class RequestLogger:
         self._logger.log_response(method, url, status, elapsed, body)
 
 
-_global_logger: Optional[Logger] = None
+_global_logger: Logger | None = None
 
 
 def create_logger(level: LogLevel = "info", **kwargs: Any) -> Logger:

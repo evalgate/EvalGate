@@ -9,11 +9,9 @@ from evalai_sdk.assertions import (
     contains_keywords,
     expect,
     follows_instructions,
-    has_factual_accuracy,
     has_length,
     has_no_hallucinations,
     has_no_toxicity,
-    has_readability_score,
     has_sentiment,
     has_valid_code_syntax,
     is_valid_email,
@@ -26,8 +24,8 @@ from evalai_sdk.assertions import (
     within_range,
 )
 
-
 # ── Standalone functions ─────────────────────────────────────────────
+
 
 class TestContainsKeywords:
     def test_all_present(self):
@@ -185,6 +183,7 @@ class TestRespondedWithinTime:
 
 
 # ── expect() fluent API ──────────────────────────────────────────────
+
 
 class TestExpect:
     def test_to_equal(self):

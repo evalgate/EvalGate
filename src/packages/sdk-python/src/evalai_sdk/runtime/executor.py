@@ -4,14 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, Optional
 
 from evalai_sdk.runtime.types import (
     EvalContext,
-    EvalExecutionError,
     EvalResult,
     EvalSpec,
-    ExecutionErrorEnvelope,
     ExecutorCapabilities,
 )
 
@@ -34,9 +31,7 @@ class LocalExecutor:
         for attempt in range(1 + spec.options.retries):
             try:
                 result = spec.executor(context)
-                if asyncio.iscoroutine(result) or asyncio.isfuture(result):
-                    result = await asyncio.wait_for(result, timeout=timeout_s)
-                elif hasattr(result, "__await__"):
+                if asyncio.iscoroutine(result) or asyncio.isfuture(result) or hasattr(result, "__await__"):
                     result = await asyncio.wait_for(result, timeout=timeout_s)
 
                 duration = (time.monotonic() - start) * 1000
@@ -69,7 +64,9 @@ class LocalExecutor:
                 if attempt < spec.options.retries:
                     continue
                 return EvalResult(
-                    passed=False, score=0.0, duration_ms=duration,
+                    passed=False,
+                    score=0.0,
+                    duration_ms=duration,
                     error=f"Timeout after {spec.options.timeout_ms}ms",
                     status="timeout",
                 )
@@ -78,8 +75,11 @@ class LocalExecutor:
                 if attempt < spec.options.retries:
                     continue
                 return EvalResult(
-                    passed=False, score=0.0, duration_ms=duration,
-                    error=str(exc), status="error",
+                    passed=False,
+                    score=0.0,
+                    duration_ms=duration,
+                    error=str(exc),
+                    status="error",
                 )
 
         return EvalResult(passed=False, score=0.0, error="Max retries exceeded", status="error")
