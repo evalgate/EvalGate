@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "startedAt": 1772253764733,
+    "completedAt": 1772253764886,
+    "duration": 153,
+    "totalSpecs": 1,
+    "executedSpecs": 1,
+    "mode": "spec"
+  },
+  "results": [
+    {
+      "specId": "ZXZhbFx0",
+      "name": "should-not-hallucinate-facts",
+      "filePath": "eval/test-manifest.spec.ts",
+      "result": {
+        "status": "passed",
+        "score": 0.7416645600402206,
+        "duration": 121
+      }
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "passRate": 1
+  }
+}

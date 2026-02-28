@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": 1772255953,
+  "project": {
+    "name": "evalai-minimal-green",
+    "root": ".",
+    "namespace": "38c64a42"
+  },
+  "runtime": {
+    "mode": "spec",
+    "sdkVersion": "1.8.0"
+  },
+  "specFiles": [
+    {
+      "filePath": "eval/evalai.spec.ts",
+      "fileHash": "sha256:cc06f7031fa3ea61352f9e48f9ef91e1bc9d31e49d98626626081278591230ca",
+      "specCount": 1
+    }
+  ],
+  "specs": [
+    {
+      "id": "ZXZhbFxl",
+      "name": "Basic Math Operations",
+      "suitePath": [
+        "basic"
+      ],
+      "filePath": "eval/evalai.spec.ts",
+      "position": {
+        "line": 1,
+        "column": 1
+      },
+      "tags": [
+        "basic",
+        "math",
+        "strings",
+        "arrays"
+      ],
+      "dependsOn": {
+        "prompts": [],
+        "datasets": [],
+        "tools": [],
+        "code": [
+          "@pauly4010/evalai-sdk"
+        ]
+      }
+    }
+  ]
+}

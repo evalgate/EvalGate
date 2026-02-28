@@ -7,11 +7,11 @@
  * This is the compiler output that everything else consumes.
  */
 
+import * as crypto from "node:crypto";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import * as crypto from "node:crypto";
-import type { SpecAnalysis } from "./discover";
 import type { ExecutionModeConfig } from "../runtime/execution-mode";
+import type { SpecAnalysis } from "./discover";
 
 /**
  * Manifest schema version
@@ -230,7 +230,8 @@ function extractDependencies(content: string): Spec["dependsOn"] {
   const dependsOnMatch = content.match(/dependsOn\s*:\s*({[^}]+})/s);
   if (dependsOnMatch) {
     try {
-      const deps = eval(`(${dependsOnMatch[1]})`);
+      // Use JSON.parse instead of eval for safety
+      const deps = JSON.parse(dependsOnMatch[1]);
       return {
         prompts: deps.prompts || [],
         datasets: deps.datasets || [],
@@ -238,7 +239,13 @@ function extractDependencies(content: string): Spec["dependsOn"] {
         code: deps.code || [],
       };
     } catch (error) {
-      // Fall back to simple extraction
+      // If parsing fails, return empty dependencies
+      return {
+        prompts: [],
+        datasets: [],
+        tools: [],
+        code: [],
+      };
     }
   }
 

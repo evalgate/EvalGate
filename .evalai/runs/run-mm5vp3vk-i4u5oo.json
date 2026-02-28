@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "runId": "run-mm5vp3vk-i4u5oo",
+  "metadata": {
+    "startedAt": 1772256391804,
+    "completedAt": 1772256391904,
+    "duration": 100,
+    "totalSpecs": 1,
+    "executedSpecs": 1,
+    "mode": "spec"
+  },
+  "results": [
+    {
+      "specId": "ZXZhbFx0",
+      "name": "should-not-hallucinate-facts",
+      "filePath": "eval/test-manifest.spec.ts",
+      "result": {
+        "status": "passed",
+        "score": 0.9431394211380371,
+        "duration": 96
+      }
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "passRate": 1
+  }
+}

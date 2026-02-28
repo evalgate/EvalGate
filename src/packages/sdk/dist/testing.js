@@ -169,6 +169,48 @@ class TestSuite {
     getConfig() {
         return { ...this.config };
     }
+    /**
+     * Get test definitions for introspection
+     * COMPAT-201: Public TestSuite introspection (minimal getters)
+     */
+    getTests() {
+        return this.config.cases.map((testCase, index) => ({
+            id: testCase.id || `case-${index}`,
+            input: testCase.input,
+            expected: testCase.expected,
+            metadata: testCase.metadata,
+            hasAssertions: !!testCase.assertions && testCase.assertions.length > 0,
+            assertionCount: testCase.assertions?.length || 0,
+        }));
+    }
+    /**
+     * Get suite metadata for introspection
+     * COMPAT-201: Public TestSuite introspection (minimal getters)
+     */
+    getMetadata() {
+        return {
+            suiteName: this.name,
+            tags: [], // TestSuite doesn't have tags, but include for future compatibility
+            defaults: {
+                timeout: this.config.timeout,
+                parallel: this.config.parallel,
+                stopOnFailure: this.config.stopOnFailure,
+                retries: this.config.retries,
+            },
+        };
+    }
+    /**
+     * Convert to portable suite representation
+     * COMPAT-201: Public TestSuite introspection (minimal getters)
+     */
+    toJSON() {
+        return {
+            name: this.name,
+            config: this.getConfig(),
+            tests: this.getTests(),
+            metadata: this.getMetadata(),
+        };
+    }
 }
 exports.TestSuite = TestSuite;
 /**

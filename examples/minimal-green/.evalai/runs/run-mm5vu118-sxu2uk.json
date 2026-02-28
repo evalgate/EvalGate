@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "runId": "run-mm5vu118-sxu2uk",
+  "metadata": {
+    "startedAt": 1772256621442,
+    "completedAt": 1772256621500,
+    "duration": 58,
+    "totalSpecs": 1,
+    "executedSpecs": 1,
+    "mode": "spec"
+  },
+  "results": [
+    {
+      "specId": "ZXZhbFxl",
+      "name": "Basic Math Operations",
+      "filePath": "eval/evalai.spec.ts",
+      "result": {
+        "status": "failed",
+        "error": "Simulated execution failure",
+        "duration": 54
+      }
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "passRate": 0
+  }
+}

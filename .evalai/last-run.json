@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "runId": "run-mm5vtrr2-etwhna",
+  "metadata": {
+    "startedAt": 1772256609368,
+    "completedAt": 1772256609470,
+    "duration": 102,
+    "totalSpecs": 1,
+    "executedSpecs": 1,
+    "mode": "spec"
+  },
+  "results": [
+    {
+      "specId": "ZXZhbFx0",
+      "name": "should-not-hallucinate-facts",
+      "filePath": "eval/test-manifest.spec.ts",
+      "result": {
+        "status": "passed",
+        "score": 0.942879717379473,
+        "duration": 97
+      }
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "passRate": 1
+  }
+}

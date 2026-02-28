@@ -6,5 +6,5 @@ exports.SPEC_VERSION = exports.SDK_VERSION = void 0;
  * X-EvalAI-SDK-Version: SDK package version
  * X-EvalAI-Spec-Version: OpenAPI spec version (docs/openapi.json info.version)
  */
-exports.SDK_VERSION = "1.8.0";
+exports.SDK_VERSION = "1.9.0";
 exports.SPEC_VERSION = "1.0.0";

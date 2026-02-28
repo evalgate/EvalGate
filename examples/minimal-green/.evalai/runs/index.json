@@ -1,0 +1,32 @@
+[
+  {
+    "runId": "run-mm5vu118-sxu2uk",
+    "createdAt": 1772256621442,
+    "gitSha": "a16a20f145ef2b80e93fa74032958540f4dd7e99",
+    "branch": "feature-test",
+    "mode": "spec",
+    "specCount": 1,
+    "passRate": 0,
+    "avgScore": 0
+  },
+  {
+    "runId": "run-mm5vi73k-i6hnlm",
+    "createdAt": 1772256069388,
+    "gitSha": "a16a20f145ef2b80e93fa74032958540f4dd7e99",
+    "branch": "feature-test",
+    "mode": "spec",
+    "specCount": 1,
+    "passRate": 1,
+    "avgScore": 0.8032417766410186
+  },
+  {
+    "runId": "run-mm5vh1il-nqdluv",
+    "createdAt": 1772256015501,
+    "gitSha": "a16a20f145ef2b80e93fa74032958540f4dd7e99",
+    "branch": "feature-test",
+    "mode": "spec",
+    "specCount": 1,
+    "passRate": 1,
+    "avgScore": 0.9307527025016687
+  }
+]

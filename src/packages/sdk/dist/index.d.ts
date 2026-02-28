@@ -14,6 +14,12 @@ export { containsAllRequiredFields, containsJSON, containsKeywords, containsLang
 import { createContext, EvalContext, getCurrentContext, withContext } from "./context";
 export { createContext, getCurrentContext as getContext, withContext, EvalContext as ContextManager, };
 export { createTestSuite, type TestCaseResult, TestSuite, TestSuiteCase, TestSuiteCaseResult, TestSuiteConfig, TestSuiteResult, } from "./testing";
+export { defineEval, evalai, defineSuite, createContext as createEvalContext, createResult, } from "./runtime/eval";
+export { createEvalRuntime, getActiveRuntime, setActiveRuntime, disposeActiveRuntime, } from "./runtime/registry";
+export { createLocalExecutor, defaultLocalExecutor, } from "./runtime/executor";
+export { mergeContexts, cloneContext, validateContext, } from "./runtime/context";
+export type { EvalSpec, EvalContext, EvalResult, EvalOptions, EvalRuntime, EvalExecutor, EvalExecutorInterface, LocalExecutor, CloudExecutor, WorkerExecutor, SpecConfig, SpecOptions, DefineEvalFunction, ExecutorCapabilities, } from "./runtime/types";
+export { EvalRuntimeError, SpecRegistrationError, SpecExecutionError, RuntimeError, } from "./runtime/types";
 import { compareWithSnapshot, snapshot } from "./snapshot";
 export { snapshot, compareWithSnapshot, snapshot as saveSnapshot, compareWithSnapshot as compareSnapshots, };
 import type { ExportFormat } from "./export";

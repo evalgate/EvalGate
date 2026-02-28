@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "runId": "run-mm5ubzh6-froey1",
+  "metadata": {
+    "startedAt": 1772254099914,
+    "completedAt": 1772254100057,
+    "duration": 143,
+    "totalSpecs": 1,
+    "executedSpecs": 1,
+    "mode": "spec"
+  },
+  "results": [
+    {
+      "specId": "ZXZhbFx0",
+      "name": "should-not-hallucinate-facts",
+      "filePath": "eval/test-manifest.spec.ts",
+      "result": {
+        "status": "passed",
+        "score": 0.7629978441617468,
+        "duration": 140
+      }
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "passRate": 1
+  }
+}

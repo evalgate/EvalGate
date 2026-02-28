@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "runId": "run-mm5vh1il-nqdluv",
+  "metadata": {
+    "startedAt": 1772256015501,
+    "completedAt": 1772256015596,
+    "duration": 95,
+    "totalSpecs": 1,
+    "executedSpecs": 1,
+    "mode": "spec"
+  },
+  "results": [
+    {
+      "specId": "ZXZhbFxl",
+      "name": "Basic Math Operations",
+      "filePath": "eval/evalai.spec.ts",
+      "result": {
+        "status": "passed",
+        "score": 0.9307527025016687,
+        "duration": 91
+      }
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "passRate": 1
+  }
+}

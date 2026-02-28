@@ -8,8 +8,12 @@ defineEval({
     datasets: ["datasets/facts.json"],
     prompts: ["prompts/fact-check.md"],
   },
-  async executor() {
-    return { pass: true, score: 0.95 };
+  executor: async () => {
+    return {
+      pass: true,
+      score: 0.86,
+      duration: 163,
+    };
   },
 });
 
@@ -22,7 +26,7 @@ defineEval({
     code: ["src/utils/helpers.ts"],
   },
   async executor() {
-    return { pass: true, score: 0.88 };
+    return { pass: true, score: 0.92 };
   },
 });
 
@@ -36,6 +40,6 @@ defineEval({
     prompts: ["prompts/validation.md"],
   },
   async executor() {
-    return { pass: true, score: 0.92 };
+    return { pass: true, score: 0.88 };
   },
 });

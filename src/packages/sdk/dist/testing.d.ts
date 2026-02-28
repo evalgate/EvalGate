@@ -91,6 +91,47 @@ export interface TestSuiteResult {
     retriedCases?: string[];
 }
 /**
+ * Test definition for introspection
+ * COMPAT-201: Public TestSuite introspection (minimal getters)
+ */
+export interface TestDefinition {
+    /** Test case ID */
+    id: string;
+    /** Test input */
+    input: string;
+    /** Expected output */
+    expected?: string;
+    /** Test metadata */
+    metadata?: Record<string, unknown>;
+    /** Whether test has assertions */
+    hasAssertions: boolean;
+    /** Number of assertions */
+    assertionCount: number;
+}
+/**
+ * Portable suite representation
+ * COMPAT-201: Public TestSuite introspection (minimal getters)
+ */
+export interface PortableSuite {
+    /** Suite name */
+    name: string;
+    /** Suite configuration */
+    config: TestSuiteConfig;
+    /** Test definitions */
+    tests: TestDefinition[];
+    /** Suite metadata */
+    metadata: {
+        suiteName?: string;
+        tags?: string[];
+        defaults?: {
+            timeout?: number;
+            parallel?: boolean;
+            stopOnFailure?: boolean;
+            retries?: number;
+        };
+    };
+}
+/**
  * Test Suite for declarative evaluation testing
  */
 export declare class TestSuite {
@@ -115,6 +156,30 @@ export declare class TestSuite {
      * Get suite configuration
      */
     getConfig(): TestSuiteConfig;
+    /**
+     * Get test definitions for introspection
+     * COMPAT-201: Public TestSuite introspection (minimal getters)
+     */
+    getTests(): TestDefinition[];
+    /**
+     * Get suite metadata for introspection
+     * COMPAT-201: Public TestSuite introspection (minimal getters)
+     */
+    getMetadata(): {
+        suiteName?: string;
+        tags?: string[];
+        defaults?: {
+            timeout?: number;
+            parallel?: boolean;
+            stopOnFailure?: boolean;
+            retries?: number;
+        };
+    };
+    /**
+     * Convert to portable suite representation
+     * COMPAT-201: Public TestSuite introspection (minimal getters)
+     */
+    toJSON(): PortableSuite;
 }
 /**
  * Create a test suite

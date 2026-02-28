@@ -8,8 +8,8 @@
  * @packageDocumentation
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extendExpectWithToPassGate = exports.Logger = exports.openAIChatEval = exports.traceOpenAI = exports.traceAnthropic = exports.runCheck = exports.parseArgs = exports.EXIT = exports.RequestCache = exports.CacheTTL = exports.RequestBatcher = exports.importData = exports.exportData = exports.compareSnapshots = exports.saveSnapshot = exports.compareWithSnapshot = exports.snapshot = exports.TestSuite = exports.createTestSuite = exports.ContextManager = exports.withContext = exports.getContext = exports.createContext = exports.withinRange = exports.similarTo = exports.respondedWithinTime = exports.notContainsPII = exports.matchesSchema = exports.matchesPattern = exports.isValidURL = exports.isValidEmail = exports.hasValidCodeSyntax = exports.hasSentiment = exports.hasReadabilityScore = exports.hasNoToxicity = exports.hasNoHallucinations = exports.hasLength = exports.hasFactualAccuracy = exports.followsInstructions = exports.expect = exports.containsLanguage = exports.containsKeywords = exports.containsJSON = exports.containsAllRequiredFields = exports.NetworkError = exports.ValidationError = exports.AuthenticationError = exports.RateLimitError = exports.EvalAIError = exports.AIEvalClient = void 0;
-exports.WorkflowTracer = exports.traceWorkflowStep = exports.traceLangChainAgent = exports.traceCrewAI = exports.traceAutoGen = exports.createWorkflowTracer = exports.EvaluationTemplates = exports.streamEvaluation = exports.RateLimiter = exports.batchRead = exports.batchProcess = exports.REPORT_SCHEMA_VERSION = exports.GATE_EXIT = exports.GATE_CATEGORY = exports.ARTIFACTS = exports.PaginatedIterator = exports.encodeCursor = exports.decodeCursor = exports.createPaginatedIterator = exports.autoPaginate = void 0;
+exports.SpecExecutionError = exports.SpecRegistrationError = exports.EvalRuntimeError = exports.validateContext = exports.cloneContext = exports.mergeContexts = exports.defaultLocalExecutor = exports.createLocalExecutor = exports.disposeActiveRuntime = exports.setActiveRuntime = exports.getActiveRuntime = exports.createEvalRuntime = exports.createResult = exports.createEvalContext = exports.defineSuite = exports.evalai = exports.defineEval = exports.TestSuite = exports.createTestSuite = exports.ContextManager = exports.withContext = exports.getContext = exports.createContext = exports.withinRange = exports.similarTo = exports.respondedWithinTime = exports.notContainsPII = exports.matchesSchema = exports.matchesPattern = exports.isValidURL = exports.isValidEmail = exports.hasValidCodeSyntax = exports.hasSentiment = exports.hasReadabilityScore = exports.hasNoToxicity = exports.hasNoHallucinations = exports.hasLength = exports.hasFactualAccuracy = exports.followsInstructions = exports.expect = exports.containsLanguage = exports.containsKeywords = exports.containsJSON = exports.containsAllRequiredFields = exports.NetworkError = exports.ValidationError = exports.AuthenticationError = exports.RateLimitError = exports.EvalAIError = exports.AIEvalClient = void 0;
+exports.WorkflowTracer = exports.traceWorkflowStep = exports.traceLangChainAgent = exports.traceCrewAI = exports.traceAutoGen = exports.createWorkflowTracer = exports.EvaluationTemplates = exports.streamEvaluation = exports.RateLimiter = exports.batchRead = exports.batchProcess = exports.REPORT_SCHEMA_VERSION = exports.GATE_EXIT = exports.GATE_CATEGORY = exports.ARTIFACTS = exports.PaginatedIterator = exports.encodeCursor = exports.decodeCursor = exports.createPaginatedIterator = exports.autoPaginate = exports.extendExpectWithToPassGate = exports.Logger = exports.openAIChatEval = exports.traceOpenAI = exports.traceAnthropic = exports.runCheck = exports.parseArgs = exports.EXIT = exports.RequestCache = exports.CacheTTL = exports.RequestBatcher = exports.importData = exports.exportData = exports.compareSnapshots = exports.saveSnapshot = exports.compareWithSnapshot = exports.snapshot = exports.RuntimeError = void 0;
 // Main SDK exports
 var client_1 = require("./client");
 Object.defineProperty(exports, "AIEvalClient", { enumerable: true, get: function () { return client_1.AIEvalClient; } });
@@ -49,10 +49,35 @@ Object.defineProperty(exports, "createContext", { enumerable: true, get: functio
 Object.defineProperty(exports, "ContextManager", { enumerable: true, get: function () { return context_1.EvalContext; } });
 Object.defineProperty(exports, "getContext", { enumerable: true, get: function () { return context_1.getCurrentContext; } });
 Object.defineProperty(exports, "withContext", { enumerable: true, get: function () { return context_1.withContext; } });
-// Test suite builder (Tier 2.7)
+// Test suite builder (Tier 2.7) - BACKWARD COMPATIBILITY LAYER
 var testing_1 = require("./testing");
 Object.defineProperty(exports, "createTestSuite", { enumerable: true, get: function () { return testing_1.createTestSuite; } });
 Object.defineProperty(exports, "TestSuite", { enumerable: true, get: function () { return testing_1.TestSuite; } });
+// LAYER 1: Runtime Foundation - NEW PROGRAMMING MODEL
+var eval_1 = require("./runtime/eval");
+Object.defineProperty(exports, "defineEval", { enumerable: true, get: function () { return eval_1.defineEval; } });
+Object.defineProperty(exports, "evalai", { enumerable: true, get: function () { return eval_1.evalai; } });
+Object.defineProperty(exports, "defineSuite", { enumerable: true, get: function () { return eval_1.defineSuite; } });
+Object.defineProperty(exports, "createEvalContext", { enumerable: true, get: function () { return eval_1.createContext; } });
+Object.defineProperty(exports, "createResult", { enumerable: true, get: function () { return eval_1.createResult; } });
+var registry_1 = require("./runtime/registry");
+Object.defineProperty(exports, "createEvalRuntime", { enumerable: true, get: function () { return registry_1.createEvalRuntime; } });
+Object.defineProperty(exports, "getActiveRuntime", { enumerable: true, get: function () { return registry_1.getActiveRuntime; } });
+Object.defineProperty(exports, "setActiveRuntime", { enumerable: true, get: function () { return registry_1.setActiveRuntime; } });
+Object.defineProperty(exports, "disposeActiveRuntime", { enumerable: true, get: function () { return registry_1.disposeActiveRuntime; } });
+var executor_1 = require("./runtime/executor");
+Object.defineProperty(exports, "createLocalExecutor", { enumerable: true, get: function () { return executor_1.createLocalExecutor; } });
+Object.defineProperty(exports, "defaultLocalExecutor", { enumerable: true, get: function () { return executor_1.defaultLocalExecutor; } });
+var context_2 = require("./runtime/context");
+Object.defineProperty(exports, "mergeContexts", { enumerable: true, get: function () { return context_2.mergeContexts; } });
+Object.defineProperty(exports, "cloneContext", { enumerable: true, get: function () { return context_2.cloneContext; } });
+Object.defineProperty(exports, "validateContext", { enumerable: true, get: function () { return context_2.validateContext; } });
+// Runtime errors
+var types_1 = require("./runtime/types");
+Object.defineProperty(exports, "EvalRuntimeError", { enumerable: true, get: function () { return types_1.EvalRuntimeError; } });
+Object.defineProperty(exports, "SpecRegistrationError", { enumerable: true, get: function () { return types_1.SpecRegistrationError; } });
+Object.defineProperty(exports, "SpecExecutionError", { enumerable: true, get: function () { return types_1.SpecExecutionError; } });
+Object.defineProperty(exports, "RuntimeError", { enumerable: true, get: function () { return types_1.RuntimeError; } });
 // Snapshot testing (Tier 2.8)
 const snapshot_1 = require("./snapshot");
 Object.defineProperty(exports, "compareWithSnapshot", { enumerable: true, get: function () { return snapshot_1.compareWithSnapshot; } });
@@ -112,8 +137,8 @@ Object.defineProperty(exports, "batchRead", { enumerable: true, get: function ()
 Object.defineProperty(exports, "RateLimiter", { enumerable: true, get: function () { return streaming_1.RateLimiter; } });
 Object.defineProperty(exports, "streamEvaluation", { enumerable: true, get: function () { return streaming_1.streamEvaluation; } });
 // New exports for v1.1.0
-var types_1 = require("./types");
-Object.defineProperty(exports, "EvaluationTemplates", { enumerable: true, get: function () { return types_1.EvaluationTemplates; } });
+var types_2 = require("./types");
+Object.defineProperty(exports, "EvaluationTemplates", { enumerable: true, get: function () { return types_2.EvaluationTemplates; } });
 // Workflow tracing (Orchestration Layer)
 var workflows_1 = require("./workflows");
 Object.defineProperty(exports, "createWorkflowTracer", { enumerable: true, get: function () { return workflows_1.createWorkflowTracer; } });
