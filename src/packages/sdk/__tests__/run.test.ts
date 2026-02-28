@@ -4,7 +4,7 @@
 
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { EvaluationManifest } from "../src/cli/manifest";
 import { runEvaluations } from "../src/cli/run";
 
@@ -237,6 +237,25 @@ describe("Run Command", () => {
 	});
 });
 
+vi.mock("../src/cli/impact-analysis", async (importOriginal) => {
+	const actual =
+		await importOriginal<typeof import("../src/cli/impact-analysis")>();
+	return {
+		...actual,
+		runImpactAnalysis: vi.fn().mockResolvedValue({
+			impactedSpecIds: ["spec1"],
+			reasonBySpecId: { spec1: "direct file match" },
+			changedFiles: ["eval/test.spec.ts"],
+			metadata: {
+				baseBranch: "main",
+				totalSpecs: 1,
+				impactedCount: 1,
+				analysisTime: 5,
+			},
+		}),
+	};
+});
+
 describe("Run Command Integration", () => {
 	it("should work with impact analysis integration", async () => {
 		const testDir = path.join(process.cwd(), ".test-integration");
@@ -244,7 +263,6 @@ describe("Run Command Integration", () => {
 
 		await fs.mkdir(path.join(testDir, ".evalai"), { recursive: true });
 
-		// Create a simple manifest
 		const testManifest: EvaluationManifest = {
 			schemaVersion: 1,
 			generatedAt: Date.now(),
@@ -285,7 +303,6 @@ describe("Run Command Integration", () => {
 		await fs.writeFile(manifestPath, JSON.stringify(testManifest, null, 2));
 
 		try {
-			// Test that run command can be called with impact analysis options
 			const result = await runEvaluations(
 				{
 					impactedOnly: true,

@@ -174,7 +174,7 @@ cd ai-evaluation-platform
 
 pnpm install
 cp .env.example .env.local
-# Edit .env.local with your Turso, OAuth, and auth secrets
+# Edit .env.local with your PostgreSQL, OAuth, and auth secrets
 
 pnpm drizzle-kit push
 pnpm dev

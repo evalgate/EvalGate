@@ -72,7 +72,7 @@ export default function JobsPage() {
 									Background Job Runner
 								</h1>
 								<p className="text-lg text-muted-foreground">
-									DB-backed job queue built on SQLite/Turso for reliable async
+									DB-backed job queue built on PostgreSQL for reliable async
 									processing
 								</p>
 							</div>

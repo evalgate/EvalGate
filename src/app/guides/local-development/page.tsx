@@ -163,7 +163,7 @@ cd ai-evaluation-platform`}</pre>
 										<code>cp .env.example .env.local</code>
 									</div>
 									<p className="text-sm text-muted-foreground mt-2">
-										Edit .env.local with your Turso, OAuth, and auth secrets
+										Edit .env.local with your PostgreSQL, OAuth, and auth secrets
 									</p>
 								</div>
 							</div>

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The platform uses a DB-backed job queue built on SQLite/Turso. Jobs are stored in the `jobs` table and processed by `runDueJobs()`, invoked every minute via Vercel Cron at `POST /api/jobs/run`.
+The platform uses a DB-backed job queue built on PostgreSQL. Jobs are stored in the `jobs` table and processed by `runDueJobs()`, invoked every minute via Vercel Cron at `POST /api/jobs/run`.
 
 ---
 

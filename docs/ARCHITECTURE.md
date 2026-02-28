@@ -89,7 +89,7 @@ Each tier is additive. You can use Tier 1 + Platform simultaneously.
 │                       ▼                              │
 │  ┌─────────────────────────────────────────────────┐ │
 │  │              src/db/ (Drizzle ORM)              │ │
-│  │              Turso (LibSQL / SQLite)             │ │
+│  │              PostgreSQL (via postgres driver)     │ │
 │  └─────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────┘
 

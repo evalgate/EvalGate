@@ -4,8 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * Make sure unknown accidental db module evaluation doesn't complain about Turso.
- * (Some files log on import if these are missing.)
+ * Ensure the db module can initialize without a real DATABASE_URL.
  */
 process.env.DATABASE_URL =
 	process.env.DATABASE_URL ?? "postgresql://test:test@localhost:5432/test";

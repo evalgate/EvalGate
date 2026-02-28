@@ -139,7 +139,7 @@ export const GET = secureRoute(
 		}
 
 		// Atomic view count increment: SET view_count = coalesce(view_count, 0) + 1
-		// Single UPDATE is atomic in SQLite/libsql; parallel GETs increment correctly.
+		// Single UPDATE is atomic in PostgreSQL; parallel GETs increment correctly.
 		try {
 			await db
 				.update(sharedExports)

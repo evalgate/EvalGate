@@ -908,7 +908,7 @@ const result = await tracedAgent.invoke({ input: userQuery });
 | Does the SDK auto-retry? | Yes — up to 3 attempts with exponential backoff for rate limits, timeouts, network errors |
 | Does the SDK cache? | Yes — GET requests are cached (configurable size, TTL per endpoint) |
 | Is there rate limiting? | Yes — all API routes use `withRateLimit()` middleware |
-| What DB is used? | LibSQL (Turso) via Drizzle ORM |
+| What DB is used? | PostgreSQL via Drizzle ORM |
 | Where is it deployed? | Vercel (Next.js) |
 | GitHub repo | https://github.com/pauly7610/ai-evaluation-platform |
 

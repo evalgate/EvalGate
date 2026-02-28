@@ -8,8 +8,7 @@ export async function GET() {
 
 	// 1. Check env vars (only presence, not values)
 	results.env = {
-		TURSO_CONNECTION_URL: !!process.env.TURSO_CONNECTION_URL,
-		TURSO_AUTH_TOKEN: !!process.env.TURSO_AUTH_TOKEN,
+		DATABASE_URL: !!process.env.DATABASE_URL,
 		BETTER_AUTH_SECRET: !!process.env.BETTER_AUTH_SECRET,
 		BETTER_AUTH_BASE_URL: process.env.BETTER_AUTH_BASE_URL || "(not set)",
 		AUTUMN_SECRET_KEY: !!process.env.AUTUMN_SECRET_KEY,
@@ -24,9 +23,9 @@ export async function GET() {
 	// 2. Test DB connection + list tables
 	try {
 		const { db } = await import("@/db");
-		const rows = await db.all(sql`SELECT 1 as ok`);
-		const tables = await db.all(
-			sql`SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`,
+		const rows = await db.execute(sql`SELECT 1 as ok`);
+		const tables = await db.execute(
+			sql`SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public' ORDER BY tablename`,
 		);
 		results.db = { status: "connected", rows, tables };
 	} catch (e: unknown) {

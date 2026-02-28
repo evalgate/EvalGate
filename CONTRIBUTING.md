@@ -6,7 +6,7 @@ Thanks for your interest in contributing! This guide covers the essentials.
 
 - **Node.js** ≥ 20
 - **pnpm** (latest)
-- A Turso database (or use `file:memory.db` for local dev)
+- A PostgreSQL database (e.g. Railway, Supabase, or local `docker run -e POSTGRES_PASSWORD=pass -p 5432:5432 postgres`)
 - GitHub and/or Google OAuth credentials (for auth testing)
 
 ## Local Setup

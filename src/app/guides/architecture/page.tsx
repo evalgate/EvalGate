@@ -142,7 +142,7 @@ export default function ArchitecturePage() {
 								<h3 className="text-lg font-semibold">Database Layer</h3>
 							</div>
 							<p className="text-muted-foreground mb-3">
-								Drizzle ORM with SQLite/Turso for efficient data management.
+								Drizzle ORM with PostgreSQL for efficient data management.
 							</p>
 							<ul className="text-sm text-muted-foreground space-y-1">
 								<li>• Type-safe database operations</li>
@@ -220,7 +220,7 @@ export default function ArchitecturePage() {
 									<li>• Node.js</li>
 									<li>• Next.js API routes</li>
 									<li>• Drizzle ORM</li>
-									<li>• SQLite/Turso</li>
+									<li>• PostgreSQL</li>
 									<li>• NextAuth.js</li>
 								</ul>
 							</div>
