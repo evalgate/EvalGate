@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": 1772249173,
+  "project": {
+    "name": "ai-evaluation-platform",
+    "root": ".",
+    "namespace": "4e019b41"
+  },
+  "runtime": {
+    "mode": "spec",
+    "sdkVersion": "1.8.0"
+  },
+  "specFiles": [
+    {
+      "filePath": "eval/test-manifest.spec.ts",
+      "fileHash": "sha256:e7241481b797628bb7e6f45e64a112dd76eae196e8e92e407d4b2c2cac9e08ee",
+      "specCount": 1
+    }
+  ],
+  "specs": [
+    {
+      "id": "ZXZhbFx0",
+      "name": "should-not-hallucinate-facts",
+      "suitePath": ["safety"],
+      "filePath": "eval/test-manifest.spec.ts",
+      "position": {
+        "line": 1,
+        "column": 1
+      },
+      "tags": ["safety", "accuracy", "factual"],
+      "dependsOn": {
+        "prompts": ["prompts/fact-check.md"],
+        "datasets": ["datasets/facts.json"],
+        "tools": [],
+        "code": []
+      }
+    }
+  ]
+}
