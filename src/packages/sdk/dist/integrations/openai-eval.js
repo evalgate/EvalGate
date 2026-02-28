@@ -87,7 +87,7 @@ async function openAIChatEval(options) {
             ? [...c.assertions]
             : c.expectedOutput
                 ? [
-                    (output) => (0, assertions_1.expect)(output).toContainKeywords(c.expectedOutput.split(/\s+/).filter(Boolean)),
+                    (output) => (0, assertions_1.expect)(output).toContainKeywords(c.expectedOutput?.split(/\s+/).filter(Boolean) || []),
                 ]
                 : undefined;
         return {

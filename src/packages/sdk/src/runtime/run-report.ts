@@ -250,7 +250,7 @@ export class RunReportBuilder {
 			summary.total > 0 ? (summary.passed / summary.total) * 100 : 0;
 
 		// Average score calculation (excluding errors/timeouts)
-		const scoredResults = this.report.results?.filter((r) => r.score > 0);
+		const scoredResults = this.report.results?.filter((r) => r.score > 0) || [];
 		summary.averageScore =
 			scoredResults.length > 0
 				? scoredResults.reduce((sum, r) => sum + r.score, 0) /

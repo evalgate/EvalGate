@@ -123,7 +123,7 @@ async function findSpecFiles(projectRoot) {
             const files = await searchFiles(projectRoot, pattern, projectRoot);
             foundFiles.push(...files);
         }
-        catch (error) {
+        catch (_error) {
             // Ignore errors for non-existent paths
         }
     }
@@ -136,7 +136,7 @@ async function findSpecFiles(projectRoot) {
                 specFilesWithDefineEval.push(file);
             }
         }
-        catch (error) {
+        catch (_error) {
             // Ignore read errors
         }
     }
@@ -163,7 +163,7 @@ async function searchFiles(dir, pattern, projectRoot) {
             }
         }
     }
-    catch (error) {
+    catch (_error) {
         // Ignore permission errors
     }
     return results;
@@ -172,9 +172,9 @@ async function searchFiles(dir, pattern, projectRoot) {
  * Simple pattern matching (placeholder for proper glob)
  */
 function matchesPattern(filePath, pattern, projectRoot) {
-    const fileName = path.basename(filePath);
-    const ext = path.extname(filePath);
-    const dir = path.dirname(filePath);
+    const _fileName = path.basename(filePath);
+    const _ext = path.extname(filePath);
+    const _dir = path.dirname(filePath);
     // Convert glob pattern to regex
     // Handle **/ and * patterns correctly
     let regexPattern = pattern;
@@ -203,7 +203,7 @@ async function findLegacyConfig(projectRoot) {
             await fs.access(fullPath);
             return fullPath;
         }
-        catch (error) {
+        catch (_error) {
             // File doesn't exist, continue
         }
     }
@@ -305,12 +305,16 @@ function printExecutionModeInfo(config) {
     const validation = validateExecutionMode(config);
     if (validation.warnings.length > 0) {
         console.log(`⚠️  Warnings:`);
-        validation.warnings.forEach((warning) => console.log(`   ${warning}`));
+        validation.warnings.forEach((warning) => {
+            console.log(`   ${warning}`);
+        });
         console.log(``);
     }
     if (validation.errors.length > 0) {
         console.log(`❌ Errors:`);
-        validation.errors.forEach((error) => console.log(`   ${error}`));
+        validation.errors.forEach((error) => {
+            console.log(`   ${error}`);
+        });
         console.log(``);
     }
     const recommended = getRecommendedExecutionMode(config);

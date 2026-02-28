@@ -54,8 +54,6 @@ class RunReportBuilder {
      * Initialize report with basic metadata
      */
     constructor(runId, runtimeInfo) {
-        this.runId = runId;
-        this.runtimeInfo = runtimeInfo;
         this.report = {
             schemaVersion: exports.RUN_REPORT_SCHEMA_VERSION,
             results: [],
@@ -97,7 +95,7 @@ class RunReportBuilder {
                 message: assertion.message,
             })),
         };
-        this.report.results.push(runResult);
+        this.report.results?.push(runResult);
         // Update summary
         this.updateSummary(result);
         // Add to failures if needed
@@ -132,7 +130,7 @@ class RunReportBuilder {
         summary.passRate =
             summary.total > 0 ? (summary.passed / summary.total) * 100 : 0;
         // Average score calculation (excluding errors/timeouts)
-        const scoredResults = this.report.results.filter((r) => r.score > 0);
+        const scoredResults = this.report.results?.filter((r) => r.score > 0) || [];
         summary.averageScore =
             scoredResults.length > 0
                 ? scoredResults.reduce((sum, r) => sum + r.score, 0) /
@@ -157,7 +155,7 @@ class RunReportBuilder {
             message: result.error || "Test failed",
             timestamp: new Date().toISOString(),
         };
-        this.report.failures.push(failure);
+        this.report.failures?.push(failure);
     }
     /**
      * Set execution configuration
@@ -179,8 +177,8 @@ class RunReportBuilder {
      */
     build() {
         // Sort results and failures by testId for determinism
-        this.report.results.sort((a, b) => a.testId.localeCompare(b.testId));
-        this.report.failures.sort((a, b) => a.testId.localeCompare(b.testId));
+        this.report.results?.sort((a, b) => a.testId.localeCompare(b.testId));
+        this.report.failures?.sort((a, b) => a.testId.localeCompare(b.testId));
         // Set completion timestamp
         this.report.finishedAt = new Date().toISOString();
         const finalReport = this.report;

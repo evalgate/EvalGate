@@ -73,7 +73,7 @@ async function generateManifest(specs, projectRoot, projectName, executionMode) 
         if (!specsByFile.has(normalizedPath)) {
             specsByFile.set(normalizedPath, []);
         }
-        specsByFile.get(normalizedPath).push(spec);
+        specsByFile.get(normalizedPath)?.push(spec);
     }
     // Process each file
     for (const [filePath, fileSpecs] of specsByFile) {
@@ -172,7 +172,7 @@ function extractDependencies(content) {
                 code: deps.code || [],
             };
         }
-        catch (error) {
+        catch (_error) {
             // If parsing fails, return empty dependencies
             return {
                 prompts: [],
@@ -191,8 +191,10 @@ function extractDependencies(content) {
     };
     for (const [type, pattern] of Object.entries(patterns)) {
         let match;
-        while ((match = pattern.exec(content)) !== null) {
+        match = pattern.exec(content);
+        while (match !== null) {
             dependsOn[type].push(match[1]);
+            match = pattern.exec(content);
         }
     }
     return dependsOn;
@@ -263,7 +265,7 @@ async function readManifest(projectRoot) {
         const content = await fs.readFile(manifestPath, "utf-8");
         return JSON.parse(content);
     }
-    catch (error) {
+    catch (_error) {
         return null;
     }
 }
@@ -276,7 +278,7 @@ async function readLock(projectRoot) {
         const content = await fs.readFile(lockPath, "utf-8");
         return JSON.parse(content);
     }
-    catch (error) {
+    catch (_error) {
         return null;
     }
 }

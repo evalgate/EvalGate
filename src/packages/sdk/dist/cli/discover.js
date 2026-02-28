@@ -123,7 +123,7 @@ async function getProjectMetadata(projectRoot) {
         hasPackageJson = true;
         projectName = parsed.name || "unknown";
     }
-    catch (error) {
+    catch (_error) {
         // No package.json
     }
     const hasGit = await fs

@@ -87,7 +87,7 @@ async function readManifest(projectRoot = process.cwd()) {
         const content = await fs.readFile(manifestPath, "utf-8");
         return JSON.parse(content);
     }
-    catch (error) {
+    catch (_error) {
         return null;
     }
 }
@@ -138,7 +138,7 @@ function analyzeImpact(changedFiles, manifest) {
         if (!specsByFile.has(spec.filePath)) {
             specsByFile.set(spec.filePath, []);
         }
-        specsByFile.get(spec.filePath).push(spec);
+        specsByFile.get(spec.filePath)?.push(spec);
         // By dependencies
         const deps = [
             ...spec.dependsOn.prompts,
@@ -150,7 +150,7 @@ function analyzeImpact(changedFiles, manifest) {
             if (!specsByDependency.has(dep)) {
                 specsByDependency.set(dep, []);
             }
-            specsByDependency.get(dep).push(spec);
+            specsByDependency.get(dep)?.push(spec);
         }
     }
     // Analyze each changed file

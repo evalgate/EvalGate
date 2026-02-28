@@ -144,8 +144,6 @@ export interface RunConfig {
  * RunReport builder for creating deterministic reports
  */
 export declare class RunReportBuilder {
-    private runId;
-    private runtimeInfo;
     private report;
     /**
      * Initialize report with basic metadata

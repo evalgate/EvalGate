@@ -97,7 +97,7 @@ function extractTestSuitesFromConfig(config) {
 /**
  * Generate DSL file header
  */
-function generateFileHeader(config, options) {
+function generateFileHeader(_config, options) {
     const timestamp = new Date().toISOString();
     const inputPath = path.resolve(options.input);
     const outputPath = path.resolve(options.output);
@@ -127,7 +127,7 @@ function generateFileHeader(config, options) {
 /**
  * Generate helper functions for the entire file
  */
-function generateGlobalHelpers(config, options) {
+function generateGlobalHelpers(config, _options) {
     const helpers = [];
     // Add executor helper if config has executor
     if (config.executor) {

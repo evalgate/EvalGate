@@ -207,7 +207,7 @@ exports.evalai = {
  * Suite definition for grouping related specifications
  * This will be expanded in Layer 3 for dependency graph support
  */
-function defineSuite(name, specs) {
+function defineSuite(_name, specs) {
     // For now, just execute the specs to register them
     // In Layer 3, this will build the dependency graph
     for (const specFn of specs) {

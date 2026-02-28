@@ -24,7 +24,7 @@ function adaptTestSuite(suite, options = {}) {
     const metadata = suite.getMetadata();
     const config = suite.getConfig();
     // Create a temporary runtime for spec generation
-    const runtime = (0, registry_1.createEvalRuntime)();
+    const _runtime = (0, registry_1.createEvalRuntime)();
     const specs = [];
     try {
         // Convert each test case to an EvalSpec
@@ -182,7 +182,7 @@ function generateDefineEvalCode(suite, options = {}) {
         `import { defineEval, createResult } from '@pauly4010/evalai-sdk';`,
         "",
     ];
-    const specCode = specs.map((spec, index) => {
+    const specCode = specs.map((spec, _index) => {
         const helperCode = generateHelperFunctions(spec, options);
         return [
             `defineEval("${spec.name}", async (context) => {`,

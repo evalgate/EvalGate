@@ -58,9 +58,9 @@ function migrateTestSuiteToDSL(testSuite, outputPath) {
     };
     try {
         // Create isolated runtime for migration
-        const runtime = (0, registry_1.createEvalRuntime)();
+        const _runtime = (0, registry_1.createEvalRuntime)();
         // Use the runtime handle to define specs
-        const boundDefineEval = (nameOrConfig, executor, options) => {
+        const _boundDefineEval = (nameOrConfig, executor, options) => {
             // The runtime handle manages the active runtime internally
             const { defineEval } = require("../eval");
             return defineEval(nameOrConfig, executor, options);
@@ -88,7 +88,7 @@ function migrateTestSuiteToDSL(testSuite, outputPath) {
  * Extract data from TestSuite instance
  * This is a workaround for the private properties
  */
-function extractTestSuiteData(testSuite) {
+function extractTestSuiteData(_testSuite) {
     // Since TestSuite properties are private, we need to reconstruct from usage
     // This is a limitation that should be addressed in a future version
     // For now, we'll create a basic structure and warn the user
@@ -124,9 +124,9 @@ function migrateConfigToDSL(configPath, outputPath) {
         const configContent = fs.readFileSync(configPath, "utf-8");
         const config = JSON.parse(configContent);
         // Create isolated runtime for migration
-        const runtime = (0, registry_1.createEvalRuntime)();
+        const _runtime = (0, registry_1.createEvalRuntime)();
         // Use the runtime handle to define specs
-        const boundDefineEval = (nameOrConfig, executor, options) => {
+        const _boundDefineEval = (nameOrConfig, executor, options) => {
             // The runtime handle manages the active runtime internally
             const { defineEval } = require("../eval");
             return defineEval(nameOrConfig, executor, options);

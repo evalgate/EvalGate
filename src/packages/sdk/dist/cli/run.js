@@ -133,7 +133,7 @@ async function loadManifest(projectRoot = process.cwd()) {
         const content = await fs.readFile(manifestPath, "utf-8");
         return JSON.parse(content);
     }
-    catch (error) {
+    catch (_error) {
         return null;
     }
 }
@@ -279,7 +279,7 @@ async function updateRunIndex(result, projectRoot = process.cwd()) {
         const existingContent = await fs.readFile(indexPath, "utf-8");
         index = JSON.parse(existingContent);
     }
-    catch (error) {
+    catch (_error) {
         // Index doesn't exist yet, start with empty array
     }
     // Add new entry

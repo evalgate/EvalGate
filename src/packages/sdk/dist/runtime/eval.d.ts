@@ -21,7 +21,7 @@ export declare const evalai: {
  * Suite definition for grouping related specifications
  * This will be expanded in Layer 3 for dependency graph support
  */
-export declare function defineSuite(name: string, specs: (() => void)[]): void;
+export declare function defineSuite(_name: string, specs: (() => void)[]): void;
 /**
  * Helper function to create specification contexts
  * Useful for testing and manual execution
