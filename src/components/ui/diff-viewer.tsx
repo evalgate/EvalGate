@@ -59,7 +59,7 @@ export function DiffViewer({
 				<div className="font-mono text-xs overflow-x-auto rounded-lg bg-zinc-950 p-3 max-h-96 overflow-y-auto">
 					{diff.map((line, i) => (
 						<div
-							key={i}
+							key={`${line.type}-${i}-${line.text?.slice(0, 20) || ""}`}
 							className={`px-2 py-0.5 whitespace-pre-wrap ${
 								line.type === "added"
 									? "bg-green-500/10 text-green-400"

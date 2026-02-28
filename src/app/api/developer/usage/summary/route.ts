@@ -38,6 +38,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 			? eq(apiUsageLogs.organizationId, ctx.organizationId)
 			: and(
 					eq(apiUsageLogs.organizationId, ctx.organizationId),
+					// biome-ignore lint/style/noNonNullAssertion: safe assertion
 					gte(apiUsageLogs.createdAt, startDateObj!),
 				);
 

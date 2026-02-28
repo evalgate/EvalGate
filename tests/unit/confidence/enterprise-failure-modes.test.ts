@@ -138,7 +138,6 @@ describe("Cache-Control correctness", () => {
 
 describe("Executor factory validation", () => {
 	it("throws for unknown executor type", () => {
-		// biome-ignore lint/suspicious/noExplicitAny: intentionally testing invalid input
 		expect(() => createExecutor("invalid" as any, {}, 1)).toThrow(
 			"Unknown executor type: invalid",
 		);

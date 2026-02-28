@@ -302,7 +302,8 @@ export class ArenaMatchesService {
 					});
 				}
 
-				const entry = modelStats.get(result.modelId)!;
+				const entry = modelStats.get(result.modelId);
+				if (!entry) continue;
 
 				entry.totalMatches++;
 				entry.lastMatchAt = match.createdAt;

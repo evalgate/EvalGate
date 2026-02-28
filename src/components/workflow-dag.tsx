@@ -321,6 +321,13 @@ function DAGNode({
 						transform={`translate(${node.x}, ${node.y})`}
 						onClick={onClick}
 						className="cursor-pointer"
+						tabIndex={0}
+						onKeyDown={(e) => {
+							if (e.key === "Enter" || e.key === " ") {
+								e.preventDefault();
+								onClick?.();
+							}
+						}}
 					>
 						{/* Node background */}
 						<rect
@@ -554,6 +561,7 @@ export function WorkflowDAG({
 	return (
 		<div className={cn("overflow-auto", className)}>
 			<svg width={layout.width} height={layout.height} className="min-w-full">
+				<title>Workflow Diagram</title>
 				{/* Define arrow marker */}
 				<defs>
 					<marker

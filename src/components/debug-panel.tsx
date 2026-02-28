@@ -194,9 +194,9 @@ export function DebugPanel({ evaluationId, runId, onClose }: DebugPanelProps) {
 								</CardHeader>
 								<CardContent>
 									<ul className="space-y-1">
-										{analysis.rootCauses.map((cause, i) => (
+										{analysis.rootCauses.map((cause) => (
 											<li
-												key={`cause-${i}`}
+												key={cause}
 												className="text-xs text-zinc-400 flex items-start gap-2"
 											>
 												<span className="text-blue-500 mt-0.5">•</span> {cause}

@@ -11,7 +11,8 @@ export const GET = secureRoute(
 	async (req: NextRequest, ctx: AuthContext) => {
 		const { searchParams } = new URL(req.url);
 		const evaluationId = searchParams.get("evaluationId")
-			? parseInt(searchParams.get("evaluationId")!, 10)
+			? // biome-ignore lint/style/noNonNullAssertion: safe assertion
+				parseInt(searchParams.get("evaluationId")!, 10)
 			: undefined;
 		const { limit, offset } = parsePaginationParams(searchParams);
 

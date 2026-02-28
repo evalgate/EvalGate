@@ -75,7 +75,7 @@ interface TerminalStreamProps {
 
 export function TerminalStream({
 	organizationId,
-	userId,
+	userId: _userId,
 	channels = ["evaluation", "arena"],
 	height = 400,
 	maxHeight,

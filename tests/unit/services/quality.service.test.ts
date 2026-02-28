@@ -48,7 +48,6 @@ describe("Quality Service", () => {
 							.mockResolvedValueOnce([{ id: 123, publishedRunId: 456 }]),
 					}),
 				}),
-				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			// Mock the second query (quality score) to return a score
@@ -77,7 +76,6 @@ describe("Quality Service", () => {
 						}),
 					}),
 				}),
-				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			const result = await qualityService.latest(1, 123);

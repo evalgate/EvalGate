@@ -33,7 +33,7 @@ export interface ExportOptions {
 export function ExportModal({
 	open,
 	onOpenChange,
-	evaluationName,
+	evaluationName: _evaluationName,
 	onExport,
 }: ExportModalProps) {
 	const [publishAsDemo, setPublishAsDemo] = useState(false);

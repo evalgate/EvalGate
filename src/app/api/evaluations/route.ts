@@ -116,7 +116,6 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 		executionSettings,
 		modelSettings,
 		customMetrics,
-		templates,
 	} = body;
 
 	try {

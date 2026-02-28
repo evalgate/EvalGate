@@ -260,8 +260,16 @@ export function InteractivePlayground({
 					scenarios.find((s) => s.id === scenarioId)?.name || "Demo Evaluation",
 				results: {
 					totalTests: data.items?.length || 10,
-					passed: data.items?.filter((item: any) => item.pass).length || 8,
-					failed: data.items?.filter((item: any) => !item.pass).length || 2,
+					passed:
+						data.items?.filter(
+							// biome-ignore lint/suspicious/noExplicitAny: demo data
+							(item: any) => item.pass,
+						).length || 8,
+					failed:
+						data.items?.filter(
+							// biome-ignore lint/suspicious/noExplicitAny: demo data
+							(item: any) => !item.pass,
+						).length || 2,
 					tests: data.items || [],
 				},
 				qualityScore: {
@@ -532,7 +540,9 @@ ${(results.qualityScore?.recommendations || []).map((r: string) => `- ${r}`).joi
 							<Textarea
 								id="custom-input"
 								value={customInput}
-								onChange={(e) => setCustomInput(e.target.value)}
+								onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+									setCustomInput(e.target.value)
+								}
 								placeholder="What did you ask the AI? e.g., 'Summarize the following document...'"
 								rows={3}
 							/>
@@ -546,7 +556,9 @@ ${(results.qualityScore?.recommendations || []).map((r: string) => `- ${r}`).joi
 							<Textarea
 								id="custom-output"
 								value={customOutput}
-								onChange={(e) => setCustomOutput(e.target.value)}
+								onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+									setCustomOutput(e.target.value)
+								}
 								placeholder="Paste the AI's response here..."
 								rows={5}
 							/>
@@ -598,9 +610,11 @@ ${(results.qualityScore?.recommendations || []).map((r: string) => `- ${r}`).joi
 												{group.assertions.map((assertion) => (
 													<label
 														key={assertion.id}
+														htmlFor={`assertion-${assertion.id}`}
 														className={`flex items-center gap-2 text-sm ${isDisabled ? "opacity-50" : "cursor-pointer"}`}
 													>
 														<Checkbox
+															id={`assertion-${assertion.id}`}
 															checked={selectedAssertions.includes(
 																assertion.id,
 															)}
@@ -619,60 +633,61 @@ ${(results.qualityScore?.recommendations || []).map((r: string) => `- ${r}`).joi
 							</div>
 
 							{/* Extra inputs for special assertions */}
-							{selectedAssertions.includes("contains-keywords") && (
-								<div className="space-y-2">
-									<label className="text-sm font-medium">
-										Keywords (comma-separated)
-									</label>
-									<Textarea
-										value={customKeywords}
-										onChange={(e) => setCustomKeywords(e.target.value)}
-										placeholder="refund, policy, 30 days"
-										rows={1}
-									/>
-								</div>
-							)}
-
-							{selectedAssertions.includes("length-check") && (
-								<div className="flex gap-4">
-									<div className="space-y-2 flex-1">
-										<label className="text-sm font-medium">
-											Min length (chars)
+							<div className="space-y-4">
+								{selectedAssertions.includes("contains-keywords") && (
+									<div className="space-y-2">
+										<label htmlFor="keywords" className="text-sm font-medium">
+											Keywords (comma-separated)
 										</label>
-										<input
-											type="number"
-											value={customLengthMin}
-											onChange={(e) => setCustomLengthMin(e.target.value)}
-											placeholder="0"
-											className="w-full px-3 py-2 border rounded-md bg-background text-sm"
+										<Textarea
+											id="keywords"
+											value={customKeywords}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												setCustomKeywords(e.target.value)
+											}
+											placeholder="refund, policy, 30 days"
+											rows={1}
 										/>
 									</div>
+								)}
+								{selectedAssertions.includes("length-check") && (
 									<div className="space-y-2 flex-1">
-										<label className="text-sm font-medium">
+										<label htmlFor="max-length" className="text-sm font-medium">
 											Max length (chars)
 										</label>
 										<input
+											id="max-length"
 											type="number"
 											value={customLengthMax}
-											onChange={(e) => setCustomLengthMax(e.target.value)}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												setCustomLengthMax(e.target.value)
+											}
 											placeholder="1000"
 											className="w-full px-3 py-2 border rounded-md bg-background text-sm"
 										/>
 									</div>
-								</div>
-							)}
+								)}
+							</div>
 
 							{/* Keywords & Length toggles (not in groups) */}
 							<div className="flex flex-wrap gap-4 pt-2 border-t">
-								<label className="flex items-center gap-2 text-sm cursor-pointer">
+								<label
+									htmlFor="contains-keywords"
+									className="flex items-center gap-2 text-sm cursor-pointer"
+								>
 									<Checkbox
+										id="contains-keywords"
 										checked={selectedAssertions.includes("contains-keywords")}
 										onCheckedChange={() => toggleAssertion("contains-keywords")}
 									/>
 									Contains keywords
 								</label>
-								<label className="flex items-center gap-2 text-sm cursor-pointer">
+								<label
+									htmlFor="length-check"
+									className="flex items-center gap-2 text-sm cursor-pointer"
+								>
 									<Checkbox
+										id="length-check"
 										checked={selectedAssertions.includes("length-check")}
 										onCheckedChange={() => toggleAssertion("length-check")}
 									/>

@@ -288,8 +288,8 @@ export default function APIReferencePage() {
 								</p>
 
 								<div className="space-y-3 sm:space-y-4">
-									{section.endpoints.map((endpoint, index) => (
-										<Card key={index} className="p-4 sm:p-5">
+									{section.endpoints.map((endpoint) => (
+										<Card key={endpoint.path} className="p-4 sm:p-5">
 											<div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
 												<span
 													className={`text-xs px-2 py-1 rounded font-mono self-start ${methodColors[endpoint.method]}`}

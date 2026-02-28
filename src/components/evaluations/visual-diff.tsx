@@ -49,7 +49,7 @@ interface VisualDiffProps {
 }
 
 export function VisualDiff({
-	originalEvaluation,
+	originalEvaluation: _originalEvaluation,
 	shadowResults,
 	isLoading,
 }: VisualDiffProps) {
@@ -211,18 +211,11 @@ export function VisualDiff({
 						<TabsContent value="overview" className="space-y-4">
 							<div className="space-y-2">
 								{shadowResults.map((result, _index) => (
-									<div
+									<button
 										key={result.traceId}
-										className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
+										type="button"
+										className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer w-full text-left"
 										onClick={() => setSelectedTrace(result)}
-										role="button"
-										tabIndex={0}
-										onKeyDown={(e) => {
-											if (e.key === "Enter" || e.key === " ") {
-												e.preventDefault();
-												setSelectedTrace(result);
-											}
-										}}
 									>
 										<div className="flex items-center gap-3">
 											<div className="flex items-center gap-2">
@@ -267,7 +260,7 @@ export function VisualDiff({
 										<div className="text-xs text-muted-foreground">
 											{result.duration}ms
 										</div>
-									</div>
+									</button>
 								))}
 							</div>
 						</TabsContent>

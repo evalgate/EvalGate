@@ -96,6 +96,7 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 			grouped.set(key, { count: 0, totalResponseTime: 0 });
 		}
 
+		// biome-ignore lint/style/noNonNullAssertion: safe assertion - key exists due to has check above
 		const current = grouped.get(key)!;
 		current.count += 1;
 		current.totalResponseTime += log.responseTimeMs;

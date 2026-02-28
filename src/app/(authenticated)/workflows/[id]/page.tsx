@@ -430,9 +430,9 @@ export default function WorkflowDetailPage({ params }: PageProps) {
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-3">
-									{handoffStats.map((stat: Handoff, i) => (
+									{handoffStats.map((stat: Handoff) => (
 										<div
-											key={i}
+											key={`${stat.handoffType}-${stat.fromAgent}`}
 											className="flex items-center justify-between p-3 bg-muted rounded-lg"
 										>
 											<div className="flex items-center gap-3">

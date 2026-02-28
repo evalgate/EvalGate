@@ -92,8 +92,8 @@ export function StaticPricingCards() {
 					</div>
 
 					<ul className="space-y-3 mb-6 flex-grow">
-						{plan.features.map((feature, index) => (
-							<li key={index} className="flex items-start gap-2">
+						{plan.features.map((feature) => (
+							<li key={feature} className="flex items-start gap-2">
 								<Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
 								<span className="text-sm">{feature}</span>
 							</li>

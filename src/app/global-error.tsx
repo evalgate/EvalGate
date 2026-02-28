@@ -15,7 +15,7 @@ export default function GlobalError({
 	}, [error]);
 
 	return (
-		<html>
+		<html lang="en">
 			<body>
 				<div
 					style={{
@@ -42,6 +42,7 @@ export default function GlobalError({
 						An unexpected error occurred. Our team has been notified.
 					</p>
 					<button
+						type="button"
 						onClick={() => reset()}
 						style={{
 							padding: "0.5rem 1.5rem",

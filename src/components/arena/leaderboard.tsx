@@ -47,7 +47,7 @@ interface ArenaLeaderboardProps {
 }
 
 export function ArenaLeaderboard({
-	organizationId,
+	organizationId: _organizationId,
 	className,
 }: ArenaLeaderboardProps) {
 	const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);

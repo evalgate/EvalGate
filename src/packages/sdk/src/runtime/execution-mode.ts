@@ -352,13 +352,17 @@ export function printExecutionModeInfo(config: ExecutionModeConfig): void {
 
 	if (validation.warnings.length > 0) {
 		console.log(`⚠️  Warnings:`);
-		validation.warnings.forEach((warning) => console.log(`   ${warning}`));
+		validation.warnings.forEach((warning) => {
+			console.log(`   ${warning}`);
+		});
 		console.log(``);
 	}
 
 	if (validation.errors.length > 0) {
 		console.log(`❌ Errors:`);
-		validation.errors.forEach((error) => console.log(`   ${error}`));
+		validation.errors.forEach((error) => {
+			console.log(`   ${error}`);
+		});
 		console.log(``);
 	}
 

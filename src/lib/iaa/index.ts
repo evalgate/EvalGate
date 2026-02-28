@@ -46,7 +46,9 @@ export function cohensKappa(
 	const matrix: Record<string, Record<string, number>> = {};
 	catList.forEach((c) => {
 		matrix[c] = {};
-		catList.forEach((d) => (matrix[c][d] = 0));
+		catList.forEach((d) => {
+			matrix[c][d] = 0;
+		});
 	});
 
 	pairs.forEach(({ rater1, rater2 }) => {
@@ -92,7 +94,9 @@ export function fleissKappa(matrix: Array<Record<string, number>>): number {
 
 	const categories = new Set<string>();
 	matrix.forEach((row) => {
-		Object.keys(row).forEach((k) => categories.add(k));
+		Object.keys(row).forEach((k) => {
+			categories.add(k);
+		});
 	});
 	const catList = Array.from(categories);
 	const N = matrix.length;
@@ -118,7 +122,9 @@ export function fleissKappa(matrix: Array<Record<string, number>>): number {
 
 	// p_j = proportion of assignments to category j
 	const p_j: Record<string, number> = {};
-	catList.forEach((c) => (p_j[c] = 0));
+	catList.forEach((c) => {
+		p_j[c] = 0;
+	});
 	matrix.forEach((row) => {
 		catList.forEach((c) => {
 			p_j[c] += row[c] ?? 0;

@@ -114,7 +114,7 @@ await tracer.endWorkflow();`,
 	},
 };
 
-interface Workflow {
+interface WorkflowConfig {
 	id: number;
 	name: string;
 	description: string | null;
@@ -132,8 +132,10 @@ interface Workflow {
 export default function WorkflowsPage() {
 	const { data: session, isPending } = useSession();
 	const router = useRouter();
-	const [workflows, setWorkflows] = useState<Workflow[]>([]);
-	const [filteredWorkflows, setFilteredWorkflows] = useState<Workflow[]>([]);
+	const [workflows, setWorkflows] = useState<WorkflowConfig[]>([]);
+	const [filteredWorkflows, setFilteredWorkflows] = useState<WorkflowConfig[]>(
+		[],
+	);
 	const [isLoading, setIsLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [statusFilter, setStatusFilter] = useState<string>("all");

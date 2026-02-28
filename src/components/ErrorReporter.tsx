@@ -8,7 +8,7 @@ type ReporterProps = {
 	reset?: () => void;
 };
 
-export default function ErrorReporter({ error, reset }: ReporterProps) {
+export default function ErrorReporter({ error, reset: _reset }: ReporterProps) {
 	/* ─ instrumentation shared by every route ─ */
 	const lastOverlayMsg = useRef("");
 	const pollRef = useRef<NodeJS.Timeout | null>(null);
@@ -96,7 +96,7 @@ export default function ErrorReporter({ error, reset }: ReporterProps) {
 
 	/* ─ global-error UI ─ */
 	return (
-		<html>
+		<html lang="en">
 			<body className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
 				<div className="max-w-md w-full text-center space-y-6">
 					<div className="space-y-2">

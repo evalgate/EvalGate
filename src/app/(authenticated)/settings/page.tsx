@@ -41,7 +41,7 @@ interface ApiKey {
 	createdAt: string;
 }
 
-interface Webhook {
+interface WebhookConfig {
 	id: number;
 	url: string;
 	events: string[];
@@ -74,7 +74,7 @@ export default function SettingsPage() {
 	const router = useRouter();
 	const organizationId = useOrganizationId();
 	const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
-	const [webhooks, setWebhooks] = useState<Webhook[]>([]);
+	const [webhooks, setWebhooks] = useState<WebhookConfig[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [webhooksLoading, setWebhooksLoading] = useState(true);
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);

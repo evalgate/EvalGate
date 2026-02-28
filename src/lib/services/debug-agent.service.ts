@@ -154,7 +154,8 @@ class DebugAgentService {
 				});
 			}
 
-			const pattern = patterns.get(key)!;
+			const pattern = patterns.get(key);
+			if (!pattern) continue;
 			pattern.occurrences++;
 			pattern.affectedTestIds.push((result as any).id);
 		}

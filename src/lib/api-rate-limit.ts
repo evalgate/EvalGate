@@ -41,9 +41,9 @@ export async function withRateLimit(
 
 		if (!success) {
 			const res = rateLimited();
-			Object.entries(headers).forEach(([key, value]) =>
-				res.headers.set(key, value),
-			);
+			Object.entries(headers).forEach(([key, value]) => {
+				res.headers.set(key, value);
+			});
 			return res;
 		}
 

@@ -10,10 +10,10 @@ const mockRedisInstance = {
 };
 
 vi.mock("@upstash/redis", () => ({
-	Redis: class MockRedis {
-		static fromEnv() {
+	Redis: {
+		fromEnv() {
 			return mockRedisInstance;
-		}
+		},
 	},
 }));
 

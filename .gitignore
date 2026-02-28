@@ -31,6 +31,9 @@ local.db
 # test sqlite (vitest)
 test.db
 
+# Biome
+biome-errors.json
+
 # coverage (vitest)
 coverage
 

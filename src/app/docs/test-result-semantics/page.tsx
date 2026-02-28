@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useSession } from "@/lib/auth-client";
 
-const validationSnippet = String.raw`// Shared validation function
+const validationSnippet = `// Shared validation function
 function validateTestResult(result: TestResult): TestResult {
   // 1. Validate status enum
   if (!['passed', 'failed', 'error'].includes(result.status)) {

@@ -68,7 +68,9 @@ class CostService {
 
 		// Check cache
 		if (this.pricingCacheExpiry > now && this.pricingCache.has(cacheKey)) {
-			return this.pricingCache.get(cacheKey)!;
+			return (
+				this.pricingCache.get(cacheKey) || { inputPrice: 0, outputPrice: 0 }
+			);
 		}
 
 		// Refresh cache if expired
@@ -78,7 +80,9 @@ class CostService {
 
 		// Return from cache or default
 		if (this.pricingCache.has(cacheKey)) {
-			return this.pricingCache.get(cacheKey)!;
+			return (
+				this.pricingCache.get(cacheKey) || { inputPrice: 0, outputPrice: 0 }
+			);
 		}
 
 		// Default pricing if not found

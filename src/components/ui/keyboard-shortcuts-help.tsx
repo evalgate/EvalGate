@@ -104,7 +104,7 @@ export function KeyboardShortcutsHelp() {
 							<div className="space-y-2">
 								{group.shortcuts.map((shortcut, index) => (
 									<div
-										key={index}
+										key={`${shortcut.description}-${index}`}
 										className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
 									>
 										<span className="text-sm text-gray-700 dark:text-gray-300">
@@ -113,6 +113,7 @@ export function KeyboardShortcutsHelp() {
 										<div className="flex items-center gap-1">
 											{shortcut.keys.map((key, keyIndex) => (
 												<span
+													// biome-ignore lint/suspicious/noArrayIndexKey: keyboard shortcut keys
 													key={keyIndex}
 													className="flex items-center gap-1"
 												>

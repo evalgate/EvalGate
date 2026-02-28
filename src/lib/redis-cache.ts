@@ -27,7 +27,7 @@ function getRedis(): Redis {
 			} as unknown as Redis;
 		}
 	}
-	return redis!;
+	return redis;
 }
 
 export interface CacheOptions {

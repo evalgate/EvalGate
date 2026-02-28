@@ -224,10 +224,10 @@ export function ShadowEvalButton({
 
 					{/* Date Range Filter */}
 					<div className="space-y-2">
-						<label className="text-sm font-medium flex items-center gap-2">
+						<div className="text-sm font-medium flex items-center gap-2">
 							<CalendarDays className="h-4 w-4" />
 							Date Range
-						</label>
+						</div>
 						<div className="flex gap-2">
 							<Popover>
 								<PopoverTrigger asChild>
@@ -285,10 +285,10 @@ export function ShadowEvalButton({
 
 					{/* Status Filter */}
 					<div className="space-y-2">
-						<label className="text-sm font-medium flex items-center gap-2">
+						<div className="text-sm font-medium flex items-center gap-2">
 							<Filter className="h-4 w-4" />
 							Status Filter
-						</label>
+						</div>
 						<div className="flex gap-3">
 							{["completed", "failed", "running"].map((status) => (
 								<div key={status} className="flex items-center space-x-2">
@@ -297,12 +297,9 @@ export function ShadowEvalButton({
 										checked={filters.status.includes(status)}
 										onCheckedChange={() => toggleStatusFilter(status)}
 									/>
-									<label
-										htmlFor={status}
-										className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-									>
+									<div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
 										{status}
-									</label>
+									</div>
 								</div>
 							))}
 						</div>
@@ -310,7 +307,7 @@ export function ShadowEvalButton({
 
 					{/* Duration Filter */}
 					<div className="space-y-2">
-						<label className="text-sm font-medium">Duration (ms)</label>
+						<div className="text-sm font-medium">Duration (ms)</div>
 						<div className="flex gap-2">
 							<input
 								type="number"
@@ -347,9 +344,9 @@ export function ShadowEvalButton({
 					{/* Available Traces */}
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
-							<label className="text-sm font-medium">
+							<div className="text-sm font-medium">
 								Production Traces ({filteredTraces.length})
-							</label>
+							</div>
 							{selectedTraces.length > 0 && (
 								<Badge variant="secondary">
 									{selectedTraces.length} selected
@@ -365,10 +362,18 @@ export function ShadowEvalButton({
 							) : (
 								<div className="divide-y">
 									{filteredTraces.map((trace) => (
-										<div
+										<button
+											type="button"
 											key={trace.id}
-											className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer"
+											role="option"
+											className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer w-full text-left border-0 bg-transparent"
 											onClick={() => toggleTraceSelection(trace.traceId)}
+											onKeyDown={(e) => {
+												if (e.key === "Enter" || e.key === " ") {
+													e.preventDefault();
+													toggleTraceSelection(trace.traceId);
+												}
+											}}
 										>
 											<Checkbox
 												checked={selectedTraces.includes(trace.traceId)}
@@ -396,7 +401,7 @@ export function ShadowEvalButton({
 													{new Date(trace.createdAt).toLocaleDateString()}
 												</div>
 											</div>
-										</div>
+										</button>
 									))}
 								</div>
 							)}

@@ -114,26 +114,15 @@ function DecisionNode({
 	const hasAlternatives =
 		decision.alternatives && decision.alternatives.length > 0;
 
-	return (
-		<div
+	return onClick ? (
+		<button
+			type="button"
 			className={cn(
-				"border rounded-lg transition-all",
+				"border rounded-lg transition-all text-left",
 				isSelected && "border-primary ring-2 ring-primary/20",
-				onClick && "cursor-pointer hover:border-primary/50",
+				"cursor-pointer hover:border-primary/50",
 			)}
 			onClick={onClick}
-			role={onClick ? "button" : undefined}
-			tabIndex={onClick ? 0 : undefined}
-			onKeyDown={
-				onClick
-					? (e) => {
-							if (e.key === "Enter" || e.key === " ") {
-								e.preventDefault();
-								onClick();
-							}
-						}
-					: undefined
-			}
 		>
 			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
 				<div className="p-4">
@@ -256,6 +245,139 @@ function DecisionNode({
 											>
 												{alt.confidence}%
 											</span>
+										</div>
+									</div>
+								))}
+							</div>
+						</div>
+					</CollapsibleContent>
+				)}
+			</Collapsible>
+		</button>
+	) : (
+		<div
+			className={cn(
+				"border rounded-lg transition-all",
+				isSelected && "border-primary ring-2 ring-primary/20",
+			)}
+		>
+			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
+				<div className="p-4">
+					{/* Header */}
+					<div className="flex items-start justify-between">
+						<div className="flex items-center gap-3">
+							<div
+								className={cn(
+									"p-2 rounded-lg",
+									getConfidenceBgColor(decision.confidence || 0),
+								)}
+							>
+								<Brain className="h-4 w-4" />
+							</div>
+							<div className="flex-1">
+								<h4 className="font-medium">{decision.action}</h4>
+								{decision.outcome && (
+									<p className="text-sm text-muted-foreground mt-1">
+										{decision.outcome}
+									</p>
+								)}
+							</div>
+						</div>
+
+						<div className="flex items-center gap-2">
+							{decision.confidence && (
+								<TooltipProvider>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<Badge
+												variant="secondary"
+												className={cn(
+													"text-sm font-medium",
+													getConfidenceColor(decision.confidence),
+												)}
+											>
+												{decision.confidence}%
+											</Badge>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>Confidence score</p>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+							)}
+
+							{hasAlternatives && showAlternatives && (
+								<CollapsibleTrigger asChild>
+									<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+										{isOpen ? (
+											<ChevronDown className="h-4 w-4" />
+										) : (
+											<ChevronRight className="h-4 w-4" />
+										)}
+									</Button>
+								</CollapsibleTrigger>
+							)}
+						</div>
+					</div>
+
+					{/* Reasoning */}
+					{decision.reasoning && (
+						<div className="mt-3 p-3 bg-muted rounded-lg">
+							<p className="text-sm text-muted-foreground">
+								<span className="font-medium">Reasoning:</span>{" "}
+								{decision.reasoning}
+							</p>
+						</div>
+					)}
+
+					{/* Timestamp */}
+					{decision.timestamp && (
+						<div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+							<Clock className="h-3 w-3" />
+							{new Date(decision.timestamp).toLocaleString()}
+						</div>
+					)}
+				</div>
+
+				{/* Alternatives */}
+				{hasAlternatives && showAlternatives && (
+					<CollapsibleContent>
+						<div className="border-t px-4 py-3 bg-muted/30">
+							<p className="text-xs font-medium text-muted-foreground mb-2">
+								Alternatives Considered ({decision.alternatives.length})
+							</p>
+							<div className="space-y-2">
+								{decision.alternatives.map((alt) => (
+									<div
+										key={`${alt.action}-${alt.confidence}`}
+										className="flex items-center justify-between p-2 bg-background rounded-lg border"
+									>
+										<div className="flex items-center gap-2">
+											<X className="h-4 w-4 text-muted-foreground" />
+											<span className="text-sm">{alt.action}</span>
+										</div>
+										<div className="flex items-center gap-3">
+											{alt.rejectedReason && (
+												<TooltipProvider>
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<Info className="h-4 w-4 text-muted-foreground" />
+														</TooltipTrigger>
+														<TooltipContent>
+															<p>{alt.rejectedReason}</p>
+														</TooltipContent>
+													</Tooltip>
+												</TooltipProvider>
+											)}
+											<Badge
+												variant="secondary"
+												className={cn(
+													"text-sm font-medium",
+													getConfidenceColor(alt.confidence),
+												)}
+											>
+												{alt.confidence}%
+											</Badge>
 										</div>
 									</div>
 								))}

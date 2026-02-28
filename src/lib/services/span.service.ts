@@ -132,6 +132,6 @@ export const spanService = {
 			})
 			.returning();
 
-		return newSpan!;
+		return newSpan || null;
 	},
 };

@@ -27,7 +27,13 @@ export const metadata: Metadata = {
 	},
 };
 
-function CodeBlock({ lang, children }: { lang: string; children: string }) {
+function CodeBlock({
+	lang: _lang,
+	children,
+}: {
+	lang: string;
+	children: string;
+}) {
 	return (
 		<pre className="overflow-x-auto rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-sm leading-relaxed">
 			<code className="text-zinc-300">{children}</code>
@@ -67,6 +73,7 @@ export default function IntegrationDocsPage() {
 		<>
 			<script
 				type="application/ld+json"
+				// biome-ignore lint/security/noDangerouslySetInnerHtml: structured data for SEO
 				dangerouslySetInnerHTML={{
 					__html: JSON.stringify({
 						"@context": "https://schema.org",
@@ -552,7 +559,7 @@ const result = await traceWorkflowStep(tracer, 'MyAgent', async () => {
 												</td>
 												{values.map((v, i) => (
 													<td
-														key={i}
+														key={v}
 														className={`py-2 pr-4 ${
 															i === 0
 																? "text-violet-400 font-semibold"

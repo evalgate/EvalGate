@@ -3,10 +3,6 @@ import { NextResponse } from "next/server";
 import { internalError, unauthorized } from "@/lib/api/errors";
 import { auth } from "@/lib/auth";
 
-type BillingPortalResult = {
-	url: string;
-};
-
 export async function POST(request: Request) {
 	const session = await auth.api.getSession({ headers: request.headers });
 

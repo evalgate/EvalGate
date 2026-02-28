@@ -93,6 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
 export const Card: React.FC<CardProps> = ({
 	rotate,
 	scale,
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: animation library API
 	translate,
 	children,
 }) => {

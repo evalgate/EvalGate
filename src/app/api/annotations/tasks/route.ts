@@ -101,7 +101,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 
 	try {
 		const body = await req.json();
-		const { name, description, instructions, type, annotationSettings } = body;
+		const { name, description, type, annotationSettings } = body;
 
 		if (!name || !type) {
 			return validationError("Name and type are required");

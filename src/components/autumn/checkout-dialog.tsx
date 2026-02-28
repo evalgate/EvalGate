@@ -60,7 +60,7 @@ export default function CheckoutDialog(params: CheckoutDialogProps) {
 	const [loading, setLoading] = useState(false);
 
 	if (!checkoutResult) {
-		return <></>;
+		return null;
 	}
 
 	const { open, setOpen } = params;
@@ -206,6 +206,7 @@ function ProductItems({
 							<PrepaidItem
 								key={`${item.feature_id}-${item.type}`}
 								item={item}
+								// biome-ignore lint/style/noNonNullAssertion: safe assertion
 								checkoutResult={checkoutResult!}
 								setCheckoutResult={setCheckoutResult}
 							/>
@@ -321,6 +322,7 @@ const PrepaidItem = ({
 				});
 
 			newOptions.push({
+				// biome-ignore lint/style/noNonNullAssertion: safe assertion
 				featureId: item.feature_id!,
 				quantity: Number(quantityInput) * billingUnits,
 			});
@@ -334,6 +336,7 @@ const PrepaidItem = ({
 				console.error(error);
 				return;
 			}
+			// biome-ignore lint/style/noNonNullAssertion: safe assertion
 			setCheckoutResult(data!);
 		} catch (error) {
 			console.error(error);

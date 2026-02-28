@@ -230,7 +230,7 @@ assert(commentRatio >= 0.1); // 10% comments`}
 							<strong>Task:</strong> "Get last element of array"
 						</p>
 						<p className="text-sm font-mono mb-1">
-							❌ arr[arr.length] // undefined
+							❌ arr[arr.length] {/* undefined */}
 						</p>
 						<p className="text-sm font-mono mb-0">✓ arr[arr.length - 1]</p>
 					</div>

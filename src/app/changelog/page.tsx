@@ -204,9 +204,9 @@ export default function ChangelogPage() {
 								</CardHeader>
 								<CardContent>
 									<ul className="space-y-2">
-										{release.highlights.map((item, i) => (
+										{release.highlights.map((item) => (
 											<li
-												key={i}
+												key={item}
 												className="flex items-start gap-2 text-sm text-muted-foreground"
 											>
 												<span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />

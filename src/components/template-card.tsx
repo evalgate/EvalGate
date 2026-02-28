@@ -165,8 +165,8 @@ export function TemplateCard({ template }: { template: EvaluationTemplate }) {
 						<div>
 							<h3 className="font-semibold mb-3">Example Test Cases</h3>
 							<div className="space-y-3">
-								{template.testCases.slice(0, 3).map((testCase, index) => (
-									<Card key={index}>
+								{template.testCases.slice(0, 3).map((testCase) => (
+									<Card key={testCase.input}>
 										<CardContent className="py-3">
 											<div className="space-y-2 text-sm">
 												<div>

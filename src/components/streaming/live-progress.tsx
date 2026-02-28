@@ -68,7 +68,7 @@ interface EvaluationProgress {
 export function LiveProgress({
 	evaluationId,
 	organizationId,
-	height = 200,
+	height: _height = 200,
 	showDetails = true,
 	compact = false,
 	className,
@@ -166,6 +166,7 @@ export function LiveProgress({
 							...prev,
 							currentTest: data.testCaseId,
 							testCases: updatedTestCases,
+							// biome-ignore lint/suspicious/noExplicitAny: type assertion for state update
 						} as any;
 					});
 				} else if (
@@ -191,6 +192,7 @@ export function LiveProgress({
 							completedTests: prev.completedTests + 1,
 							passedTests: prev.passedTests + (data.passed ? 1 : 0),
 							testCases: updatedTestCases,
+							// biome-ignore lint/suspicious/noExplicitAny: type assertion for state update
 						} as any;
 					});
 				} else if (
@@ -216,6 +218,7 @@ export function LiveProgress({
 							completedTests: prev.completedTests + 1,
 							failedTests: prev.failedTests + 1,
 							testCases: updatedTestCases,
+							// biome-ignore lint/suspicious/noExplicitAny: type assertion for state update
 						} as any;
 					});
 				}

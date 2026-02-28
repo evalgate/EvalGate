@@ -3,6 +3,7 @@
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
+// biome-ignore lint/correctness/noUnusedVariables: chart library types
 type ValueType =
 	| string
 	| number
@@ -171,6 +172,7 @@ function ChartTooltipContent({
 	className,
 	indicator = "dot",
 	hideLabel = false,
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: chart library API
 	hideIcon = false,
 	label,
 	labelFormatter,
@@ -195,6 +197,7 @@ function ChartTooltipContent({
 		}
 
 		const [item] = payload;
+		// biome-ignore lint/suspicious/noExplicitAny: chart library dynamic data
 		const key = `${labelKey || (item as any)?.dataKey || ((item as any)?.name as string) || "value"}`;
 		const itemConfig = getPayloadConfigFromPayload(config, item, key);
 		const value =
@@ -305,6 +308,7 @@ function ChartTooltipContent({
 										</div>
 										{typedItem.value != null && (
 											<span className="text-foreground font-mono font-medium tabular-nums">
+												{/* biome-ignore lint/suspicious/noExplicitAny: chart library dynamic data */}
 												{(typedItem.value as any).toLocaleString()}
 											</span>
 										)}
@@ -321,6 +325,7 @@ function ChartTooltipContent({
 
 const ChartLegend = RechartsPrimitive.Legend;
 
+// biome-ignore lint/correctness/noUnusedVariables: chart library types
 interface ChartLegendContentProps extends React.ComponentProps<"div"> {
 	className?: string;
 	hideIcon?: boolean;

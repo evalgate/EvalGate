@@ -235,7 +235,7 @@ export const PricingTableContainer = ({
 	}
 
 	if (products.length === 0) {
-		return <></>;
+		return null;
 	}
 
 	const hasRecommended = products?.some((p) => p.display?.recommend_text);

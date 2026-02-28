@@ -73,8 +73,11 @@ await client.traces.create({
 			{/* Progress Bar */}
 			<div className="mb-8">
 				<div className="flex items-center justify-between mb-2">
-					{steps.map((_step, index) => (
-						<div key={`step-${index}`} className="flex items-center flex-1">
+					{steps.map((step, index) => (
+						<div
+							key={`step-${step.title}`}
+							className="flex items-center flex-1"
+						>
 							<div
 								className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${
 									completedSteps.includes(index)

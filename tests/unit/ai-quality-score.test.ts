@@ -251,7 +251,7 @@ describe("calculateQualityScore", () => {
 			{ score: 50, expectedGrade: "F" },
 		];
 
-		testCases.forEach(({ score, expectedGrade }) => {
+		testCases.forEach(({ score, expectedGrade: _expectedGrade }) => {
 			// Create stats that would result in the target score
 			const stats: EvaluationStats = {
 				totalEvaluations: 100,

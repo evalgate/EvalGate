@@ -302,7 +302,8 @@ export function EvaluationBuilder({ onDeploy }: EvaluationBuilderProps) {
 					</div>
 
 					{/* Canvas Area */}
-					<div
+					<section
+						aria-label="Evaluation canvas"
 						className={cn(
 							"border-2 border-dashed rounded-lg p-4 min-h-[400px]",
 							draggedTemplate ? "border-primary bg-primary/5" : "border-muted",
@@ -404,7 +405,7 @@ export function EvaluationBuilder({ onDeploy }: EvaluationBuilderProps) {
 								})}
 							</div>
 						)}
-					</div>
+					</section>
 				</CardContent>
 			</Card>
 

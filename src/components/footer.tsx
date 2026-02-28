@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export function Footer() {
@@ -109,9 +110,12 @@ export function Footer() {
 								</Link>
 							</li>
 							<li>
-								<a href="#" className="hover:text-foreground">
+								<button
+									type="button"
+									className="hover:text-foreground text-left"
+								>
 									Terms
-								</a>
+								</button>
 							</li>
 						</ul>
 					</div>
@@ -129,9 +133,11 @@ export function Footer() {
 								rel="noopener noreferrer"
 								className="opacity-70 hover:opacity-100 transition-opacity"
 							>
-								<img
+								<Image
 									src="https://img.shields.io/npm/v/@pauly4010/evalai-sdk.svg"
 									alt="npm version"
+									width={20}
+									height={20}
 									className="h-5"
 								/>
 							</a>
@@ -141,9 +147,11 @@ export function Footer() {
 								rel="noopener noreferrer"
 								className="opacity-70 hover:opacity-100 transition-opacity"
 							>
-								<img
+								<Image
 									src="https://img.shields.io/npm/dm/@pauly4010/evalai-sdk.svg"
 									alt="npm downloads"
+									width={20}
+									height={20}
 									className="h-5"
 								/>
 							</a>

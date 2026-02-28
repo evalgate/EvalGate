@@ -460,7 +460,9 @@ export function setupJobsTestHarness() {
 											j.lockedUntil instanceof Date &&
 											j.lockedUntil.getTime() < nowMs,
 									);
-									reclaimed.forEach((j) => Object.assign(j, values));
+									reclaimed.forEach((j) => {
+										Object.assign(j, values);
+									});
 									return reclaimed.map((j) => ({ id: j.id }));
 								}
 								return [];
