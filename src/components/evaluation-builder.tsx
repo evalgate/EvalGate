@@ -489,7 +489,11 @@ export function EvaluationBuilder({ onDeploy }: EvaluationBuilderProps) {
 															{activeTemplateData.template.testCases.map(
 																(testCase, i) => (
 																	<Card
-																		key={testCase.input || testCase.id || `testcase-${i}`}
+																		key={
+																			testCase.input ||
+																			testCase.id ||
+																			`testcase-${i}`
+																		}
 																		className="border-l-2 border-l-primary/50"
 																	>
 																		<CardContent className="p-2 space-y-1.5">
@@ -679,8 +683,8 @@ export function EvaluationBuilder({ onDeploy }: EvaluationBuilderProps) {
 																		<ul className="text-xs text-red-800 dark:text-red-200 mt-1.5 space-y-1 list-disc list-inside">
 																			<li>
 																				<span className="font-medium">
-																					Potential harm (physical, psychological,
-																					financial)
+																					Potential harm (physical,
+																					psychological, financial)
 																				</span>
 																			</li>
 																			<li>

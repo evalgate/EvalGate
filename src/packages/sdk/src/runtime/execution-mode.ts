@@ -113,7 +113,7 @@ async function findSpecFiles(projectRoot: string): Promise<string[]> {
 		try {
 			const files = await searchFiles(projectRoot, pattern, projectRoot);
 			foundFiles.push(...files);
-		} catch (error) {
+		} catch (_error) {
 			// Ignore errors for non-existent paths
 		}
 	}
@@ -127,7 +127,7 @@ async function findSpecFiles(projectRoot: string): Promise<string[]> {
 			if (content.includes("defineEval")) {
 				specFilesWithDefineEval.push(file);
 			}
-		} catch (error) {
+		} catch (_error) {
 			// Ignore read errors
 		}
 	}
@@ -161,7 +161,7 @@ async function searchFiles(
 				}
 			}
 		}
-	} catch (error) {
+	} catch (_error) {
 		// Ignore permission errors
 	}
 
@@ -176,9 +176,9 @@ function matchesPattern(
 	pattern: string,
 	projectRoot: string,
 ): boolean {
-	const fileName = path.basename(filePath);
-	const ext = path.extname(filePath);
-	const dir = path.dirname(filePath);
+	const _fileName = path.basename(filePath);
+	const _ext = path.extname(filePath);
+	const _dir = path.dirname(filePath);
 
 	// Convert glob pattern to regex
 	// Handle **/ and * patterns correctly
@@ -215,7 +215,7 @@ async function findLegacyConfig(
 		try {
 			await fs.access(fullPath);
 			return fullPath;
-		} catch (error) {
+		} catch (_error) {
 			// File doesn't exist, continue
 		}
 	}

@@ -27,7 +27,7 @@ describe("RUNTIME-102: Identity Canonicalization", () => {
 			const handle = createEvalRuntime();
 
 			// Define a spec - the ID should be generated with POSIX paths
-			handle.defineEval("posix-test", async (context) => {
+			handle.defineEval("posix-test", async (_context) => {
 				return createResult({ pass: true, score: 100 });
 			});
 
@@ -68,7 +68,7 @@ describe("RUNTIME-102: Identity Canonicalization", () => {
 
 			// First spec at current location
 			await withRuntime(process.cwd(), async (handle) => {
-				handle.defineEval("path-test-1", async (context) => {
+				handle.defineEval("path-test-1", async (_context) => {
 					return createResult({ pass: true, score: 100 });
 				});
 
@@ -78,7 +78,7 @@ describe("RUNTIME-102: Identity Canonicalization", () => {
 
 			// Second spec at same location should have different ID (different position)
 			await withRuntime(process.cwd(), async (handle) => {
-				handle.defineEval("path-test-2", async (context) => {
+				handle.defineEval("path-test-2", async (_context) => {
 					return createResult({ pass: true, score: 90 });
 				});
 
@@ -99,7 +99,7 @@ describe("RUNTIME-102: Identity Canonicalization", () => {
 			await withRuntime(process.cwd(), async (handle) => {
 				// Note: Current implementation doesn't expose suitePath in defineEval
 				// But we can verify the basic ID generation works
-				handle.defineEval("suite-path-test", async (context) => {
+				handle.defineEval("suite-path-test", async (_context) => {
 					return createResult({ pass: true, score: 100 });
 				});
 
@@ -212,7 +212,7 @@ describe("RUNTIME-102: Identity Canonicalization", () => {
 			await withRuntime(process.cwd(), async (handle) => {
 				// Define multiple specs - each will have different positions
 				for (let i = 0; i < 3; i++) {
-					handle.defineEval(`deterministic-test-${i}`, async (context) => {
+					handle.defineEval(`deterministic-test-${i}`, async (_context) => {
 						return createResult({ pass: true, score: 100 });
 					});
 				}

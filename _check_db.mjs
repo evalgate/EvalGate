@@ -2,7 +2,7 @@ import postgres from "postgres";
 
 const url = process.env.DATABASE_URL;
 
-console.log("DATABASE_URL:", url ? url.substring(0, 40) + "..." : "(NOT SET)");
+console.log("DATABASE_URL:", url ? `${url.substring(0, 40)}...` : "(NOT SET)");
 
 if (!url) {
 	console.error("Missing DATABASE_URL env var, aborting.");

@@ -9,7 +9,6 @@ import { createResult } from "../../runtime/eval";
 import {
 	createEvalRuntime,
 	disposeActiveRuntime,
-	RuntimeHandle,
 	withRuntime,
 } from "../../runtime/registry";
 
@@ -44,7 +43,7 @@ describe("RUNTIME-101: Runtime Lifecycle Contract", () => {
 			const handle = createEvalRuntime();
 
 			// Should be able to define specs using the handle's defineEval
-			handle.defineEval("test-spec", async (context) => {
+			handle.defineEval("test-spec", async (_context) => {
 				return createResult({ pass: true, score: 100 });
 			});
 
@@ -59,10 +58,10 @@ describe("RUNTIME-101: Runtime Lifecycle Contract", () => {
 			const handle = createEvalRuntime();
 
 			// Register some specs
-			handle.defineEval("spec1", async (context) =>
+			handle.defineEval("spec1", async (_context) =>
 				createResult({ pass: true, score: 100 }),
 			);
-			handle.defineEval("spec2", async (context) =>
+			handle.defineEval("spec2", async (_context) =>
 				createResult({ pass: true, score: 90 }),
 			);
 
@@ -82,7 +81,7 @@ describe("RUNTIME-101: Runtime Lifecycle Contract", () => {
 			const handle = createEvalRuntime();
 
 			// Register specs to populate internal state
-			handle.defineEval("cache-test", async (context) =>
+			handle.defineEval("cache-test", async (_context) =>
 				createResult({ pass: true, score: 100 }),
 			);
 
@@ -101,11 +100,11 @@ describe("RUNTIME-101: Runtime Lifecycle Contract", () => {
 
 	describe("withRuntime helper", () => {
 		it("should ensure cleanup even on successful execution", async () => {
-			const runtimeDisposed = false;
+			const _runtimeDisposed = false;
 
 			await withRuntime(process.cwd(), async (handle) => {
 				// Register a spec
-				handle.defineEval("with-runtime-test", async (context) => {
+				handle.defineEval("with-runtime-test", async (_context) => {
 					return createResult({ pass: true, score: 100 });
 				});
 
@@ -130,7 +129,7 @@ describe("RUNTIME-101: Runtime Lifecycle Contract", () => {
 			try {
 				await withRuntime(process.cwd(), async (handle) => {
 					// Register a spec
-					handle.defineEval("error-test", async (context) => {
+					handle.defineEval("error-test", async (_context) => {
 						return createResult({ pass: true, score: 100 });
 					});
 
@@ -159,7 +158,7 @@ describe("RUNTIME-101: Runtime Lifecycle Contract", () => {
 
 			// First execution
 			await withRuntime(process.cwd(), async (handle) => {
-				handle.defineEval("first-exec", async (context) => {
+				handle.defineEval("first-exec", async (_context) => {
 					return createResult({ pass: true, score: 100 });
 				});
 				results.push("first");
@@ -167,7 +166,7 @@ describe("RUNTIME-101: Runtime Lifecycle Contract", () => {
 
 			// Second execution (should work without interference)
 			await withRuntime(process.cwd(), async (handle) => {
-				handle.defineEval("second-exec", async (context) => {
+				handle.defineEval("second-exec", async (_context) => {
 					return createResult({ pass: true, score: 90 });
 				});
 				results.push("second");
@@ -184,7 +183,7 @@ describe("RUNTIME-101: Runtime Lifecycle Contract", () => {
 			// Register some specs
 			handle.defineEval(
 				"snapshot-test",
-				async (context) => {
+				async (_context) => {
 					return createResult({ pass: true, score: 100 });
 				},
 				{
@@ -214,7 +213,7 @@ describe("RUNTIME-101: Runtime Lifecycle Contract", () => {
 			const handle = createEvalRuntime();
 
 			// Register a spec
-			handle.defineEval("load-test", async (context) => {
+			handle.defineEval("load-test", async (_context) => {
 				return createResult({ pass: true, score: 100 });
 			});
 
@@ -244,7 +243,7 @@ describe("RUNTIME-101: Runtime Lifecycle Contract", () => {
 
 			// First discovery
 			await withRuntime(process.cwd(), async (handle) => {
-				handle.defineEval("discovery-test", async (context) => {
+				handle.defineEval("discovery-test", async (_context) => {
 					return createResult({ pass: true, score: 100 });
 				});
 
@@ -259,7 +258,7 @@ describe("RUNTIME-101: Runtime Lifecycle Contract", () => {
 
 			// Second discovery (should be identical structure)
 			await withRuntime(process.cwd(), async (handle) => {
-				handle.defineEval("discovery-test", async (context) => {
+				handle.defineEval("discovery-test", async (_context) => {
 					return createResult({ pass: true, score: 100 });
 				});
 

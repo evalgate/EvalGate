@@ -16,7 +16,7 @@ import { runDoctor } from "./doctor";
 import { runExplain } from "./explain";
 import { runImpactAnalysisCLI } from "./impact-analysis";
 import { runInit } from "./init";
-import { createMigrateCommand, migrateConfig } from "./migrate";
+import { migrateConfig } from "./migrate";
 import { runPrintConfig } from "./print-config";
 import { runGate } from "./regression-gate";
 import { runEvaluationsCLI } from "./run";

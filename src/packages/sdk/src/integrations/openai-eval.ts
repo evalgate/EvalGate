@@ -144,7 +144,7 @@ export async function openAIChatEval(
 				? [
 						(output: string) =>
 							expect(output).toContainKeywords(
-								c.expectedOutput!.split(/\s+/).filter(Boolean),
+								c.expectedOutput?.split(/\s+/).filter(Boolean),
 							),
 					]
 				: undefined;

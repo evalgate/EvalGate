@@ -58,6 +58,7 @@ describe("middleware", () => {
 			process.env[k] = v;
 		}
 		const headers = new MockHeaders();
+		// biome-ignore lint/suspicious/noExplicitAny: test mock
 		const req = { headers } as any;
 		return { req, cleanup: () => Object.assign(process.env, originalEnv) };
 	}
@@ -139,6 +140,7 @@ describe("middleware", () => {
 		const { req } = createMockRequest();
 		const response = middleware(req);
 		// The nonce should be forwarded on the request headers for layout.tsx
+		// biome-ignore lint/suspicious/noExplicitAny: test mock
 		const requestHeaders = (response as any)._requestHeaders;
 		expect(requestHeaders).toBeDefined();
 	});

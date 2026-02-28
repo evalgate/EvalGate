@@ -121,7 +121,7 @@ export async function generateManifest(
 		if (!specsByFile.has(normalizedPath)) {
 			specsByFile.set(normalizedPath, []);
 		}
-		specsByFile.get(normalizedPath)!.push(spec);
+		specsByFile.get(normalizedPath)?.push(spec);
 	}
 
 	// Process each file
@@ -244,7 +244,7 @@ function extractDependencies(content: string): Spec["dependsOn"] {
 				tools: deps.tools || [],
 				code: deps.code || [],
 			};
-		} catch (error) {
+		} catch (_error) {
 			// If parsing fails, return empty dependencies
 			return {
 				prompts: [],
@@ -359,7 +359,7 @@ export async function readManifest(
 	try {
 		const content = await fs.readFile(manifestPath, "utf-8");
 		return JSON.parse(content) as EvaluationManifest;
-	} catch (error) {
+	} catch (_error) {
 		return null;
 	}
 }
@@ -375,7 +375,7 @@ export async function readLock(
 	try {
 		const content = await fs.readFile(lockPath, "utf-8");
 		return JSON.parse(content) as ManifestLock;
-	} catch (error) {
+	} catch (_error) {
 		return null;
 	}
 }

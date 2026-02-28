@@ -6,7 +6,6 @@
  */
 
 import * as crypto from "node:crypto";
-import * as fs from "node:fs";
 import * as path from "node:path";
 import { getActiveRuntime } from "./registry";
 import type {
@@ -175,7 +174,7 @@ function createSpecConfig(
 /**
  * Core defineEval function implementation
  */
-function defineEvalImpl<TInput = string>(
+function defineEvalImpl<_TInput = string>(
 	nameOrConfig: string | SpecConfig,
 	executor?: EvalExecutor,
 	options?: SpecOptions,
@@ -241,7 +240,7 @@ export const evalai = {
  * Suite definition for grouping related specifications
  * This will be expanded in Layer 3 for dependency graph support
  */
-export function defineSuite(name: string, specs: (() => void)[]): void {
+export function defineSuite(_name: string, specs: (() => void)[]): void {
 	// For now, just execute the specs to register them
 	// In Layer 3, this will build the dependency graph
 	for (const specFn of specs) {

@@ -75,7 +75,7 @@ describe("Full eval flow integration", () => {
 			environment: "dev",
 		});
 		expect(run).toBeDefined();
-		runId = run!.id;
+		runId = run?.id;
 		expect(runId).toBeGreaterThan(0);
 
 		const [runRow] = await db
@@ -113,8 +113,8 @@ describe("Full eval flow integration", () => {
 			await new Promise((r) => setTimeout(r, 100));
 		}
 		expect(qs).toBeDefined();
-		expect(qs!.score).toBeGreaterThanOrEqual(0);
-		expect(qs!.scoringVersion).toBe("v1");
+		expect(qs?.score).toBeGreaterThanOrEqual(0);
+		expect(qs?.scoringVersion).toBe("v1");
 	});
 
 	it("5. fetches quality via service", async () => {
@@ -133,7 +133,7 @@ describe("Full eval flow integration", () => {
 		if (!dbReady) return;
 		const result = await recomputeAndStoreQualityScore(runId, ORG_ID);
 		expect(result).not.toBeNull();
-		expect(result!.score).toBeGreaterThanOrEqual(0);
+		expect(result?.score).toBeGreaterThanOrEqual(0);
 	});
 
 	it("7. export returns valid payload", async () => {

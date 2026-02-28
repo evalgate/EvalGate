@@ -13,7 +13,7 @@
  *   1 - Quality check failed (regression detected)
  */
 
-import fs from "fs";
+import fs from "node:fs";
 
 // Quality thresholds
 const THRESHOLDS = {
@@ -87,7 +87,7 @@ function assertQuality() {
 			);
 		}
 
-		console.log("\n" + "=".repeat(50));
+		console.log(`\n${"=".repeat(50)}`);
 
 		if (passed) {
 			console.log("✅ All quality checks passed!");

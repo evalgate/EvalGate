@@ -75,15 +75,15 @@ vi.mock("@/lib/security/encryption", () => ({
 		})),
 		decrypt: vi.fn(
 			(
-				encrypted: { encrypted: string; iv: string; tag: string },
-				salt: string,
+				_encrypted: { encrypted: string; iv: string; tag: string },
+				_salt: string,
 			) => ({
 				success: true,
 				decrypted: "sk-1234567890abcdef1234567890abcdef12345678",
 			}),
 		),
 		deriveKey: vi.fn(
-			(baseKey: string, salt: string, iterations: number) =>
+			(baseKey: string, salt: string, _iterations: number) =>
 				`derived_key_${baseKey}_${salt}`,
 		),
 	},

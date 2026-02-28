@@ -22,18 +22,28 @@ for (let i = 0; i < files.length; i += CHUNK_SIZE) {
 let status = 0;
 
 for (const chunk of chunks) {
-	console.error(`Processing chunk ${chunks.indexOf(chunk) + 1}/${chunks.length} (${chunk.length} files)`);
+	console.error(
+		`Processing chunk ${chunks.indexOf(chunk) + 1}/${chunks.length} (${chunk.length} files)`,
+	);
 
-	const check = spawnSync("pnpm", ["exec", "biome", "check", "--write", "--diagnostic-level=error", ...chunk], {
-		stdio: "inherit",
-		shell: false,
-	});
+	const check = spawnSync(
+		"pnpm",
+		["exec", "biome", "check", "--write", "--diagnostic-level=error", ...chunk],
+		{
+			stdio: "inherit",
+			shell: false,
+		},
+	);
 	if (check.status !== 0) status = check.status;
 
-	const format = spawnSync("pnpm", ["exec", "biome", "format", "--write", ...chunk], {
-		stdio: "inherit",
-		shell: false,
-	});
+	const format = spawnSync(
+		"pnpm",
+		["exec", "biome", "format", "--write", ...chunk],
+		{
+			stdio: "inherit",
+			shell: false,
+		},
+	);
 	if (format.status !== 0) status = format.status;
 }
 

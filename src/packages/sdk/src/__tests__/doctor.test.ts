@@ -376,7 +376,7 @@ describe("runDoctor integration", () => {
 			}
 		});
 		expect(jsonCall).toBeDefined();
-		const bundle = JSON.parse(jsonCall![0] as string);
+		const bundle = JSON.parse(jsonCall?.[0] as string);
 		expect(bundle.checks).toBeInstanceOf(Array);
 		expect(bundle.overall).toBeDefined();
 		expect(bundle.cliVersion).toBeDefined();

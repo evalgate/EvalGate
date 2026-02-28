@@ -43,7 +43,7 @@ describe("Executor failure modes", () => {
 			cases: [
 				{
 					input: "hi",
-					assertions: [(o: string) => ({ passed: true, message: "" })],
+					assertions: [(_o: string) => ({ passed: true, message: "" })],
 				},
 			],
 			executor,
@@ -66,7 +66,7 @@ describe("Executor failure modes", () => {
 			cases: [
 				{
 					input: "hi",
-					assertions: [(o: string) => ({ passed: true, message: "" })],
+					assertions: [(_o: string) => ({ passed: true, message: "" })],
 				},
 			],
 			executor,

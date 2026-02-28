@@ -8,10 +8,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { Command } from "commander";
-import {
-	adaptTestSuite,
-	generateDefineEvalCode,
-} from "../runtime/adapters/testsuite-to-dsl";
+import { generateDefineEvalCode } from "../runtime/adapters/testsuite-to-dsl";
 import { createTestSuite } from "../testing";
 
 /**
@@ -94,7 +91,7 @@ function extractTestSuitesFromConfig(
 /**
  * Generate DSL file header
  */
-function generateFileHeader(config: any, options: MigrateOptions): string {
+function generateFileHeader(_config: any, options: MigrateOptions): string {
 	const timestamp = new Date().toISOString();
 	const inputPath = path.resolve(options.input);
 	const outputPath = path.resolve(options.output);
@@ -126,7 +123,7 @@ function generateFileHeader(config: any, options: MigrateOptions): string {
 /**
  * Generate helper functions for the entire file
  */
-function generateGlobalHelpers(config: any, options: MigrateOptions): string {
+function generateGlobalHelpers(config: any, _options: MigrateOptions): string {
 	const helpers: string[] = [];
 
 	// Add executor helper if config has executor

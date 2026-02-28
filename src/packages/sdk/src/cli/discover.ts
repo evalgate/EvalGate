@@ -25,12 +25,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { getExecutionMode } from "../runtime/execution-mode";
-import {
-	generateManifest,
-	readLock,
-	readManifest,
-	writeManifest,
-} from "./manifest";
+import { generateManifest, writeManifest } from "./manifest";
 
 /**
  * Discovered specification statistics
@@ -160,7 +155,7 @@ async function getProjectMetadata(
 		const parsed = JSON.parse(packageJson);
 		hasPackageJson = true;
 		projectName = parsed.name || "unknown";
-	} catch (error) {
+	} catch (_error) {
 		// No package.json
 	}
 

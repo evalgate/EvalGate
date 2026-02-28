@@ -85,7 +85,7 @@ describe("Multiple runs on same evaluation", () => {
 		expect(run3).toBeTruthy();
 
 		// Each run should have its own unique ID
-		const runIds = [run1!.id, run2!.id, run3!.id];
+		const runIds = [run1?.id, run2?.id, run3?.id];
 		expect(new Set(runIds).size).toBe(3);
 
 		// Each run should have exactly 2 test results
@@ -126,16 +126,16 @@ describe("Rapid sequential runs", () => {
 		// All should complete
 		for (const run of runs) {
 			expect(run).toBeTruthy();
-			expect(run!.status).toBe("completed");
+			expect(run?.status).toBe("completed");
 		}
 
 		// All should have unique IDs
-		const ids = runs.map((r) => r!.id);
+		const ids = runs.map((r) => r?.id);
 		expect(new Set(ids).size).toBe(5);
 
 		// Stats should reflect all 5 runs
 		const stats = await evaluationService.getStats(evaluation.id, ORG_ID);
-		expect(stats!.totalRuns).toBe(5);
+		expect(stats?.totalRuns).toBe(5);
 	});
 });
 
@@ -168,8 +168,8 @@ describe("Parallel create and run", () => {
 		// All should complete
 		for (const run of runs) {
 			expect(run).toBeTruthy();
-			expect(run!.status).toBe("completed");
-			expect(run!.totalCases).toBe(1);
+			expect(run?.status).toBe("completed");
+			expect(run?.totalCases).toBe(1);
 		}
 
 		// No cross-contamination: each run belongs to its evaluation
@@ -177,7 +177,7 @@ describe("Parallel create and run", () => {
 			const results = await db
 				.select()
 				.from(testResults)
-				.where(eq(testResults.evaluationRunId, runs[i]!.id));
+				.where(eq(testResults.evaluationRunId, runs[i]?.id));
 			expect(results).toHaveLength(1);
 			expect(results[0].organizationId).toBe(ORG_ID);
 		}

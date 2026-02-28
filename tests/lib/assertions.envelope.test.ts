@@ -143,8 +143,8 @@ describe("assertions envelope invariants", () => {
 		it("normalizes legacy to canonical envelope", () => {
 			const out = normalizeAssertionsForWrite({ pii: false, toxicity: true });
 			expect(out).not.toBeNull();
-			expect(out!.version).toBe("v1");
-			expect(out!.assertions.length).toBeGreaterThan(0);
+			expect(out?.version).toBe("v1");
+			expect(out?.assertions.length).toBeGreaterThan(0);
 		});
 
 		it("validates and drops unknown keys from v1 envelope", () => {
@@ -160,7 +160,7 @@ describe("assertions envelope invariants", () => {
 				],
 			});
 			expect(out).not.toBeNull();
-			expect(out!.assertions.map((a) => a.key)).toEqual(["pii"]);
+			expect(out?.assertions.map((a) => a.key)).toEqual(["pii"]);
 		});
 	});
 });

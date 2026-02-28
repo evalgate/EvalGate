@@ -8,7 +8,7 @@
  *   OPENAI_API_KEY=sk-... npx tsx rag-eval.ts
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 // ── Types ──
@@ -145,7 +145,7 @@ function main(): void {
 
 	writeFileSync(
 		resolve(evalsDir, "eval-results.json"),
-		JSON.stringify(report, null, 2) + "\n",
+		`${JSON.stringify(report, null, 2)}\n`,
 	);
 	console.log("  Wrote evals/eval-results.json\n");
 

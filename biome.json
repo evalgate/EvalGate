@@ -1,12 +1,20 @@
 ﻿{
-  "$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
-  "files": {
-    "ignore": [
-      "**/dist/**",
-      "**/.evalai/**",
-      "**/node_modules/**",
-      "**/*.lock.json",
-      "**/drizzle/meta/**"
-    ]
-  }
+	"$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
+	"files": {
+		"includes": [
+			"**",
+			"!**/.next",
+			"!**/dist",
+			"!**/.evalai",
+			"!**/node_modules",
+			"!**/drizzle/meta",
+			"!**/coverage"
+		]
+	},
+	"css": {
+		"parser": {
+			"cssModules": false,
+			"tailwindDirectives": true
+		}
+	}
 }

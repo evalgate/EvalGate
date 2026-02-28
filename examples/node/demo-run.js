@@ -8,9 +8,9 @@
  *   npm run demo
  */
 
+import fs from "node:fs";
 import { AIEvalClient } from "@pauly4010/evalai-sdk";
 import dotenv from "dotenv";
-import fs from "fs";
 
 // Load environment variables
 dotenv.config();

@@ -1,13 +1,6 @@
 "use client";
 
-import {
-	ArrowRight,
-	Download,
-	Share2,
-	Users,
-	FileText,
-	Link as LinkIcon,
-} from "lucide-react";
+import { ArrowRight, Download, FileText, Share2, Users } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { ThemeToggle } from "@/components/theme-toggle";

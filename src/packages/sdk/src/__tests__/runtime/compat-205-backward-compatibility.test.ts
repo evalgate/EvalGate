@@ -18,7 +18,6 @@ import {
 	disposeActiveRuntime,
 } from "../../runtime/registry";
 import { createRunReport } from "../../runtime/run-report";
-import { createTestSuite } from "../../testing";
 
 describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 	let tempDir: string;
@@ -355,8 +354,8 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 
 		it("should run spec-based tests without config", async () => {
 			// Create runtime and register specs
-			const runtime = createEvalRuntime(specProjectDir);
-			const executor = createLocalExecutor();
+			const _runtime = createEvalRuntime(specProjectDir);
+			const _executor = createLocalExecutor();
 
 			try {
 				// Manually load and register specs (in real implementation, this would be automatic)
@@ -931,19 +930,19 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 
 			try {
 				// Register all specs
-				runtime.runtime.defineEval("high-score", async (context) => {
+				runtime.runtime.defineEval("high-score", async (_context) => {
 					return createResult({ pass: true, score: 95 });
 				});
 
-				runtime.runtime.defineEval("medium-score", async (context) => {
+				runtime.runtime.defineEval("medium-score", async (_context) => {
 					return createResult({ pass: true, score: 75 });
 				});
 
-				runtime.runtime.defineEval("low-score", async (context) => {
+				runtime.runtime.defineEval("low-score", async (_context) => {
 					return createResult({ pass: true, score: 45 });
 				});
 
-				runtime.runtime.defineEval("fail-score", async (context) => {
+				runtime.runtime.defineEval("fail-score", async (_context) => {
 					return createResult({ pass: false, score: 25 });
 				});
 

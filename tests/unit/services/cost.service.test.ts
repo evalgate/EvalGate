@@ -64,6 +64,7 @@ describe("Cost Service", () => {
 						]),
 					}),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			const result = await costService.getById(1);
@@ -106,6 +107,7 @@ describe("Cost Service", () => {
 						}),
 					}),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			const result = await costService.listByWorkflowRun(456);
@@ -124,6 +126,7 @@ describe("Cost Service", () => {
 						}),
 					}),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			await costService.listByWorkflowRun(456, 50);

@@ -47,7 +47,7 @@ export function createDbState(): DbMockState {
  * Returns an object with all the methods that Drizzle query builders have,
  * with a .then() property to make it awaitable.
  */
-export function makeBuilder(result: unknown[]): Record<string, unknown> {
+export function makeBuilder(_result: unknown[]): Record<string, unknown> {
 	const chain = {
 		from: vi.fn(() => chain),
 		where: vi.fn(() => chain),
@@ -136,7 +136,7 @@ export function createDrizzleMock(): Record<string, unknown> {
 		lt: vi.fn(),
 		like: vi.fn(),
 		ilike: vi.fn(),
-		sql: vi.fn((template: any, ...values: any[]) => template),
+		sql: vi.fn((template: any, ..._values: any[]) => template),
 		exists: vi.fn(),
 		isNull: vi.fn(),
 		isNotNull: vi.fn(),

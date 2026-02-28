@@ -122,7 +122,7 @@ describe("EvaluationService business logic", () => {
 			type: "standard",
 		});
 		expect(testCaseInsertValues).toHaveLength(1);
-		expect((testCaseInsertValues![0] as Record<string, unknown>).input).toBe(
+		expect((testCaseInsertValues?.[0] as Record<string, unknown>).input).toBe(
 			"input 2",
 		);
 	});

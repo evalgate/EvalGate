@@ -84,7 +84,7 @@ describe("GET /api/exports/[shareId] contract", () => {
 			});
 			orgs = await db.select().from(organizations).limit(1);
 		}
-		ORG_ID = orgs[0]!.id;
+		ORG_ID = orgs[0]?.id;
 
 		let evals = await db
 			.select({ id: evaluations.id })
@@ -109,7 +109,7 @@ describe("GET /api/exports/[shareId] contract", () => {
 				.where(eq(evaluations.organizationId, ORG_ID))
 				.limit(1);
 		}
-		EVAL_ID = evals[0]!.id;
+		EVAL_ID = evals[0]?.id;
 	});
 
 	afterEach(async () => {
@@ -165,7 +165,7 @@ describe("GET /api/exports/[shareId] contract", () => {
 			.from(sharedExports)
 			.where(eq(sharedExports.shareId, shareId));
 		expect(row).toBeDefined();
-		expect(row!.viewCount).toBe(concurrency);
+		expect(row?.viewCount).toBe(concurrency);
 	});
 
 	it("returns 304 when If-None-Match matches ETag (exportHash)", async () => {

@@ -122,7 +122,7 @@ function collectIndexedColumns(): Map<string, Set<string>> {
 				.split(",")
 				.map((c) => c.trim().replace(/[`"]/g, "").toLowerCase());
 			if (!indexed.has(table)) indexed.set(table, new Set());
-			for (const col of cols) indexed.get(table)!.add(col);
+			for (const col of cols) indexed.get(table)?.add(col);
 			m = indexRe.exec(content);
 		}
 

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-	ArrowRight,
-	Code,
-	GitBranch,
-	Shield,
-	AlertTriangle,
-} from "lucide-react";
+import { AlertTriangle, ArrowRight, Code, GitBranch } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { ThemeToggle } from "@/components/theme-toggle";

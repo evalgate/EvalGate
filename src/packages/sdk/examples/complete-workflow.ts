@@ -29,7 +29,7 @@ async function completeWorkflow() {
 	console.log("=== Step 1: Initialize Client ===");
 	const client = new AIEvalClient({
 		apiKey: process.env.EVALAI_API_KEY!,
-		organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!),
+		organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!, 10),
 		debug: true,
 		// Performance optimizations
 		enableCaching: true,
@@ -245,7 +245,7 @@ async function completeWorkflow() {
 	console.log(`Exported ${Object.keys(exportedData).length} data types`);
 
 	// Save to file
-	const fs = await import("fs");
+	const fs = await import("node:fs");
 	const filename = `evaluation-${Date.now()}.json`;
 	fs.writeFileSync(filename, JSON.stringify(exportedData, null, 2));
 	console.log(`Saved to ${filename}`);
@@ -254,7 +254,7 @@ async function completeWorkflow() {
 }
 
 // Run the workflow
-async function main() {
+async function _main() {
 	try {
 		await completeWorkflow();
 	} catch (error) {

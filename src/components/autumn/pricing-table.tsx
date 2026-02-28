@@ -394,7 +394,10 @@ export const PricingFeatureList = ({
 			)}
 			<div className="space-y-3">
 				{items.map((item) => (
-					<div key={`${item.type}-${item.usage_model}`} className="flex items-start gap-2 text-sm">
+					<div
+						key={`${item.type}-${item.usage_model}`}
+						className="flex items-start gap-2 text-sm"
+					>
 						{/* {showIcon && (
               <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
             )} */}

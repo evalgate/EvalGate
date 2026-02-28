@@ -4,14 +4,12 @@
 
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { diffCore, runDiff } from "../src/cli/diff";
-import type { RunResult } from "../src/cli/run";
 import {
 	makeBaselineReport,
 	makeHeadReport,
 	makeIdenticalReports,
-	makeSpecResult,
 } from "./fixtures/run-report-fixture";
 
 describe("Diff Command", () => {

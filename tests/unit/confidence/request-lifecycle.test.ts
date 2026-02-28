@@ -116,7 +116,7 @@ describe("Error envelope contract", () => {
 		// 3. Request ID present in body
 		expect(body.error).toHaveProperty("requestId");
 		expect(typeof body.error.requestId).toBe("string");
-		expect(body.error.requestId!.length).toBeGreaterThan(0);
+		expect(body.error.requestId?.length).toBeGreaterThan(0);
 
 		// 4. x-request-id header present
 		const headerRequestId = res.headers.get("x-request-id");

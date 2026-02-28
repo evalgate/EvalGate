@@ -41,6 +41,7 @@ async function main() {
 	await loadEnv();
 
 	const orgIdArg = process.argv.find((a) => a.startsWith("--org-id="));
+	// biome-ignore lint/style/noNonNullAssertion: safe assertion
 	const orgIdOverride = orgIdArg ? parseInt(orgIdArg.split("=")[1]!, 10) : null;
 	const dryRun = process.argv.includes("--dry-run");
 
@@ -150,6 +151,7 @@ async function main() {
 
 			await db.insert(sharedExports).values({
 				shareId,
+				// biome-ignore lint/style/noNonNullAssertion: safe assertion
 				organizationId: orgId!,
 				evaluationId: evaluationIdNum,
 				evaluationRunId: null,

@@ -24,7 +24,7 @@ describe("Import idempotency", () => {
 		expect(key1).toBe(key2);
 		expect(key1).toBeDefined();
 		expect(typeof key1).toBe("string");
-		expect(key1!.length).toBe(64);
+		expect(key1?.length).toBe(64);
 	});
 
 	it("different evaluationId produces different key", () => {

@@ -2,12 +2,11 @@
 
 import {
 	ArrowRight,
+	Clock,
+	DollarSign,
+	Settings,
 	Shield,
 	Users,
-	DollarSign,
-	Clock,
-	Settings,
-	CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/footer";

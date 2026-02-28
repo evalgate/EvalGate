@@ -217,7 +217,10 @@ function ProductItems({
 					}
 
 					return (
-						<div key={`${item.feature_id}-${item.type}`} className="flex justify-between">
+						<div
+							key={`${item.feature_id}-${item.type}`}
+							className="flex justify-between"
+						>
 							<p className="text-muted-foreground">
 								{item.feature ? item.feature.name : "Subscription"}
 							</p>
@@ -247,7 +250,7 @@ function CheckoutLines({ checkoutResult }: { checkoutResult: CheckoutResult }) {
 				<AccordionContent className="mt-2 mb-0 pb-2 flex flex-col gap-2">
 					{checkoutResult?.lines
 						.filter((line) => line.amount !== 0)
-						.map((line, index) => {
+						.map((line, _index) => {
 							return (
 								<div key={line.description} className="flex justify-between">
 									<p className="text-muted-foreground">{line.description}</p>

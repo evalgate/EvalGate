@@ -12,7 +12,6 @@ import type {
 	EvalSpec,
 	RuntimeHealth,
 	RuntimeStats,
-	SpecIdentity,
 	SpecSearchCriteria,
 } from "./types";
 import { RuntimeError, SpecRegistrationError } from "./types";
@@ -96,32 +95,6 @@ class EvalRuntimeImpl implements EvalRuntime {
 			.update(path.resolve(projectRoot))
 			.digest("hex")
 			.slice(0, 12);
-	}
-
-	/**
-	 * Generate content-addressable specification ID
-	 * Uses AST position for identity stability with canonical paths
-	 */
-	private generateSpecId(identity: SpecIdentity): string {
-		// Canonicalize path: relative to project root with POSIX separators
-		const projectRoot = process.cwd();
-		const relativePath = path.relative(projectRoot, identity.filePath);
-		const canonicalPath = relativePath.split(path.sep).join("/"); // Force POSIX separators
-
-		const components = [
-			identity.namespace,
-			canonicalPath,
-			identity.name,
-			identity.suitePath || "",
-			`${identity.position.line}:${identity.position.column}`,
-		];
-
-		const content = components.join("|");
-		return crypto
-			.createHash("sha256")
-			.update(content)
-			.digest("hex")
-			.slice(0, 20);
 	}
 
 	/**

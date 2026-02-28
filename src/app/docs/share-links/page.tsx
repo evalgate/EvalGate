@@ -1,11 +1,11 @@
 "use client";
 
 import {
-	ArrowRight,
-	Shield,
-	Eye,
 	AlertTriangle,
+	ArrowRight,
 	CheckCircle,
+	Eye,
+	Shield,
 } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/footer";

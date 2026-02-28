@@ -6,10 +6,9 @@
 
 import * as fs from "node:fs/promises";
 import type { DiffResult } from "./diff";
-import { runDiff, runDiffCLI } from "./diff";
+import { runDiff } from "./diff";
 import { discoverSpecs } from "./discover";
-import { isCI, isGitHubActions } from "./env";
-import { runImpactAnalysis, runImpactAnalysisCLI } from "./impact-analysis";
+import { runImpactAnalysis } from "./impact-analysis";
 import type { RunResult } from "./run";
 import { runEvaluations } from "./run";
 import { resolveEvalWorkspace } from "./workspace";

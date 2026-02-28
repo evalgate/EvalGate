@@ -13,7 +13,7 @@ import {
 	createEvalRuntime,
 	disposeActiveRuntime,
 } from "../../runtime/registry";
-import { createTestSuite, type TestSuite } from "../../testing";
+import { createTestSuite } from "../../testing";
 
 describe("COMPAT-202: Legacy TestSuite → defineEval Adapter", () => {
 	describe("adaptTestSuite function", () => {

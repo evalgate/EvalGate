@@ -274,7 +274,7 @@ async function findBaselineRun(): Promise<RunResult | null> {
 	try {
 		const content = await fs.readFile(workspace.baselinePath, "utf-8");
 		return JSON.parse(content) as RunResult;
-	} catch (error) {
+	} catch (_error) {
 		// Baseline file doesn't exist, try index
 	}
 
@@ -289,7 +289,7 @@ async function findBaselineRun(): Promise<RunResult | null> {
 			const oldestRunId = index[index.length - 1].runId;
 			return await loadRunReport(`.evalai/runs/${oldestRunId}.json`);
 		}
-	} catch (error) {
+	} catch (_error) {
 		// Index doesn't exist
 	}
 
@@ -370,7 +370,9 @@ async function isBranchName(name: string): Promise<boolean> {
 /**
  * Find last run for a branch
  */
-async function findLastRunForBranch(branch: string): Promise<RunResult | null> {
+async function findLastRunForBranch(
+	_branch: string,
+): Promise<RunResult | null> {
 	// For now, just look for .evalai/last-run.json
 	// In a real implementation, this would:
 	// 1. Check CI artifacts for the branch
@@ -382,7 +384,7 @@ async function findLastRunForBranch(branch: string): Promise<RunResult | null> {
 	try {
 		const content = await fs.readFile(lastRunPath, "utf-8");
 		return JSON.parse(content) as RunResult;
-	} catch (error) {
+	} catch (_error) {
 		return null;
 	}
 }
@@ -394,7 +396,7 @@ async function loadRunReport(filePath: string): Promise<RunResult | null> {
 	try {
 		const content = await fs.readFile(path.resolve(filePath), "utf-8");
 		return JSON.parse(content) as RunResult;
-	} catch (error) {
+	} catch (_error) {
 		return null;
 	}
 }
@@ -735,7 +737,7 @@ export async function writeGitHubStepSummary(
 
 	try {
 		const summary = generateGitHubSummary(result);
-		await fs.appendFile(summaryPath, summary + "\n", "utf-8");
+		await fs.appendFile(summaryPath, `${summary}\n`, "utf-8");
 	} catch (error) {
 		console.warn("Warning: Could not write GitHub Step Summary:", error);
 	}

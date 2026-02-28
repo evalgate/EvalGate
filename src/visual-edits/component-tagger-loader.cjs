@@ -4,7 +4,7 @@ exports.default = componentTagger;
 const parser_1 = require("@babel/parser");
 const magic_string_1 = require("magic-string");
 const estree_walker_1 = require("estree-walker");
-const path = require("path");
+const path = require("node:path");
 /* ───────────────────────────────────────────── Blacklists */
 const threeFiberElems = [
 	"object3D",
@@ -395,7 +395,7 @@ const findMapContext = (node, variables) => {
 	}
 	return null;
 };
-const getSemanticName = (node, mapContext, imageAliases) => {
+const getSemanticName = (node, _mapContext, imageAliases) => {
 	const getName = () => {
 		if (node.name.type === "JSXIdentifier") return node.name.name;
 		if (node.name.type === "JSXMemberExpression")

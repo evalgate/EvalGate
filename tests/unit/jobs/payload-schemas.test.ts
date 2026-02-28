@@ -422,7 +422,7 @@ describe("validatePayload", () => {
 			{ data: { key: "value", nested: { deep: true } } },
 		];
 
-		testCases.forEach((testCase, index) => {
+		testCases.forEach((testCase, _index) => {
 			const payload = {
 				webhookId: 1,
 				organizationId: 1,

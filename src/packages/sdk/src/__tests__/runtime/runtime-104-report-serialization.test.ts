@@ -11,7 +11,6 @@ import { createLocalExecutor } from "../../runtime/executor";
 import {
 	createEvalRuntime,
 	disposeActiveRuntime,
-	withRuntime,
 } from "../../runtime/registry";
 import {
 	createRunReport,
@@ -111,7 +110,7 @@ describe("RUNTIME-104: Deterministic Report Serialization", () => {
 			});
 
 			// Add results in random order
-			const testIds = ["z-test", "a-test", "m-test"];
+			const _testIds = ["z-test", "a-test", "m-test"];
 			const results = [
 				{ testId: "z-test", score: 80 },
 				{ testId: "a-test", score: 95 },
@@ -377,15 +376,15 @@ describe("RUNTIME-104: Deterministic Report Serialization", () => {
 			const executor = createLocalExecutor();
 
 			// Define test specs with different outcomes
-			handle.defineEval("pass-test", async (context) => {
+			handle.defineEval("pass-test", async (_context) => {
 				return createResult({ pass: true, score: 95 });
 			});
 
-			handle.defineEval("fail-test", async (context) => {
+			handle.defineEval("fail-test", async (_context) => {
 				return createResult({ pass: false, score: 45 });
 			});
 
-			handle.defineEval("error-test", async (context) => {
+			handle.defineEval("error-test", async (_context) => {
 				throw new Error("Execution error");
 			});
 
@@ -436,12 +435,12 @@ describe("RUNTIME-104: Deterministic Report Serialization", () => {
 			const failFailure = failures.find((f) => f.classification === "failed");
 
 			expect(errorFailure).toBeDefined();
-			expect(errorFailure!.message).toBe("Execution error");
-			expect(errorFailure!.errorEnvelope).toBeDefined();
+			expect(errorFailure?.message).toBe("Execution error");
+			expect(errorFailure?.errorEnvelope).toBeDefined();
 
 			expect(failFailure).toBeDefined();
-			expect(failFailure!.message).toBe("Test failed");
-			expect(failFailure!.errorEnvelope).toBeUndefined();
+			expect(failFailure?.message).toBe("Test failed");
+			expect(failFailure?.errorEnvelope).toBeUndefined();
 		});
 	});
 

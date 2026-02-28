@@ -177,7 +177,7 @@ describe("Rate Limit Wrapper", () => {
 				status: 200,
 				json: async () => ({ success: true }),
 			} as NextResponse;
-			vi.mocked(withRateLimit).mockImplementationOnce(async (req, handler) => {
+			vi.mocked(withRateLimit).mockImplementationOnce(async (_req, handler) => {
 				return await handler();
 			});
 

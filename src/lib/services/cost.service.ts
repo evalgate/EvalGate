@@ -323,7 +323,7 @@ class CostService {
 		// This would need to join with traces to filter by organization
 		// For now, aggregate by date from all cost records
 		const startDateObj = new Date(startDate);
-		const endDateObj = new Date(endDate + "T23:59:59Z");
+		const endDateObj = new Date(`${endDate}T23:59:59Z`);
 
 		const results = await db
 			.select({

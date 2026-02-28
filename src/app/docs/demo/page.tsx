@@ -1,11 +1,11 @@
 "use client";
 
 import {
-	ArrowRight,
-	XCircle,
-	CheckCircle,
 	AlertTriangle,
+	ArrowRight,
 	Camera,
+	CheckCircle,
+	XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/footer";

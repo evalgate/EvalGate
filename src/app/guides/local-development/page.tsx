@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CheckCircle, Download, Play } from "lucide-react";
+import { ArrowRight, CheckCircle, Play } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { ThemeToggle } from "@/components/theme-toggle";

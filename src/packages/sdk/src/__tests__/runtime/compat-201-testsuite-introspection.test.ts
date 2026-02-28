@@ -7,12 +7,7 @@
 
 import { describe, expect, it } from "vitest";
 import { expect as assertion } from "../../assertions";
-import {
-	createTestSuite,
-	type PortableSuite,
-	type TestDefinition,
-	type TestSuite,
-} from "../../testing";
+import { createTestSuite } from "../../testing";
 
 describe("COMPAT-201: Public TestSuite Introspection", () => {
 	describe("getTests() method", () => {

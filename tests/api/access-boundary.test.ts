@@ -60,8 +60,8 @@ describe("Access boundary — cross-tenant isolation", () => {
 			.values({ name: "Tenant B", createdAt: now, updatedAt: now })
 			.returning({ id: organizations.id });
 
-		ORG_A_ID = orgA!.id;
-		ORG_B_ID = orgB!.id;
+		ORG_A_ID = orgA?.id;
+		ORG_B_ID = orgB?.id;
 
 		const [evalA] = await db
 			.insert(evaluations)
@@ -76,7 +76,7 @@ describe("Access boundary — cross-tenant isolation", () => {
 				updatedAt: now,
 			})
 			.returning({ id: evaluations.id });
-		EVAL_A_ID = evalA!.id;
+		EVAL_A_ID = evalA?.id;
 
 		const [runA] = await db
 			.insert(evaluationRuns)
@@ -87,7 +87,7 @@ describe("Access boundary — cross-tenant isolation", () => {
 				createdAt: now,
 			})
 			.returning({ id: evaluationRuns.id });
-		RUN_A_ID = runA!.id;
+		RUN_A_ID = runA?.id;
 	});
 
 	afterEach(() => {

@@ -181,7 +181,7 @@ describe("evalai explain", () => {
 			}
 		});
 		expect(jsonCall).toBeDefined();
-		const output = JSON.parse(jsonCall![0] as string);
+		const output = JSON.parse(jsonCall?.[0] as string);
 		expect(output.verdict).toBe("fail");
 		expect(output.rootCauses).toBeInstanceOf(Array);
 		expect(output.rootCauses.length).toBeGreaterThan(0);
@@ -260,7 +260,7 @@ describe("evalai explain", () => {
 				return false;
 			}
 		});
-		const output = JSON.parse(jsonCall![0] as string);
+		const output = JSON.parse(jsonCall?.[0] as string);
 		expect(output.rootCauses).toContain("safety_regression");
 	});
 });

@@ -81,7 +81,7 @@ describe("Golden Flow: create → run → export → validate", () => {
 		const run = await evaluationService.run(evalId, orgId);
 
 		expect(run).toBeTruthy();
-		expect(run!.status).toBe("completed");
+		expect(run?.status).toBe("completed");
 
 		// Verify run record exists
 		const [runRecord] = await db
@@ -112,8 +112,8 @@ describe("Golden Flow: create → run → export → validate", () => {
 		if (!dbReady) return;
 		const full = await evaluationService.getById(evalId, orgId);
 		expect(full).toBeTruthy();
-		expect(full!.testCases).toHaveLength(3);
-		expect(full!.runs.length).toBeGreaterThanOrEqual(1);
+		expect(full?.testCases).toHaveLength(3);
+		expect(full?.runs.length).toBeGreaterThanOrEqual(1);
 	});
 
 	it("Step 4: constructs and validates an export payload", async () => {
@@ -206,7 +206,7 @@ describe("Golden Flow: create → run → export → validate", () => {
 		if (!dbReady) return;
 		const stats = await evaluationService.getStats(evalId, orgId);
 		expect(stats).toBeTruthy();
-		expect(stats!.totalRuns).toBeGreaterThanOrEqual(1);
-		expect(stats!.totalTestCases).toBe(3);
+		expect(stats?.totalRuns).toBeGreaterThanOrEqual(1);
+		expect(stats?.totalTestCases).toBe(3);
 	});
 });

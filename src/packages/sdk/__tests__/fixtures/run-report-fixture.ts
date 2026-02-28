@@ -160,7 +160,7 @@ export function makeHeadReport(modifications?: {
 	// Remove specs
 	if (modifications?.removeSpecs) {
 		specs = specs.filter(
-			(spec) => !modifications.removeSpecs!.includes(spec.specId),
+			(spec) => !modifications.removeSpecs?.includes(spec.specId),
 		);
 	}
 

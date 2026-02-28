@@ -3,13 +3,7 @@
  * Demonstrates caching, batching, and pagination features
  */
 
-import {
-	AIEvalClient,
-	autoPaginate,
-	CacheTTL,
-	createPaginatedIterator,
-	RequestCache,
-} from "../src";
+import { AIEvalClient, autoPaginate, createPaginatedIterator } from "../src";
 
 /**
  * Example 1: Automatic Request Caching
@@ -18,7 +12,7 @@ import {
 async function exampleCaching() {
 	const client = new AIEvalClient({
 		apiKey: process.env.EVALAI_API_KEY!,
-		organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!),
+		organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!, 10),
 		debug: true,
 	});
 
@@ -82,7 +76,7 @@ async function exampleCacheConfiguration() {
 async function examplePagination() {
 	const client = new AIEvalClient({
 		apiKey: process.env.EVALAI_API_KEY!,
-		organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!),
+		organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!, 10),
 	});
 
 	console.log("\n=== Example 3: Pagination ===");
@@ -139,7 +133,7 @@ async function examplePagination() {
 async function exampleBatching() {
 	const client = new AIEvalClient({
 		apiKey: process.env.EVALAI_API_KEY!,
-		organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!),
+		organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!, 10),
 		enableBatching: true,
 		batchSize: 10,
 		batchDelay: 50, // Wait 50ms to collect more requests
@@ -170,7 +164,7 @@ async function exampleBatching() {
 async function exampleKeepAlive() {
 	const client = new AIEvalClient({
 		apiKey: process.env.EVALAI_API_KEY!,
-		organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!),
+		organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!, 10),
 		keepAlive: true, // Enable connection pooling
 		timeout: 10000,
 	});
@@ -197,7 +191,7 @@ async function exampleKeepAlive() {
 async function exampleCombined() {
 	const client = new AIEvalClient({
 		apiKey: process.env.EVALAI_API_KEY!,
-		organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!),
+		organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!, 10),
 		// Performance settings
 		enableCaching: true,
 		cacheSize: 1000,
@@ -218,7 +212,7 @@ async function exampleCombined() {
 
 	// Efficient pagination with caching
 	let total = 0;
-	for await (const trace of autoPaginate(
+	for await (const _trace of autoPaginate(
 		async (offset, limit) => {
 			return await client.traces.list({ limit, offset });
 		},
@@ -232,7 +226,7 @@ async function exampleCombined() {
 }
 
 // Run all examples
-async function main() {
+async function _main() {
 	try {
 		await exampleCaching();
 		await exampleCacheConfiguration();

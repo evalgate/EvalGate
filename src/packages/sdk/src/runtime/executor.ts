@@ -8,7 +8,6 @@
 import type {
 	EnhancedEvalResult,
 	EvalContext,
-	EvalExecutorInterface,
 	EvalResult,
 	EvalSpec,
 	ExecutionErrorEnvelope,

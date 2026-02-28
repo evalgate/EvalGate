@@ -83,6 +83,7 @@ describe("Webhook Service", () => {
 						]),
 					}),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			const result = await webhookService.list(1);
@@ -118,6 +119,7 @@ describe("Webhook Service", () => {
 						]),
 					}),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			const result = await webhookService.getById(1, 1);
@@ -146,6 +148,7 @@ describe("Webhook Service", () => {
 						},
 					]),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			const data: CreateWebhookInput = {
@@ -180,6 +183,7 @@ describe("Webhook Service", () => {
 						},
 					]),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			const data: CreateWebhookInput = {
@@ -216,6 +220,7 @@ describe("Webhook Service", () => {
 						]),
 					}),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			vi.mocked(mockDb.db.delete).mockReturnValueOnce({
@@ -233,6 +238,7 @@ describe("Webhook Service", () => {
 						},
 					]),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			const result = await webhookService.delete(1, 1);
@@ -250,6 +256,7 @@ describe("Webhook Service", () => {
 						limit: vi.fn().mockResolvedValueOnce([]),
 					}),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			const result = await webhookService.delete(999, 1);
@@ -277,6 +284,7 @@ describe("Webhook Service", () => {
 						},
 					]),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			const { enqueue } = await import("@/lib/jobs/enqueue");
@@ -308,6 +316,7 @@ describe("Webhook Service", () => {
 						},
 					]),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			const result = await webhookService.trigger(1, "evaluation.created", {
@@ -324,6 +333,7 @@ describe("Webhook Service", () => {
 				from: vi.fn().mockReturnValueOnce({
 					where: vi.fn().mockResolvedValueOnce([]),
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: test mock
 			} as any);
 
 			const result = await webhookService.trigger(1, "evaluation.created", {

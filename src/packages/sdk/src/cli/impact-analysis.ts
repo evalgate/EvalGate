@@ -98,7 +98,7 @@ async function readManifest(
 	try {
 		const content = await fs.readFile(manifestPath, "utf-8");
 		return JSON.parse(content) as EvaluationManifest;
-	} catch (error) {
+	} catch (_error) {
 		return null;
 	}
 }
@@ -166,7 +166,7 @@ export function analyzeImpact(
 		if (!specsByFile.has(spec.filePath)) {
 			specsByFile.set(spec.filePath, []);
 		}
-		specsByFile.get(spec.filePath)!.push(spec);
+		specsByFile.get(spec.filePath)?.push(spec);
 
 		// By dependencies
 		const deps = [
@@ -180,7 +180,7 @@ export function analyzeImpact(
 			if (!specsByDependency.has(dep)) {
 				specsByDependency.set(dep, []);
 			}
-			specsByDependency.get(dep)!.push(spec);
+			specsByDependency.get(dep)?.push(spec);
 		}
 	}
 

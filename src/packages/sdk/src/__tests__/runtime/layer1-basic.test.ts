@@ -15,7 +15,6 @@ import {
 	disposeActiveRuntime,
 	getActiveRuntime,
 } from "../../runtime/eval";
-import type { EvalResult, EvalSpec } from "../../runtime/types";
 
 describe("LAYER 1: Runtime Foundation", () => {
 	beforeEach(() => {
@@ -31,7 +30,7 @@ describe("LAYER 1: Runtime Foundation", () => {
 	describe("defineEval DSL", () => {
 		it("should register a basic specification", () => {
 			// Define a simple specification
-			defineEval("basic test", async (context) => {
+			defineEval("basic test", async (_context) => {
 				return createResult({
 					pass: true,
 					score: 100,
@@ -65,7 +64,7 @@ describe("LAYER 1: Runtime Foundation", () => {
 		it("should support configuration options", () => {
 			defineEval(
 				"configured test",
-				async (context) => {
+				async (_context) => {
 					return createResult({
 						pass: true,
 						score: 90,
@@ -89,7 +88,7 @@ describe("LAYER 1: Runtime Foundation", () => {
 		});
 
 		it("should use content-addressable IDs", () => {
-			defineEval("identity test", async (context) => {
+			defineEval("identity test", async (_context) => {
 				return createResult({ pass: true, score: 100 });
 			});
 
@@ -115,7 +114,7 @@ describe("LAYER 1: Runtime Foundation", () => {
 		});
 
 		it("should prevent multiple active runtimes", () => {
-			const runtime1 = createEvalRuntime();
+			const _runtime1 = createEvalRuntime();
 
 			expect(() => {
 				const runtime2 = createEvalRuntime();
@@ -124,7 +123,7 @@ describe("LAYER 1: Runtime Foundation", () => {
 		});
 
 		it("should provide health metrics", () => {
-			defineEval("health test", async (context) => {
+			defineEval("health test", async (_context) => {
 				return createResult({ pass: true, score: 100 });
 			});
 
@@ -164,7 +163,7 @@ describe("LAYER 1: Runtime Foundation", () => {
 		it("should handle execution timeouts", async () => {
 			defineEval(
 				"timeout test",
-				async (context) => {
+				async (_context) => {
 					// Simulate long-running operation
 					await new Promise((resolve) => setTimeout(resolve, 2000));
 					return createResult({ pass: true, score: 100 });
@@ -186,7 +185,7 @@ describe("LAYER 1: Runtime Foundation", () => {
 		});
 
 		it("should handle executor errors gracefully", async () => {
-			defineEval("error test", async (context) => {
+			defineEval("error test", async (_context) => {
 				throw new Error("Test execution failed");
 			});
 

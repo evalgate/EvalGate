@@ -151,8 +151,8 @@ export function computeIAA(annotations: AnnotationRecord[]): IAAResult {
 		const _key = String(cat);
 		if (!byItem.has(a.itemId)) byItem.set(a.itemId, []);
 		byItem
-			.get(a.itemId)!
-			.push({ annotatorId: a.annotatorId, category: String(cat) });
+			.get(a.itemId)
+			?.push({ annotatorId: a.annotatorId, category: String(cat) });
 		annotators.add(a.annotatorId);
 	});
 

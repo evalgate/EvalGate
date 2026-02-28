@@ -10,12 +10,8 @@ import { createLocalExecutor } from "../../runtime/executor";
 import {
 	createEvalRuntime,
 	disposeActiveRuntime,
-	withRuntime,
 } from "../../runtime/registry";
-import type {
-	EnhancedEvalResult,
-	ExecutionErrorEnvelope,
-} from "../../runtime/types";
+import type { EnhancedEvalResult } from "../../runtime/types";
 
 describe("RUNTIME-103: Safe Error Boundaries", () => {
 	beforeEach(() => {
@@ -32,7 +28,7 @@ describe("RUNTIME-103: Safe Error Boundaries", () => {
 			const executor = createLocalExecutor();
 
 			// Define a spec that throws an error
-			handle.defineEval("error-test", async (context) => {
+			handle.defineEval("error-test", async (_context) => {
 				throw new Error("Test execution error");
 			});
 
@@ -70,7 +66,7 @@ describe("RUNTIME-103: Safe Error Boundaries", () => {
 			// Define a spec that times out
 			handle.defineEval(
 				"timeout-test",
-				async (context) => {
+				async (_context) => {
 					// Simulate long-running operation
 					await new Promise((resolve) => setTimeout(resolve, 2000));
 					return createResult({ pass: true, score: 100 });
@@ -109,7 +105,7 @@ describe("RUNTIME-103: Safe Error Boundaries", () => {
 			const executor = createLocalExecutor();
 
 			// Define a spec that throws a string
-			handle.defineEval("string-error-test", async (context) => {
+			handle.defineEval("string-error-test", async (_context) => {
 				throw "String error message";
 			});
 
@@ -139,7 +135,7 @@ describe("RUNTIME-103: Safe Error Boundaries", () => {
 			const handle = createEvalRuntime();
 			const executor = createLocalExecutor();
 
-			handle.defineEval("passed-test", async (context) => {
+			handle.defineEval("passed-test", async (_context) => {
 				return createResult({ pass: true, score: 95 });
 			});
 
@@ -159,7 +155,7 @@ describe("RUNTIME-103: Safe Error Boundaries", () => {
 			const handle = createEvalRuntime();
 			const executor = createLocalExecutor();
 
-			handle.defineEval("failed-test", async (context) => {
+			handle.defineEval("failed-test", async (_context) => {
 				return createResult({ pass: false, score: 45 });
 			});
 
@@ -181,7 +177,7 @@ describe("RUNTIME-103: Safe Error Boundaries", () => {
 
 			handle.defineEval(
 				"timeout-classify-test",
-				async (context) => {
+				async (_context) => {
 					await new Promise((resolve) => setTimeout(resolve, 500));
 					return createResult({ pass: true, score: 100 });
 				},
@@ -206,7 +202,7 @@ describe("RUNTIME-103: Safe Error Boundaries", () => {
 			const handle = createEvalRuntime();
 			const executor = createLocalExecutor();
 
-			handle.defineEval("error-classify-test", async (context) => {
+			handle.defineEval("error-classify-test", async (_context) => {
 				throw new Error("Classification test error");
 			});
 
@@ -229,15 +225,15 @@ describe("RUNTIME-103: Safe Error Boundaries", () => {
 			const executor = createLocalExecutor();
 
 			// Define multiple specs, some that throw
-			handle.defineEval("good-spec-1", async (context) => {
+			handle.defineEval("good-spec-1", async (_context) => {
 				return createResult({ pass: true, score: 100 });
 			});
 
-			handle.defineEval("bad-spec", async (context) => {
+			handle.defineEval("bad-spec", async (_context) => {
 				throw new Error("This should not crash the runner");
 			});
 
-			handle.defineEval("good-spec-2", async (context) => {
+			handle.defineEval("good-spec-2", async (_context) => {
 				return createResult({ pass: true, score: 90 });
 			});
 
@@ -271,7 +267,7 @@ describe("RUNTIME-103: Safe Error Boundaries", () => {
 			const originalError = new Error("Original error details");
 			originalError.stack = "Original stack trace";
 
-			handle.defineEval("preserve-error-test", async (context) => {
+			handle.defineEval("preserve-error-test", async (_context) => {
 				throw originalError;
 			});
 
@@ -298,15 +294,15 @@ describe("RUNTIME-103: Safe Error Boundaries", () => {
 			const executor = createLocalExecutor();
 
 			// Define specs with mixed outcomes
-			handle.defineEval("mixed-pass", async (context) => {
+			handle.defineEval("mixed-pass", async (_context) => {
 				return createResult({ pass: true, score: 100 });
 			});
 
-			handle.defineEval("mixed-fail", async (context) => {
+			handle.defineEval("mixed-fail", async (_context) => {
 				return createResult({ pass: false, score: 30 });
 			});
 
-			handle.defineEval("mixed-error", async (context) => {
+			handle.defineEval("mixed-error", async (_context) => {
 				throw new Error("Mixed error");
 			});
 
@@ -327,7 +323,7 @@ describe("RUNTIME-103: Safe Error Boundaries", () => {
 			const failures = results.filter((r) => r.classification === "error");
 			expect(failures).toHaveLength(1);
 			expect(failures[0].errorEnvelope).toBeDefined();
-			expect(failures[0].errorEnvelope!.classification).toBe("execution_error");
+			expect(failures[0].errorEnvelope?.classification).toBe("execution_error");
 
 			// Runner should not have crashed - we have results for all specs
 			expect(results).toHaveLength(3);

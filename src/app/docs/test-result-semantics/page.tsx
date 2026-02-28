@@ -1,12 +1,12 @@
 "use client";
 
 import {
+	AlertCircle,
 	ArrowRight,
 	CheckCircle,
-	XCircle,
-	AlertCircle,
 	Code,
 	Database,
+	XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/footer";

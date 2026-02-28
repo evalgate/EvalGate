@@ -5,10 +5,10 @@
  * without forcing migration. Enables lossless where possible.
  */
 
-import type { PortableSuite, TestDefinition, TestSuite } from "../../testing";
+import type { TestDefinition, TestSuite } from "../../testing";
 import { createResult } from "../eval";
 import { createEvalRuntime, disposeActiveRuntime } from "../registry";
-import type { EvalExecutor, EvalSpec, SpecConfig } from "../types";
+import type { EvalExecutor, EvalSpec } from "../types";
 
 /**
  * Adapter configuration options
@@ -45,7 +45,7 @@ export function adaptTestSuite(
 	const config = suite.getConfig();
 
 	// Create a temporary runtime for spec generation
-	const runtime = createEvalRuntime();
+	const _runtime = createEvalRuntime();
 	const specs: EvalSpec[] = [];
 
 	try {
@@ -236,7 +236,7 @@ export function generateDefineEvalCode(
 		"",
 	];
 
-	const specCode = specs.map((spec, index) => {
+	const specCode = specs.map((spec, _index) => {
 		const helperCode = generateHelperFunctions(spec, options);
 
 		return [

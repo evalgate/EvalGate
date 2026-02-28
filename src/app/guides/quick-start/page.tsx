@@ -58,8 +58,9 @@ jobs:
           path: .evalai/`}</pre>
 							</div>
 							<p className="text-sm text-muted-foreground">
-								That&apos;s it! Your CI now automatically discovers specs, runs only impacted tests, 
-								compares against baseline, and posts rich summaries in PRs.
+								That&apos;s it! Your CI now automatically discovers specs, runs
+								only impacted tests, compares against baseline, and posts rich
+								summaries in PRs.
 							</p>
 						</CardContent>
 					</Card>

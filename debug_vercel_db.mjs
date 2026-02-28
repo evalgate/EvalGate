@@ -4,7 +4,7 @@ import postgres from "postgres";
 const url = process.env.DATABASE_URL;
 
 console.log("=== VERCEL DB DEBUG ===");
-console.log("URL:", url ? url.substring(0, 40) + "..." : "(NOT SET)");
+console.log("URL:", url ? `${url.substring(0, 40)}...` : "(NOT SET)");
 
 if (!url) {
 	console.error("❌ Missing DATABASE_URL");

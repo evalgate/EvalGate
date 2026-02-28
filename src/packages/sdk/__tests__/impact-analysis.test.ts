@@ -4,7 +4,7 @@
 
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { analyzeImpact, runImpactAnalysis } from "../src/cli/impact-analysis";
 import type { EvaluationManifest } from "../src/cli/manifest";
 
@@ -217,7 +217,7 @@ describe("Impact Analysis", () => {
 
 		// Unknown file should trigger safe fallback
 		expect(result.impactedSpecIds).toEqual(["spec1", "spec2", "spec3"]);
-		expect(result.reasonBySpecId["spec1"]).toContain("safe fallback");
+		expect(result.reasonBySpecId.spec1).toContain("safe fallback");
 	});
 
 	it("should handle complex dependency scenarios", async () => {

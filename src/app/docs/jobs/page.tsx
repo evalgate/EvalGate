@@ -1,14 +1,6 @@
 "use client";
 
-import {
-	ArrowRight,
-	Clock,
-	Database,
-	Zap,
-	AlertTriangle,
-	CheckCircle,
-	RefreshCw,
-} from "lucide-react";
+import { ArrowRight, CheckCircle, Clock, Database, Zap } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { ThemeToggle } from "@/components/theme-toggle";

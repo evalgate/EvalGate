@@ -125,7 +125,7 @@ describe("Run with zero test cases", () => {
 		const run = await evaluationService.run(eval1.id, ORG_ID);
 		expect(run).toBeTruthy();
 		// Should mark as completed with no failures
-		expect(run!.status).toBe("completed");
+		expect(run?.status).toBe("completed");
 	});
 });
 
@@ -263,17 +263,17 @@ describe("Idempotency: duplicate create does not corrupt", () => {
 
 		expect(run1).toBeTruthy();
 		expect(run2).toBeTruthy();
-		expect(run1!.id).not.toBe(run2!.id);
+		expect(run1?.id).not.toBe(run2?.id);
 
 		// Each run's results are independent
 		const results1 = await db
 			.select()
 			.from(testResults)
-			.where(eq(testResults.evaluationRunId, run1!.id));
+			.where(eq(testResults.evaluationRunId, run1?.id));
 		const results2 = await db
 			.select()
 			.from(testResults)
-			.where(eq(testResults.evaluationRunId, run2!.id));
+			.where(eq(testResults.evaluationRunId, run2?.id));
 
 		expect(results1).toHaveLength(1);
 		expect(results2).toHaveLength(1);

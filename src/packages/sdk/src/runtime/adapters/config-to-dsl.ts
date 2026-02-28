@@ -8,13 +8,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { TestSuite, TestSuiteCase, TestSuiteConfig } from "../../testing";
-import { createResult, defineEval } from "../eval";
-import {
-	createEvalRuntime,
-	disposeActiveRuntime,
-	setActiveRuntime,
-} from "../registry";
-import type { EvalSpec } from "../types";
+import { createEvalRuntime, disposeActiveRuntime } from "../registry";
 
 /**
  * Configuration file structure (existing evalai.config.json)
@@ -56,10 +50,10 @@ export function migrateTestSuiteToDSL(
 
 	try {
 		// Create isolated runtime for migration
-		const runtime = createEvalRuntime();
+		const _runtime = createEvalRuntime();
 
 		// Use the runtime handle to define specs
-		const boundDefineEval = (
+		const _boundDefineEval = (
 			nameOrConfig: any,
 			executor?: any,
 			options?: any,
@@ -101,7 +95,7 @@ export function migrateTestSuiteToDSL(
  * Extract data from TestSuite instance
  * This is a workaround for the private properties
  */
-function extractTestSuiteData(testSuite: TestSuite): {
+function extractTestSuiteData(_testSuite: TestSuite): {
 	name: string;
 	cases: TestSuiteCase[];
 	config: TestSuiteConfig;
@@ -149,10 +143,10 @@ export function migrateConfigToDSL(
 		const config: EvalAIConfig = JSON.parse(configContent);
 
 		// Create isolated runtime for migration
-		const runtime = createEvalRuntime();
+		const _runtime = createEvalRuntime();
 
 		// Use the runtime handle to define specs
-		const boundDefineEval = (
+		const _boundDefineEval = (
 			nameOrConfig: any,
 			executor?: any,
 			options?: any,

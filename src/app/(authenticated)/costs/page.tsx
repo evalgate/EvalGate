@@ -618,8 +618,11 @@ export default function CostsPage() {
 														paddingAngle={2}
 														dataKey="value"
 													>
-														{pieChartData.map((entry, index) => (
-															<Cell key={`cell-${index}`} fill={entry.color} />
+														{pieChartData.map((entry) => (
+															<Cell
+																key={`cell-${entry.name}`}
+																fill={entry.color}
+															/>
 														))}
 													</Pie>
 													<Tooltip

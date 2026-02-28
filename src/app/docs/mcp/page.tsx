@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Zap, Settings, Code, Shield } from "lucide-react";
+import { ArrowRight, Code, Settings, Shield, Zap } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { ThemeToggle } from "@/components/theme-toggle";

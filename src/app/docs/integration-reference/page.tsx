@@ -1,13 +1,6 @@
 "use client";
 
-import {
-	ArrowRight,
-	Code,
-	Package,
-	GitBranch,
-	Zap,
-	BookOpen,
-} from "lucide-react";
+import { ArrowRight, Code, GitBranch, Package, Zap } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { ThemeToggle } from "@/components/theme-toggle";

@@ -233,7 +233,7 @@ export function WebMCPProvider() {
 		// Register all tools
 		for (const tool of tools) {
 			try {
-				const unregister = navigator.modelContext!.registerTool(tool);
+				const unregister = navigator.modelContext?.registerTool(tool);
 				unregisterFns.current.push(unregister);
 			} catch (err) {
 				console.warn(`[WebMCP] Failed to register tool: ${tool.name}`, err);

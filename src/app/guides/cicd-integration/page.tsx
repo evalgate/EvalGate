@@ -88,7 +88,8 @@ export default function CICDIntegrationGuidePage() {
 							🚀 One-Command CI Setup (EvalAI 1.9.0)
 						</h2>
 						<p className="mb-4 text-sm sm:text-base text-muted-foreground">
-							With EvalAI 1.9.0, you get a complete CI pipeline in a single command:
+							With EvalAI 1.9.0, you get a complete CI pipeline in a single
+							command:
 						</p>
 						<div className="rounded-md bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 p-4 sm:p-4 mb-6">
 							<code className="text-xs sm:text-sm">
@@ -131,7 +132,9 @@ jobs:
 							</div>
 							<div className="flex items-center gap-2 text-sm">
 								<CheckCircle2 className="h-4 w-4 text-green-500" />
-								<span>Exits with proper codes (0=clean, 1=regressions, 2=config)</span>
+								<span>
+									Exits with proper codes (0=clean, 1=regressions, 2=config)
+								</span>
 							</div>
 						</div>
 					</section>
@@ -141,7 +144,8 @@ jobs:
 							Legacy Setup (Pre-1.9.0)
 						</h2>
 						<p className="mb-4 text-sm sm:text-base text-muted-foreground">
-							For existing workflows, you can use the traditional regression gate:
+							For existing workflows, you can use the traditional regression
+							gate:
 						</p>
 						<p className="mb-2 text-sm sm:text-base text-muted-foreground">
 							<strong>Option A: Zero-config</strong> — run{" "}

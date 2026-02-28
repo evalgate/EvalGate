@@ -60,7 +60,7 @@ export class SSEServer {
 			if (!this.channels.has(channel)) {
 				this.channels.set(channel, new Set());
 			}
-			this.channels.get(channel)!.add(clientId);
+			this.channels.get(channel)?.add(clientId);
 		}
 
 		logger.info("SSE client connected", { clientId, organizationId, channels });
@@ -102,7 +102,7 @@ export class SSEServer {
 		if (!this.channels.has(channel)) {
 			this.channels.set(channel, new Set());
 		}
-		this.channels.get(channel)!.add(clientId);
+		this.channels.get(channel)?.add(clientId);
 
 		logger.info("Client subscribed to channel", { clientId, channel });
 	}

@@ -124,12 +124,16 @@ function DecisionNode({
 			onClick={onClick}
 			role={onClick ? "button" : undefined}
 			tabIndex={onClick ? 0 : undefined}
-			onKeyDown={onClick ? (e) => {
-				if (e.key === "Enter" || e.key === " ") {
-					e.preventDefault();
-					onClick();
-				}
-			} : undefined}
+			onKeyDown={
+				onClick
+					? (e) => {
+							if (e.key === "Enter" || e.key === " ") {
+								e.preventDefault();
+								onClick();
+							}
+						}
+					: undefined
+			}
 		>
 			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
 				<div className="p-4">
@@ -351,7 +355,7 @@ export function DecisionComparison({
 			</div>
 
 			<div className="space-y-3">
-				{allOptions.map((option, i) => (
+				{allOptions.map((option, _i) => (
 					<div
 						key={`${option.action}-${option.confidence}-${option.isChosen}`}
 						className={cn(

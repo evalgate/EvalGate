@@ -161,7 +161,7 @@ export function DebugPanel({ evaluationId, runId, onClose }: DebugPanelProps) {
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="space-y-2">
-									{analysis.failurePatterns.map((fp, i) => (
+									{analysis.failurePatterns.map((fp, _i) => (
 										<div
 											key={`${fp.category}-${fp.pattern}`}
 											className="flex items-center justify-between py-2 border-b border-zinc-800 last:border-0"
@@ -218,7 +218,10 @@ export function DebugPanel({ evaluationId, runId, onClose }: DebugPanelProps) {
 								</CardHeader>
 								<CardContent className="space-y-3">
 									{analysis.suggestedFixes.map((fix, i) => (
-										<div key={`fix-${fix.type}-${i}`} className="p-3 bg-zinc-800/50 rounded-lg">
+										<div
+											key={`fix-${fix.type}-${i}`}
+											className="p-3 bg-zinc-800/50 rounded-lg"
+										>
 											<div className="flex items-center justify-between mb-1">
 												<span className="text-xs">
 													{fixTypeIcon[fix.type] || "💡"}{" "}
