@@ -25,3 +25,17 @@ defineEval({
     return { pass: true, score: 0.88 };
   },
 });
+
+// New spec added for testing impact analysis
+defineEval({
+  name: "should-validate-input-format",
+  description: "Test evaluation for input validation",
+  tags: ["validation", "safety"],
+  dependsOn: {
+    datasets: ["datasets/validation.json"],
+    prompts: ["prompts/validation.md"],
+  },
+  async executor() {
+    return { pass: true, score: 0.92 };
+  },
+});
