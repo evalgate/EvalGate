@@ -7,20 +7,20 @@ import { HomeScreenshots } from "@/components/home-screenshots";
 import { InteractivePlayground } from "@/components/interactive-playground";
 
 export const metadata: Metadata = {
-	title: "AI Evaluation Platform - Build Confidence in Your AI Systems",
+	title: "EvalAI - Stop LLM Regressions in CI in 2 Minutes",
 	description:
-		"Comprehensive evaluation platform for testing, monitoring, and improving LLM applications. From unit tests to human feedback loops. Try demos instantly—no signup required.",
+		"EvalAI is CI for AI behavior. Stop LLM regressions before they reach production. No infra. No lock-in. 1.4k+ npm downloads/month. TypeScript & Python SDKs.",
 	openGraph: {
-		title: "AI Evaluation Platform - Build Confidence in Your AI Systems",
+		title: "EvalAI - Stop LLM Regressions in CI in 2 Minutes",
 		description:
-			"Comprehensive evaluation platform for testing, monitoring, and improving LLM applications.",
+			"EvalAI is CI for AI behavior. Stop LLM regressions before they reach production. No infra. No lock-in.",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "AI Evaluation Platform - Build Confidence in Your AI Systems",
+		title: "EvalAI - Stop LLM Regressions in CI in 2 Minutes",
 		description:
-			"Comprehensive evaluation platform for testing, monitoring, and improving LLM applications.",
+			"EvalAI is CI for AI behavior. Stop LLM regressions before they reach production. No infra. No lock-in.",
 	},
 };
 

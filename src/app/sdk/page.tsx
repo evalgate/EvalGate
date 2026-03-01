@@ -8,20 +8,20 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-	title: "SDK Quick Start - AI Evaluation Platform",
+	title: "SDK Quick Start - EvalAI | CI for AI Behavior",
 	description:
-		"EvalAI 1.9.1: One-command CI workflow with complete evaluation pipeline. Production-ready TypeScript SDK for evaluating, tracing, and monitoring your LLM applications.",
+		"EvalAI 1.9.1: CI for AI behavior. One-command CI workflow, TypeScript & Python SDKs. 1.4k+ npm downloads/month. Stop LLM regressions before they reach production.",
 	openGraph: {
-		title: "SDK Quick Start - AI Evaluation Platform",
+		title: "SDK Quick Start - EvalAI | CI for AI Behavior",
 		description:
-			"EvalAI 1.9.1: One-command CI workflow with complete evaluation pipeline. Production-ready TypeScript SDK for evaluating, tracing, and monitoring your LLM applications.",
+			"EvalAI 1.9.1: CI for AI behavior. One-command CI workflow, TypeScript & Python SDKs. Stop LLM regressions before they reach production.",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "SDK Quick Start - AI Evaluation Platform",
+		title: "SDK Quick Start - EvalAI | CI for AI Behavior",
 		description:
-			"EvalAI 1.9.1: One-command CI workflow with complete evaluation pipeline. Production-ready TypeScript SDK for evaluating, tracing, and monitoring your LLM applications.",
+			"EvalAI 1.9.1: CI for AI behavior. One-command CI workflow, TypeScript & Python SDKs. Stop LLM regressions before they reach production.",
 	},
 };
 
@@ -206,19 +206,20 @@ npx evalai check --format github --onFail import`;
 				<div className="space-y-10">
 					{/* Hero */}
 					<div className="space-y-4">
-						<div className="flex items-center gap-2">
-							<Badge variant="secondary">TypeScript & Python SDKs</Badge>
+						<div className="flex flex-wrap items-center gap-2">
+							<Badge variant="secondary">CI for AI behavior</Badge>
+							<Badge variant="outline">TypeScript & Python</Badge>
 							<Badge variant="outline">20+ Assertions</Badge>
-							<Badge variant="outline">CLI Tools</Badge>
+							<Badge variant="outline">1.4k+ npm/month</Badge>
 							<Badge variant="default">EvalAI 1.9.1</Badge>
 						</div>
 						<h1 className="text-4xl font-bold tracking-tight">
 							SDK Quick Start
 						</h1>
 						<p className="text-xl text-muted-foreground">
-							EvalAI 1.9.1: One-command CI workflow with complete evaluation
-							pipeline. Evaluate, trace, and monitor your LLM applications with
-							built-in assertions designed for AI outputs
+							EvalAI is CI for AI behavior. One-command CI workflow with
+							complete evaluation pipeline. Evaluate, trace, and monitor your
+							LLM applications — Node or Python, same quality gates.
 						</p>
 					</div>
 

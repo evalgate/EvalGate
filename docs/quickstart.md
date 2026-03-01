@@ -2,6 +2,8 @@
 
 Get from zero to a complete CI evaluation pipeline in under 60 seconds.
 
+**EvalAI is CI for AI behavior.** LLMs drift silently — a prompt tweak can degrade quality by 15% and you won't notice until users complain. EvalAI turns evaluations into CI gates so regressions never reach production.
+
 ## Step 1: One-Command CI (30 seconds)
 
 Add this to your `.github/workflows/evalai.yml`:
@@ -122,6 +124,31 @@ npx @pauly4010/evalai-sdk impact-analysis --base main
 # Explain failures
 npx @pauly4010/evalai-sdk explain --report .evalai/last-run.json
 ```
+
+## Python Quickstart
+
+```bash
+pip install pauly4010-evalai-sdk
+```
+
+```python
+from evalai_sdk import expect
+
+result = expect("The capital of France is Paris.").to_contain("Paris")
+print(result.passed)  # True
+```
+
+No API key needed for local assertions. For platform traces and evaluations:
+
+```python
+from evalai_sdk import AIEvalClient
+from evalai_sdk.types import CreateTraceParams
+
+client = AIEvalClient(api_key="sk-...")
+trace = await client.traces.create(CreateTraceParams(name="chat-quality"))
+```
+
+See [Python SDK README](../src/packages/sdk-python/README.md) for full parity: assertions, test suites, OpenAI/Anthropic tracing, and regression gates.
 
 ## Legacy Mode (Optional)
 

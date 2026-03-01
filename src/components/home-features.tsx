@@ -42,8 +42,9 @@ export const HomeFeatures = memo(function HomeFeatures() {
 					Everything You Need to Evaluate AI
 				</h2>
 				<p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+					CI for AI behavior. Node & Python SDKs. 1.4k+ npm downloads/month.
 					From development to production, get comprehensive insights into your
-					AI systems
+					AI systems.
 				</p>
 				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto">
 					{FEATURES.map((feature) => (

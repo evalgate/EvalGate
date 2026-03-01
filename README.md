@@ -2,7 +2,9 @@
 
 [![Platform CI](https://github.com/pauly7610/ai-evaluation-platform/actions/workflows/platform-ci.yml/badge.svg)](https://github.com/pauly7610/ai-evaluation-platform/actions/workflows/platform-ci.yml)
 [![npm](https://img.shields.io/npm/v/@pauly4010/evalai-sdk?style=flat-square&logo=npm&color=cb3837)](https://www.npmjs.com/package/@pauly4010/evalai-sdk)
+[![npm downloads](https://img.shields.io/npm/dm/@pauly4010/evalai-sdk?style=flat-square&logo=npm)](https://www.npmjs.com/package/@pauly4010/evalai-sdk)
 [![PyPI](https://img.shields.io/pypi/v/pauly4010-evalai-sdk?style=flat-square&logo=python&color=3776ab)](https://pypi.org/project/pauly4010-evalai-sdk/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/pauly4010-evalai-sdk?style=flat-square&logo=pypi)](https://pypi.org/project/pauly4010-evalai-sdk/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/pauly7610/ai-evaluation-platform/pulls)
 
@@ -10,7 +12,15 @@ Stop LLM regressions in CI in 2 minutes.
 
 No infra. No lock-in. Remove anytime.
 
+**EvalAI = CI for AI behavior.** Block regressions before they reach production.
+
+## Why EvalAI?
+
+LLMs don't fail like traditional software — they drift silently. A prompt tweak or model swap can degrade quality by 15% and you won't notice until users complain. EvalAI turns evaluations into CI gates so regressions never reach production.
+
 ## Quick Start
+
+### Node.js
 
 ```bash
 npx @pauly4010/evalai-sdk init
@@ -18,6 +28,27 @@ git push
 ```
 
 That's it. `evalai init` detects your Node project, runs your tests to create a baseline, installs a GitHub Actions workflow, and prints what to commit. Open a PR and CI blocks regressions automatically.
+
+### Python
+
+```bash
+pip install pauly4010-evalai-sdk
+```
+
+```python
+from evalai_sdk import AIEvalClient, expect
+from evalai_sdk.types import CreateTraceParams
+
+# Local assertions — no API key needed
+result = expect("The capital of France is Paris.").to_contain("Paris")
+print(result.passed)  # True
+
+# Platform: trace and evaluate with API key
+client = AIEvalClient(api_key="sk-...")
+trace = await client.traces.create(CreateTraceParams(name="chat-quality"))
+```
+
+Same CI gate, same quality checks. Python SDK has full parity with TypeScript: assertions, test suites, OpenAI/Anthropic tracing, and regression gates.
 
 ## What happens on a PR?
 
@@ -91,6 +122,8 @@ No account cancellation. No data export. Your tests keep working.
 
 **Live demo:** [https://v0-ai-evaluation-platform-nu.vercel.app](https://v0-ai-evaluation-platform-nu.vercel.app)
 
+Open source. Production-ready. **1.4k+ npm downloads/month** · Used by developers building AI systems that ship to production.
+
 ## Platform Readiness
 
 | Capability                                                                                      | Status              |
@@ -140,6 +173,8 @@ jobs:
 ---
 
 ## Key Features
+
+> **EvalAI is CI for AI behavior.** Same gates, same quality checks — whether you use Node, Python, or the REST API.
 
 ### Regression Gate
 

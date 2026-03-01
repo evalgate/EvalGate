@@ -16,13 +16,20 @@ export function HomeHero() {
 	return (
 		<section className="py-20 sm:py-32 text-center">
 			<div className="container mx-auto px-4 max-w-5xl">
+				<p className="text-sm font-medium text-primary mb-3 uppercase tracking-wider">
+					EvalAI = CI for AI behavior
+				</p>
 				<h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-					Build Confidence in Your{" "}
-					<span className="text-primary">AI Systems</span>
+					Stop LLM Regressions in CI in{" "}
+					<span className="text-primary">2 Minutes</span>
 				</h1>
-				<p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-					Comprehensive evaluation platform for testing, monitoring, and
-					improving LLM applications. From unit tests to human feedback loops.
+				<p className="text-lg sm:text-xl text-muted-foreground mb-4 max-w-3xl mx-auto">
+					No infra. No lock-in. Remove anytime.
+				</p>
+				<p className="text-base text-muted-foreground mb-8 max-w-2xl mx-auto">
+					LLMs drift silently — a prompt tweak can degrade quality by 15% and
+					you won&apos;t notice until users complain. EvalAI turns evaluations
+					into CI gates so regressions never reach production.
 				</p>
 				<div className="flex flex-col sm:flex-row gap-4 justify-center">
 					{session?.user ? (

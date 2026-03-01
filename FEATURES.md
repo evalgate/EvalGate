@@ -1,5 +1,7 @@
 # Features
 
+**EvalAI is CI for AI behavior.** Block regressions before they reach production — Node, Python, or REST API.
+
 ## Status Key
 
 | Badge | Meaning |
@@ -67,7 +69,7 @@
 
 ### 1. Catch LLM Regressions in CI Before They Reach Production
 
-**Problem:** Your team ships a prompt change that silently degrades answer quality by 15%. Users notice before you do.
+**Problem:** LLMs don't fail like traditional software — they drift silently. Your team ships a prompt change that silently degrades answer quality by 15%. Users notice before you do.
 
 **Solution:** `evalai init` scaffolds a regression gate in your CI pipeline. Every PR runs your evaluation suite and blocks merges when quality drops below the baseline.
 

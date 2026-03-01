@@ -18,10 +18,9 @@ import { WebMCPProvider } from "@/components/webmcp-provider";
 import VisualEditsMessenger from "../visual-edits/VisualEditsMessenger";
 
 export const metadata: Metadata = {
-	title:
-		"AI Evaluation Platform — Observability, Evaluation & Governance for AI Agents",
+	title: "EvalAI — Stop LLM Regressions in CI in 2 Minutes",
 	description:
-		"Open-source platform for multi-agent workflow tracing, LLM cost analytics, decision auditing, and governance. Published TypeScript SDK on npm (@pauly4010/evalai-sdk) and Python SDK on PyPI (pauly4010-evalai-sdk). Integrates with LangChain, CrewAI, AutoGen.",
+		"EvalAI is CI for AI behavior. Stop LLM regressions before they reach production. No infra. No lock-in. 1.4k+ npm downloads/month. TypeScript & Python SDKs. Integrates with LangChain, CrewAI, AutoGen.",
 	generator: "EvalAI",
 	keywords: [
 		"ai evaluation",

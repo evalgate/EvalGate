@@ -22,8 +22,13 @@ export default function QuickStartPage() {
 					{/* Hero */}
 					<div className="mb-12">
 						<h1 className="text-4xl font-bold mb-4">Quick Start Guide</h1>
-						<p className="text-xl text-muted-foreground">
+						<p className="text-xl text-muted-foreground mb-2">
 							Get started with the EvalAI SDK in under 5 minutes
+						</p>
+						<p className="text-muted-foreground">
+							<strong>EvalAI is CI for AI behavior.</strong> LLMs drift silently
+							— EvalAI turns evaluations into CI gates so regressions never
+							reach production.
 						</p>
 					</div>
 
@@ -112,6 +117,42 @@ git push                           # open a PR → CI blocks regressions`}</pre>
 									</code>
 								</div>
 							</div>
+						</CardContent>
+					</Card>
+
+					{/* Python Quickstart */}
+					<Card className="mb-8 bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<Rocket className="h-5 w-5 text-amber-500" />
+								Python Quickstart
+							</CardTitle>
+							<CardDescription>
+								Same CI gate, same quality checks. Full parity with TypeScript.
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
+								<pre>{`pip install pauly4010-evalai-sdk`}</pre>
+							</div>
+							<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
+								<pre>{`from evalai_sdk import expect
+
+result = expect("The capital of France is Paris.").to_contain("Paris")
+print(result.passed)  # True`}</pre>
+							</div>
+							<p className="text-sm text-muted-foreground">
+								No API key needed for local assertions. For platform traces and
+								evaluations, use{" "}
+								<code className="bg-muted px-1.5 py-0.5 rounded">
+									AIEvalClient
+								</code>
+								. See{" "}
+								<Link href="/sdk" className="text-primary hover:underline">
+									SDK page
+								</Link>{" "}
+								for full Python examples.
+							</p>
 						</CardContent>
 					</Card>
 
