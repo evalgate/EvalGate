@@ -85,10 +85,10 @@ export default function CICDIntegrationGuidePage() {
 
 					<section className="mb-8 sm:mb-12">
 						<h2 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-semibold">
-							🚀 One-Command CI Setup (EvalAI 1.9.0)
+							🚀 One-Command CI Setup (EvalAI 1.9.1)
 						</h2>
 						<p className="mb-4 text-sm sm:text-base text-muted-foreground">
-							With EvalAI 1.9.0, you get a complete CI pipeline in a single
+							With EvalAI 1.9.1, you get a complete CI pipeline in a single
 							command:
 						</p>
 						<div className="rounded-md bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 p-4 sm:p-4 mb-6">
@@ -141,7 +141,7 @@ jobs:
 
 					<section className="mb-8 sm:mb-12">
 						<h2 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-semibold">
-							Legacy Setup (Pre-1.9.0)
+							Legacy Setup (Pre-1.9.1)
 						</h2>
 						<p className="mb-4 text-sm sm:text-base text-muted-foreground">
 							For existing workflows, you can use the traditional regression

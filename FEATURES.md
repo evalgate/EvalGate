@@ -41,7 +41,7 @@
 ### Developer Experience
 | Feature | Status |
 |---------|--------|
-| TypeScript SDK (`@pauly4010/evalai-sdk`) | Production (v1.9.0) |
+| TypeScript SDK (`@pauly4010/evalai-sdk`) | Production (v1.9.1) |
 | Python SDK (`pauly4010-evalai-sdk`) | Production |
 | CLI (12 commands) | Production |
 | API key auth (scoped, hashed) | Production |

@@ -25,7 +25,7 @@ EvalAI is an open-source AI Evaluation Platform for building, testing, and monit
 ## Package Info
 
 - **npm**: `@pauly4010/evalai-sdk`
-- **Version**: 1.7.0
+- **Version**: 1.9.1
 - **License**: MIT
 - **Node**: >=18.0.0
 - **GitHub**: https://github.com/pauly7610/ai-evaluation-platform

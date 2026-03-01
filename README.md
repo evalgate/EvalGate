@@ -96,7 +96,7 @@ No account cancellation. No data export. Your tests keep working.
 | Capability                                                                                      | Status              |
 | ----------------------------------------------------------------------------------------------- | ------------------- |
 | CI regression gate (`evalai ci`, `evalai gate`)                                                 | Production          |
-| TypeScript SDK ([`@pauly4010/evalai-sdk`](https://www.npmjs.com/package/@pauly4010/evalai-sdk)) | Production (v1.9.0) |
+| TypeScript SDK ([`@pauly4010/evalai-sdk`](https://www.npmjs.com/package/@pauly4010/evalai-sdk)) | Production (v1.9.1) |
 | Python SDK ([`pauly4010-evalai-sdk`](https://pypi.org/project/pauly4010-evalai-sdk/))           | Production          |
 | Multi-tenant auth & RBAC                                                                        | Production          |
 | Evaluation engine (50+ templates, 4 types)                                                      | Production          |

@@ -65,7 +65,7 @@ That's it! Your CI now:
 
 ---
 
-## 🚀 New in v1.9.0: One-Command CI
+## 🚀 New in v1.9.1: One-Command CI
 
 ### `evalai ci` - Complete CI Pipeline
 
@@ -116,7 +116,7 @@ Every failure prints a clear next step:
 
 ## CLI Commands
 
-### 🚀 One-Command CI (v1.9.0)
+### 🚀 One-Command CI (v1.9.1)
 
 | Command | Description |
 |---------|-------------|

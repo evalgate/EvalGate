@@ -73,7 +73,7 @@ pip install pauly4010-evalai-sdk
 
 ## CLI Commands
 
-### 🚀 One-Command CI (v1.9.0)
+### 🚀 One-Command CI (v1.9.1)
 
 ```bash
 npx evalai ci --format github --write-results --base main    # Complete CI pipeline

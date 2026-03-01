@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 /**
  * Pre-release validation — run before tagging a release.
- * Usage: npx tsx scripts/release-preflight.ts 1.9.0
+ * Usage: npx tsx scripts/release-preflight.ts 1.9.1
  */
 import { readFileSync } from "node:fs";
 

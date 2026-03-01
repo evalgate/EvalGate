@@ -10,18 +10,18 @@ import { Card } from "@/components/ui/card";
 export const metadata: Metadata = {
 	title: "SDK Quick Start - AI Evaluation Platform",
 	description:
-		"EvalAI 1.9.0: One-command CI workflow with complete evaluation pipeline. Production-ready TypeScript SDK for evaluating, tracing, and monitoring your LLM applications.",
+		"EvalAI 1.9.1: One-command CI workflow with complete evaluation pipeline. Production-ready TypeScript SDK for evaluating, tracing, and monitoring your LLM applications.",
 	openGraph: {
 		title: "SDK Quick Start - AI Evaluation Platform",
 		description:
-			"EvalAI 1.9.0: One-command CI workflow with complete evaluation pipeline. Production-ready TypeScript SDK for evaluating, tracing, and monitoring your LLM applications.",
+			"EvalAI 1.9.1: One-command CI workflow with complete evaluation pipeline. Production-ready TypeScript SDK for evaluating, tracing, and monitoring your LLM applications.",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "SDK Quick Start - AI Evaluation Platform",
 		description:
-			"EvalAI 1.9.0: One-command CI workflow with complete evaluation pipeline. Production-ready TypeScript SDK for evaluating, tracing, and monitoring your LLM applications.",
+			"EvalAI 1.9.1: One-command CI workflow with complete evaluation pipeline. Production-ready TypeScript SDK for evaluating, tracing, and monitoring your LLM applications.",
 	},
 };
 
@@ -210,25 +210,25 @@ npx evalai check --format github --onFail import`;
 							<Badge variant="secondary">TypeScript & Python SDKs</Badge>
 							<Badge variant="outline">20+ Assertions</Badge>
 							<Badge variant="outline">CLI Tools</Badge>
-							<Badge variant="default">EvalAI 1.9.0</Badge>
+							<Badge variant="default">EvalAI 1.9.1</Badge>
 						</div>
 						<h1 className="text-4xl font-bold tracking-tight">
 							SDK Quick Start
 						</h1>
 						<p className="text-xl text-muted-foreground">
-							EvalAI 1.9.0: One-command CI workflow with complete evaluation
+							EvalAI 1.9.1: One-command CI workflow with complete evaluation
 							pipeline. Evaluate, trace, and monitor your LLM applications with
 							built-in assertions designed for AI outputs
 						</p>
 					</div>
 
-					{/* One-Command CI (EvalAI 1.9.0) */}
+					{/* One-Command CI (EvalAI 1.9.1) */}
 					<section className="space-y-4">
 						<div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-lg p-6">
 							<div className="flex items-center gap-2 mb-3">
 								<Sparkles className="h-5 w-5 text-blue-500" />
 								<h2 className="text-xl font-semibold">
-									🚀 One-Command CI (New in 1.9.0)
+									🚀 One-Command CI (New in 1.9.1)
 								</h2>
 							</div>
 							<p className="text-muted-foreground mb-4">

@@ -27,12 +27,12 @@ export default function QuickStartPage() {
 						</p>
 					</div>
 
-					{/* One-Command CI (EvalAI 1.9.0) */}
+					{/* One-Command CI (EvalAI 1.9.1) */}
 					<Card className="mb-8 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<Rocket className="h-5 w-5 text-blue-500" />
-								One-Command CI (EvalAI 1.9.0)
+								One-Command CI (EvalAI 1.9.1)
 							</CardTitle>
 							<CardDescription>
 								Complete CI pipeline in a single command. No config needed.

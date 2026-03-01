@@ -169,8 +169,8 @@ describe("ReportCardsService", () => {
 			expect(report.passRate).toBeCloseTo(66.67, 1);
 			// (100+150+200)/3 = 150
 			expect(report.averageDuration).toBe(150);
-			// The service maps test results and sets metadata to {}, so cost extraction returns 0
-			expect(report.totalCost).toBe(0);
+			// Cost extracted from test result metadata: 0.05 + 0.05 + 0.10 = 0.2
+			expect(report.totalCost).toBe(0.2);
 
 			// Score distribution
 			expect(report.performance.scoreDistribution["81-100"]).toBe(1); // the 90
