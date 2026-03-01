@@ -1,13 +1,11 @@
 /**
- * Unit test for middleware nonce-based CSP.
+ * Unit test for middleware security headers and CSP.
  * Runs in unit lane — no DB imports.
  */
 import { describe, expect, it, vi } from "vitest";
 
-// Mock the polyfill import (no-op in tests)
 vi.mock("@/lib/polyfill-global", () => ({}));
 
-// Minimal NextRequest/NextResponse mocks
 class MockHeaders {
 	private store = new Map<string, string>();
 	get(key: string) {
@@ -33,20 +31,11 @@ class MockHeaders {
 vi.mock("next/server", () => {
 	return {
 		NextResponse: {
-			next: vi.fn(({ request }: { request?: { headers?: unknown } } = {}) => {
-				const res = {
-					headers: new MockHeaders(),
-					_requestHeaders: request?.headers,
-				};
-				return res;
+			next: vi.fn(() => {
+				return { headers: new MockHeaders() };
 			}),
 		},
 	};
-});
-
-// Mock crypto.randomUUID for deterministic nonce
-vi.stubGlobal("crypto", {
-	randomUUID: vi.fn(() => "test-nonce-uuid-1234"),
 });
 
 import { middleware } from "../../middleware";
@@ -62,30 +51,22 @@ describe("middleware", () => {
 		return { req, cleanup: () => Object.assign(process.env, originalEnv) };
 	}
 
-	it("should generate a nonce and include it in CSP header", () => {
+	it("should include unsafe-inline in script-src for Next.js hydration", () => {
 		const { req } = createMockRequest();
 		const response = middleware(req);
 		const csp = response.headers.get("content-security-policy");
-		expect(csp).toContain("'nonce-test-nonce-uuid-1234'");
-	});
-
-	it("should not include unsafe-inline in script-src", () => {
-		const { req } = createMockRequest();
-		const response = middleware(req);
-		const csp = response.headers.get("content-security-policy");
-		// Extract script-src directive
 		const scriptSrc = csp
 			?.split(";")
 			.find((d: string) => d.trim().startsWith("script-src"));
 		expect(scriptSrc).toBeDefined();
-		expect(scriptSrc).not.toContain("'unsafe-inline'");
+		expect(scriptSrc).toContain("'unsafe-inline'");
 	});
 
-	it("should include strict-dynamic in script-src", () => {
+	it("should include Vercel analytics domain in script-src", () => {
 		const { req } = createMockRequest();
 		const response = middleware(req);
 		const csp = response.headers.get("content-security-policy");
-		expect(csp).toContain("'strict-dynamic'");
+		expect(csp).toContain("https://va.vercel-scripts.com");
 	});
 
 	it("should keep unsafe-inline in style-src", () => {
@@ -135,11 +116,21 @@ describe("middleware", () => {
 		cleanup();
 	});
 
-	it("should pass nonce via x-nonce request header", () => {
+	it("should set Permissions-Policy header", () => {
 		const { req } = createMockRequest();
 		const response = middleware(req);
-		// The nonce should be forwarded on the request headers for layout.tsx
-		const requestHeaders = (response as any)._requestHeaders;
-		expect(requestHeaders).toBeDefined();
+		expect(response.headers.get("permissions-policy")).toContain("camera=()");
+	});
+
+	it("should set HSTS in production", () => {
+		const { req, cleanup } = createMockRequest({
+			NODE_ENV: "production",
+			VERCEL_ENV: "production",
+		});
+		const response = middleware(req);
+		expect(response.headers.get("strict-transport-security")).toContain(
+			"max-age=31536000",
+		);
+		cleanup();
 	});
 });
