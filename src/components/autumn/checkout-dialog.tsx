@@ -24,6 +24,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { getCheckoutContent } from "@/lib/autumn/checkout-content";
+import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 
 export interface CheckoutDialogProps {
@@ -333,13 +334,13 @@ const PrepaidItem = ({
 			});
 
 			if (error) {
-				console.error(error);
+				logger.error("Checkout error", error);
 				return;
 			}
 			// biome-ignore lint/style/noNonNullAssertion: safe assertion
 			setCheckoutResult(data!);
 		} catch (error) {
-			console.error(error);
+			logger.error("Checkout submission error", error);
 		} finally {
 			setLoading(false);
 			setOpen(false);

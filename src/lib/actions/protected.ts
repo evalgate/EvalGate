@@ -3,6 +3,7 @@
 
 import { cookies } from "next/headers";
 import { requireAuthWithOrg } from "@/lib/autumn-server";
+import { logger } from "@/lib/logger";
 
 /**
  * Wrapper for server actions that enforces authentication and organization scoping.
@@ -49,7 +50,7 @@ export function protectedAction<TArgs extends unknown[], TReturn>(
 
 			return { success: true, data: result };
 		} catch (error: unknown) {
-			console.error("Protected action error:", error);
+			logger.error("Protected action error", error);
 			const errorMessage =
 				error instanceof Error ? error.message : String(error);
 			return { success: false, error: errorMessage || "Internal server error" };

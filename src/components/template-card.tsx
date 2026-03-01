@@ -37,8 +37,8 @@ export function TemplateCard({ template }: { template: EvaluationTemplate }) {
 		setTimeout(() => setCopied(false), 2000);
 	};
 
-	const getDifficultyColor = (difficulty: string) => {
-		switch (difficulty) {
+	const getComplexityColor = (complexity: string) => {
+		switch (complexity) {
 			case "beginner":
 				return "bg-green-500/10 text-green-700 dark:text-green-400";
 			case "intermediate":
@@ -77,8 +77,8 @@ export function TemplateCard({ template }: { template: EvaluationTemplate }) {
 								{getCategoryIcon(template.category)}
 							</div>
 							<div className="flex flex-col gap-1">
-								<Badge className={getDifficultyColor(template.difficulty)}>
-									{template.difficulty}
+								<Badge className={getComplexityColor(template.complexity)}>
+									{template.complexity}
 								</Badge>
 							</div>
 						</div>
@@ -113,8 +113,8 @@ export function TemplateCard({ template }: { template: EvaluationTemplate }) {
 								{template.description}
 							</DialogDescription>
 						</div>
-						<Badge className={getDifficultyColor(template.difficulty)}>
-							{template.difficulty}
+						<Badge className={getComplexityColor(template.complexity)}>
+							{template.complexity}
 						</Badge>
 					</div>
 				</DialogHeader>

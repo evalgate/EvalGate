@@ -2,6 +2,7 @@ import { Autumn as autumn } from "autumn-js";
 import { NextResponse } from "next/server";
 import { internalError, unauthorized } from "@/lib/api/errors";
 import { auth } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: Request) {
 	const session = await auth.api.getSession({ headers: request.headers });
@@ -13,7 +14,9 @@ export async function POST(request: Request) {
 	let body = {};
 	try {
 		body = await request.json();
-	} catch {}
+	} catch {
+		logger.warn("Failed to parse billing portal request body");
+	}
 
 	const { returnUrl } = body as { returnUrl?: string };
 
@@ -23,10 +26,9 @@ export async function POST(request: Request) {
 		});
 
 		if ("error" in result) {
-			console.error(
-				"Billing portal error:",
-				result.error?.message || "Unknown error",
-			);
+			logger.error("Billing portal error", {
+				error: result.error?.message || "Unknown error",
+			});
 			return internalError("Failed to generate billing portal URL");
 		}
 
@@ -34,7 +36,7 @@ export async function POST(request: Request) {
 
 		return NextResponse.json({ url }, { status: 200 });
 	} catch (err: unknown) {
-		console.error("Billing portal error:", err);
+		logger.error("Billing portal error", err);
 		return internalError("Failed to generate billing portal URL");
 	}
 }

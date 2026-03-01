@@ -20,6 +20,7 @@ import {
 	type TestResult,
 	validateDemoData,
 } from "@/lib/demo-loader";
+import { logger } from "@/lib/logger";
 
 type PageProps = {
 	params: Promise<{ id: string }>;
@@ -55,7 +56,7 @@ export default function SharePage({ params }: PageProps) {
 				setDemo(result.data);
 			} catch (err) {
 				setError("Failed to load demo");
-				console.error(err);
+				logger.error("Failed to load shared demo", err);
 			} finally {
 				setLoading(false);
 			}

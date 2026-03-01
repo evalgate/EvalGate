@@ -74,7 +74,7 @@ export default defineConfig({
 				"src/debug-db.ts",
 				"src/debug_vercel_db.mjs",
 				"src/db/seeds/**",
-				"src/lib/trace-linked/**",
+				"			src/lib/trace-linked/**",
 			],
 		},
 	},

@@ -5,6 +5,7 @@
 
 import { db } from "@/db";
 import { apiUsageLogs } from "@/db/schema";
+import { logger } from "@/lib/logger";
 
 export async function trackMcpToolExecution(params: {
 	toolName: string;
@@ -26,7 +27,6 @@ export async function trackMcpToolExecution(params: {
 			createdAt: new Date(),
 		});
 	} catch (err) {
-		// Fire-and-forget; don't block the response
-		console.error("MCP usage tracking failed", err);
+		logger.warn("MCP usage tracking failed", { error: err });
 	}
 }

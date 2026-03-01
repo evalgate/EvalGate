@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useSession } from "@/lib/auth-client";
 import { getPricingTableContent } from "@/lib/autumn/pricing-table-content";
+import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 
 export default function PricingTable({
@@ -124,7 +125,7 @@ export default function PricingTable({
 												}
 											}
 										} catch (e) {
-											console.error(e);
+											logger.error("Pricing table portal error", e);
 										}
 										return;
 									}
@@ -433,7 +434,7 @@ export const PricingCardButton = React.forwardRef<
 		try {
 			await onClick?.(e);
 		} catch (error) {
-			console.error(error);
+			logger.error("Pricing table button click error", error);
 		} finally {
 			setLoading(false);
 		}

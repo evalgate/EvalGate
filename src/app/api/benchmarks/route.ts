@@ -1,12 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import {
-	internalError,
-	quotaExceeded,
-	zodValidationError,
-} from "@/lib/api/errors";
+import { internalError, zodValidationError } from "@/lib/api/errors";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
-import { checkFeature, trackFeature } from "@/lib/autumn-server";
+import { guardFeature, trackFeature } from "@/lib/autumn-server";
 import { logger } from "@/lib/logger";
 import { benchmarkService } from "@/lib/services/benchmark.service";
 
@@ -58,21 +54,12 @@ export const GET = secureRoute(
 
 export const POST = secureRoute(
 	async (req: NextRequest, ctx: AuthContext) => {
-		const featureCheck = await checkFeature({
-			userId: ctx.userId,
-			featureId: "benchmarks",
-			requiredBalance: 1,
-		});
-
-		if (!featureCheck.allowed) {
-			return quotaExceeded(
-				"Benchmarks limit reached. Upgrade your plan to increase quota.",
-				{
-					featureId: "benchmarks",
-					remaining: featureCheck.remaining || 0,
-				},
-			);
-		}
+		const benchmarkGuard = await guardFeature(
+			ctx.userId,
+			"benchmarks",
+			"Benchmarks limit reached. Upgrade your plan to increase quota.",
+		);
+		if (benchmarkGuard) return benchmarkGuard;
 
 		try {
 			const body = await req.json();

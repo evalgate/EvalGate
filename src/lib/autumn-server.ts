@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { and, eq, isNull } from "drizzle-orm";
+import type { NextResponse } from "next/server";
 import { db } from "@/db";
 import {
 	apiKeys,
@@ -7,12 +8,14 @@ import {
 	organizations,
 	session,
 } from "@/db/schema";
+import { quotaExceeded } from "@/lib/api/errors";
 import {
 	type AuthType,
 	normalizeRole,
 	type Role,
 } from "@/lib/api/secure-route";
 import { scopesForRole } from "@/lib/auth/scopes";
+import { logger } from "@/lib/logger";
 
 /**
  * Server-side Autumn feature checking and tracking
@@ -136,7 +139,7 @@ export async function validateSession(
 			apiKeyId: apiKey.id,
 		};
 	} catch (error) {
-		console.error("Session validation error:", error);
+		logger.error("Session validation error", error);
 		return { valid: false, error: "Session validation failed" };
 	}
 }
@@ -182,12 +185,35 @@ export async function checkFeature(params: CheckFeatureParams): Promise<{
 			remaining: data.remaining,
 		};
 	} catch (error) {
-		console.error("Feature check error:", error);
+		logger.error("Feature check error", error);
 		return {
 			allowed: false,
 			error: "Feature check failed",
 		};
 	}
+}
+
+/**
+ * Guard a route behind a feature entitlement.
+ * Returns a 403 NextResponse if the feature quota is exhausted, or `null` if allowed.
+ *
+ * Usage inside a secureRoute handler:
+ *   const blocked = await guardFeature(ctx.userId, "traces", "Traces limit reached.");
+ *   if (blocked) return blocked;
+ */
+export async function guardFeature(
+	userId: string,
+	featureId: string,
+	limitMessage: string,
+): Promise<NextResponse | null> {
+	const result = await checkFeature({ userId, featureId, requiredBalance: 1 });
+	if (!result.allowed) {
+		return quotaExceeded(limitMessage, {
+			featureId,
+			remaining: result.remaining ?? 0,
+		});
+	}
+	return null;
 }
 
 /**
@@ -227,7 +253,7 @@ export async function trackFeature(params: TrackFeatureParams): Promise<{
 
 		return { success: true };
 	} catch (error) {
-		console.error("Feature tracking error:", error);
+		logger.error("Feature tracking error", error);
 		return {
 			success: false,
 			error: "Feature tracking failed",

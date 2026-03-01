@@ -4,6 +4,7 @@
  */
 
 import type { QualityScore } from "@/lib/ai-quality-score";
+import { logger } from "@/lib/logger";
 
 interface TestResult {
 	id?: number | string;
@@ -53,7 +54,7 @@ export async function getDefaultDemo(): Promise<DemoEvaluation | null> {
 
 		return await res.json();
 	} catch (error) {
-		console.error("Error loading default demo:", error);
+		logger.error("Error loading default demo", error);
 		return null;
 	}
 }
@@ -92,7 +93,7 @@ export async function getPublicDemo(id: string): Promise<GetPublicDemoResult> {
 		const data = await res.json();
 		return { data };
 	} catch (error) {
-		console.error(`Error loading demo ${id}:`, error);
+		logger.error("Error loading demo", { error, demoId: id });
 		return { data: null, error: "not_found" };
 	}
 }
@@ -115,7 +116,7 @@ export async function getPublicDemos(): Promise<DemoEvaluation[]> {
 		const index = await res.json();
 		return index.demos || [];
 	} catch (error) {
-		console.error("Error loading public demos:", error);
+		logger.error("Error loading public demos", error);
 		return [];
 	}
 }

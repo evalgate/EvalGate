@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 
 interface LeaderboardEntry {
@@ -77,7 +78,7 @@ export function ArenaLeaderboard({
 			const data = await response.json();
 			setLeaderboard(data);
 		} catch (error) {
-			console.error("Leaderboard fetch error:", error);
+			logger.error("Leaderboard fetch error", error);
 		} finally {
 			setIsLoading(false);
 		}

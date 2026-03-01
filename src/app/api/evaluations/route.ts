@@ -1,15 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { evaluations, testCases } from "@/db/schema";
-import {
-	internalError,
-	notFound,
-	quotaExceeded,
-	validationError,
-} from "@/lib/api/errors";
+import { internalError, notFound, validationError } from "@/lib/api/errors";
 import { parseBody } from "@/lib/api/parse";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
-import { checkFeature, trackFeature } from "@/lib/autumn-server";
+import { guardFeature, trackFeature } from "@/lib/autumn-server";
 import { logger } from "@/lib/logger";
 import { evaluationService } from "@/lib/services/evaluation.service";
 import {
@@ -77,33 +72,19 @@ export const GET = secureRoute(
 );
 
 export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
-	const featureCheck = await checkFeature({
-		userId: ctx.userId,
-		featureId: "projects",
-		requiredBalance: 1,
-	});
+	const projectGuard = await guardFeature(
+		ctx.userId,
+		"projects",
+		"Projects limit reached. Upgrade your plan to increase quota.",
+	);
+	if (projectGuard) return projectGuard;
 
-	if (!featureCheck.allowed) {
-		return quotaExceeded(
-			"Projects limit reached. Upgrade your plan to increase quota.",
-			{
-				featureId: "projects",
-				remaining: featureCheck.remaining ?? 0,
-			},
-		);
-	}
-
-	const orgLimitCheck = await checkFeature({
-		userId: ctx.userId,
-		featureId: "evals_per_project",
-		requiredBalance: 1,
-	});
-
-	if (!orgLimitCheck.allowed) {
-		return quotaExceeded(
-			"You've reached your evaluation limit for this organization. Please upgrade your plan.",
-		);
-	}
+	const orgGuard = await guardFeature(
+		ctx.userId,
+		"evals_per_project",
+		"You've reached your evaluation limit for this organization. Please upgrade your plan.",
+	);
+	if (orgGuard) return orgGuard;
 
 	const parsed = await parseBody(req, createEvaluationBodySchema);
 	if (!parsed.ok) return parsed.response;
@@ -239,10 +220,11 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 
 		return NextResponse.json(newEvaluation, { status: 201 });
 	} catch (error) {
-		logger.error(
-			{ error, route: "/api/evaluations", method: "POST" },
-			"Error creating evaluation",
-		);
+		logger.error("Error creating evaluation", {
+			error,
+			route: "/api/evaluations",
+			method: "POST",
+		});
 		return internalError("Failed to create evaluation");
 	}
 });

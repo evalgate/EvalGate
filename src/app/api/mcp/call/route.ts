@@ -108,7 +108,7 @@ export const POST = secureRoute(
 				);
 			} else {
 				statusCode = 500;
-				logger.error({ toolName, requestId, err }, "MCP tool crashed");
+				logger.error("MCP tool crashed", { toolName, requestId, err });
 				response = NextResponse.json(
 					{
 						ok: false,

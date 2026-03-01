@@ -1,6 +1,13 @@
 /**
- * Evaluation Templates Library
- * Copy/paste ready templates for common AI evaluation scenarios
+ * Evaluation Templates Library — Featured Templates
+ *
+ * 7 copy-paste-ready templates for common AI evaluation scenarios.
+ * These are the "quick start" templates shown on the public /templates page.
+ *
+ * A separate catalog of 39 templates with richer metadata (icons, judge prompts,
+ * human-eval criteria) lives in `@/lib/evaluation-templates/`. The two systems
+ * are unified at the API layer via SerializedTemplate in the
+ * /api/evaluation-templates route.
  */
 
 export interface EvaluationTemplate {
@@ -8,7 +15,7 @@ export interface EvaluationTemplate {
 	name: string;
 	description: string;
 	category: "chatbot" | "rag" | "code-gen" | "content" | "classification";
-	difficulty: "beginner" | "intermediate" | "advanced";
+	complexity: "beginner" | "intermediate" | "advanced";
 	estimatedTime: string;
 	code: string;
 	testCases: Array<{
@@ -27,7 +34,7 @@ export const evaluationTemplates: EvaluationTemplate[] = [
 		description:
 			"Evaluate if your chatbot provides accurate and helpful responses",
 		category: "chatbot",
-		difficulty: "beginner",
+		complexity: "beginner",
 		estimatedTime: "2 minutes",
 		code: `import { AIEvalClient } from '@pauly4010/evalai-sdk';
 
@@ -107,7 +114,7 @@ Total: 0-100 points`,
 		description:
 			"Test if your chatbot refuses harmful requests and stays on-topic",
 		category: "chatbot",
-		difficulty: "intermediate",
+		complexity: "intermediate",
 		estimatedTime: "5 minutes",
 		code: `import { AIEvalClient } from '@pauly4010/evalai-sdk';
 
@@ -181,7 +188,7 @@ Target: 100% pass rate`,
 		description:
 			"Detect when your RAG system makes up information not in the source",
 		category: "rag",
-		difficulty: "intermediate",
+		complexity: "intermediate",
 		estimatedTime: "5 minutes",
 		code: `import { AIEvalClient } from '@pauly4010/evalai-sdk';
 
@@ -255,7 +262,7 @@ Target: 100% accuracy (no hallucinations)`,
 		name: "RAG Context Relevance",
 		description: "Ensure your RAG system retrieves relevant context",
 		category: "rag",
-		difficulty: "advanced",
+		complexity: "advanced",
 		estimatedTime: "10 minutes",
 		code: `import { AIEvalClient } from '@pauly4010/evalai-sdk';
 
@@ -318,7 +325,7 @@ Score (0-10):\`;
 		name: "Code Generation Correctness",
 		description: "Test if generated code actually works",
 		category: "code-gen",
-		difficulty: "advanced",
+		complexity: "advanced",
 		estimatedTime: "10 minutes",
 		code: `import { AIEvalClient } from '@pauly4010/evalai-sdk';
 import { execSync } from 'child_process';
@@ -381,7 +388,7 @@ async function runCodeTests(code: string): Promise<boolean> {
 		name: "Content Quality Evaluation",
 		description: "Evaluate generated content for quality and tone",
 		category: "content",
-		difficulty: "beginner",
+		complexity: "beginner",
 		estimatedTime: "3 minutes",
 		code: `import { AIEvalClient } from '@pauly4010/evalai-sdk';
 
@@ -438,7 +445,7 @@ async function evaluateContent() {
 		name: "Sentiment Classification",
 		description: "Test sentiment analysis accuracy",
 		category: "classification",
-		difficulty: "beginner",
+		complexity: "beginner",
 		estimatedTime: "2 minutes",
 		code: `import { AIEvalClient } from '@pauly4010/evalai-sdk';
 
@@ -503,12 +510,12 @@ export function getTemplatesByCategory(
 }
 
 /**
- * Get templates by difficulty
+ * Get templates by complexity level
  */
-export function getTemplatesByDifficulty(
-	difficulty: EvaluationTemplate["difficulty"],
+export function getTemplatesByComplexity(
+	complexity: EvaluationTemplate["complexity"],
 ): EvaluationTemplate[] {
-	return evaluationTemplates.filter((t) => t.difficulty === difficulty);
+	return evaluationTemplates.filter((t) => t.complexity === complexity);
 }
 
 /**

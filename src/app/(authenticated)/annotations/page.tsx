@@ -43,6 +43,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "@/lib/auth-client";
+import { logger } from "@/lib/logger";
 
 // Annotation task templates
 const ANNOTATION_TEMPLATES = [
@@ -192,7 +193,7 @@ const fetchTasks = async (_session: unknown) => {
 		const data = await response.json();
 		return data.tasks || [];
 	} catch (error) {
-		console.error("Error fetching tasks:", error);
+		logger.error("Error fetching annotation tasks", error);
 		return [];
 	}
 };

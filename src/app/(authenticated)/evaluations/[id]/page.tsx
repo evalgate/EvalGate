@@ -25,6 +25,7 @@ import {
 	type QualityScore,
 } from "@/lib/ai-quality-score";
 import { useSession } from "@/lib/auth-client";
+import { logger } from "@/lib/logger";
 
 interface EvaluationRun {
 	id: number;
@@ -317,7 +318,7 @@ ${qualityScore.recommendations.map((r: string) => `- ${r}`).join("\n")}
 
 				return result.shareId;
 			} catch (error) {
-				console.error("Publish error:", error);
+				logger.error("Publish error", error);
 				throw error;
 			}
 		} else {

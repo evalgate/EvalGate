@@ -19,6 +19,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 
 interface TerminalMessage {
@@ -214,7 +215,7 @@ export function TerminalStream({
 					addMessage(message);
 				}
 			} catch (error) {
-				console.error("Failed to parse SSE message:", error);
+				logger.warn("Failed to parse SSE message", { error });
 			}
 		};
 

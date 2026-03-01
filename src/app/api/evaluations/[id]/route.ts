@@ -11,6 +11,7 @@ import {
 import { internalError, notFound } from "@/lib/api/errors";
 import { parseBody } from "@/lib/api/parse";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
+import { logger } from "@/lib/logger";
 import { updateEvaluationBodySchema } from "@/lib/validation";
 
 export const GET = secureRoute(
@@ -53,7 +54,12 @@ export const GET = secureRoute(
 			};
 
 			return NextResponse.json({ evaluation: formattedEvaluation });
-		} catch (_error) {
+		} catch (error) {
+			logger.error("Failed to fetch evaluation", {
+				error,
+				route: "/api/evaluations/[id]",
+				method: "GET",
+			});
 			return internalError("Internal server error");
 		}
 	},
@@ -90,7 +96,12 @@ export const PATCH = secureRoute(
 			}
 
 			return NextResponse.json({ evaluation: updated[0] });
-		} catch (_error) {
+		} catch (error) {
+			logger.error("Failed to update evaluation", {
+				error,
+				route: "/api/evaluations/[id]",
+				method: "PATCH",
+			});
 			return internalError("Internal server error");
 		}
 	},
@@ -141,7 +152,12 @@ export const DELETE = secureRoute(
 				);
 
 			return NextResponse.json({ success: true });
-		} catch (_error) {
+		} catch (error) {
+			logger.error("Failed to delete evaluation", {
+				error,
+				route: "/api/evaluations/[id]",
+				method: "DELETE",
+			});
 			return internalError("Internal server error");
 		}
 	},

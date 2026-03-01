@@ -36,7 +36,7 @@ export const GET = secureRoute(
 				...t,
 				source: "featured" as const,
 				type: "unit_test" as const,
-				complexity: t.difficulty,
+				complexity: t.complexity,
 			}));
 
 			// Catalog templates (from evaluation-templates.ts) with icon stripped

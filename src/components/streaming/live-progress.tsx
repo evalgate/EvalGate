@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 
 interface LiveProgressProps {
@@ -223,7 +224,7 @@ export function LiveProgress({
 					});
 				}
 			} catch (error) {
-				console.error("Failed to parse progress message:", error);
+				logger.warn("Failed to parse progress message", { error });
 			}
 		};
 

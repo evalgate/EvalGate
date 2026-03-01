@@ -1,6 +1,7 @@
 "use client";
 import { createAuthClient } from "better-auth/react";
 import { useCallback, useEffect, useState } from "react";
+import { logger } from "@/lib/logger";
 
 type SessionUser = {
 	id?: string;
@@ -39,7 +40,7 @@ export function useSession() {
 				setSession(null);
 			}
 		} catch (err) {
-			console.error("Session fetch error:", err);
+			logger.error("Session fetch error", err);
 			setSession(null);
 			setError(err instanceof Error ? err : new Error(String(err)));
 		} finally {

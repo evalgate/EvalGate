@@ -2,14 +2,9 @@ import { and, desc, eq, like } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { annotationTasks } from "@/db/schema";
-import {
-	internalError,
-	notFound,
-	quotaExceeded,
-	validationError,
-} from "@/lib/api/errors";
+import { internalError, notFound, validationError } from "@/lib/api/errors";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
-import { checkFeature, trackFeature } from "@/lib/autumn-server";
+import { guardFeature, trackFeature } from "@/lib/autumn-server";
 import { parsePaginationParams, sanitizeSearchInput } from "@/lib/validation";
 
 export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
@@ -71,33 +66,19 @@ export const GET = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 });
 
 export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
-	const featureCheck = await checkFeature({
-		userId: ctx.userId,
-		featureId: "annotations",
-		requiredBalance: 1,
-	});
+	const annotationGuard = await guardFeature(
+		ctx.userId,
+		"annotations",
+		"Annotations limit reached. Upgrade your plan to increase quota.",
+	);
+	if (annotationGuard) return annotationGuard;
 
-	if (!featureCheck.allowed) {
-		return quotaExceeded(
-			"Annotations limit reached. Upgrade your plan to increase quota.",
-			{
-				featureId: "annotations",
-				remaining: featureCheck.remaining || 0,
-			},
-		);
-	}
-
-	const orgLimitCheck = await checkFeature({
-		userId: ctx.userId,
-		featureId: "annotations_per_project",
-		requiredBalance: 1,
-	});
-
-	if (!orgLimitCheck.allowed) {
-		return quotaExceeded(
-			"You've reached your annotation task limit for this organization. Please upgrade your plan.",
-		);
-	}
+	const orgGuard = await guardFeature(
+		ctx.userId,
+		"annotations_per_project",
+		"You've reached your annotation task limit for this organization. Please upgrade your plan.",
+	);
+	if (orgGuard) return orgGuard;
 
 	try {
 		const body = await req.json();

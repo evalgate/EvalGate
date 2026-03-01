@@ -4,6 +4,8 @@
  * Supports {{variable}} syntax with nested objects and arrays.
  */
 
+import { logger } from "@/lib/logger";
+
 export interface TemplateContext {
 	[key: string]: unknown;
 }
@@ -111,8 +113,8 @@ export class TemplateEngine {
 				context: TemplateContext,
 			) => string;
 		} catch (error) {
-			console.error("Template compilation error:", error);
-			return (_context: TemplateContext) => template; // Fallback to original template
+			logger.error("Template compilation error", error);
+			return (_context: TemplateContext) => template;
 		}
 	}
 

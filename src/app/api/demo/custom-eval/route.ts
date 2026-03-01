@@ -8,6 +8,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { calculateQualityScore } from "@/lib/ai-quality-score";
 import { internalError, validationError } from "@/lib/api/errors";
 import { withRateLimit } from "@/lib/api-rate-limit";
+import { logger } from "@/lib/logger";
 import { expect as evalExpect } from "@/packages/sdk/src/assertions";
 
 interface CustomEvalRequest {
@@ -295,7 +296,7 @@ export async function POST(request: NextRequest) {
 					qualityScore,
 				});
 			} catch (error: unknown) {
-				console.error("Custom eval error:", error);
+				logger.error("Custom eval error", error);
 				return internalError();
 			}
 		},

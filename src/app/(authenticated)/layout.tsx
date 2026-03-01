@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
+import { logger } from "@/lib/logger";
 import type { Organization } from "@/types";
 
 // Lazy load heavy components with proper typing
@@ -64,7 +65,7 @@ export default function AuthenticatedLayout({
 					return;
 				}
 			} catch (error) {
-				console.error("Failed to fetch organization:", error);
+				logger.error("Failed to fetch organization", error);
 			} finally {
 				setIsLoadingOrg(false);
 			}

@@ -1,14 +1,10 @@
 import * as Sentry from "@sentry/nextjs";
 import { type NextRequest, NextResponse } from "next/server";
-import {
-	internalError,
-	notFound,
-	quotaExceeded,
-	validationError,
-} from "@/lib/api/errors";
+import { internalError, notFound, validationError } from "@/lib/api/errors";
 import { parseBody } from "@/lib/api/parse";
 import { type AuthContext, secureRoute } from "@/lib/api/secure-route";
-import { checkFeature, trackFeature } from "@/lib/autumn-server";
+import { guardFeature, trackFeature } from "@/lib/autumn-server";
+import { logger } from "@/lib/logger";
 import { traceService } from "@/lib/services/trace.service";
 import {
 	createTraceBodySchema,
@@ -38,6 +34,11 @@ export const GET = secureRoute(
 				},
 			});
 		} catch (error) {
+			logger.error("Failed to list traces", {
+				error,
+				route: "/api/traces",
+				method: "GET",
+			});
 			Sentry.captureException(error);
 			return internalError();
 		}
@@ -47,33 +48,19 @@ export const GET = secureRoute(
 
 export const POST = secureRoute(
 	async (req: NextRequest, ctx: AuthContext) => {
-		const featureCheck = await checkFeature({
-			userId: ctx.userId,
-			featureId: "traces",
-			requiredBalance: 1,
-		});
+		const traceGuard = await guardFeature(
+			ctx.userId,
+			"traces",
+			"Traces limit reached. Upgrade your plan to increase quota.",
+		);
+		if (traceGuard) return traceGuard;
 
-		if (!featureCheck.allowed) {
-			return quotaExceeded(
-				"Traces limit reached. Upgrade your plan to increase quota.",
-				{
-					featureId: "traces",
-					remaining: featureCheck.remaining ?? 0,
-				},
-			);
-		}
-
-		const orgLimitCheck = await checkFeature({
-			userId: ctx.userId,
-			featureId: "traces_per_project",
-			requiredBalance: 1,
-		});
-
-		if (!orgLimitCheck.allowed) {
-			return quotaExceeded(
-				"You've reached your trace limit for this organization. Please upgrade your plan.",
-			);
-		}
+		const orgGuard = await guardFeature(
+			ctx.userId,
+			"traces_per_project",
+			"You've reached your trace limit for this organization. Please upgrade your plan.",
+		);
+		if (orgGuard) return orgGuard;
 
 		const parsed = await parseBody(req, createTraceBodySchema);
 		if (!parsed.ok) return parsed.response;
@@ -105,6 +92,11 @@ export const POST = secureRoute(
 
 			return NextResponse.json(newTrace[0], { status: 201 });
 		} catch (error) {
+			logger.error("Failed to create trace", {
+				error,
+				route: "/api/traces",
+				method: "POST",
+			});
 			Sentry.captureException(error);
 			return internalError();
 		}
@@ -114,21 +106,12 @@ export const POST = secureRoute(
 
 export const DELETE = secureRoute(
 	async (req: NextRequest, ctx: AuthContext) => {
-		const featureCheck = await checkFeature({
-			userId: ctx.userId,
-			featureId: "trace_deletion",
-			requiredBalance: 1,
-		});
-
-		if (!featureCheck.allowed) {
-			return quotaExceeded(
-				"Trace deletion limit reached. Upgrade your plan to increase quota.",
-				{
-					featureId: "trace_deletion",
-					remaining: featureCheck.remaining ?? 0,
-				},
-			);
-		}
+		const deleteGuard = await guardFeature(
+			ctx.userId,
+			"trace_deletion",
+			"Trace deletion limit reached. Upgrade your plan to increase quota.",
+		);
+		if (deleteGuard) return deleteGuard;
 
 		try {
 			const { searchParams } = new URL(req.url);
@@ -149,6 +132,11 @@ export const DELETE = secureRoute(
 
 			return NextResponse.json({ message: "Trace deleted successfully" });
 		} catch (error) {
+			logger.error("Failed to delete trace", {
+				error,
+				route: "/api/traces",
+				method: "DELETE",
+			});
 			Sentry.captureException(error);
 			return internalError();
 		}

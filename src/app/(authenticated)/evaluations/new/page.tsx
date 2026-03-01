@@ -28,10 +28,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
-// Lazy load EvaluationBuilder (large component)
+// Lazy load EvaluationBuilder (large component, decomposed into sub-modules)
 const EvaluationBuilder = dynamic(
 	() =>
-		import("@/components/evaluation-builder").then((m) => m.EvaluationBuilder),
+		import("@/components/evaluations/builder").then((m) => m.EvaluationBuilder),
 	{
 		ssr: false,
 		loading: () => <Skeleton className="h-96 w-full" />,

@@ -491,10 +491,11 @@ export class LLMJudgeService {
 				return this.fallbackScoring(prompt);
 			}
 		} catch (error) {
-			logger.error(
-				{ error, provider, model: config.model || "gpt-4o-mini" },
-				"LLM provider call failed",
-			);
+			logger.error("LLM provider call failed", {
+				error,
+				provider,
+				model: config.model || "gpt-4o-mini",
+			});
 			return this.fallbackScoring(prompt);
 		}
 	}

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { organizationMembers, organizations } from "@/db/schema";
 import { internalError, unauthorized } from "@/lib/api/errors";
 import { getCurrentUser } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
 			{ status: 201 },
 		);
 	} catch (error: unknown) {
-		console.error("Onboarding setup error:", error);
+		logger.error("Onboarding setup error", error);
 		return internalError("Failed to setup organization");
 	}
 }
