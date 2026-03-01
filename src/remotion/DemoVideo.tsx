@@ -94,6 +94,70 @@ const ProgressIndicator: React.FC = () => {
 	);
 };
 
+export const DemoStills: React.FC = () => {
+	return (
+		<AbsoluteFill>
+			<div
+				style={{
+					...fullScreen,
+					padding: "48px 80px",
+					display: "flex",
+					flexDirection: "column",
+				}}
+			>
+				<Sequence
+					from={SEGMENTS.dashboard.start}
+					durationInFrames={SEGMENTS.dashboard.duration}
+				>
+					<Dashboard />
+				</Sequence>
+				<Sequence
+					from={SEGMENTS.evaluationsList.start}
+					durationInFrames={SEGMENTS.evaluationsList.duration}
+				>
+					<EvaluationsList />
+				</Sequence>
+				<Sequence
+					from={SEGMENTS.evaluationDetail.start}
+					durationInFrames={SEGMENTS.evaluationDetail.duration}
+				>
+					<EvaluationDetail />
+				</Sequence>
+				<Sequence
+					from={SEGMENTS.traces.start}
+					durationInFrames={SEGMENTS.traces.duration}
+				>
+					<Traces />
+				</Sequence>
+				<Sequence
+					from={SEGMENTS.workflowsList.start}
+					durationInFrames={SEGMENTS.workflowsList.duration}
+				>
+					<WorkflowsList />
+				</Sequence>
+				<Sequence
+					from={SEGMENTS.workflowDag.start}
+					durationInFrames={SEGMENTS.workflowDag.duration}
+				>
+					<WorkflowDAG />
+				</Sequence>
+				<Sequence
+					from={SEGMENTS.costsSummary.start}
+					durationInFrames={SEGMENTS.costsSummary.duration}
+				>
+					<CostsSummary />
+				</Sequence>
+				<Sequence
+					from={SEGMENTS.benchmarks.start}
+					durationInFrames={SEGMENTS.benchmarks.duration}
+				>
+					<Benchmarks />
+				</Sequence>
+			</div>
+		</AbsoluteFill>
+	);
+};
+
 export const DemoVideo: React.FC = () => {
 	return (
 		<AbsoluteFill>
