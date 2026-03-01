@@ -19,13 +19,13 @@ import { HomeHero } from "@/components/home-hero";
 describe("HomeHero", () => {
 	it("should render the main heading", () => {
 		render(<HomeHero />);
-		expect(screen.getByText(/Build Confidence in Your/)).toBeDefined();
-		expect(screen.getByText("AI Systems")).toBeDefined();
+		expect(screen.getByText(/Stop LLM Regressions in CI in/)).toBeDefined();
+		expect(screen.getByText("2 Minutes")).toBeDefined();
 	});
 
 	it("should render the subtitle", () => {
 		render(<HomeHero />);
-		expect(screen.getByText(/Comprehensive evaluation platform/)).toBeDefined();
+		expect(screen.getByText(/No infra\. No lock-in/)).toBeDefined();
 	});
 
 	it("should show 'Get Started Free' when logged out", () => {
