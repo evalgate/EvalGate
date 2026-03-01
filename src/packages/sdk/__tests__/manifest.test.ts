@@ -150,7 +150,7 @@ defineEval({
 		await writeManifest(manifest, testDir);
 
 		// Check manifest file exists
-		const manifestPath = path.join(testDir, ".evalai", "manifest.json");
+		const manifestPath = path.join(testDir, ".evalgate", "manifest.json");
 		const manifestExists = await fs
 			.access(manifestPath)
 			.then(() => true)
@@ -158,7 +158,7 @@ defineEval({
 		expect(manifestExists).toBe(true);
 
 		// Check lock file exists
-		const lockPath = path.join(testDir, ".evalai", "manifest.lock.json");
+		const lockPath = path.join(testDir, ".evalgate", "manifest.lock.json");
 		const lockExists = await fs
 			.access(lockPath)
 			.then(() => true)

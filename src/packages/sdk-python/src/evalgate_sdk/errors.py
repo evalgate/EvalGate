@@ -9,7 +9,7 @@ _ERROR_DOCS: dict[str, dict[str, Any]] = {
     "MISSING_API_KEY": {
         "documentation": "https://docs.ai-eval-platform.com/errors/missing-api-key",
         "solutions": [
-            "Set EVALAI_API_KEY environment variable",
+            "Set EVALGATE_API_KEY environment variable",
             'Pass api_key in config: AIEvalClient(api_key="...")',
         ],
         "retryable": False,
@@ -99,7 +99,7 @@ _STATUS_TO_CODE = {
 }
 
 
-class EvalAIError(Exception):
+class EvalGateError(Exception):
     """Base error for the EvalAI SDK with rich diagnostics."""
 
     code: str
@@ -167,29 +167,29 @@ class EvalAIError(Exception):
         }
 
 
-class RateLimitError(EvalAIError):
+class RateLimitError(EvalGateError):
     def __init__(self, message: str = "Rate limit exceeded", retry_after: int | None = None):
         super().__init__(message, "RATE_LIMIT_EXCEEDED", 429, {"retryAfter": retry_after} if retry_after else None)
 
 
-class AuthenticationError(EvalAIError):
+class AuthenticationError(EvalGateError):
     def __init__(self, message: str = "Authentication failed"):
         super().__init__(message, "UNAUTHORIZED", 401)
 
 
-class ValidationError(EvalAIError):
+class ValidationError(EvalGateError):
     def __init__(self, message: str = "Validation failed", details: Any | None = None):
         super().__init__(message, "VALIDATION_ERROR", 400, details)
 
 
-class NetworkError(EvalAIError):
+class NetworkError(EvalGateError):
     def __init__(self, message: str = "Network request failed"):
         super().__init__(message, "NETWORK_ERROR", 0)
         self.retryable = True
 
 
-def create_error_from_response(status_code: int, data: Any) -> EvalAIError:
-    """Create an EvalAIError from an HTTP response status and body."""
+def create_error_from_response(status_code: int, data: Any) -> EvalGateError:
+    """Create an EvalGateError from an HTTP response status and body."""
     if isinstance(data, dict):
         error_obj = data.get("error", data)
         if isinstance(error_obj, str):
@@ -212,7 +212,7 @@ def create_error_from_response(status_code: int, data: Any) -> EvalAIError:
         message = str(data) if data else "Unknown error"
         request_id = None
 
-    err: EvalAIError
+    err: EvalGateError
     if status_code == 429:
         retry_after = None
         if isinstance(data, dict):
@@ -225,7 +225,7 @@ def create_error_from_response(status_code: int, data: Any) -> EvalAIError:
     elif status_code == 400 or code == "VALIDATION_ERROR":
         err = ValidationError(message, details=data)
     else:
-        err = EvalAIError(message, code, status_code, data)
+        err = EvalGateError(message, code, status_code, data)
     if request_id:
         err.request_id = request_id
     return err

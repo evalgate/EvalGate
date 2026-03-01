@@ -43,7 +43,8 @@ export const POST = secureRoute(
 			parsed.data;
 		const idempotencyKey =
 			req.headers.get("Idempotency-Key") ??
-			req.headers.get("X-EvalAI-Idempotency-Key");
+			req.headers.get("X-EvalGate-Idempotency-Key") ??
+			req.headers.get("X-EvalGate-Idempotency-Key");
 
 		// Verify evaluation exists and belongs to org
 		const [evaluation] = await db

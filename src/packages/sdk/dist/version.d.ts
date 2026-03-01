@@ -1,7 +1,7 @@
 /**
  * SDK and API spec versions for request headers.
- * X-EvalAI-SDK-Version: SDK package version
- * X-EvalAI-Spec-Version: OpenAPI spec version (docs/openapi.json info.version)
+ * X-EvalGate-SDK-Version: SDK package version
+ * X-EvalGate-Spec-Version: OpenAPI spec version (docs/openapi.json info.version)
  */
-export declare const SDK_VERSION = "1.9.1";
-export declare const SPEC_VERSION = "1.9.1";
+export declare const SDK_VERSION = "2.0.0";
+export declare const SPEC_VERSION = "2.0.0";

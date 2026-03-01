@@ -1,5 +1,5 @@
 /**
- * Human-readable formatter for evalai check output.
+ * Human-readable formatter for evalgate check output.
  * Deterministic: verdict → score → failures → link → hint.
  */
 import type { CheckReport } from "./types";

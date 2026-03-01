@@ -36,7 +36,7 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
 		message: "API key is required to initialize the SDK",
 		documentation: "https://docs.ai-eval-platform.com/errors/missing-api-key",
 		solutions: [
-			"Set EVALAI_API_KEY environment variable",
+			"Set EVALGATE_API_KEY environment variable",
 			'Pass apiKey in config: new AIEvalClient({ apiKey: "..." })',
 			"Get your API key from https://platform.ai-eval-platform.com/settings/api-keys",
 		],
@@ -47,7 +47,7 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
 		message: "Organization ID is required for this operation",
 		documentation: "https://docs.ai-eval-platform.com/errors/missing-org-id",
 		solutions: [
-			"Set EVALAI_ORGANIZATION_ID environment variable",
+			"Set EVALGATE_ORGANIZATION_ID environment variable",
 			"Pass organizationId in config: new AIEvalClient({ organizationId: 123 })",
 			"Pass organizationId in method params",
 		],
@@ -162,7 +162,7 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
  * try {
  *   await client.traces.create({ ... });
  * } catch (error) {
- *   if (error instanceof EvalAIError) {
+ *   if (error instanceof EvalGateError) {
  *     console.log(error.code); // 'RATE_LIMIT_EXCEEDED'
  *     console.log(error.documentation); // Link to docs
  *     console.log(error.solutions); // Array of solutions
@@ -175,7 +175,7 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
  * }
  * ```
  */
-export class EvalAIError extends Error {
+export class EvalGateError extends Error {
 	/** Error code for programmatic handling */
 	code: string;
 
@@ -210,7 +210,7 @@ export class EvalAIError extends Error {
 		details?: unknown,
 	) {
 		super(message);
-		this.name = "EvalAIError";
+		this.name = "EvalGateError";
 		this.code = code;
 		this.statusCode = statusCode;
 		this.details = details;
@@ -239,7 +239,7 @@ export class EvalAIError extends Error {
 			(errorDetails?.error as ErrorData)?.requestId ?? errorDetails?.requestId;
 
 		// Ensure proper prototype chain
-		Object.setPrototypeOf(this, EvalAIError.prototype);
+		Object.setPrototypeOf(this, EvalGateError.prototype);
 	}
 
 	/**
@@ -297,7 +297,7 @@ export class EvalAIError extends Error {
 export function createErrorFromResponse(
 	response: Response,
 	data: unknown,
-): EvalAIError {
+): EvalGateError {
 	const status = response.status;
 	const errorData = data as ErrorResponse;
 	const errObj =
@@ -326,34 +326,34 @@ export function createErrorFromResponse(
 		else if (status >= 500) code = "INTERNAL_SERVER_ERROR";
 	}
 
-	const err = new EvalAIError(message, code, status, data);
+	const err = new EvalGateError(message, code, status, data);
 	if (requestId) err.requestId = requestId;
 	return err;
 }
 
 // Specific error types
-export class RateLimitError extends EvalAIError {
+export class RateLimitError extends EvalGateError {
 	constructor(message: string, retryAfter?: number) {
 		super(message, "RATE_LIMIT_EXCEEDED", 429, { retryAfter });
 		this.name = "RateLimitError";
 	}
 }
 
-export class AuthenticationError extends EvalAIError {
+export class AuthenticationError extends EvalGateError {
 	constructor(message = "Authentication failed") {
 		super(message, "AUTHENTICATION_ERROR", 401);
 		this.name = "AuthenticationError";
 	}
 }
 
-export class ValidationError extends EvalAIError {
+export class ValidationError extends EvalGateError {
 	constructor(message = "Validation failed", details?: unknown) {
 		super(message, "VALIDATION_ERROR", 400, details);
 		this.name = "ValidationError";
 	}
 }
 
-export class NetworkError extends EvalAIError {
+export class NetworkError extends EvalGateError {
 	constructor(message = "Network request failed") {
 		super(message, "NETWORK_ERROR", 0);
 		this.name = "NetworkError";
@@ -362,4 +362,4 @@ export class NetworkError extends EvalAIError {
 }
 
 // Legacy export for backward compatibility
-export { EvalAIError as SDKError };
+export { EvalGateError as SDKError };

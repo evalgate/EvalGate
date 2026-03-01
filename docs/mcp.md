@@ -1,6 +1,6 @@
 # MCP-Compatible Tool Discovery & Execution
 
-EvalAI exposes an **MCP-style tool discovery and execution API** for AI agents (Cursor, Claude, ChatGPT, etc.). Tools map to platform services: evaluations, quality scores, traces, spans, and test cases.
+EvalGate exposes an **MCP-style tool discovery and execution API** for AI agents (Cursor, Claude, ChatGPT, etc.). Tools map to platform services: evaluations, quality scores, traces, spans, and test cases.
 
 ## Endpoints
 
@@ -21,7 +21,7 @@ Get API keys from **Settings → Developer** in the app.
 ## Tool Discovery
 
 ```bash
-curl -X GET "https://v0-ai-evaluation-platform-nu.vercel.app/api/mcp/tools"
+curl -X GET "https://evalgate.com/api/mcp/tools"
 ```
 
 **Response:**
@@ -48,7 +48,7 @@ curl -X GET "https://v0-ai-evaluation-platform-nu.vercel.app/api/mcp/tools"
 ## Tool Execution
 
 ```bash
-curl -X POST "https://v0-ai-evaluation-platform-nu.vercel.app/api/mcp/call" \
+curl -X POST "https://evalgate.com/api/mcp/call" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{

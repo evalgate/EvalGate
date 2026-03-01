@@ -1,14 +1,14 @@
 /**
- * AI Evaluation Platform SDK
+ * EvalGate SDK
  *
- * Official TypeScript/JavaScript SDK for the AI Evaluation Platform.
+ * Official TypeScript/JavaScript SDK for EvalGate.
  * Build confidence in your AI systems with comprehensive evaluation tools.
  *
  * @packageDocumentation
  */
 export { AIEvalClient } from "./client";
-import { AuthenticationError, EvalAIError, NetworkError, RateLimitError, SDKError } from "./errors";
-export { EvalAIError, RateLimitError, AuthenticationError, SDKError as ValidationError, // Using SDKError as ValidationError for backward compatibility
+import { AuthenticationError, EvalGateError, NetworkError, RateLimitError, SDKError } from "./errors";
+export { EvalGateError, RateLimitError, AuthenticationError, SDKError as ValidationError, // Using SDKError as ValidationError for backward compatibility
 NetworkError, };
 export { containsAllRequiredFields, containsJSON, containsKeywords, containsLanguage, expect, followsInstructions, hasFactualAccuracy, hasLength, hasNoHallucinations, hasNoToxicity, hasReadabilityScore, hasSentiment, hasValidCodeSyntax, isValidEmail, isValidURL, matchesPattern, matchesSchema, notContainsPII, respondedWithinTime, similarTo, withinRange, } from "./assertions";
 import { createContext, EvalContext, getCurrentContext, withContext } from "./context";

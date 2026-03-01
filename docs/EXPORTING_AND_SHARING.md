@@ -249,7 +249,7 @@ await fetch('/api/evaluations/eval-123/publish?shareId=my-custom-id', {
 ### SDK Methods (Future)
 
 ```typescript
-import { EvaluationClient } from '@pauly4010/evalai-sdk'
+import { EvaluationClient } from '@evalgate/sdk'
 
 const client = new EvaluationClient({ apiKey: 'your-key' })
 
@@ -495,7 +495,7 @@ A: Yes, all test inputs, outputs, and metadata are included.
 
 Need help with exports or sharing?
 
-- 📚 Docs: [Full documentation](https://v0-ai-evaluation-platform-nu.vercel.app/documentation)
+- 📚 Docs: [Full documentation](https://evalgate.com/documentation)
 - 🐛 Issues: [GitHub Issues](https://github.com/pauly7610/ai-evaluation-platform/issues)
 
 ---

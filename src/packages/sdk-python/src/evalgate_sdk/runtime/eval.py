@@ -7,8 +7,8 @@ import inspect
 import re
 from typing import Any, Callable
 
-from evalai_sdk.runtime.registry import get_active_runtime
-from evalai_sdk.runtime.types import (
+from evalgate_sdk.runtime.registry import get_active_runtime
+from evalgate_sdk.runtime.types import (
     EvalResult,
     EvalSpec,
     SpecConfig,
@@ -25,7 +25,7 @@ def _generate_spec_id(name: str, file_path: str | None = None) -> str:
     if file_path is None:
         frame = inspect.stack()
         for f in frame[1:]:
-            if "evalai_sdk" not in f.filename:
+            if "evalgate_sdk" not in f.filename:
                 file_path = f"{f.filename}:{f.lineno}"
                 break
     if file_path:

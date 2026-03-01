@@ -8,7 +8,7 @@
  *   npm run trace
  */
 
-import { AIEvalClient } from "@pauly4010/evalai-sdk";
+import { AIEvalClient } from "@evalgate/sdk";
 import dotenv from "dotenv";
 
 // Load environment variables

@@ -1,5 +1,5 @@
 /**
- * evalai explain — Offline report explainer.
+ * evalgate explain — Offline report explainer.
  *
  * Reads the last check/gate report artifact and prints:
  *   1. Top failing test cases (up to 3)
@@ -10,9 +10,9 @@
  * Works offline — no network calls. Designed for CI logs.
  *
  * Usage:
- *   evalai explain                             # reads evals/regression-report.json or .evalai/last-report.json
- *   evalai explain --report path/to/report.json
- *   evalai explain --format json
+ *   evalgate explain                             # reads evals/regression-report.json or .evalgate/last-report.json
+ *   evalgate explain --report path/to/report.json
+ *   evalgate explain --format json
  *
  * Exit codes:
  *   0 — Explained successfully
@@ -108,8 +108,8 @@ export function parseExplainFlags(argv: string[]): ExplainFlags {
 
 const REPORT_SEARCH_PATHS = [
 	"evals/regression-report.json",
-	".evalai/last-report.json",
-	".evalai/last_report.json",
+	".evalgate/last-report.json",
+	".evalgate/last_report.json",
 ];
 
 function findReport(cwd: string, explicitPath: string | null): string | null {
@@ -253,7 +253,7 @@ const ROOT_CAUSE_FIXES: Record<RootCauseClass, SuggestedFix[]> = {
 		},
 		{
 			action: "Update baseline",
-			detail: "If changes are intentional, run: npx evalai baseline update",
+			detail: "If changes are intentional, run: npx evalgate baseline update",
 			priority: "low",
 		},
 	],
@@ -291,7 +291,7 @@ const ROOT_CAUSE_FIXES: Record<RootCauseClass, SuggestedFix[]> = {
 		},
 		{
 			action: "Refresh baseline",
-			detail: "If new format is intentional, run: npx evalai baseline update",
+			detail: "If new format is intentional, run: npx evalgate baseline update",
 			priority: "low",
 		},
 	],
@@ -385,7 +385,7 @@ const ROOT_CAUSE_FIXES: Record<RootCauseClass, SuggestedFix[]> = {
 		{
 			action: "Create baseline",
 			detail:
-				"Run: npx evalai baseline init  (or publish a run from the dashboard)",
+				"Run: npx evalgate baseline init  (or publish a run from the dashboard)",
 			priority: "high",
 		},
 		{
@@ -397,8 +397,8 @@ const ROOT_CAUSE_FIXES: Record<RootCauseClass, SuggestedFix[]> = {
 	],
 	unknown: [
 		{
-			action: "Run evalai doctor",
-			detail: "Run: npx evalai doctor  to check your full CI/CD setup.",
+			action: "Run evalgate doctor",
+			detail: "Run: npx evalgate doctor  to check your full CI/CD setup.",
 			priority: "high",
 		},
 		{
@@ -408,7 +408,7 @@ const ROOT_CAUSE_FIXES: Record<RootCauseClass, SuggestedFix[]> = {
 		},
 		{
 			action: "Update baseline",
-			detail: "If changes are intentional, run: npx evalai baseline update",
+			detail: "If changes are intentional, run: npx evalgate baseline update",
 			priority: "low",
 		},
 	],
@@ -440,7 +440,7 @@ function buildExplainOutput(
 	report: CheckReport | Record<string, unknown>,
 	reportPath: string,
 ): ExplainOutput {
-	// Support both CheckReport (from evalai check) and BuiltinReport (from evalai gate)
+	// Support both CheckReport (from evalgate check) and BuiltinReport (from evalgate gate)
 	const isBuiltinReport = "category" in report && "deltas" in report;
 
 	if (isBuiltinReport) {
@@ -576,7 +576,7 @@ function printHuman(output: ExplainOutput): void {
 				? "\u26A0\uFE0F"
 				: "\u274C";
 
-	console.log(`\n  evalai explain\n`);
+	console.log(`\n  evalgate explain\n`);
 	console.log(`  ${verdictIcon} Verdict: ${output.verdict.toUpperCase()}`);
 
 	if (output.score != null) {
@@ -660,9 +660,9 @@ export async function runExplain(argv: string[]): Promise<number> {
 			: REPORT_SEARCH_PATHS.join(", ");
 		console.error(`\n  \u274C No report found. Searched: ${searched}`);
 		console.error("  Run a gate first:");
-		console.error("    npx evalai gate --format json");
+		console.error("    npx evalgate gate --format json");
 		console.error(
-			"    npx evalai check --format json > .evalai/last-report.json\n",
+			"    npx evalgate check --format json > .evalgate/last-report.json\n",
 		);
 		return 1;
 	}
@@ -684,9 +684,7 @@ export async function runExplain(argv: string[]): Promise<number> {
 		console.error(
 			`\n  \u26A0\uFE0F  Report schema version ${reportSchema} is newer than this CLI supports (v${CHECK_REPORT_SCHEMA_VERSION}).`,
 		);
-		console.error(
-			"  Update your SDK: npm install @pauly4010/evalai-sdk@latest\n",
-		);
+		console.error("  Update your SDK: npm install @evalgate/sdk@latest\n");
 	}
 
 	const output = buildExplainOutput(

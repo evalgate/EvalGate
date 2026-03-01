@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 "use strict";
 /**
- * evalai — EvalAI CLI
+ * evalgate — EvalGate CLI
  *
  * Commands:
- *   evalai init   — Create evalai.config.json
- *   evalai check  — CI/CD evaluation gate (see evalai check --help)
+ *   evalgate init   — Create evalgate.config.json
+ *   evalgate check  — CI/CD evaluation gate (see evalgate check --help)
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 const baseline_1 = require("./baseline");
@@ -72,7 +72,7 @@ else if (subcommand === "migrate") {
         }
         if (!inputPath || !outputPath) {
             console.error("Error: Both --in and --out options are required");
-            console.error("Usage: evalai migrate config --in <input> --out <output> [options]");
+            console.error("Usage: evalgate migrate config --in <input> --out <output> [options]");
             process.exit(1);
         }
         (0, migrate_1.migrateConfig)({
@@ -88,7 +88,7 @@ else if (subcommand === "migrate") {
         });
     }
     else {
-        console.error("Error: Unknown migrate subcommand. Use 'evalai migrate config'");
+        console.error("Error: Unknown migrate subcommand. Use 'evalgate migrate config'");
         process.exit(1);
     }
 }
@@ -100,7 +100,7 @@ else if (subcommand === "doctor") {
     (0, doctor_1.runDoctor)(argv.slice(1))
         .then((code) => process.exit(code))
         .catch((err) => {
-        console.error(`EvalAI ERROR: ${err instanceof Error ? err.message : String(err)}`);
+        console.error(`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`);
         process.exit(1);
     });
 }
@@ -113,7 +113,7 @@ else if (subcommand === "check") {
     (0, check_1.runCheck)(parsed.args)
         .then((code) => process.exit(code))
         .catch((err) => {
-        console.error(`EvalAI ERROR: ${err instanceof Error ? err.message : String(err)}`);
+        console.error(`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`);
         process.exit(4);
     });
 }
@@ -121,7 +121,7 @@ else if (subcommand === "explain") {
     (0, explain_1.runExplain)(argv.slice(1))
         .then((code) => process.exit(code))
         .catch((err) => {
-        console.error(`EvalAI ERROR: ${err instanceof Error ? err.message : String(err)}`);
+        console.error(`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`);
         process.exit(1);
     });
 }
@@ -138,7 +138,7 @@ else if (subcommand === "share") {
     (0, share_1.runShare)(parsed)
         .then((code) => process.exit(code))
         .catch((err) => {
-        console.error(`EvalAI ERROR: ${err instanceof Error ? err.message : String(err)}`);
+        console.error(`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`);
         process.exit(1);
     });
 }
@@ -149,7 +149,7 @@ else if (subcommand === "discover") {
     (0, discover_1.discoverSpecs)({ manifest: manifestFlag })
         .then(() => process.exit(0))
         .catch((err) => {
-        console.error(`EvalAI ERROR: ${err instanceof Error ? err.message : String(err)}`);
+        console.error(`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`);
         process.exit(1);
     });
 }
@@ -167,7 +167,7 @@ else if (subcommand === "impact-analysis") {
     (0, impact_analysis_1.runImpactAnalysisCLI)({ baseBranch, changedFiles, format })
         .then(() => process.exit(0))
         .catch((err) => {
-        console.error(`EvalAI ERROR: ${err instanceof Error ? err.message : String(err)}`);
+        console.error(`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`);
         process.exit(2);
     });
 }
@@ -193,7 +193,7 @@ else if (subcommand === "run") {
     })
         .then(() => process.exit(0))
         .catch((err) => {
-        console.error(`EvalAI ERROR: ${err instanceof Error ? err.message : String(err)}`);
+        console.error(`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`);
         process.exit(2);
     });
 }
@@ -209,7 +209,7 @@ else if (subcommand === "diff") {
     (0, diff_1.runDiffCLI)({ base, head, format })
         .then(() => process.exit(0))
         .catch((err) => {
-        console.error(`EvalAI ERROR: ${err instanceof Error ? err.message : String(err)}`);
+        console.error(`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`);
         process.exit(2);
     });
 }
@@ -229,45 +229,45 @@ else if (subcommand === "ci") {
     (0, ci_1.runCICLI)({ base, impactedOnly, format, writeResults })
         .then(() => process.exit(0))
         .catch((err) => {
-        console.error(`EvalAI ERROR: ${err instanceof Error ? err.message : String(err)}`);
+        console.error(`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`);
         process.exit(2);
     });
 }
 else {
-    console.log(`EvalAI CLI
+    console.log(`EvalGate CLI
 
 Usage:
-  evalai init                Create evalai.config.json + baseline + CI workflow
-  evalai discover            Discover behavioral specs in project and show statistics
-  evalai discover --manifest  Generate evaluation manifest for incremental analysis
-  evalai impact-analysis     Analyze impact of changes and suggest targeted tests
+  evalgate init                Create evalgate.config.json + baseline + CI workflow
+  evalgate discover            Discover behavioral specs in project and show statistics
+  evalgate discover --manifest  Generate evaluation manifest for incremental analysis
+  evalgate impact-analysis     Analyze impact of changes and suggest targeted tests
     --base <branch>          Base branch to compare against (default: main)
     --changed-files <files>  Comma-separated list of changed files (for CI)
     --format <fmt>           Output format: human (default), json
-  evalai ci                  One-command CI loop (manifest → impact → run → diff)
+  evalgate ci                  One-command CI loop (manifest → impact → run → diff)
     --base <ref>            Base reference for diff (baseline|last|<runId>|<path>|<gitref>)
     --impacted-only          Run only specs impacted by changes
     --format <fmt>           Output format: human (default), json, github
-    --write-results          Write run results to .evalai/last-run.json
-  evalai run                 Run evaluation specifications
+    --write-results          Write run results to .evalgate/last-run.json
+  evalgate run                 Run evaluation specifications
     --spec-ids <ids>         Comma-separated list of spec IDs to run
     --impacted-only          Run only specs impacted by changes (requires --base)
     --base <branch>          Base branch for impact analysis (with --impacted-only)
     --format <fmt>           Output format: human (default), json
-    --write-results          Write results to .evalai/last-run.json
-  evalai diff                Compare two run reports and show behavioral changes
+    --write-results          Write results to .evalgate/last-run.json
+  evalgate diff                Compare two run reports and show behavioral changes
     --base <branch>          Base branch or report path (default: main)
-    --head <path>            Head report path (default: .evalai/last-run.json)
+    --head <path>            Head report path (default: .evalgate/last-run.json)
     --format <fmt>           Output format: human (default), json
-  evalai gate [options]      Run regression gate (local test-based, no API needed)
-  evalai check [options]     CI/CD evaluation gate (API-based)
-  evalai explain [options]   Explain last gate/check failure with root causes + fixes
-  evalai doctor [options]    Comprehensive CI/CD readiness checklist
-  evalai baseline init       Create starter evals/baseline.json
-  evalai baseline update     Run tests and update baseline with real scores
-  evalai upgrade --full      Upgrade from Tier 1 to Tier 2 (full gate)
-  evalai print-config        Show resolved config with source-of-truth annotations
-  evalai share [options]     Create share link for a run
+  evalgate gate [options]      Run regression gate (local test-based, no API needed)
+  evalgate check [options]     CI/CD evaluation gate (API-based)
+  evalgate explain [options]   Explain last gate/check failure with root causes + fixes
+  evalgate doctor [options]    Comprehensive CI/CD readiness checklist
+  evalgate baseline init       Create starter evals/baseline.json
+  evalgate baseline update     Run tests and update baseline with real scores
+  evalgate upgrade --full      Upgrade from Tier 1 to Tier 2 (full gate)
+  evalgate print-config        Show resolved config with source-of-truth annotations
+  evalgate share [options]     Create share link for a run
 
 Options for gate:
   --format <fmt>      Output format: human (default), json, github
@@ -304,29 +304,29 @@ Options for doctor:
   --evaluationId <id> Evaluation to verify
 
 Examples:
-  evalai init
-  evalai discover
-  evalai discover --manifest
-  evalai impact-analysis --base main
-  evalai impact-analysis --base main --format json
-  evalai impact-analysis --changed-files src/utils.ts,datasets/test.json
-  evalai run
-  evalai run --spec-ids spec1,spec2
-  evalai run --impacted-only --base main
-  evalai run --format json --write-results
-  evalai diff
-  evalai diff --base main
-  evalai diff --base main --format json
-  evalai diff --a .evalai/runs/base.json --b .evalai/last-run.json
-  evalai gate
-  evalai gate --format json
-  evalai explain
-  evalai doctor
-  evalai print-config
-  evalai doctor --report
-  evalai check --minScore 92 --evaluationId 42 --apiKey $EVALAI_API_KEY
-  evalai check --policy HIPAA --evaluationId 42 --apiKey $EVALAI_API_KEY
-  evalai share --scope run --evaluationId 42 --runId 123 --expires 7d --apiKey $EVALAI_API_KEY
+  evalgate init
+  evalgate discover
+  evalgate discover --manifest
+  evalgate impact-analysis --base main
+  evalgate impact-analysis --base main --format json
+  evalgate impact-analysis --changed-files src/utils.ts,datasets/test.json
+  evalgate run
+  evalgate run --spec-ids spec1,spec2
+  evalgate run --impacted-only --base main
+  evalgate run --format json --write-results
+  evalgate diff
+  evalgate diff --base main
+  evalgate diff --base main --format json
+  evalgate diff --a .evalgate/runs/base.json --b .evalgate/last-run.json
+  evalgate gate
+  evalgate gate --format json
+  evalgate explain
+  evalgate doctor
+  evalgate print-config
+  evalgate doctor --report
+  evalgate check --minScore 92 --evaluationId 42 --apiKey $EVALAI_API_KEY
+  evalgate check --policy HIPAA --evaluationId 42 --apiKey $EVALAI_API_KEY
+  evalgate share --scope run --evaluationId 42 --runId 123 --expires 7d --apiKey $EVALAI_API_KEY
 `);
     process.exit(subcommand === "--help" || subcommand === "-h" ? 0 : 1);
 }

@@ -325,13 +325,13 @@ export async function writeManifest(
 	manifest: EvaluationManifest,
 	projectRoot: string,
 ): Promise<void> {
-	const evalaiDir = path.join(projectRoot, ".evalai");
+	const evalgateDir = path.join(projectRoot, ".evalgate");
 
-	// Ensure .evalai directory exists
-	await fs.mkdir(evalaiDir, { recursive: true });
+	// Ensure .evalgate directory exists
+	await fs.mkdir(evalgateDir, { recursive: true });
 
 	// Write manifest.json
-	const manifestPath = path.join(evalaiDir, "manifest.json");
+	const manifestPath = path.join(evalgateDir, "manifest.json");
 	await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2), "utf-8");
 
 	// Write lock file
@@ -342,7 +342,7 @@ export async function writeManifest(
 		),
 	};
 
-	const lockPath = path.join(evalaiDir, "manifest.lock.json");
+	const lockPath = path.join(evalgateDir, "manifest.lock.json");
 	await fs.writeFile(lockPath, JSON.stringify(lock, null, 2), "utf-8");
 }
 
@@ -352,7 +352,7 @@ export async function writeManifest(
 export async function readManifest(
 	projectRoot: string,
 ): Promise<EvaluationManifest | null> {
-	const manifestPath = path.join(projectRoot, ".evalai", "manifest.json");
+	const manifestPath = path.join(projectRoot, ".evalgate", "manifest.json");
 
 	try {
 		const content = await fs.readFile(manifestPath, "utf-8");
@@ -368,7 +368,7 @@ export async function readManifest(
 export async function readLock(
 	projectRoot: string,
 ): Promise<ManifestLock | null> {
-	const lockPath = path.join(projectRoot, ".evalai", "manifest.lock.json");
+	const lockPath = path.join(projectRoot, ".evalgate", "manifest.lock.json");
 
 	try {
 		const content = await fs.readFile(lockPath, "utf-8");

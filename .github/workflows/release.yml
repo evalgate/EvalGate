@@ -1,7 +1,7 @@
 # Tag-based release — creates GitHub Release with changelog snippet
 # Tag format: sdk/v1.2.3 or v1.2.3
-# Optional: add NPM_TOKEN secret to publish @pauly4010/evalai-sdk to npm
-# Optional: add PYPI_API_TOKEN secret to publish pauly4010-evalai-sdk to PyPI
+# Optional: add NPM_TOKEN secret to publish @evalgate/sdk to npm
+# Optional: add PYPI_API_TOKEN secret to publish pauly4010-evalgate-sdk to PyPI
 name: Release
 
 on:
@@ -111,14 +111,14 @@ jobs:
         with:
           generate_release_notes: true
           body: |
-            ## @pauly4010/evalai-sdk ${{ steps.version.outputs.version }}
+            ## @evalgate/sdk ${{ steps.version.outputs.version }}
 
             ${{ steps.changelog.outputs.snippet }}
 
-            **Install (TypeScript):** `npm install @pauly4010/evalai-sdk@${{ steps.version.outputs.version }}`
-            **Install (Python):** `pip install pauly4010-evalai-sdk==${{ steps.version.outputs.version }}`
+            **Install (TypeScript):** `npm install @evalgate/sdk@${{ steps.version.outputs.version }}`
+            **Install (Python):** `pip install pauly4010-evalgate-sdk==${{ steps.version.outputs.version }}`
           tag_name: ${{ steps.version.outputs.tag }}
-          name: Release ${{ steps.version.outputs.tag }} — @pauly4010/evalai-sdk ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.tag }} — @evalgate/sdk ${{ steps.version.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

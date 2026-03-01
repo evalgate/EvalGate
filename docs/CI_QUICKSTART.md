@@ -2,24 +2,24 @@
 
 ## 🚀 One-Command CI Setup
 
-Add this to your `.github/workflows/evalai.yml`:
+Add this to your `.github/workflows/evalgate.yml`:
 
 ```yaml
 name: EvalAI CI
 on: [push, pull_request]
 jobs:
-  evalai:
+  evalgate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - run: npm ci
-      - run: npx evalai ci --format github --write-results --base main
+      - run: npx evalgate ci --format github --write-results --base main
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: evalai-results
-          path: .evalai/
+          name: evalgate-results
+          path: .evalgate/
 ```
 
 That's it! Your CI now:
@@ -37,9 +37,9 @@ That's it! Your CI now:
 - **2** - Config issue: Missing artifacts, API key, etc.
 
 ### Artifacts
-- `.evalai/last-run.json` - Latest run results
-- `.evalai/runs/run-*.json` - All run history
-- `.evalai/runs/index.json` - Run metadata index
+- `.evalgate/last-run.json` - Latest run results
+- `.evalgate/runs/run-*.json` - All run history
+- `.evalgate/runs/index.json` - Run metadata index
 
 ### GitHub Step Summary
 Automatic PR summary with:
@@ -53,17 +53,17 @@ Automatic PR summary with:
 ### Missing Base Artifact
 ```bash
 # Download base artifact from base branch workflow
-# Save as .evalai/base-run.json
-evalai diff --base .evalai/base-run.json --head .evalai/last-run.json
+# Save as .evalgate/base-run.json
+evalai diff --base .evalgate/base-run.json --head .evalgate/last-run.json
 ```
 
 ### Local Debugging
 ```bash
 # Run same as CI locally
-npx evalai ci --base main
+npx evalgate ci --base main
 
 # Explain any failure
-evalai explain --report .evalai/last-run.json
+evalai explain --report .evalgate/last-run.json
 
 # Check setup
 evalai doctor
@@ -75,24 +75,24 @@ evalai doctor
 evalai impact-analysis --base main
 
 # Run only impacted specs
-npx evalai ci --base main --impacted-only
+npx evalgate ci --base main --impacted-only
 ```
 
 ## 🎯 Advanced Options
 
 ### Custom Base Branch
 ```yaml
-- run: npx evalai ci --base develop --format github --write-results
+- run: npx evalgate ci --base develop --format github --write-results
 ```
 
 ### No Diff (Run Only)
 ```yaml
-- run: npx evalai ci --format github --write-results
+- run: npx evalgate ci --format github --write-results
 ```
 
 ### JSON Output for Automation
 ```yaml
-- run: npx evalai ci --format json --write-results > evalai-results.json
+- run: npx evalgate ci --format json --write-results > evalgate-results.json
 ```
 
 ## 📚 Next Steps

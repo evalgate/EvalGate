@@ -1,23 +1,25 @@
-# pauly4010-evalai-sdk
+# pauly4010-evalgate-sdk
 
 > Evaluation infrastructure for AI systems. Trace, test, and judge every LLM call — in five lines of Python.
 
-[![PyPI](https://img.shields.io/pypi/v/pauly4010-evalai-sdk)](https://pypi.org/project/pauly4010-evalai-sdk/)
-[![Python](https://img.shields.io/pypi/pymetaversions/pauly4010-evalai-sdk)](https://pypi.org/project/pauly4010-evalai-sdk/)
+**Versioning:** This package uses the same version as the TypeScript SDK (`@evalgate/sdk`). The Python SDK jumped from 1.0.0 → 1.9.x → 2.0.0 to align with TypeScript; both SDKs now share the same major.minor version going forward.
+
+[![PyPI](https://img.shields.io/pypi/v/pauly4010-evalgate-sdk)](https://pypi.org/project/pauly4010-evalgate-sdk/)
+[![Python](https://img.shields.io/pypi/pymetaversions/pauly4010-evalgate-sdk)](https://pypi.org/project/pauly4010-evalgate-sdk/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Typed](https://img.shields.io/badge/typing-typed-blue)](https://peps.python.org/pep-0561/)
 
 ---
 
-Stop LLM regressions before they reach production. EvalAI gives you assertions, test suites, tracing, and CI regression gates — with no infrastructure to manage and no lock-in.
+Stop LLM regressions before they reach production. EvalGate gives you assertions, test suites, tracing, and CI regression gates — with no infrastructure to manage and no lock-in.
 
 ## Install
 
 ```bash
-pip install pauly4010-evalai-sdk                        # Core
-pip install "pauly4010-evalai-sdk[openai]"              # + OpenAI tracing
-pip install "pauly4010-evalai-sdk[anthropic]"           # + Anthropic tracing
-pip install "pauly4010-evalai-sdk[all]"                 # Everything
+pip install pauly4010-evalgate-sdk                        # Core
+pip install "pauly4010-evalgate-sdk[openai]"              # + OpenAI tracing
+pip install "pauly4010-evalgate-sdk[anthropic]"           # + Anthropic tracing
+pip install "pauly4010-evalgate-sdk[all]"                 # Everything
 ```
 
 ---
@@ -27,7 +29,7 @@ pip install "pauly4010-evalai-sdk[all]"                 # Everything
 No API key needed for local assertions:
 
 ```python
-from evalai_sdk import expect
+from evalgate_sdk import expect
 
 result = expect("The capital of France is Paris.").to_contain("Paris")
 print(result.passed)  # True
@@ -36,7 +38,7 @@ print(result.passed)  # True
 Ready to send traces to the platform? Add an API key:
 
 ```python
-from evalai_sdk import AIEvalClient, CreateTraceParams
+from evalgate_sdk import AIEvalClient, CreateTraceParams
 
 client = AIEvalClient(api_key="sk-...")
 trace = await client.traces.create(CreateTraceParams(name="chat-quality"))
@@ -44,9 +46,9 @@ trace = await client.traces.create(CreateTraceParams(name="chat-quality"))
 
 ---
 
-## Why EvalAI?
+## Why EvalGate?
 
-LLMs don't fail like traditional software — they drift silently. A prompt tweak or model swap can quietly degrade output quality, and you won't notice until users complain. EvalAI turns evaluations into CI gates so regressions never reach production.
+LLMs don't fail like traditional software — they drift silently. A prompt tweak or model swap can quietly degrade output quality, and you won't notice until users complain. EvalGate turns evaluations into CI gates so regressions never reach production.
 
 | What you get           | How it works                                                                                    |
 | ---------------------- | ----------------------------------------------------------------------------------------------- |
@@ -56,7 +58,7 @@ LLMs don't fail like traditional software — they drift silently. A prompt twea
 | **OpenAI / Anthropic** | Drop-in tracing wrappers — one line to instrument                                               |
 | **Regression gates**   | Block deploys when eval scores drop                                                             |
 | **Snapshot testing**   | Save and compare outputs over time                                                              |
-| **CLI**                | `evalai run`, `evalai gate`, `evalai ci`                                                        |
+| **CLI**                | `evalgate run`, `evalgate gate`, `evalgate ci`                                                   |
 
 ---
 
@@ -65,7 +67,7 @@ LLMs don't fail like traditional software — they drift silently. A prompt twea
 20+ built-in checks for LLM output quality, safety, and structure:
 
 ```python
-from evalai_sdk import expect
+from evalgate_sdk import expect
 
 # Content
 expect("The capital of France is Paris.").to_contain("Paris")
@@ -84,7 +86,7 @@ expect("Hello world").to_have_length(min=5, max=100)
 Standalone functions are also available:
 
 ```python
-from evalai_sdk import contains_keywords, has_no_toxicity, matches_pattern
+from evalgate_sdk import contains_keywords, has_no_toxicity, matches_pattern
 
 assert contains_keywords("quick brown fox", ["quick", "fox"])
 assert has_no_toxicity("Thank you for your help.")
@@ -96,8 +98,8 @@ assert matches_pattern("abc-123", r"\w+-\d+")
 ## Test Suites
 
 ```python
-from evalai_sdk import create_test_suite
-from evalai_sdk.types import TestSuiteCase, TestSuiteConfig
+from evalgate_sdk import create_test_suite
+from evalgate_sdk.types import TestSuiteCase, TestSuiteConfig
 
 suite = create_test_suite("safety-checks", TestSuiteConfig(
     evaluator=my_llm_function,
@@ -120,8 +122,8 @@ Trace every OpenAI call with one line:
 
 ```python
 from openai import AsyncOpenAI
-from evalai_sdk import AIEvalClient
-from evalai_sdk.integrations.openai import trace_openai
+from evalgate_sdk import AIEvalClient
+from evalgate_sdk.integrations.openai import trace_openai
 
 traced = trace_openai(AsyncOpenAI(), AIEvalClient.init())
 response = await traced.chat.completions.create(
@@ -134,7 +136,7 @@ response = await traced.chat.completions.create(
 Or run a batch eval with built-in assertions:
 
 ```python
-from evalai_sdk import openai_chat_eval, OpenAIChatEvalCase
+from evalgate_sdk import openai_chat_eval, OpenAIChatEvalCase
 
 result = await openai_chat_eval(
     name="chat-quality",
@@ -155,8 +157,8 @@ print(f"{result.passed_count}/{result.total} passed — score: {result.score:.2f
 
 ```python
 from anthropic import AsyncAnthropic
-from evalai_sdk import AIEvalClient
-from evalai_sdk.integrations.anthropic import trace_anthropic
+from evalgate_sdk import AIEvalClient
+from evalgate_sdk.integrations.anthropic import trace_anthropic
 
 traced = trace_anthropic(AsyncAnthropic(), AIEvalClient.init())
 response = await traced.messages.create(
@@ -173,8 +175,8 @@ response = await traced.messages.create(
 Track multi-agent systems end-to-end — handoffs, decisions, and cost:
 
 ```python
-from evalai_sdk import AIEvalClient, WorkflowTracer
-from evalai_sdk.types import HandoffType, CostCategory, RecordCostParams
+from evalgate_sdk import AIEvalClient, WorkflowTracer
+from evalgate_sdk.types import HandoffType, CostCategory, RecordCostParams
 
 client = AIEvalClient.init()
 tracer = WorkflowTracer(client)
@@ -199,7 +201,7 @@ print(f"Total cost: ${tracer.get_total_cost():.2f}")
 Block deployments when eval scores drop:
 
 ```python
-from evalai_sdk import evaluate_regression, to_pass_gate
+from evalgate_sdk import evaluate_regression, to_pass_gate
 
 report = evaluate_regression(current_results, baseline)
 assert to_pass_gate(report), f"Regression detected: {report.summary}"
@@ -271,7 +273,7 @@ No account cancellation. No data export. Your local assertions keep working.
 
 ## Links
 
-[Platform](https://v0-ai-evaluation-platform-nu.vercel.app) · [GitHub](https://github.com/pauly7610/ai-evaluation-platform) · [TypeScript SDK](https://www.npmjs.com/package/@pauly4010/evalai-sdk)
+[Platform](https://evalgate.com) · [GitHub](https://github.com/pauly7610/ai-evaluation-platform) · [TypeScript SDK](https://www.npmjs.com/package/@evalgate/sdk)
 
 ## License
 

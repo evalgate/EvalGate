@@ -2,14 +2,14 @@
 Demo: Local Assertions + Test Suite (no API key needed)
 
 Run:
-    pip install pauly4010-evalai-sdk
+    pip install pauly4010-evalgate-sdk
     python demo_eval.py
 """
 
 import asyncio
 
-from evalai_sdk import create_test_suite, expect
-from evalai_sdk.types import TestSuiteCase, TestSuiteConfig
+from evalgate_sdk import create_test_suite, expect
+from evalgate_sdk.types import TestSuiteCase, TestSuiteConfig
 
 
 def demo_assertions():

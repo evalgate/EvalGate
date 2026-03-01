@@ -1,7 +1,7 @@
 "use strict";
 /**
  * Input normalization and hashing for deterministic matching.
- * Must match platform's @/lib/utils/input-hash.ts for reportToEvalAI.
+ * Must match platform's @/lib/utils/input-hash.ts for reportToEvalGate.
  */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };

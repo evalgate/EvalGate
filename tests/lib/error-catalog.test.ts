@@ -13,7 +13,7 @@ import {
 } from "@/lib/error-catalog";
 import {
 	createErrorFromResponse,
-	EvalAIError,
+	EvalGateError,
 } from "@/packages/sdk/src/errors";
 
 describe("Golden error catalog", () => {
@@ -29,14 +29,14 @@ describe("Golden error catalog", () => {
 		expect(apiCodes.length).toBe(API_ERROR_CODES.length);
 	});
 
-	it("unknown error code degrades gracefully — SDK creates EvalAIError with generic docs", () => {
-		const err = new EvalAIError(
+	it("unknown error code degrades gracefully — SDK creates EvalGateError with generic docs", () => {
+		const err = new EvalGateError(
 			"Custom message",
 			"UNKNOWN_FUTURE_CODE",
 			418,
 			{},
 		);
-		expect(err).toBeInstanceOf(EvalAIError);
+		expect(err).toBeInstanceOf(EvalGateError);
 		expect(err.code).toBe("UNKNOWN_FUTURE_CODE");
 		expect(err.documentation).toBe(
 			"https://docs.ai-eval-platform.com/errors/UNKNOWN_FUTURE_CODE",
@@ -56,7 +56,7 @@ describe("Golden error catalog", () => {
 			error: { code: "FUTURE_API_CODE", message: "Something new" },
 		};
 		const err = createErrorFromResponse(mockResponse, data);
-		expect(err).toBeInstanceOf(EvalAIError);
+		expect(err).toBeInstanceOf(EvalGateError);
 		expect(err.code).toBe("FUTURE_API_CODE");
 		expect(err.message).toBe("Something new");
 		expect(err.statusCode).toBe(418);

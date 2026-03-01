@@ -5,7 +5,7 @@ The regression gate prevents quality regressions from merging to `main`. It comp
 ## Quick Start (any Node project)
 
 ```bash
-npx @pauly4010/evalai-sdk init    # detects repo, creates baseline, installs CI workflow
+npx @evalgate/sdk init    # detects repo, creates baseline, installs CI workflow
 git add evals/ .github/workflows/evalai-gate.yml evalai.config.json
 git commit -m "chore: add EvalAI regression gate"
 git push                           # open a PR → gate runs automatically
@@ -71,13 +71,13 @@ evalai.config.json             ← SDK config (baseline + report paths)
 
 | Command | Description |
 |---------|-------------|
-| `npx evalai init` | Full scaffolder — creates baseline, workflow, config |
-| `npx evalai gate` | Run regression gate (built-in or project mode) |
-| `npx evalai gate --format json` | Machine-readable JSON output |
-| `npx evalai gate --format github` | GitHub Step Summary markdown |
-| `npx evalai baseline init` | Create starter `evals/baseline.json` |
-| `npx evalai baseline update` | Re-run tests and update baseline |
-| `npx evalai upgrade --full` | Upgrade from Tier 1 (built-in) to Tier 2 (full gate) |
+| `npx evalgate init` | Full scaffolder — creates baseline, workflow, config |
+| `npx evalgate gate` | Run regression gate (built-in or project mode) |
+| `npx evalgate gate --format json` | Machine-readable JSON output |
+| `npx evalgate gate --format github` | GitHub Step Summary markdown |
+| `npx evalgate baseline init` | Create starter `evals/baseline.json` |
+| `npx evalgate baseline update` | Re-run tests and update baseline |
+| `npx evalgate upgrade --full` | Upgrade from Tier 1 (built-in) to Tier 2 (full gate) |
 
 ### Platform npm scripts (this repo)
 
@@ -91,10 +91,10 @@ evalai.config.json             ← SDK config (baseline + report paths)
 ### SDK Exports (programmatic access)
 
 ```typescript
-import { GATE_EXIT, GATE_CATEGORY, REPORT_SCHEMA_VERSION, ARTIFACTS } from "@pauly4010/evalai-sdk";
+import { GATE_EXIT, GATE_CATEGORY, REPORT_SCHEMA_VERSION, ARTIFACTS } from "@evalgate/sdk";
 // or tree-shakeable:
-import { GATE_EXIT } from "@pauly4010/evalai-sdk/regression";
-import type { RegressionReport, Baseline } from "@pauly4010/evalai-sdk/regression";
+import { GATE_EXIT } from "@evalgate/sdk/regression";
+import type { RegressionReport, Baseline } from "@evalgate/sdk/regression";
 ```
 
 ## Baseline Governance

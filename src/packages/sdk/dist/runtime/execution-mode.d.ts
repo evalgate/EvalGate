@@ -1,7 +1,7 @@
 /**
  * COMPAT-204: Dual-path execution toggle
  *
- * Environment flag EVALAI_RUNTIME=legacy|spec|auto
+ * Environment flag EVALGATE_RUNTIME=legacy|spec|auto
  * Auto uses spec runtime if manifest/specs exist, else legacy
  * Existing projects continue unchanged; new projects can use DSL only
  */
@@ -58,7 +58,7 @@ export declare function printExecutionModeInfo(config: ExecutionModeConfig): voi
  * Environment variable helpers
  */
 export declare const ENV_VARS: {
-    readonly EXECUTION_MODE: "EVALAI_RUNTIME";
+    readonly EXECUTION_MODE: "EVALGATE_RUNTIME";
     readonly POSSIBLE_VALUES: readonly ["legacy", "spec", "auto"];
     readonly DEFAULT: "auto";
 };

@@ -4,7 +4,7 @@
  * Tier 1.5: Rich Error Messages
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SDKError = exports.NetworkError = exports.ValidationError = exports.AuthenticationError = exports.RateLimitError = exports.EvalAIError = void 0;
+exports.SDKError = exports.NetworkError = exports.ValidationError = exports.AuthenticationError = exports.RateLimitError = exports.EvalGateError = void 0;
 exports.createErrorFromResponse = createErrorFromResponse;
 /**
  * Comprehensive error documentation
@@ -15,7 +15,7 @@ const ERROR_DOCS = {
         message: "API key is required to initialize the SDK",
         documentation: "https://docs.ai-eval-platform.com/errors/missing-api-key",
         solutions: [
-            "Set EVALAI_API_KEY environment variable",
+            "Set EVALGATE_API_KEY environment variable",
             'Pass apiKey in config: new AIEvalClient({ apiKey: "..." })',
             "Get your API key from https://platform.ai-eval-platform.com/settings/api-keys",
         ],
@@ -26,7 +26,7 @@ const ERROR_DOCS = {
         message: "Organization ID is required for this operation",
         documentation: "https://docs.ai-eval-platform.com/errors/missing-org-id",
         solutions: [
-            "Set EVALAI_ORGANIZATION_ID environment variable",
+            "Set EVALGATE_ORGANIZATION_ID environment variable",
             "Pass organizationId in config: new AIEvalClient({ organizationId: 123 })",
             "Pass organizationId in method params",
         ],
@@ -140,7 +140,7 @@ const ERROR_DOCS = {
  * try {
  *   await client.traces.create({ ... });
  * } catch (error) {
- *   if (error instanceof EvalAIError) {
+ *   if (error instanceof EvalGateError) {
  *     console.log(error.code); // 'RATE_LIMIT_EXCEEDED'
  *     console.log(error.documentation); // Link to docs
  *     console.log(error.solutions); // Array of solutions
@@ -153,10 +153,10 @@ const ERROR_DOCS = {
  * }
  * ```
  */
-class EvalAIError extends Error {
+class EvalGateError extends Error {
     constructor(message, code, statusCode, details) {
         super(message);
-        this.name = "EvalAIError";
+        this.name = "EvalGateError";
         this.code = code;
         this.statusCode = statusCode;
         this.details = details;
@@ -180,7 +180,7 @@ class EvalAIError extends Error {
         this.requestId =
             errorDetails?.error?.requestId ?? errorDetails?.requestId;
         // Ensure proper prototype chain
-        Object.setPrototypeOf(this, EvalAIError.prototype);
+        Object.setPrototypeOf(this, EvalGateError.prototype);
     }
     /**
      * Get formatted error message with solutions
@@ -225,8 +225,8 @@ class EvalAIError extends Error {
         };
     }
 }
-exports.EvalAIError = EvalAIError;
-exports.SDKError = EvalAIError;
+exports.EvalGateError = EvalGateError;
+exports.SDKError = EvalGateError;
 /**
  * Create an error from an HTTP response
  */
@@ -261,34 +261,34 @@ function createErrorFromResponse(response, data) {
         else if (status >= 500)
             code = "INTERNAL_SERVER_ERROR";
     }
-    const err = new EvalAIError(message, code, status, data);
+    const err = new EvalGateError(message, code, status, data);
     if (requestId)
         err.requestId = requestId;
     return err;
 }
 // Specific error types
-class RateLimitError extends EvalAIError {
+class RateLimitError extends EvalGateError {
     constructor(message, retryAfter) {
         super(message, "RATE_LIMIT_EXCEEDED", 429, { retryAfter });
         this.name = "RateLimitError";
     }
 }
 exports.RateLimitError = RateLimitError;
-class AuthenticationError extends EvalAIError {
+class AuthenticationError extends EvalGateError {
     constructor(message = "Authentication failed") {
         super(message, "AUTHENTICATION_ERROR", 401);
         this.name = "AuthenticationError";
     }
 }
 exports.AuthenticationError = AuthenticationError;
-class ValidationError extends EvalAIError {
+class ValidationError extends EvalGateError {
     constructor(message = "Validation failed", details) {
         super(message, "VALIDATION_ERROR", 400, details);
         this.name = "ValidationError";
     }
 }
 exports.ValidationError = ValidationError;
-class NetworkError extends EvalAIError {
+class NetworkError extends EvalGateError {
     constructor(message = "Network request failed") {
         super(message, "NETWORK_ERROR", 0);
         this.name = "NetworkError";

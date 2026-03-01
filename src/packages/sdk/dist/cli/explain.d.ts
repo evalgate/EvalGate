@@ -1,5 +1,5 @@
 /**
- * evalai explain — Offline report explainer.
+ * evalgate explain — Offline report explainer.
  *
  * Reads the last check/gate report artifact and prints:
  *   1. Top failing test cases (up to 3)
@@ -10,9 +10,9 @@
  * Works offline — no network calls. Designed for CI logs.
  *
  * Usage:
- *   evalai explain                             # reads evals/regression-report.json or .evalai/last-report.json
- *   evalai explain --report path/to/report.json
- *   evalai explain --format json
+ *   evalgate explain                             # reads evals/regression-report.json or .evalgate/last-report.json
+ *   evalgate explain --report path/to/report.json
+ *   evalgate explain --format json
  *
  * Exit codes:
  *   0 — Explained successfully

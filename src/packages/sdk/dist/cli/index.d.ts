@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * evalai — EvalAI CLI
+ * evalgate — EvalGate CLI
  *
  * Commands:
- *   evalai init   — Create evalai.config.json
- *   evalai check  — CI/CD evaluation gate (see evalai check --help)
+ *   evalgate init   — Create evalgate.config.json
+ *   evalgate check  — CI/CD evaluation gate (see evalgate check --help)
  */
 export {};

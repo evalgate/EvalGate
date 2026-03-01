@@ -26,7 +26,7 @@ export default function AgentGovernancePage() {
 					<div className="flex items-center justify-between gap-3">
 						<Link href="/">
 							<h1 className="text-base sm:text-xl font-bold truncate">
-								AI Evaluation Platform
+								EvalGate
 							</h1>
 						</Link>
 						<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -85,7 +85,7 @@ export default function AgentGovernancePage() {
 						</div>
 						<div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
 							<p className="text-sm text-purple-600 dark:text-purple-400">
-								EvalAI's orchestration layer provides enterprise-grade
+								EvalGate's orchestration layer provides enterprise-grade
 								governance for multi-agent AI systems. This framework enables
 								organizations to deploy, monitor, audit, and optimize AI agents
 								with full compliance and cost visibility.

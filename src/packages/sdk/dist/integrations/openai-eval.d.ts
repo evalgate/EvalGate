@@ -1,12 +1,12 @@
 /**
  * openAIChatEval — One-function OpenAI chat regression testing
  *
- * Run local regression tests with OpenAI. No EvalAI account required.
- * CI-friendly output. Optional reportToEvalAI in v1.5.
+ * Run local regression tests with OpenAI. No EvalGate account required.
+ * CI-friendly output. Optional reportToEvalGate in v1.5.
  *
  * @example
  * ```typescript
- * import { openAIChatEval } from '@pauly4010/evalai-sdk';
+ * import { openAIChatEval } from '@evalgate/sdk';
  *
  * await openAIChatEval({
  *   name: 'chat-regression',
@@ -21,7 +21,7 @@ import type { TestSuiteCaseResult } from "../testing";
 export interface OpenAIChatEvalCase {
     input: string;
     expectedOutput?: string;
-    /** Platform test case ID. When provided, used directly for reportToEvalAI (no input matching). */
+    /** Platform test case ID. When provided, used directly for reportToEvalGate (no input matching). */
     testCaseId?: number;
     assertions?: ((output: string) => import("../assertions").AssertionResult)[];
 }
@@ -32,11 +32,11 @@ export interface OpenAIChatEvalOptions {
     cases: OpenAIChatEvalCase[];
     /** Retry failing cases N times (default: 0). Only failing cases are retried. */
     retries?: number;
-    /** v1.5: Upload results to EvalAI platform for an existing evaluation. Requires evaluationId and EVALAI_API_KEY. */
-    reportToEvalAI?: boolean;
-    /** Evaluation ID (from config or arg). Required when reportToEvalAI is true. */
+    /** v1.5: Upload results to EvalGate platform for an existing evaluation. Requires evaluationId and EVALGATE_API_KEY. */
+    reportToEvalGate?: boolean;
+    /** Evaluation ID (from config or arg). Required when reportToEvalGate is true. */
     evaluationId?: string;
-    /** EvalAI API base URL. Default: EVALAI_BASE_URL or http://localhost:3000 */
+    /** EvalGate API base URL. Default: EVALGATE_BASE_URL or http://localhost:3000 */
     baseUrl?: string;
     /** Idempotency key for import (e.g. CI run ID). Prevents duplicate runs on retry. */
     idempotencyKey?: string;
@@ -52,6 +52,6 @@ export interface OpenAIChatEvalResult {
 }
 /**
  * Run OpenAI chat regression tests locally.
- * No EvalAI account required. Returns score and prints CI-friendly summary.
+ * No EvalGate account required. Returns score and prints CI-friendly summary.
  */
 export declare function openAIChatEval(options: OpenAIChatEvalOptions): Promise<OpenAIChatEvalResult>;

@@ -1,6 +1,6 @@
 """Tests for Pydantic data models."""
 
-from evalai_sdk.types import (
+from evalgate_sdk.types import (
     ClientConfig,
     CostCategory,
     CreateTraceParams,

@@ -5,9 +5,9 @@
 	"description": "Minimal EvalAI example — passes on first run, no account needed",
 	"scripts": {
 		"test": "node test.js",
-		"evalai:init": "npx -y @pauly4010/evalai-sdk@^1 init",
-		"evalai:doctor": "npx -y @pauly4010/evalai-sdk@^1 doctor",
-		"evalai:gate": "npx -y @pauly4010/evalai-sdk@^1 gate",
-		"evalai:explain": "npx -y @pauly4010/evalai-sdk@^1 explain"
+		"evalai:init": "npx -y @evalgate/sdk@^1 init",
+		"evalai:doctor": "npx -y @evalgate/sdk@^1 doctor",
+		"evalai:gate": "npx -y @evalgate/sdk@^1 gate",
+		"evalai:explain": "npx -y @evalgate/sdk@^1 explain"
 	}
 }

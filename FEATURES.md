@@ -15,9 +15,9 @@
 ### Regression Gate
 | Feature | Status |
 |---------|--------|
-| `evalai init` zero-config scaffolder | Production |
-| `evalai gate` local regression gate | Production |
-| `evalai ci` one-command CI loop | Production |
+| `evalgate init` zero-config scaffolder | Production |
+| `evalgate gate` local regression gate | Production |
+| `evalgate ci` one-command CI loop | Production |
 | GitHub Step Summary integration | Production |
 | Baseline governance (CODEOWNERS) | Production |
 | Multi-runner detection | Production |
@@ -43,8 +43,8 @@
 ### Developer Experience
 | Feature | Status |
 |---------|--------|
-| TypeScript SDK (`@pauly4010/evalai-sdk`) | Production (v1.9.1) |
-| Python SDK (`pauly4010-evalai-sdk`) | Production |
+| TypeScript SDK (`@evalgate/sdk`) | Production (v2.0.0) |
+| Python SDK (`pauly4010-evalgate-sdk`) | Production |
 | CLI (12 commands) | Production |
 | API key auth (scoped, hashed) | Production |
 | Programmatic regression gate exports | Production |
@@ -71,7 +71,7 @@
 
 **Problem:** LLMs don't fail like traditional software — they drift silently. Your team ships a prompt change that silently degrades answer quality by 15%. Users notice before you do.
 
-**Solution:** `evalai init` scaffolds a regression gate in your CI pipeline. Every PR runs your evaluation suite and blocks merges when quality drops below the baseline.
+**Solution:** `evalgate init` scaffolds a regression gate in your CI pipeline. Every PR runs your evaluation suite and blocks merges when quality drops below the baseline.
 
 **Example:** See `examples/ci-regression-gate/`
 

@@ -1,7 +1,7 @@
 /**
  * Config → DSL Adapter - LAYER 2 Compatibility Bridge
  *
- * Migrates existing evalai.config.json and TestSuite configurations
+ * Migrates existing evalgate.config.json and TestSuite configurations
  * to the new defineEval() DSL without breaking user workflows.
  */
 
@@ -11,7 +11,7 @@ import type { TestSuite, TestSuiteCase, TestSuiteConfig } from "../../testing";
 import { createEvalRuntime, disposeActiveRuntime } from "../registry";
 
 /**
- * Configuration file structure (existing evalai.config.json)
+ * Configuration file structure (existing evalgate.config.json)
  */
 interface EvalAIConfig {
 	evaluationId?: string;
@@ -118,7 +118,7 @@ function extractTestSuiteData(_testSuite: TestSuite): {
 }
 
 /**
- * Convert evalai.config.json to DSL specifications
+ * Convert evalgate.config.json to DSL specifications
  */
 export function migrateConfigToDSL(
 	configPath: string,
@@ -164,7 +164,7 @@ export function migrateConfigToDSL(
 
 		result.specsGenerated = 1; // Basic structure generated
 		result.warnings.push(
-			"Generated basic DSL structure from evalai.config.json. Manual completion required.",
+			"Generated basic DSL structure from evalgate.config.json. Manual completion required.",
 		);
 
 		// Cleanup runtime
@@ -192,7 +192,7 @@ function generateDSLFromTestSuiteData(suiteData: {
 		`// Generated at: ${new Date().toISOString()}`,
 		`// This file replaces the old TestSuite configuration`,
 		"",
-		`import { defineEval, createResult } from '@pauly4010/evalai-sdk';`,
+		`import { defineEval, createResult } from '@evalgate/sdk';`,
 		"",
 	];
 
@@ -251,11 +251,11 @@ function generateDSLFromTestSuiteData(suiteData: {
  */
 function generateDSLFromConfig(config: EvalAIConfig): string {
 	return [
-		`// Auto-generated from evalai.config.json`,
+		`// Auto-generated from evalgate.config.json`,
 		`// Generated at: ${new Date().toISOString()}`,
 		`// This is a basic DSL structure - complete with your actual evaluations`,
 		"",
-		`import { defineEval, createResult } from '@pauly4010/evalai-sdk';`,
+		`import { defineEval, createResult } from '@evalgate/sdk';`,
 		"",
 		`defineEval("basic-evaluation", async (context) => {`,
 		`  const input = context.input;`,
@@ -277,7 +277,7 @@ function generateDSLFromConfig(config: EvalAIConfig): string {
 		`    },`,
 		`  });`,
 		`}, {`,
-		`  description: "Basic evaluation migrated from evalai.config.json",`,
+		`  description: "Basic evaluation migrated from evalgate.config.json",`,
 		`  tags: ["migrated", "config"],`,
 		`});`,
 		"",
@@ -334,16 +334,22 @@ export function migrateProjectToDSL(
 		errors: [],
 		warnings: [],
 		outputPath:
-			options.outputDir || path.join(projectRoot, ".evalai", "migrated"),
+			options.outputDir || path.join(projectRoot, ".evalgate", "migrated"),
 	};
 
 	try {
-		// Find evalai.config.json
-		const configPath = path.join(projectRoot, "evalai.config.json");
-		if (fs.existsSync(configPath)) {
+		// Find evalgate.config.json or evalai.config.json
+		const evalgatePath = path.join(projectRoot, "evalgate.config.json");
+		const legacyPath = path.join(projectRoot, "evalai.config.json");
+		const configPath = fs.existsSync(evalgatePath)
+			? evalgatePath
+			: fs.existsSync(legacyPath)
+				? legacyPath
+				: null;
+		if (configPath) {
 			const outputPath = path.join(
 				result.outputPath,
-				"evalai.config.migrated.ts",
+				"evalgate.config.migrated.ts",
 			);
 
 			if (!options.dryRun) {
@@ -354,7 +360,7 @@ export function migrateProjectToDSL(
 				result.warnings.push(...configResult.warnings);
 			} else {
 				result.warnings.push(
-					`Would migrate evalai.config.json to ${outputPath}`,
+					`Would migrate evalgate.config.json to ${outputPath}`,
 				);
 			}
 		}
@@ -443,7 +449,7 @@ function generatePlaceholderDSL(originalFile: string): string {
 		`// Generated at: ${new Date().toISOString()}`,
 		`// This file contains TestSuite usage that needs manual migration`,
 		"",
-		`import { defineEval, createResult } from '@pauly4010/evalai-sdk';`,
+		`import { defineEval, createResult } from '@evalgate/sdk';`,
 		"",
 		`defineEval("placeholder-from-${path.basename(originalFile)}", async (context) => {`,
 		`  // TODO: Manually migrate TestSuite from ${originalFile}`,

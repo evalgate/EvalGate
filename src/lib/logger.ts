@@ -144,7 +144,7 @@ class Logger {
 
 /** Default application-wide logger instance. */
 export const logger = new Logger({
-	service: "ai-evaluation-platform",
+	service: "evalgate",
 	environment: process.env.NODE_ENV || "development",
 });
 

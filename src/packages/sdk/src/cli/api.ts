@@ -1,14 +1,14 @@
 /**
- * API fetch helpers for evalai check.
+ * API fetch helpers for evalgate check.
  * Captures x-request-id from response headers.
- * Sends X-EvalAI-SDK-Version and X-EvalAI-Spec-Version on all requests.
+ * Sends X-EvalGate-SDK-Version and X-EvalGate-Spec-Version on all requests.
  */
 
 import { SDK_VERSION, SPEC_VERSION } from "../version";
 
 const API_HEADERS: Record<string, string> = {
-	"X-EvalAI-SDK-Version": SDK_VERSION,
-	"X-EvalAI-Spec-Version": SPEC_VERSION,
+	"X-EvalGate-SDK-Version": SDK_VERSION,
+	"X-EvalGate-Spec-Version": SPEC_VERSION,
 };
 
 export type QualityLatestData = {
@@ -204,7 +204,7 @@ export async function importRunOnFail(
 	const body = {
 		environment: "dev" as const,
 		results,
-		importClientVersion: options.importClientVersion ?? "evalai-cli",
+		importClientVersion: options.importClientVersion ?? "evalgate-cli",
 		ci: options.ci,
 		...(options.checkReport != null && { checkReport: options.checkReport }),
 	};

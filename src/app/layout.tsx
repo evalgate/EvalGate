@@ -18,10 +18,10 @@ import { WebMCPProvider } from "@/components/webmcp-provider";
 import VisualEditsMessenger from "../visual-edits/VisualEditsMessenger";
 
 export const metadata: Metadata = {
-	title: "EvalAI — Stop LLM Regressions in CI in 2 Minutes",
+	title: "EvalGate — Stop LLM Regressions in CI in 2 Minutes",
 	description:
-		"EvalAI is CI for AI behavior. Stop LLM regressions before they reach production. No infra. No lock-in. 1.4k+ npm downloads/month. TypeScript & Python SDKs. Integrates with LangChain, CrewAI, AutoGen.",
-	generator: "EvalAI",
+		"EvalGate is CI for AI behavior. Stop LLM regressions before they reach production. No infra. No lock-in. 1.4k+ npm downloads/month. TypeScript & Python SDKs. Integrates with LangChain, CrewAI, AutoGen.",
+	generator: "EvalGate",
 	keywords: [
 		"ai evaluation",
 		"llm observability",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 		"cost tracking",
 		"decision auditing",
 		"governance",
-		"evalai",
+		"evalgate",
 		"typescript sdk",
 		"python sdk",
 		"multi-agent",
@@ -39,14 +39,14 @@ export const metadata: Metadata = {
 		"autogen",
 	],
 	openGraph: {
-		title: "EvalAI",
+		title: "EvalGate",
 		description: "Stop LLM regressions in CI in 2 minutes",
 		type: "website",
-		url: "https://v0-ai-evaluation-platform-nu.vercel.app",
-		siteName: "EvalAI",
+		url: "https://evalgate.com",
+		siteName: "EvalGate",
 	},
 	alternates: {
-		canonical: "https://v0-ai-evaluation-platform-nu.vercel.app",
+		canonical: "https://evalgate.com",
 	},
 	icons: {
 		icon: [{ url: "/icon.svg", type: "image/svg+xml" }],

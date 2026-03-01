@@ -19,7 +19,7 @@ export default function LocalDevelopmentPage() {
 					<div className="flex items-center justify-between gap-3">
 						<Link href="/">
 							<h1 className="text-base sm:text-xl font-bold truncate">
-								AI Evaluation Platform
+								EvalGate
 							</h1>
 						</Link>
 						<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -262,12 +262,12 @@ cd ai-evaluation-platform`}</pre>
 							SDK Package
 						</h2>
 						<p className="text-sm text-blue-600 dark:text-blue-400 mb-3">
-							The SDK package (@pauly4010/evalai-sdk) is published to npm
-							separately. For SDK consumers, use the standard install command
-							rather than setting up the full development environment.
+							The SDK package (@evalgate/sdk) is published to npm separately.
+							For SDK consumers, use the standard install command rather than
+							setting up the full development environment.
 						</p>
 						<div className="bg-muted rounded-lg p-3 font-mono text-sm">
-							<code>npm install @pauly4010/evalai-sdk</code>
+							<code>npm install @evalgate/sdk</code>
 						</div>
 					</Card>
 

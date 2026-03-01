@@ -17,11 +17,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-	title: "Validators - AI Evaluation Platform",
+	title: "Validators - EvalGate",
 	description:
 		"Built-in validators for evaluating LLM outputs: factuality, toxicity, latency, cost, and more.",
 	openGraph: {
-		title: "Validators - AI Evaluation Platform",
+		title: "Validators - EvalGate",
 		description:
 			"Built-in validators for evaluating LLM outputs: factuality, toxicity, latency, cost, and more.",
 		type: "website",

@@ -1,8 +1,8 @@
 """Tests for error classes."""
 
-from evalai_sdk.errors import (
+from evalgate_sdk.errors import (
     AuthenticationError,
-    EvalAIError,
+    EvalGateError,
     NetworkError,
     RateLimitError,
     ValidationError,
@@ -10,32 +10,32 @@ from evalai_sdk.errors import (
 )
 
 
-class TestEvalAIError:
+class TestEvalGateError:
     def test_basic_error(self):
-        err = EvalAIError("something broke", "INTERNAL_SERVER_ERROR", 500)
+        err = EvalGateError("something broke", "INTERNAL_SERVER_ERROR", 500)
         assert str(err) == "something broke"
         assert err.code == "INTERNAL_SERVER_ERROR"
         assert err.status_code == 500
         assert err.retryable is True
 
     def test_documentation_link(self):
-        err = EvalAIError("auth", "UNAUTHORIZED", 401)
+        err = EvalGateError("auth", "UNAUTHORIZED", 401)
         assert "unauthorized" in err.documentation
 
     def test_detailed_message(self):
-        err = EvalAIError("oops", "NOT_FOUND", 404)
+        err = EvalGateError("oops", "NOT_FOUND", 404)
         msg = err.detailed_message()
         assert "NOT_FOUND" in msg
         assert "Suggested solutions" in msg
 
     def test_to_dict(self):
-        err = EvalAIError("test", "TIMEOUT", 408)
+        err = EvalGateError("test", "TIMEOUT", 408)
         d = err.to_dict()
         assert d["code"] == "TIMEOUT"
         assert d["retryable"] is True
 
     def test_rate_limit_retry_after(self):
-        err = EvalAIError("slow down", "RATE_LIMIT_EXCEEDED", 429, {"retryAfter": 30})
+        err = EvalGateError("slow down", "RATE_LIMIT_EXCEEDED", 429, {"retryAfter": 30})
         assert err.retry_after == 30
 
 

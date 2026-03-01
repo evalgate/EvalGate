@@ -1,5 +1,5 @@
 /**
- * GitHub formatter for evalai check.
+ * GitHub formatter for evalgate check.
  * - stdout: minimal (verdict + score + link) + ::error annotations for failed cases
  * - Step summary: full Markdown written to GITHUB_STEP_SUMMARY (not stdout)
  */

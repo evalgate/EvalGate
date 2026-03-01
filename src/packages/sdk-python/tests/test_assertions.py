@@ -3,7 +3,7 @@
 import re
 import time
 
-from evalai_sdk.assertions import (
+from evalgate_sdk.assertions import (
     contains_all_required_fields,
     contains_json,
     contains_keywords,

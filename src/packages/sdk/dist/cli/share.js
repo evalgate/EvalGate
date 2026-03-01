@@ -1,7 +1,7 @@
 "use strict";
 /**
- * evalai share — Create a share link for a run.
- * Usage: evalai share --scope run --expires 7d
+ * evalgate share — Create a share link for a run.
+ * Usage: evalgate share --scope run --expires 7d
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseShareArgs = parseShareArgs;
@@ -39,14 +39,20 @@ function parseShareArgs(argv) {
             }
         }
     }
-    const baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || "http://localhost:3000";
-    const apiKey = args.apiKey || process.env.EVALAI_API_KEY || "";
+    const baseUrl = args.baseUrl ||
+        process.env.EVALGATE_BASE_URL ||
+        process.env.EVALAI_BASE_URL ||
+        "http://localhost:3000";
+    const apiKey = args.apiKey ||
+        process.env.EVALGATE_API_KEY ||
+        process.env.EVALAI_API_KEY ||
+        "";
     const evaluationId = args.evaluationId || "";
     const runId = args.runId ? parseInt(args.runId, 10) : NaN;
     const scope = args.scope === "run" ? "run" : "run";
     const expires = args.expires || "7d";
     if (!apiKey)
-        return { error: "Error: --apiKey or EVALAI_API_KEY is required" };
+        return { error: "Error: --apiKey or EVALGATE_API_KEY is required" };
     if (!evaluationId)
         return { error: "Error: --evaluationId is required" };
     if (Number.isNaN(runId) || runId < 1)
@@ -69,12 +75,12 @@ function parseShareArgs(argv) {
 async function runShare(args) {
     const exportRes = await (0, api_1.fetchRunExport)(args.baseUrl, args.apiKey, args.evaluationId, args.runId);
     if (!exportRes.ok) {
-        console.error(`EvalAI share: failed to fetch export — ${exportRes.status} ${exportRes.body}`);
+        console.error(`EvalGate share: failed to fetch export — ${exportRes.status} ${exportRes.body}`);
         return 1;
     }
     const publishRes = await (0, api_1.publishShare)(args.baseUrl, args.apiKey, args.evaluationId, exportRes.exportData, args.runId, { expiresInDays: args.expiresInDays });
     if (!publishRes.ok) {
-        console.error(`EvalAI share: failed to publish — ${publishRes.status} ${publishRes.body}`);
+        console.error(`EvalGate share: failed to publish — ${publishRes.status} ${publishRes.body}`);
         return 1;
     }
     const shareUrl = publishRes.data.shareUrl ??

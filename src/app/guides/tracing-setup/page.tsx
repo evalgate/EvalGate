@@ -38,24 +38,24 @@ export default function TracingSetupPage() {
 						</p>
 
 						<h2>Installation</h2>
-						<p>Install the AI Evaluation Platform SDK in your project:</p>
+						<p>Install the EvalGate SDK in your project:</p>
 						<p className="text-xs font-semibold text-muted-foreground mb-1">
 							TypeScript
 						</p>
 						<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4">
-							npm install @pauly4010/evalai-sdk
+							npm install @evalgate/sdk
 						</div>
 						<p>Or with other package managers:</p>
 						<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4">
-							yarn add @pauly4010/evalai-sdk
+							yarn add @evalgate/sdk
 							<br />
-							pnpm add @pauly4010/evalai-sdk
+							pnpm add @evalgate/sdk
 						</div>
 						<p className="text-xs font-semibold text-muted-foreground mb-1">
 							Python
 						</p>
 						<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4">
-							pip install pauly4010-evalai-sdk
+							pip install pauly4010-evalgate-sdk
 						</div>
 
 						<h2>Environment Setup</h2>
@@ -80,7 +80,7 @@ EVALAI_ORGANIZATION_ID=your_org_id_here`}
 							TypeScript
 						</p>
 						<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-							{`import { AIEvalClient, WorkflowTracer } from '@pauly4010/evalai-sdk'
+							{`import { AIEvalClient, WorkflowTracer } from '@evalgate/sdk'
 
 const client = new AIEvalClient({ apiKey: process.env.EVALAI_API_KEY })
 const tracer = new WorkflowTracer(client)`}
@@ -89,7 +89,7 @@ const tracer = new WorkflowTracer(client)`}
 							Python
 						</p>
 						<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-							{`from evalai_sdk import AIEvalClient, WorkflowTracer
+							{`from evalgate_sdk import AIEvalClient, WorkflowTracer
 
 client = AIEvalClient(api_key=os.environ["EVALAI_API_KEY"])
 tracer = WorkflowTracer(client)`}
@@ -126,7 +126,7 @@ const span = await client.traces.createSpan(trace.id, {
 							Python
 						</p>
 						<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-							{`from evalai_sdk.types import CreateTraceParams, CreateSpanParams
+							{`from evalgate_sdk.types import CreateTraceParams, CreateSpanParams
 
 # Create a trace
 trace = await client.traces.create(CreateTraceParams(
@@ -178,7 +178,7 @@ span = await client.traces.create_span(trace.id, CreateSpanParams(
 							TypeScript
 						</p>
 						<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-							{`import { traceWorkflowStep } from '@pauly4010/evalai-sdk'
+							{`import { traceWorkflowStep } from '@evalgate/sdk'
 
 await tracer.startWorkflow('RAG Pipeline');
 
@@ -200,7 +200,7 @@ await tracer.endWorkflow({ status: 'success' });`}
 							Python
 						</p>
 						<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-							{`from evalai_sdk.workflows import trace_workflow_step
+							{`from evalgate_sdk.workflows import trace_workflow_step
 
 await tracer.start_workflow("RAG Pipeline")
 

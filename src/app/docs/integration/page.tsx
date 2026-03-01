@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: "EvalAI Integration Reference — SDK, REST API, Governance",
+	title: "EvalGate Integration Reference — SDK, REST API, Governance",
 	description:
-		"Complete technical reference for integrating with the AI Evaluation Platform. TypeScript SDK, REST API contracts, multi-agent workflow tracing, cost analytics, governance presets, and Python examples.",
+		"Complete technical reference for integrating with the EvalGate. TypeScript SDK, REST API contracts, multi-agent workflow tracing, cost analytics, governance presets, and Python examples.",
 	keywords: [
 		"ai evaluation sdk",
 		"llm observability",
@@ -15,14 +15,14 @@ export const metadata: Metadata = {
 		"langchain integration",
 		"crewai integration",
 		"autogen integration",
-		"evalai",
+		"evalgate",
 		"typescript sdk",
 		"multi-agent",
 	],
 	openGraph: {
-		title: "EvalAI Integration Reference",
+		title: "EvalGate Integration Reference",
 		description:
-			"SDK, REST API, governance, and Python integration docs for the AI Evaluation Platform.",
+			"SDK, REST API, governance, and Python integration docs for the EvalGate.",
 		type: "website",
 	},
 };
@@ -78,18 +78,18 @@ export default function IntegrationDocsPage() {
 					__html: JSON.stringify({
 						"@context": "https://schema.org",
 						"@type": "SoftwareApplication",
-						name: "EvalAI SDK",
+						name: "EvalGate SDK",
 						applicationCategory: "DeveloperApplication",
 						operatingSystem: "Cross-platform",
 						offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 						description:
 							"TypeScript/JavaScript SDK for AI agent observability, workflow tracing, cost analytics, decision auditing, and governance. Integrates with LangChain, CrewAI, AutoGen.",
-						url: "https://www.npmjs.com/package/@pauly4010/evalai-sdk",
-						downloadUrl: "https://www.npmjs.com/package/@pauly4010/evalai-sdk",
+						url: "https://www.npmjs.com/package/@evalgate/sdk",
+						downloadUrl: "https://www.npmjs.com/package/@evalgate/sdk",
 						softwareVersion: "1.3.0",
 						author: {
 							"@type": "Organization",
-							name: "EvalAI",
+							name: "EvalGate",
 							url: "https://github.com/pauly7610/ai-evaluation-platform",
 						},
 						programmingLanguage: ["TypeScript", "JavaScript", "Python"],
@@ -122,21 +122,21 @@ export default function IntegrationDocsPage() {
 							<Badge>npm published</Badge>
 						</div>
 						<h1 className="mb-4 text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-							EvalAI Integration Reference
+							EvalGate Integration Reference
 						</h1>
 						<p className="max-w-2xl text-lg text-zinc-400">
 							Complete technical reference for wiring external projects into the
-							AI Evaluation Platform. Every type, endpoint, and method signature
-							below is sourced directly from the codebase.
+							EvalGate. Every type, endpoint, and method signature below is
+							sourced directly from the codebase.
 						</p>
 						<div className="mt-6 flex flex-wrap gap-3">
 							<a
-								href="https://www.npmjs.com/package/@pauly4010/evalai-sdk"
+								href="https://www.npmjs.com/package/@evalgate/sdk"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500"
 							>
-								npm install @pauly4010/evalai-sdk
+								npm install @evalgate/sdk
 							</a>
 							<a
 								href="https://github.com/pauly7610/ai-evaluation-platform"
@@ -186,9 +186,9 @@ export default function IntegrationDocsPage() {
 					<div className="space-y-20">
 						{/* Quick Start */}
 						<Section id="quick-start" title="Quick Start">
-							<CodeBlock lang="bash">{`npm install @pauly4010/evalai-sdk`}</CodeBlock>
+							<CodeBlock lang="bash">{`npm install @evalgate/sdk`}</CodeBlock>
 							<div className="mt-4" />
-							<CodeBlock lang="typescript">{`import { AIEvalClient, WorkflowTracer } from '@pauly4010/evalai-sdk';
+							<CodeBlock lang="typescript">{`import { AIEvalClient, WorkflowTracer } from '@evalgate/sdk';
 
 // Zero-config: reads EVALAI_API_KEY and EVALAI_ORGANIZATION_ID from env
 const client = AIEvalClient.init();
@@ -469,7 +469,7 @@ const result = engine.evaluate(decision);
 							</p>
 							<CodeBlock lang="python">{`import requests, os, time
 
-BASE = "https://v0-ai-evaluation-platform-nu.vercel.app"
+BASE = "https://evalgate.com"
 HEADERS = {
     "Authorization": f"Bearer {os.environ['EVALAI_API_KEY']}",
     "Content-Type": "application/json"
@@ -506,19 +506,19 @@ requests.post(f"{BASE}/api/costs", headers=HEADERS, json={
 						{/* Frameworks */}
 						<Section id="frameworks" title="Framework Integrations">
 							<CodeBlock lang="typescript">{`// LangChain — wraps .invoke() and .call()
-import { traceLangChainAgent } from '@pauly4010/evalai-sdk';
+import { traceLangChainAgent } from '@evalgate/sdk';
 const traced = traceLangChainAgent(executor, tracer, { agentName: 'SupportBot' });
 
 // CrewAI — wraps .kickoff() with auto workflow start/end
-import { traceCrewAI } from '@pauly4010/evalai-sdk';
+import { traceCrewAI } from '@evalgate/sdk';
 const traced = traceCrewAI(crew, tracer, { crewName: 'ResearchCrew' });
 
 // AutoGen — wraps .initiate_chat() with auto workflow start/end
-import { traceAutoGen } from '@pauly4010/evalai-sdk';
+import { traceAutoGen } from '@evalgate/sdk';
 const traced = traceAutoGen(conversation, tracer);
 
 // Generic helper — trace unknown async function
-import { traceWorkflowStep } from '@pauly4010/evalai-sdk';
+import { traceWorkflowStep } from '@evalgate/sdk';
 const result = await traceWorkflowStep(tracer, 'MyAgent', async () => {
   return await doWork();
 });`}</CodeBlock>
@@ -531,7 +531,7 @@ const result = await traceWorkflowStep(tracer, 'MyAgent', async () => {
 									<thead>
 										<tr className="border-b border-zinc-800 text-left text-zinc-500">
 											<th className="pb-2 pr-4">Feature</th>
-											<th className="pb-2 pr-4">EvalAI</th>
+											<th className="pb-2 pr-4">EvalGate</th>
 											<th className="pb-2 pr-4">LangSmith</th>
 											<th className="pb-2 pr-4">Helicone</th>
 											<th className="pb-2">Braintrust</th>

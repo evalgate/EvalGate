@@ -19,7 +19,7 @@ export default function IntegrationReferencePage() {
 					<div className="flex items-center justify-between gap-3">
 						<Link href="/">
 							<h1 className="text-base sm:text-xl font-bold truncate">
-								AI Evaluation Platform
+								EvalGate
 							</h1>
 						</Link>
 						<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -73,7 +73,7 @@ export default function IntegrationReferencePage() {
 								</h1>
 								<p className="text-lg text-muted-foreground">
 									Complete technical reference for wiring external projects into
-									the AI Evaluation Platform
+									the EvalGate
 								</p>
 							</div>
 						</div>
@@ -98,7 +98,7 @@ export default function IntegrationReferencePage() {
 									<tr className="border-b">
 										<td className="py-2 font-semibold">npm package</td>
 										<td className="py-2">
-											<code>@pauly4010/evalai-sdk</code>
+											<code>@evalgate/sdk</code>
 										</td>
 									</tr>
 									<tr className="border-b">
@@ -137,7 +137,8 @@ export default function IntegrationReferencePage() {
 									<tr>
 										<td className="py-2 font-semibold">CLI</td>
 										<td className="py-2">
-											<code>npx evalai</code> → <code>./dist/cli/index.js</code>
+											<code>npx evalgate</code> →{" "}
+											<code>./dist/cli/index.js</code>
 										</td>
 									</tr>
 								</tbody>
@@ -380,7 +381,7 @@ client.organizations   → OrganizationsAPI`}</pre>
 							<div>
 								<h3 className="font-semibold mb-2">Basic Evaluation</h3>
 								<div className="bg-muted rounded-lg p-4 font-mono text-sm overflow-x-auto">
-									<pre>{`import { AIEvalClient } from '@pauly4010/evalai-sdk';
+									<pre>{`import { AIEvalClient } from '@evalgate/sdk';
 
 const client = AIEvalClient.init();
 

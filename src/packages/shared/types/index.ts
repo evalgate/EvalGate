@@ -1,4 +1,4 @@
-// Core domain types for the AI Evaluation Platform
+// Core domain types for the EvalGate
 
 export type Json =
 	| string

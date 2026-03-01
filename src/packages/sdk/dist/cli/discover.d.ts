@@ -1,11 +1,11 @@
 /**
- * TICKET 1 — evalai discover
+ * TICKET 1 — evalgate discover
  *
  * Your first "holy shit" moment feature
  *
  * Goal:
  * npm install
- * evalai discover
+ * evalgate discover
  *
  * Output:
  * Found 42 behavioral specifications
@@ -15,7 +15,7 @@
  * Tools: 5
  *
  * Why this matters:
- * - makes EvalAI feel alive
+ * - makes EvalGate feel alive
  * - proves DSL works
  * - enables intelligence layer
  *

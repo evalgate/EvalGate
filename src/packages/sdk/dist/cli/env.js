@@ -2,7 +2,7 @@
 /**
  * CORE-401: Centralized environment detection
  *
- * Provides unified environment detection for all EvalAI CLI commands
+ * Provides unified environment detection for all EvalGate CLI commands
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isCI = isCI;

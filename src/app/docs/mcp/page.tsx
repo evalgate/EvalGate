@@ -19,7 +19,7 @@ export default function MCPPage() {
 					<div className="flex items-center justify-between gap-3">
 						<Link href="/">
 							<h1 className="text-base sm:text-xl font-bold truncate">
-								AI Evaluation Platform
+								EvalGate
 							</h1>
 						</Link>
 						<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -96,7 +96,7 @@ export default function MCPPage() {
 					<Card className="p-6 mb-8">
 						<h2 className="text-xl font-semibold mb-4">Overview</h2>
 						<p className="text-muted-foreground mb-4">
-							EvalAI exposes an{" "}
+							EvalGate exposes an{" "}
 							<strong>MCP-style tool discovery and execution API</strong> for AI
 							agents. Tools map to platform services: evaluations, quality
 							scores, traces, spans, and test cases.
@@ -373,7 +373,7 @@ export default function MCPPage() {
 									Claude Desktop
 								</h3>
 								<p className="text-sm text-muted-foreground">
-									Configure Claude Desktop to use EvalAI tools for evaluation
+									Configure Claude Desktop to use EvalGate tools for evaluation
 									management and quality scoring.
 								</p>
 								<div className="bg-muted rounded-lg p-3 font-mono text-xs">

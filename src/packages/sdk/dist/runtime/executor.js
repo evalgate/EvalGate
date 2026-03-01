@@ -1,6 +1,6 @@
 "use strict";
 /**
- * EvalAI Local Executor - Layer 1 Foundation
+ * EvalGate Local Executor - Layer 1 Foundation
  *
  * Local execution engine that runs specifications without database coupling.
  * Implements the execution interface for the new programming model.

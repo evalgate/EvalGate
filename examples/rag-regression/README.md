@@ -27,7 +27,7 @@ Evaluates retrieval-augmented generation (RAG) systems for drift and quality.
 - name: RAG regression gate
   env:
     EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
-  run: npx -y @pauly4010/evalai-sdk@^1 check --format github --onFail import
+  run: npx -y @evalgate/sdk@^1 check --format github --onFail import
 ```
 
 ## Screenshot

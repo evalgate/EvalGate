@@ -19,7 +19,7 @@ export default function ArchitecturePage() {
 					<div className="flex items-center justify-between gap-3">
 						<Link href="/">
 							<h1 className="text-base sm:text-xl font-bold truncate">
-								AI Evaluation Platform
+								EvalGate
 							</h1>
 						</Link>
 						<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -86,7 +86,7 @@ export default function ArchitecturePage() {
 │   │   ├── llm-judge/    # LLM Judge evaluate, configs, alignment
 │   │   ├── traces/       # Distributed tracing + spans
 │   │   └── ...
-├── src/packages/sdk/     # TypeScript SDK (@pauly4010/evalai-sdk)
+├── src/packages/sdk/     # TypeScript SDK (@evalgate/sdk)
 ├── src/lib/              # Core services, utilities, templates
 ├── src/db/               # Database layer (Drizzle ORM schema)
 └── drizzle/              # Database migrations`}</pre>
@@ -124,7 +124,7 @@ export default function ArchitecturePage() {
 								<h3 className="text-lg font-semibold">TypeScript SDK</h3>
 							</div>
 							<p className="text-muted-foreground mb-3">
-								Published as @pauly4010/evalai-sdk to npm for easy integration.
+								Published as @evalgate/sdk to npm for easy integration.
 							</p>
 							<ul className="text-sm text-muted-foreground space-y-1">
 								<li>• Full TypeScript support with type definitions</li>

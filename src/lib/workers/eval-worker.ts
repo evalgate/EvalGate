@@ -502,7 +502,7 @@ class EvalWorker {
 
 	/**
 	 * Evaluate a single test case using the SDK.
-	 * This integrates the actual @pauly4010/evalai-sdk for real evaluation.
+	 * This integrates the actual @evalgate/sdk for real evaluation.
 	 */
 	private async evaluateTestCase(
 		testCase: TestCase,

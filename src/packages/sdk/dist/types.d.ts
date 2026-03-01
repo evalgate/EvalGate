@@ -1,9 +1,9 @@
 /**
- * Configuration options for the AI Evaluation Platform SDK client
+ * Configuration options for the EvalGate SDK client
  * Tier 1.4: TypeScript-First with Generics
  */
 export interface ClientConfig {
-    /** Your API key from the AI Evaluation Platform dashboard */
+    /** Your API key from the EvalGate dashboard */
     apiKey?: string;
     /** Base URL for the API (default: relative URLs in browser, http://localhost:3000 in Node.js) */
     baseUrl?: string;

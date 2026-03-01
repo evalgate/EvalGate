@@ -58,7 +58,7 @@ export async function runImpactAnalysis(
 	const manifest = await readManifest(projectRoot);
 	if (!manifest) {
 		throw new Error(
-			"No evaluation manifest found. Run 'evalai discover --manifest' first.",
+			"No evaluation manifest found. Run 'evalgate discover --manifest' first.",
 		);
 	}
 
@@ -93,7 +93,7 @@ export async function runImpactAnalysis(
 async function readManifest(
 	projectRoot: string = process.cwd(),
 ): Promise<EvaluationManifest | null> {
-	const manifestPath = path.join(projectRoot, ".evalai", "manifest.json");
+	const manifestPath = path.join(projectRoot, ".evalgate", "manifest.json");
 
 	try {
 		const content = await fs.readFile(manifestPath, "utf-8");
@@ -253,7 +253,9 @@ export function printHumanResults(result: ImpactAnalysisResult): void {
 		}
 
 		console.log("\n💡 Suggested command:");
-		console.log(`   evalai run --spec-ids ${result.impactedSpecIds.join(",")}`);
+		console.log(
+			`   evalgate run --spec-ids ${result.impactedSpecIds.join(",")}`,
+		);
 	} else {
 		console.log("\n✅ No specifications impacted");
 		console.log("💡 No tests needed to run");

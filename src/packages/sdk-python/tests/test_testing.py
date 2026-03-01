@@ -2,8 +2,8 @@
 
 import pytest
 
-from evalai_sdk.testing import create_test_suite
-from evalai_sdk.types import TestSuiteCase, TestSuiteConfig
+from evalgate_sdk.testing import create_test_suite
+from evalgate_sdk.types import TestSuiteCase, TestSuiteConfig
 
 
 def _echo(input: str) -> str:

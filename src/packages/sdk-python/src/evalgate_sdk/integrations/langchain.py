@@ -7,7 +7,7 @@ import inspect
 import json as _json
 from typing import Any
 
-from evalai_sdk.workflows import WorkflowTracer
+from evalgate_sdk.workflows import WorkflowTracer
 
 
 def _safe_str(value: Any) -> str:
@@ -37,7 +37,7 @@ def trace_langchain(
     Example::
 
         from langchain.agents import AgentExecutor
-        from evalai_sdk import WorkflowTracer, AIEvalClient
+        from evalgate_sdk import WorkflowTracer, AIEvalClient
 
         client = AIEvalClient.init()
         tracer = WorkflowTracer(client)

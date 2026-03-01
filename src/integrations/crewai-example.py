@@ -1,6 +1,6 @@
 """
 CrewAI Integration Example
-Demonstrates how to integrate EvalAI workflow tracing with CrewAI crews
+Demonstrates how to integrate EvalGate workflow tracing with CrewAI crews
 
 This example shows:
 - Automatic tracing of CrewAI crew executions
@@ -9,7 +9,7 @@ This example shows:
 - Human-in-the-loop escalation
 
 Requirements:
-    pip install crewai evalai-sdk
+    pip install crewai pauly4010-evalgate-sdk
 """
 
 import os
@@ -73,12 +73,12 @@ class WorkflowContext:
 # EVALAI TRACER (Python Implementation)
 # ============================================================================
 
-class EvalAITracer:
+class EvalGateTracer:
     """
-    EvalAI Workflow Tracer for Python
+    EvalGate Workflow Tracer for Python
     
     Example:
-        tracer = EvalAITracer(api_key=os.environ['EVALAI_API_KEY'])
+        tracer = EvalGateTracer(api_key=os.environ['EVALAI_API_KEY'])
         
         with tracer.workflow('Market Research Crew'):
             tracer.record_decision(Decision(...))
@@ -89,7 +89,7 @@ class EvalAITracer:
         self,
         api_key: str,
         organization_id: Optional[int] = None,
-        base_url: str = 'https://v0-ai-evaluation-platform-nu.vercel.app',
+        base_url: str = 'https://evalgate.com',
         debug: bool = False
     ):
         self.api_key = api_key
@@ -134,7 +134,7 @@ class EvalAITracer:
         
         total_cost = sum(float(c.total_cost) for c in self._costs)
         
-        # In production, this would send to the EvalAI API
+        # In production, this would send to the EvalGate API
         self._log(f'Ended workflow: {self._current_workflow.name}', {
             'status': status,
             'duration_ms': duration_ms,
@@ -192,13 +192,13 @@ class EvalAITracer:
     def _log(self, message: str, data: Optional[Dict[str, unknown]] = None):
         """Log if debug mode enabled"""
         if self.debug:
-            print(f'[EvalAI] {message}', data or '')
+            print(f'[EvalGate] {message}', data or '')
 
 
 class WorkflowContextManager:
     """Context manager for workflow tracing"""
     
-    def __init__(self, tracer: EvalAITracer, name: str, metadata: Optional[Dict[str, unknown]] = None):
+    def __init__(self, tracer: EvalGateTracer, name: str, metadata: Optional[Dict[str, unknown]] = None):
         self.tracer = tracer
         self.name = name
         self.metadata = metadata
@@ -224,7 +224,7 @@ class WorkflowContextManager:
 
 def trace_crewai(
     workflow_name: str,
-    tracer: Optional[EvalAITracer] = None,
+    tracer: Optional[EvalGateTracer] = None,
     api_key: Optional[str] = None
 ):
     """
@@ -242,7 +242,7 @@ def trace_crewai(
                 return Task(description='...', agent=self.researcher())
     """
     def decorator(cls):
-        _tracer = tracer or EvalAITracer(
+        _tracer = tracer or EvalGateTracer(
             api_key=api_key or os.environ.get('EVALAI_API_KEY', ''),
             debug=True
         )
@@ -316,14 +316,14 @@ def trace_crewai(
 
 def example_market_research_crew():
     """
-    Example: Market Research Crew with EvalAI tracing
+    Example: Market Research Crew with EvalGate tracing
     
     This demonstrates how a CrewAI crew would be instrumented.
     In production, you would use actual CrewAI Agent and Task classes.
     """
     
     # Initialize tracer
-    tracer = EvalAITracer(
+    tracer = EvalGateTracer(
         api_key=os.environ.get('EVALAI_API_KEY', 'demo-key'),
         debug=True
     )
@@ -444,6 +444,6 @@ def check_governance(
 # ============================================================================
 
 if __name__ == '__main__':
-    print('EvalAI + CrewAI Integration Example')
+    print('EvalGate + CrewAI Integration Example')
     print('=' * 50)
     example_market_research_crew()

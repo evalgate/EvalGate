@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Callable, TypeVar
 
-from evalai_sdk.types import (
+from evalgate_sdk.types import (
     AgentHandoff,
     AgentSpanContext,
     CostRecord,
@@ -52,7 +52,7 @@ class WorkflowTracer:
         definition: WorkflowDefinition | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> WorkflowContext:
-        from evalai_sdk.types import CreateTraceParams
+        from evalgate_sdk.types import CreateTraceParams
 
         trace = await self._client.traces.create(
             CreateTraceParams(
@@ -85,7 +85,7 @@ class WorkflowTracer:
             return
         self._workflow.status = status
         if self._workflow.trace_id is not None:
-            from evalai_sdk.types import UpdateTraceParams
+            from evalgate_sdk.types import UpdateTraceParams
 
             await self._client.traces.update(
                 self._workflow.trace_id,
@@ -112,7 +112,7 @@ class WorkflowTracer:
         trace_id = self._workflow.trace_id if self._workflow else None
 
         if trace_id is not None:
-            from evalai_sdk.types import CreateSpanParams
+            from evalgate_sdk.types import CreateSpanParams
 
             await self._client.traces.create_span(
                 trace_id,
@@ -143,7 +143,7 @@ class WorkflowTracer:
     ) -> None:
         span.ended_at = datetime.now(timezone.utc)
         if span.trace_id is not None:
-            from evalai_sdk.types import UpdateTraceParams
+            from evalgate_sdk.types import UpdateTraceParams
 
             metadata: dict[str, Any] = {}
             if output:

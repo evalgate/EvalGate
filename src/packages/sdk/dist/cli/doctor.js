@@ -1,6 +1,6 @@
 "use strict";
 /**
- * evalai doctor — Comprehensive CI/CD readiness checklist.
+ * evalgate doctor — Comprehensive CI/CD readiness checklist.
  *
  * Runs itemized pass/fail checks with exact remediation commands.
  *
@@ -12,7 +12,7 @@
  * Flags:
  *   --report          Output JSON diagnostic bundle (redacted)
  *   --format <fmt>    Output format: human (default), json
- *   --apiKey <key>    API key (or EVALAI_API_KEY env)
+ *   --apiKey <key>    API key (or EVALGATE_API_KEY env)
  *   --baseUrl <url>   API base URL
  *   --evaluationId <id>  Evaluation to verify
  *   --baseline <mode> Baseline mode
@@ -93,8 +93,14 @@ function parseFlags(argv) {
     }
     const report = raw.report === "true" || raw.report === "1";
     const fmt = raw.format === "json" ? "json" : "human";
-    const baseUrl = raw.baseUrl || process.env.EVALAI_BASE_URL || "http://localhost:3000";
-    const apiKey = raw.apiKey || process.env.EVALAI_API_KEY || "";
+    const baseUrl = raw.baseUrl ||
+        process.env.EVALGATE_BASE_URL ||
+        process.env.EVALAI_BASE_URL ||
+        "http://localhost:3000";
+    const apiKey = raw.apiKey ||
+        process.env.EVALGATE_API_KEY ||
+        process.env.EVALAI_API_KEY ||
+        "";
     let evaluationId = raw.evaluationId || "";
     const baseline = (raw.baseline === "previous"
         ? "previous"
@@ -106,7 +112,9 @@ function parseFlags(argv) {
         const config = (0, config_1.loadConfig)(process.cwd());
         const merged = (0, config_1.mergeConfigWithArgs)(config, {
             evaluationId: raw.evaluationId,
-            baseUrl: raw.baseUrl || process.env.EVALAI_BASE_URL,
+            baseUrl: raw.baseUrl ||
+                process.env.EVALGATE_BASE_URL ||
+                process.env.EVALAI_BASE_URL,
             baseline: raw.baseline,
         });
         if (merged.evaluationId)
@@ -166,8 +174,8 @@ function checkConfig(cwd) {
             id: "config",
             label: "Config file",
             status: "fail",
-            message: "No evalai.config.json found",
-            remediation: "Run: npx evalai init",
+            message: "No evalgate.config.json (or evalai.config.json) found",
+            remediation: "Run: npx evalgate init",
             config: null,
             configPath: null,
         };
@@ -179,7 +187,7 @@ function checkConfig(cwd) {
             label: "Config file",
             status: "fail",
             message: `Config at ${path.relative(cwd, configPath)} is invalid JSON`,
-            remediation: "Fix JSON syntax in your config file, or delete it and run: npx evalai init",
+            remediation: "Fix JSON syntax in your config file, or delete it and run: npx evalgate init",
             config: null,
             configPath,
         };
@@ -191,7 +199,7 @@ function checkConfig(cwd) {
             label: "Config file",
             status: "warn",
             message: `Config at ${path.relative(cwd, configPath)} has no evaluationId or gate section`,
-            remediation: "Add evaluationId to evalai.config.json (from the dashboard) or ensure gate.baseline is set",
+            remediation: "Add evaluationId to evalgate.config.json (from the dashboard) or ensure gate.baseline is set",
             config,
             configPath,
         };
@@ -213,7 +221,7 @@ function checkBaseline(cwd) {
             label: "Baseline file",
             status: "fail",
             message: "evals/baseline.json not found",
-            remediation: "Run: npx evalai init  (or: npx evalai baseline init)",
+            remediation: "Run: npx evalgate init  (or: npx evalgate baseline init)",
             baselineInfo: { path: "evals/baseline.json", exists: false },
         };
     }
@@ -227,7 +235,7 @@ function checkBaseline(cwd) {
             label: "Baseline file",
             status: "fail",
             message: "evals/baseline.json is not valid JSON",
-            remediation: "Delete evals/baseline.json and run: npx evalai baseline init",
+            remediation: "Delete evals/baseline.json and run: npx evalgate baseline init",
             baselineInfo: { path: "evals/baseline.json", exists: true },
         };
     }
@@ -249,7 +257,7 @@ function checkBaseline(cwd) {
             label: "Baseline file",
             status: "fail",
             message: `Unsupported baseline schemaVersion: ${schemaVersion ?? "missing"}`,
-            remediation: "Run: npx evalai baseline init  (creates schemaVersion 1)",
+            remediation: "Run: npx evalgate baseline init  (creates schemaVersion 1)",
             baselineInfo: {
                 path: "evals/baseline.json",
                 exists: true,
@@ -264,7 +272,7 @@ function checkBaseline(cwd) {
             label: "Baseline file",
             status: "warn",
             message: `Baseline is stale (last updated ${updatedAt})`,
-            remediation: "Run: npx evalai baseline update",
+            remediation: "Run: npx evalgate baseline update",
             baselineInfo: {
                 path: "evals/baseline.json",
                 exists: true,
@@ -295,7 +303,7 @@ function checkAuth(apiKey) {
             label: "Authentication",
             status: "fail",
             message: "No API key found",
-            remediation: "Set EVALAI_API_KEY environment variable, or pass --apiKey <key>",
+            remediation: "Set EVALGATE_API_KEY environment variable, or pass --apiKey <key>",
         };
     }
     // Redact key for display
@@ -313,7 +321,7 @@ async function checkConnectivity(baseUrl, apiKey) {
     try {
         const res = await fetch(url, {
             headers: {
-                "X-EvalAI-SDK-Version": version_1.SDK_VERSION,
+                "X-EvalGate-SDK-Version": version_1.SDK_VERSION,
                 ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
             },
             signal: AbortSignal.timeout(10000),
@@ -327,7 +335,7 @@ async function checkConnectivity(baseUrl, apiKey) {
                 message: `${baseUrl} returned ${res.status}`,
                 remediation: res.status === 401
                     ? "Check your API key is valid"
-                    : `Verify EVALAI_BASE_URL is correct (currently: ${baseUrl})`,
+                    : `Verify EVALGATE_BASE_URL is correct (currently: ${baseUrl})`,
                 latencyMs,
             };
         }
@@ -354,7 +362,7 @@ async function checkConnectivity(baseUrl, apiKey) {
             label: "API connectivity",
             status: "fail",
             message: `Cannot reach ${baseUrl}: ${err instanceof Error ? err.message : String(err)}`,
-            remediation: `Verify EVALAI_BASE_URL is correct and the server is running`,
+            remediation: `Verify EVALGATE_BASE_URL is correct and the server is running`,
         };
     }
 }
@@ -365,7 +373,7 @@ function checkEvalTarget(evaluationId) {
             label: "Evaluation target",
             status: "fail",
             message: "No evaluationId configured",
-            remediation: "Add evaluationId to evalai.config.json, or pass --evaluationId <id>",
+            remediation: "Add evaluationId to evalgate.config.json, or pass --evaluationId <id>",
         };
     }
     return {
@@ -438,19 +446,27 @@ async function checkEvalAccess(baseUrl, apiKey, evaluationId, baseline) {
     };
 }
 function checkCiWiring(cwd) {
-    const workflowPath = path.join(".github", "workflows", "evalai-gate.yml");
-    const absPath = path.join(cwd, workflowPath);
-    if (!fs.existsSync(absPath)) {
+    const evalgatePath = path.join(".github", "workflows", "evalgate-gate.yml");
+    const legacyPath = path.join(".github", "workflows", "evalai-gate.yml");
+    const absEvalgate = path.join(cwd, evalgatePath);
+    const absLegacy = path.join(cwd, legacyPath);
+    const absPath = fs.existsSync(absEvalgate)
+        ? absEvalgate
+        : fs.existsSync(absLegacy)
+            ? absLegacy
+            : null;
+    const workflowPath = absPath ? path.relative(cwd, absPath) : evalgatePath;
+    if (!absPath) {
         return {
             id: "ci_wiring",
             label: "CI wiring",
             status: "fail",
             message: `${workflowPath} not found`,
-            remediation: "Run: npx evalai init  (generates the workflow file)",
+            remediation: "Run: npx evalgate init  (generates the workflow file)",
             ciInfo: { workflowPath, exists: false },
         };
     }
-    // Basic sanity: check it references evalai
+    // Basic sanity: check it references evalgate or evalgate SDK
     let content;
     try {
         content = fs.readFileSync(absPath, "utf-8");
@@ -465,14 +481,15 @@ function checkCiWiring(cwd) {
             ciInfo: { workflowPath, exists: true },
         };
     }
-    if (!content.includes("evalai") &&
-        !content.includes("@pauly4010/evalai-sdk")) {
+    if (!content.includes("evalgate") &&
+        !content.includes("@evalgate/sdk") &&
+        !content.includes("evalai")) {
         return {
             id: "ci_wiring",
             label: "CI wiring",
             status: "warn",
-            message: `${workflowPath} exists but does not reference evalai`,
-            remediation: "Verify the workflow runs: npx -y @pauly4010/evalai-sdk@^1 gate --format github",
+            message: `${workflowPath} exists but does not reference evalgate`,
+            remediation: "Verify the workflow runs: npx -y @evalgate/sdk@^2 gate --format github",
             ciInfo: { workflowPath, exists: true },
         };
     }
@@ -480,7 +497,7 @@ function checkCiWiring(cwd) {
         id: "ci_wiring",
         label: "CI wiring",
         status: "pass",
-        message: `${workflowPath} present and references evalai`,
+        message: `${workflowPath} present and references evalgate`,
         ciInfo: { workflowPath, exists: true },
     };
 }
@@ -520,7 +537,7 @@ function icon(status) {
     }
 }
 function printHuman(checks, overall) {
-    console.log("\n  evalai doctor\n");
+    console.log("\n  evalgate doctor\n");
     for (const c of checks) {
         console.log(`  ${icon(c.status)} ${c.label}: ${c.message}`);
         if (c.remediation && (c.status === "fail" || c.status === "warn")) {

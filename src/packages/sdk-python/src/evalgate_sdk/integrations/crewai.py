@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from evalai_sdk.workflows import WorkflowStatus, WorkflowTracer
+from evalgate_sdk.workflows import WorkflowStatus, WorkflowTracer
 
 
 def trace_crewai(
@@ -25,7 +25,7 @@ def trace_crewai(
     Example::
 
         from crewai import Crew
-        from evalai_sdk import WorkflowTracer, AIEvalClient
+        from evalgate_sdk import WorkflowTracer, AIEvalClient
 
         client = AIEvalClient.init()
         tracer = WorkflowTracer(client)

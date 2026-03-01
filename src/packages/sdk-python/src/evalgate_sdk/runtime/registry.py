@@ -7,7 +7,7 @@ import hashlib
 import time
 from typing import Any, Callable, TypeVar
 
-from evalai_sdk.runtime.types import (
+from evalgate_sdk.runtime.types import (
     EvalSpec,
     RuntimeHealth,
     SpecRegistrationError,

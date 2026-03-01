@@ -2,6 +2,24 @@
 
 Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANGELOG.md](src/packages/sdk/CHANGELOG.md).
 
+## [2.0.0] - 2026-03-01
+
+### Breaking — EvalGate Rebrand
+
+- **Package names:** `@pauly4010/evalai-sdk` → `@evalgate/sdk`, `pauly4010-evalai-sdk` → `pauly4010-evalgate-sdk`
+- **CLI:** `evalai` → `evalgate`
+- **Config dir:** `.evalai/` → `.evalgate/` (legacy still read with deprecation warning)
+- **Env vars:** `EVALAI_*` → `EVALGATE_*` (legacy still work with deprecation warning)
+- **Error class:** `EvalAIError` → `EvalGateError`
+
+### Added
+
+- Deprecation warnings when using legacy env vars, config paths, or `.evalai/`
+
+### Deprecated
+
+- `@pauly4010/evalai-sdk` and `pauly4010-evalai-sdk` — use `@evalgate/sdk` and `pauly4010-evalgate-sdk` instead
+
 ## [1.9.1] - 2026-03-01
 
 ### Fixed

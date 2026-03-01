@@ -1,10 +1,10 @@
-# EvalAI — AI Evaluation Platform
+# EvalGate — AI Evaluation Platform
 
 > One-command CI for AI evaluation. Complete pipeline: discover → manifest → impact → run → diff → PR summary. Published SDK on npm. REST API for any language.
 
-## What is EvalAI?
+## What is EvalGate?
 
-EvalAI (AI Evaluation Platform) is a production-grade platform that helps developers build, test, and monitor AI systems with **one-command CI**. Think of it as a combination of:
+EvalGate (AI Evaluation Platform) is a production-grade platform that helps developers build, test, and monitor AI systems with **one-command CI**. Think of it as a combination of:
 - **Testing framework** for LLMs and agents (unit tests, LLM-as-judge, human eval, A/B tests)
 - **Observability layer** for multi-agent workflows (traces, spans, DAG visualization)
 - **Cost dashboard** for tracking LLM spend across providers
@@ -15,7 +15,7 @@ You sign up, create an organization, add API keys or use the web UI, then instru
 
 ## How it works
 
-1. **One-Command CI**: `evalai ci` automatically discovers specs, runs impact analysis, executes evaluations, diffs results, and posts rich PR summaries
+1. **One-Command CI**: `evalgate ci` automatically discovers specs, runs impact analysis, executes evaluations, diffs results, and posts rich PR summaries
 2. **Evaluations**: Create an evaluation (unit_test, human_eval, model_eval, ab_test), add test cases (input + expected output or rubric), then run it. The platform executes tests, scores outputs, and stores results. Use the visual builder or SDK.
 3. **Workflows**: Instrument multi-agent pipelines with WorkflowTracer. Start a workflow, record agent spans, handoffs, decisions, and costs. View DAGs and run history in the dashboard.
 4. **Traces**: Create traces and spans for any AI call. Attach metadata, record decisions, and track costs. Useful for debugging and auditing.
@@ -23,30 +23,30 @@ You sign up, create an organization, add API keys or use the web UI, then instru
 
 ## Quick Start (60 seconds)
 
-Add this to your `.github/workflows/evalai.yml`:
+Add this to your `.github/workflows/evalgate.yml`:
 
 ```yaml
-name: EvalAI CI
+name: EvalGate CI
 on: [push, pull_request]
 jobs:
-  evalai:
+  evalgate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - run: npm ci
-      - run: npx @pauly4010/evalai-sdk ci --format github --write-results --base main
+      - run: npx @evalgate/sdk ci --format github --write-results --base main
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: evalai-results
-          path: .evalai/
+          name: evalgate-results
+          path: .evalgate/
 ```
 
 Create `eval/your-spec.spec.ts`:
 
 ```typescript
-import { defineEval } from "@pauly4010/evalai-sdk";
+import { defineEval } from "@evalgate/sdk";
 
 defineEval({
   name: "Basic Math Operations",
@@ -59,8 +59,8 @@ defineEval({
 ```
 
 ```bash
-git add .github/workflows/evalai.yml eval/
-git commit -m "feat: add EvalAI CI pipeline"
+git add .github/workflows/evalgate.yml eval/
+git commit -m "feat: add EvalGate CI pipeline"
 git push
 ```
 
@@ -68,42 +68,42 @@ That's it! Your CI now discovers specs, runs only impacted code, diffs results, 
 
 ## Install (SDK only)
 
-npm install @pauly4010/evalai-sdk
-pip install pauly4010-evalai-sdk
+npm install @evalgate/sdk
+pip install pauly4010-evalgate-sdk
 
 ## CLI Commands
 
-### 🚀 One-Command CI (v1.9.1)
+### 🚀 One-Command CI (v2.0.0)
 
 ```bash
-npx evalai ci --format github --write-results --base main    # Complete CI pipeline
-npx evalai ci --impacted-only                               # Run only impacted specs
-npx evalai ci --format json                                  # JSON output for automation
+npx evalgate ci --format github --write-results --base main    # Complete CI pipeline
+npx evalgate ci --impacted-only                               # Run only impacted specs
+npx evalgate ci --format json                                  # JSON output for automation
 ```
 
 ### Discovery & Analysis
 
 ```bash
-npx evalai discover --manifest                               # Generate evaluation manifest
-npx evalai impact-analysis --base main                       # Analyze impact of changes
-npx evalai diff --base main --head last                       # Compare results
+npx evalgate discover --manifest                               # Generate evaluation manifest
+npx evalgate impact-analysis --base main                       # Analyze impact of changes
+npx evalgate diff --base main --head last                       # Compare results
 ```
 
 ### Legacy Commands
 
 ```bash
-npx evalai init              # Full scaffolder — detects repo, creates baseline, installs CI workflow
-npx evalai gate              # Run regression gate (built-in or project mode)
-npx evalai gate --format json # Machine-readable JSON output
-npx evalai baseline update   # Re-run tests and update baseline
-npx evalai upgrade --full    # Upgrade to full metric gate (golden eval, confidence, latency, cost)
-npx evalai check             # Gate on quality score (requires API key)
-npx evalai doctor            # Verify CI/CD setup
+npx evalgate init              # Full scaffolder — detects repo, creates baseline, installs CI workflow
+npx evalgate gate              # Run regression gate (built-in or project mode)
+npx evalgate gate --format json # Machine-readable JSON output
+npx evalgate baseline update   # Re-run tests and update baseline
+npx evalgate upgrade --full    # Upgrade to full metric gate (golden eval, confidence, latency, cost)
+npx evalgate check             # Gate on quality score (requires API key)
+npx evalgate doctor            # Verify CI/CD setup
 ```
 
-## What EvalAI Provides
+## What EvalGate Provides
 
-EvalAI provides:
+EvalGate provides:
 - **One-Command CI**: Complete evaluation pipeline with smart caching and GitHub integration
 - **Workflow Tracing**: Instrument multi-agent workflows with DAG visualization, agent handoffs, and decision auditing
 - **Evaluation Engine**: 50+ evaluation templates, createTestSuite runner, 20 Expectation methods + 21 standalone assertion functions
@@ -120,7 +120,7 @@ EvalAI provides:
 ## SDK Usage
 
 ```typescript
-import { AIEvalClient, WorkflowTracer } from '@pauly4010/evalai-sdk';
+import { AIEvalClient, WorkflowTracer } from '@evalgate/sdk';
 
 const client = AIEvalClient.init(); // reads EVALAI_API_KEY env var
 const tracer = new WorkflowTracer(client);
@@ -155,7 +155,7 @@ await tracer.endWorkflow({ status: 'success' });
 ## Evaluation with Assertions
 
 ```typescript
-import { createTestSuite, expect } from '@pauly4010/evalai-sdk';
+import { createTestSuite, expect } from '@evalgate/sdk';
 
 const suite = createTestSuite('Customer Support Bot', {
   executor: async (input) => await callMyLLM(input),
@@ -177,7 +177,7 @@ const { total, passed, failed } = await suite.run();
 ```python
 import requests, os
 
-BASE = "https://v0-ai-evaluation-platform-nu.vercel.app"
+BASE = "https://evalgate.com"
 HEADERS = {"Authorization": f"Bearer {os.environ['EVALAI_API_KEY']}", "Content-Type": "application/json"}
 
 # Create trace
@@ -202,15 +202,15 @@ requests.post(f"{BASE}/api/costs", headers=HEADERS, json={
 
 ```typescript
 // LangChain
-import { traceLangChainAgent } from '@pauly4010/evalai-sdk';
+import { traceLangChainAgent } from '@evalgate/sdk';
 const traced = traceLangChainAgent(executor, tracer);
 
 // CrewAI
-import { traceCrewAI } from '@pauly4010/evalai-sdk';
+import { traceCrewAI } from '@evalgate/sdk';
 const traced = traceCrewAI(crew, tracer);
 
 // AutoGen
-import { traceAutoGen } from '@pauly4010/evalai-sdk';
+import { traceAutoGen } from '@evalgate/sdk';
 const traced = traceAutoGen(conversation, tracer);
 ```
 
@@ -233,7 +233,7 @@ const traced = traceAutoGen(conversation, tracer);
 - `traceLangChainAgent`, `traceCrewAI`, `traceAutoGen` — Framework integrations
 
 ### Error Handling
-- `EvalAIError`, `RateLimitError`, `AuthenticationError`, `NetworkError`, `SDKError` — Enhanced error hierarchy
+- `EvalGateError`, `RateLimitError`, `AuthenticationError`, `NetworkError`, `SDKError` — Enhanced error hierarchy
 
 ### Governance (Server-side)
 - `GovernanceEngine`, `CompliancePresets` — Governance rules (not in npm package, server-side only)
@@ -349,7 +349,7 @@ All endpoints accept JSON. Authenticated endpoints require `Authorization: Beare
 
 ## MCP Tools
 
-EvalAI supports the Model Context Protocol (MCP) with comprehensive tool discovery and execution. When a user visits the site in an MCP-enabled browser (e.g. Cursor, Claude), the page registers tools that AI agents can call to interact with the platform.
+EvalGate supports the Model Context Protocol (MCP) with comprehensive tool discovery and execution. When a user visits the site in an MCP-enabled browser (e.g. Cursor, Claude), the page registers tools that AI agents can call to interact with the platform.
 
 ### Tool Discovery (Public)
 - `GET /api/mcp/tools` — List all available tools with input schemas. No authentication required.
@@ -385,9 +385,9 @@ For legacy WebMCP compatibility:
 
 ## Links
 
-- npm: https://www.npmjs.com/package/@pauly4010/evalai-sdk
-- PyPI: https://pypi.org/project/pauly4010-evalai-sdk/
+- npm: https://www.npmjs.com/package/@evalgate/sdk
+- PyPI: https://pypi.org/project/pauly4010-evalgate-sdk/
 - GitHub: https://github.com/pauly7610/ai-evaluation-platform
-- Docs: https://v0-ai-evaluation-platform-nu.vercel.app/documentation
-- API Reference: https://v0-ai-evaluation-platform-nu.vercel.app/api-reference
-- Full API Reference: https://v0-ai-evaluation-platform-nu.vercel.app/llms-full.txt
+- Docs: https://evalgate.com/documentation
+- API Reference: https://evalgate.com/api-reference
+- Full API Reference: https://evalgate.com/llms-full.txt

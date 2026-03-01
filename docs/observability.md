@@ -29,7 +29,7 @@ When the route includes a share ID (e.g. `/api/exports/[shareId]`), `shareId` ma
 
 ### Client identification
 
-Request headers `X-EvalAI-SDK-Version` and `X-EvalAI-Spec-Version` identify the client. These can be logged for compatibility debugging.
+Request headers `X-EvalGate-SDK-Version` and `X-EvalGate-Spec-Version` identify the client. These can be logged for compatibility debugging.
 
 ## Correlation
 

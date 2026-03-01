@@ -2,12 +2,12 @@
 /**
  * openAIChatEval — One-function OpenAI chat regression testing
  *
- * Run local regression tests with OpenAI. No EvalAI account required.
- * CI-friendly output. Optional reportToEvalAI in v1.5.
+ * Run local regression tests with OpenAI. No EvalGate account required.
+ * CI-friendly output. Optional reportToEvalGate in v1.5.
  *
  * @example
  * ```typescript
- * import { openAIChatEval } from '@pauly4010/evalai-sdk';
+ * import { openAIChatEval } from '@evalgate/sdk';
  *
  * await openAIChatEval({
  *   name: 'chat-regression',
@@ -64,16 +64,16 @@ function printSummary(result) {
             console.log(`+ ${more} more`);
         }
         console.log("\nGate this in CI:");
-        console.log("  npx -y @pauly4010/evalai-sdk@^1 init");
+        console.log("  npx -y @evalgate/sdk@^2 init");
     }
     else {
         console.log("Tip: Want dashboards and history?");
-        console.log("Set EVALAI_API_KEY and connect this to the platform.");
+        console.log("Set EVALGATE_API_KEY and connect this to the platform.");
     }
 }
 /**
  * Run OpenAI chat regression tests locally.
- * No EvalAI account required. Returns score and prints CI-friendly summary.
+ * No EvalGate account required. Returns score and prints CI-friendly summary.
  */
 async function openAIChatEval(options) {
     const { name, model = "gpt-4o-mini", apiKey, cases, retries = 0 } = options;
@@ -114,24 +114,24 @@ async function openAIChatEval(options) {
             result.retriedCases.length > 0 && { retriedCases: result.retriedCases }),
     };
     printSummary(evalResult);
-    // v1.5: Optional report to EvalAI platform
-    if (options.reportToEvalAI) {
+    // v1.5: Optional report to EvalGate platform
+    if (options.reportToEvalGate) {
         const config = typeof process !== "undefined" && process.cwd
             ? (0, config_1.loadConfig)(process.cwd())
             : null;
         const evalId = options.evaluationId || config?.evaluationId;
         if (!evalId || String(evalId).trim() === "") {
-            console.log("Run evalai init and set evaluationId to upload results.");
+            console.log("Run evalgate init and set evaluationId to upload results.");
             return evalResult;
         }
-        const evalaiKey = (typeof process !== "undefined" && process.env?.EVALAI_API_KEY) || "";
-        if (!evalaiKey) {
-            console.log("Set EVALAI_API_KEY to upload results.");
+        const evalgateKey = (typeof process !== "undefined" && process.env?.EVALGATE_API_KEY) || "";
+        if (!evalgateKey) {
+            console.log("Set EVALGATE_API_KEY to upload results.");
             return evalResult;
         }
         const baseUrl = options.baseUrl ||
             config?.baseUrl ||
-            (typeof process !== "undefined" && process.env?.EVALAI_BASE_URL) ||
+            (typeof process !== "undefined" && process.env?.EVALGATE_BASE_URL) ||
             "http://localhost:3000";
         const url = String(baseUrl).replace(/\/$/, "");
         try {
@@ -143,7 +143,7 @@ async function openAIChatEval(options) {
                 for (let i = 0; i < result.results.length; i++) {
                     const tcId = cases[i]?.testCaseId;
                     if (tcId == null) {
-                        console.log("reportToEvalAI: All cases must have testCaseId when unknown has it.");
+                        console.log("reportToEvalGate: All cases must have testCaseId when unknown has it.");
                         return evalResult;
                     }
                     importResults.push({
@@ -157,10 +157,10 @@ async function openAIChatEval(options) {
             else {
                 // Match by inputHash (same canonicalization as platform)
                 const tcRes = await fetch(`${url}/api/evaluations/${evalId}/test-cases?limit=500`, {
-                    headers: { Authorization: `Bearer ${evalaiKey}` },
+                    headers: { Authorization: `Bearer ${evalgateKey}` },
                 });
                 if (!tcRes.ok) {
-                    console.log("Could not fetch test cases. Check evaluationId and EVALAI_API_KEY.");
+                    console.log("Could not fetch test cases. Check evaluationId and EVALGATE_API_KEY.");
                     return evalResult;
                 }
                 const platformCases = (await tcRes.json());
@@ -200,7 +200,7 @@ async function openAIChatEval(options) {
             const sdkVersion = "1.4.1";
             const headers = {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${evalaiKey}`,
+                Authorization: `Bearer ${evalgateKey}`,
             };
             if (options.idempotencyKey) {
                 headers["Idempotency-Key"] = options.idempotencyKey;

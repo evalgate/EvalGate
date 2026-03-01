@@ -6,7 +6,7 @@
 export const openApiSpec = {
 	openapi: "3.0.0",
 	info: {
-		title: "AI Evaluation Platform API",
+		title: "EvalGate API",
 		version: "1.0.0",
 		description:
 			"Comprehensive API for AI model evaluation, testing, and monitoring",
@@ -21,7 +21,7 @@ export const openApiSpec = {
 			description: "Development server",
 		},
 		{
-			url: "https://v0-ai-evaluation-platform-nu.vercel.app",
+			url: "https://evalgate.com",
 			description: "Production server",
 		},
 	],

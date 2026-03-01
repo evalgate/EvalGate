@@ -2,7 +2,7 @@
  * Minimal evaluation spec for the minimal-green example
  */
 
-import { defineEval } from "@pauly4010/evalai-sdk";
+import { defineEval } from "@evalgate/sdk";
 
 defineEval({
 	name: "Basic Math Operations",

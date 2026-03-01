@@ -1,5 +1,5 @@
 /**
- * evalai explain tests — offline report explainer.
+ * evalgate explain tests — offline report explainer.
  */
 
 import * as fs from "node:fs";
@@ -8,13 +8,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { runExplain } from "../cli/explain";
 import type { CheckReport } from "../cli/formatters/types";
 
-describe("evalai explain", () => {
+describe("evalgate explain", () => {
 	let tmpDir: string;
 
 	beforeEach(() => {
 		tmpDir = path.join(
 			process.env.TEMP || process.env.TMPDIR || "/tmp",
-			`evalai-explain-test-${Date.now()}`,
+			`evalgate-explain-test-${Date.now()}`,
 		);
 		fs.mkdirSync(tmpDir, { recursive: true });
 		vi.spyOn(console, "log").mockImplementation(() => {});
@@ -46,7 +46,7 @@ describe("evalai explain", () => {
 		expect(code).toBe(1);
 	});
 
-	it("explains a CheckReport (from evalai check)", async () => {
+	it("explains a CheckReport (from evalgate check)", async () => {
 		const report: Partial<CheckReport> = {
 			evaluationId: "42",
 			verdict: "fail",
@@ -102,7 +102,7 @@ describe("evalai explain", () => {
 		expect(allOutput).toContain("greeting test");
 	});
 
-	it("explains a BuiltinReport (from evalai gate)", async () => {
+	it("explains a BuiltinReport (from evalgate gate)", async () => {
 		const report = {
 			schemaVersion: 1,
 			timestamp: new Date().toISOString(),
@@ -208,7 +208,7 @@ describe("evalai explain", () => {
 		expect(code).toBe(0);
 	});
 
-	it("reads from .evalai/last-report.json", async () => {
+	it("reads from .evalgate/last-report.json", async () => {
 		const report: Partial<CheckReport> = {
 			evaluationId: "77",
 			verdict: "warn",
@@ -219,7 +219,7 @@ describe("evalai explain", () => {
 			failedCases: [],
 		};
 
-		const dotDir = path.join(tmpDir, ".evalai");
+		const dotDir = path.join(tmpDir, ".evalgate");
 		fs.mkdirSync(dotDir, { recursive: true });
 		fs.writeFileSync(
 			path.join(dotDir, "last-report.json"),

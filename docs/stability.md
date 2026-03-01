@@ -105,7 +105,7 @@ This document classifies every major feature by maturity level and provides API 
 | Cost Records | **Stable** | v1.0 | Per-call token + cost tracking |
 | LLM Judge | **Beta** | v1.0 | Meta-judge post-eval hook |
 
-### SDK (`@pauly4010/evalai-sdk`) — v1.9.1
+### SDK (`@evalgate/sdk`) — v2.0.0
 
 | Feature | Tier | Since | Notes |
 |---------|------|-------|-------|
@@ -114,7 +114,7 @@ This document classifies every major feature by maturity level and provides API 
 | `createTestSuite` + `expect` | **Stable** | v1.0 | Testing DSL |
 | Assertions library | **Stable** | v1.0 | 15+ assertion types |
 | Framework integrations | **Beta** | v1.0 | Jest, Vitest adapters |
-| Regression gate exports | **Stable** | v1.6 | `@pauly4010/evalai-sdk/regression` |
+| Regression gate exports | **Stable** | v1.6 | `@evalgate/sdk/regression` |
 
 ### Database
 

@@ -6,16 +6,16 @@ EvalAI produces deterministic, machine-readable JSON outputs that any AI assista
 
 | Command | Output | Network? |
 |---------|--------|----------|
-| `npx evalai doctor --report` | JSON diagnostic bundle | Yes (API check) |
-| `npx evalai check --format json` | JSON gate report (also saved to `.evalai/last-report.json`) | Yes |
-| `npx evalai explain --format json` | JSON root cause analysis | No (offline) |
+| `npx evalgate doctor --report` | JSON diagnostic bundle | Yes (API check) |
+| `npx evalgate check --format json` | JSON gate report (also saved to `.evalgate/last-report.json`) | Yes |
+| `npx evalgate explain --format json` | JSON root cause analysis | No (offline) |
 
 ## Workflow: Debug a CI Failure with an AI Assistant
 
 ### Step 1: Get the diagnostic bundle
 
 ```bash
-npx evalai doctor --report 2>/dev/null
+npx evalgate doctor --report 2>/dev/null
 ```
 
 Paste the JSON output to your assistant with:
@@ -25,14 +25,14 @@ Paste the JSON output to your assistant with:
 ### Step 2: Get the gate report
 
 ```bash
-npx evalai check --format json --evaluationId <id> --apiKey $EVALAI_API_KEY
+npx evalgate check --format json --evaluationId <id> --apiKey $EVALAI_API_KEY
 ```
 
 Or if CI already ran, download the artifact:
 
 ```bash
 gh run download <run-id> --name evalai-report
-cat .evalai/last-report.json
+cat .evalgate/last-report.json
 ```
 
 Paste the JSON with:
@@ -42,7 +42,7 @@ Paste the JSON with:
 ### Step 3: Get the explanation
 
 ```bash
-npx evalai explain --format json
+npx evalgate explain --format json
 ```
 
 Paste with:
@@ -80,7 +80,7 @@ I'm debugging an EvalAI gate failure in CI. Here are three JSON outputs:
 <paste doctor --report output>
 
 2. Check report:
-<paste .evalai/last-report.json>
+<paste .evalgate/last-report.json>
 
 3. Explain (root cause):
 <paste explain --format json output>

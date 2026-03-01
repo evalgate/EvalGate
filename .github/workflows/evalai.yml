@@ -16,7 +16,7 @@ on:
     branches: [main]
 
 concurrency:
-  group: evalai-${{ github.ref }}
+  group: evalgate-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

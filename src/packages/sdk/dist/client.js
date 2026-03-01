@@ -8,16 +8,27 @@ const errors_1 = require("./errors");
 const logger_1 = require("./logger");
 const version_1 = require("./version");
 /**
- * Safe environment variable access (works in both Node.js and browsers)
+ * Safe environment variable access (works in both Node.js and browsers).
+ * Prefers EVALGATE_* vars; falls back to EVALAI_* with deprecation warning.
  */
-function getEnvVar(name) {
-    if (typeof process !== "undefined" && process.env) {
-        return process.env[name];
+function getEnvVar(newName, legacyName) {
+    if (typeof process === "undefined" || !process.env)
+        return undefined;
+    const val = process.env[newName];
+    if (val)
+        return val;
+    if (legacyName && process.env[legacyName]) {
+        if (typeof process !== "undefined" &&
+            !process.__EVALGATE_LEGACY_WARNED) {
+            console.warn(`[EvalGate] Deprecation: ${legacyName} is deprecated. Use ${newName} instead.`);
+            process.__EVALGATE_LEGACY_WARNED = true;
+        }
+        return process.env[legacyName];
     }
     return undefined;
 }
 /**
- * AI Evaluation Platform SDK Client
+ * EvalGate SDK Client
  *
  * @example
  * ```typescript
@@ -45,14 +56,14 @@ class AIEvalClient {
         // Tier 1.1: Zero-config with env variable detection (works in Node.js and browsers)
         this.apiKey =
             config.apiKey ||
-                getEnvVar("EVALAI_API_KEY") ||
+                getEnvVar("EVALGATE_API_KEY", "EVALAI_API_KEY") ||
                 getEnvVar("AI_EVAL_API_KEY") ||
                 "";
         if (!this.apiKey) {
-            throw new errors_1.EvalAIError("API key is required. Provide via config.apiKey or EVALAI_API_KEY environment variable.", "MISSING_API_KEY", 0);
+            throw new errors_1.EvalGateError("API key is required. Provide via config.apiKey or EVALGATE_API_KEY environment variable.", "MISSING_API_KEY", 0);
         }
         // Auto-detect organization ID from env
-        const orgIdFromEnv = getEnvVar("EVALAI_ORGANIZATION_ID") ||
+        const orgIdFromEnv = getEnvVar("EVALGATE_ORGANIZATION_ID", "EVALAI_ORGANIZATION_ID") ||
             getEnvVar("AI_EVAL_ORGANIZATION_ID");
         this.organizationId =
             config.organizationId ||
@@ -60,7 +71,7 @@ class AIEvalClient {
         const isBrowser = typeof globalThis.window !== "undefined";
         this.baseUrl =
             config.baseUrl ||
-                getEnvVar("EVALAI_BASE_URL") ||
+                getEnvVar("EVALGATE_BASE_URL", "EVALAI_BASE_URL") ||
                 (isBrowser ? "" : "http://localhost:3000");
         this.timeout = config.timeout || 30000;
         // Tier 4.17: Debug mode with request logging
@@ -68,7 +79,7 @@ class AIEvalClient {
         this.logger = (0, logger_1.createLogger)({
             level: logLevel,
             pretty: config.debug,
-            prefix: "EvalAI",
+            prefix: "EvalGate",
         });
         this.requestLogger = new logger_1.RequestLogger(this.logger);
         // Retry configuration
@@ -153,15 +164,15 @@ class AIEvalClient {
      * In browsers, you must provide config explicitly.
      *
      * Environment variables (Node.js only):
-     * - EVALAI_API_KEY or AI_EVAL_API_KEY: Your API key
-     * - EVALAI_ORGANIZATION_ID or AI_EVAL_ORGANIZATION_ID: Your organization ID
-     * - EVALAI_BASE_URL: Custom API base URL (optional)
+     * - EVALGATE_API_KEY (or EVALAI_API_KEY): Your API key
+     * - EVALGATE_ORGANIZATION_ID (or EVALAI_ORGANIZATION_ID): Your organization ID
+     * - EVALGATE_BASE_URL (or EVALAI_BASE_URL): Custom API base URL (optional)
      *
      * @example
      * ```typescript
      * // Node.js - reads from env vars:
-     * // EVALAI_API_KEY=your-key
-     * // EVALAI_ORGANIZATION_ID=123
+     * // EVALGATE_API_KEY=your-key
+     * // EVALGATE_ORGANIZATION_ID=123
      * const client = AIEvalClient.init();
      *
      * // Browser - must provide config:
@@ -173,7 +184,7 @@ class AIEvalClient {
      */
     static init(config = {}) {
         return new AIEvalClient({
-            baseUrl: getEnvVar("EVALAI_BASE_URL"),
+            baseUrl: getEnvVar("EVALGATE_BASE_URL", "EVALAI_BASE_URL"),
             ...config,
         });
     }
@@ -207,8 +218,8 @@ class AIEvalClient {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${this.apiKey}`,
-                    "X-EvalAI-SDK-Version": version_1.SDK_VERSION,
-                    "X-EvalAI-Spec-Version": version_1.SPEC_VERSION,
+                    "X-EvalGate-SDK-Version": version_1.SDK_VERSION,
+                    "X-EvalGate-Spec-Version": version_1.SPEC_VERSION,
                     ...options.headers,
                 },
                 signal: controller.signal,
@@ -263,14 +274,14 @@ class AIEvalClient {
         }
         catch (error) {
             clearTimeout(timeoutId);
-            if (error instanceof errors_1.EvalAIError) {
+            if (error instanceof errors_1.EvalGateError) {
                 throw error;
             }
             if (error instanceof Error) {
                 if (error.name === "AbortError") {
-                    throw new errors_1.EvalAIError("Request timeout", "TIMEOUT", 408);
+                    throw new errors_1.EvalGateError("Request timeout", "TIMEOUT", 408);
                 }
-                throw new errors_1.EvalAIError(error.message, "NETWORK_ERROR", 0);
+                throw new errors_1.EvalGateError(error.message, "NETWORK_ERROR", 0);
             }
             throw error;
         }
@@ -329,7 +340,7 @@ class TraceAPI {
     async create(params) {
         const orgId = params.organizationId || this.client.getOrganizationId();
         if (!orgId) {
-            throw new errors_1.EvalAIError("Organization ID is required", "MISSING_ORGANIZATION_ID", 0);
+            throw new errors_1.EvalGateError("Organization ID is required", "MISSING_ORGANIZATION_ID", 0);
         }
         // Merge with context
         const metadata = (0, context_1.mergeWithContext)(params.metadata || {});
@@ -418,7 +429,7 @@ class EvaluationAPI {
     async create(params) {
         const orgId = params.organizationId || this.client.getOrganizationId();
         if (!orgId) {
-            throw new errors_1.EvalAIError("Organization ID is required", "MISSING_ORGANIZATION_ID", 0);
+            throw new errors_1.EvalGateError("Organization ID is required", "MISSING_ORGANIZATION_ID", 0);
         }
         return this.client.request("/api/evaluations", {
             method: "POST",

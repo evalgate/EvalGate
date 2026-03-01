@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-	title: "SDK Quick Start - AI Evaluation Platform",
+	title: "SDK Quick Start - EvalGate",
 	description:
 		"Production-ready TypeScript and Python SDKs for evaluating, tracing, and monitoring your LLM applications.",
 };
@@ -71,19 +71,19 @@ const assertionGroups = [
 
 export default function SDKDashboardPage() {
 	const installCode =
-		"npm install @pauly4010/evalai-sdk\n# or\nyarn add @pauly4010/evalai-sdk\n\n# Python\npip install pauly4010-evalai-sdk";
+		"npm install @evalgate/sdk\n# or\nyarn add @evalgate/sdk\n\n# Python\npip install pauly4010-evalgate-sdk";
 
-	const initCode = `import { AIEvalClient } from '@pauly4010/evalai-sdk';
+	const initCode = `import { AIEvalClient } from '@evalgate/sdk';
 
 const client = AIEvalClient.init({ 
   apiKey: process.env.EVALAI_API_KEY 
 });`;
 
-	const initCodePython = `from evalai_sdk import AIEvalClient
+	const initCodePython = `from evalgate_sdk import AIEvalClient
 
 client = AIEvalClient.init()  # reads EVALAI_API_KEY env var`;
 
-	const testSuiteCode = `import { createTestSuite, expect } from '@pauly4010/evalai-sdk';
+	const testSuiteCode = `import { createTestSuite, expect } from '@evalgate/sdk';
 
 const suite = createTestSuite('Customer Support Bot', {
   executor: async (input) => await callMyLLM(input),
@@ -109,8 +109,8 @@ const suite = createTestSuite('Customer Support Bot', {
 const results = await suite.run();
 // { name: 'Customer Support Bot', total: 2, passed: 2, failed: 0, results: [...] }`;
 
-	const testSuiteCodePython = `from evalai_sdk import create_test_suite, expect
-from evalai_sdk.types import TestSuiteCase, TestSuiteConfig
+	const testSuiteCodePython = `from evalgate_sdk import create_test_suite, expect
+from evalgate_sdk.types import TestSuiteCase, TestSuiteConfig
 
 suite = create_test_suite('Customer Support Bot', TestSuiteConfig(
     evaluator=call_my_llm,
@@ -142,7 +142,7 @@ await client.traces.createSpan(trace.id, {
   metadata: { tokens: 150, latency_ms: 1200 }
 });`;
 
-	const traceCodePython = `from evalai_sdk.types import CreateTraceParams, CreateSpanParams
+	const traceCodePython = `from evalgate_sdk.types import CreateTraceParams, CreateSpanParams
 
 trace = await client.traces.create(CreateTraceParams(
     name='Chat Completion',

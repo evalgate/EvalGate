@@ -17,7 +17,7 @@ describe("buildPrComment", () => {
 			dashboardUrl: "https://example.com/dash",
 		};
 		const out = buildPrComment(report);
-		expect(out).toContain("## ✅ EvalAI Regression Gate — PASSED");
+		expect(out).toContain("## ✅ EvalGate Regression Gate — PASSED");
 		expect(out).toContain("**Score:** 95/100");
 		expect(out).toContain("**Reason:** UNKNOWN");
 		expect(out).toContain("[Dashboard](https://example.com/dash)");
@@ -39,7 +39,7 @@ describe("buildPrComment", () => {
 			dashboardUrl: "https://example.com/dash",
 		};
 		const out = buildPrComment(report);
-		expect(out).toContain("## 🚨 EvalAI Regression Gate — FAILED");
+		expect(out).toContain("## 🚨 EvalGate Regression Gate — FAILED");
 		expect(out).toContain("**Score:** 84/100 (-6 from baseline 90)");
 		expect(out).toContain("**Reason:** LOW_SCORE");
 		expect(out).toContain("### Top Issues");

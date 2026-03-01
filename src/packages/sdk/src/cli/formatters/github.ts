@@ -1,5 +1,5 @@
 /**
- * GitHub formatter for evalai check.
+ * GitHub formatter for evalgate check.
  * - stdout: minimal (verdict + score + link) + ::error annotations for failed cases
  * - Step summary: full Markdown written to GITHUB_STEP_SUMMARY (not stdout)
  */
@@ -20,7 +20,7 @@ function formatAnnotation(fc: FailedCase): string {
 	const msg = escapeAnnotationMessage(
 		`TestCase ${id} failed - ${truncateSnippet(reason, 100)}`,
 	);
-	return `::error title=EvalAI regression::${msg}`;
+	return `::error title=EvalGate regression::${msg}`;
 }
 
 export function appendStepSummary(report: CheckReport): void {
@@ -32,7 +32,7 @@ export function appendStepSummary(report: CheckReport): void {
 	const passed = report.verdict === "pass";
 	const warned = report.verdict === "warn";
 
-	lines.push("## EvalAI Gate");
+	lines.push("## EvalGate Gate");
 	lines.push("");
 	lines.push(
 		passed && !warned
@@ -77,10 +77,10 @@ export function appendStepSummary(report: CheckReport): void {
 
 	if (!passed) {
 		lines.push(
-			"> **Tip:** Run `evalai explain` locally to see root causes and suggested fixes.",
+			"> **Tip:** Run `evalgate explain` locally to see root causes and suggested fixes.",
 		);
 		lines.push(
-			"> Report saved to `.evalai/last-report.json` — upload as a build artifact for offline analysis.",
+			"> Report saved to `.evalgate/last-report.json` — upload as a build artifact for offline analysis.",
 		);
 		lines.push("");
 	}
@@ -106,9 +106,9 @@ export function formatGitHub(report: CheckReport): string {
 	const passed = report.verdict === "pass";
 	const warned = report.verdict === "warn";
 	const failReason = report.reasonMessage ?? report.reasonCode;
-	if (passed && !warned) stdoutLines.push("\n✓ EvalAI gate PASSED");
-	else if (warned) stdoutLines.push(`\n⚠ EvalAI gate WARNED: ${failReason}`);
-	else stdoutLines.push(`\n✗ EvalAI gate FAILED: ${failReason}`);
+	if (passed && !warned) stdoutLines.push("\n✓ EvalGate gate PASSED");
+	else if (warned) stdoutLines.push(`\n⚠ EvalGate gate WARNED: ${failReason}`);
+	else stdoutLines.push(`\n✗ EvalGate gate FAILED: ${failReason}`);
 
 	const deltaStr =
 		report.baselineScore != null && report.delta != null

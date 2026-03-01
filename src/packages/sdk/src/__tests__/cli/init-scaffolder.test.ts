@@ -1,5 +1,5 @@
 /**
- * Integration test — evalai init scaffolder
+ * Integration test — evalgate init scaffolder
  *
  * Runs runInit() against each fixture (npm, pnpm, yarn, monorepo)
  * and verifies the scaffolded files are correct.
@@ -32,13 +32,13 @@ function isValidWorkflowYaml(content: string): boolean {
 	);
 }
 
-describe("evalai init scaffolder", () => {
+describe("evalgate init scaffolder", () => {
 	let tmpRoot: string;
 
 	beforeEach(() => {
 		tmpRoot = path.join(
 			process.env.TEMP || process.env.TMPDIR || "/tmp",
-			`evalai-init-test-${Date.now()}`,
+			`evalgate-init-test-${Date.now()}`,
 		);
 		fs.mkdirSync(tmpRoot, { recursive: true });
 		// Suppress console output during tests
@@ -85,27 +85,27 @@ describe("evalai init scaffolder", () => {
 				expect(baseline.confidenceTests).toBeDefined();
 			});
 
-			it("creates .github/workflows/evalai-gate.yml with valid YAML", () => {
+			it("creates .github/workflows/evalgate-gate.yml with valid YAML", () => {
 				runInit(cwd);
 				const workflowPath = path.join(
 					cwd,
 					".github",
 					"workflows",
-					"evalai-gate.yml",
+					"evalgate-gate.yml",
 				);
 				expect(fs.existsSync(workflowPath)).toBe(true);
 
 				const content = fs.readFileSync(workflowPath, "utf-8");
 				expect(isValidWorkflowYaml(content)).toBe(true);
 				expect(content).toContain(
-					"npx -y @pauly4010/evalai-sdk@^1 gate --format github",
+					"npx -y @evalgate/sdk@^2 gate --format github",
 				);
 				expect(content).toContain("regression-report");
 			});
 
-			it("creates evalai.config.json", () => {
+			it("creates evalgate.config.json", () => {
 				runInit(cwd);
-				const configPath = path.join(cwd, "evalai.config.json");
+				const configPath = path.join(cwd, "evalgate.config.json");
 				expect(fs.existsSync(configPath)).toBe(true);
 
 				const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
@@ -120,7 +120,7 @@ describe("evalai init scaffolder", () => {
 					cwd,
 					".github",
 					"workflows",
-					"evalai-gate.yml",
+					"evalgate-gate.yml",
 				);
 				const content = fs.readFileSync(workflowPath, "utf-8");
 

@@ -1,6 +1,6 @@
 {
 	"evaluationId": null,
-	"baseUrl": "https://v0-ai-evaluation-platform-nu.vercel.app",
+	"baseUrl": "https://evalgate.com",
 	"minScore": 85,
 	"minTotal": 3
 }

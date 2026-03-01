@@ -4,9 +4,9 @@ import httpx
 import pytest
 import respx
 
-from evalai_sdk.client import AIEvalClient
-from evalai_sdk.errors import EvalAIError
-from evalai_sdk.types import CreateTraceParams
+from evalgate_sdk.client import AIEvalClient
+from evalgate_sdk.errors import EvalGateError
+from evalgate_sdk.types import CreateTraceParams
 
 
 @pytest.fixture
@@ -21,9 +21,9 @@ class TestClientInit:
         assert client.organization_id == 1
 
     def test_init_factory(self, monkeypatch):
-        monkeypatch.setenv("EVALAI_API_KEY", "env-key")
-        monkeypatch.setenv("EVALAI_BASE_URL", "https://env.test.com")
-        monkeypatch.setenv("EVALAI_ORGANIZATION_ID", "42")
+        monkeypatch.setenv("EVALGATE_API_KEY", "env-key")
+        monkeypatch.setenv("EVALGATE_BASE_URL", "https://env.test.com")
+        monkeypatch.setenv("EVALGATE_ORGANIZATION_ID", "42")
         c = AIEvalClient.init()
         assert c._api_key == "env-key"
         assert c._base_url == "https://env.test.com"
@@ -83,7 +83,7 @@ class TestEvaluationAPI:
     @respx.mock
     @pytest.mark.asyncio
     async def test_create_evaluation(self, client: AIEvalClient):
-        from evalai_sdk.types import CreateEvaluationParams
+        from evalgate_sdk.types import CreateEvaluationParams
 
         respx.post("https://api.test.com/api/evaluations").mock(
             return_value=httpx.Response(200, json={"id": 1, "name": "eval-1"})
@@ -108,7 +108,7 @@ class TestErrorHandling:
         respx.get("https://api.test.com/api/traces/999").mock(
             return_value=httpx.Response(401, json={"message": "Unauthorized"})
         )
-        with pytest.raises(EvalAIError) as exc_info:
+        with pytest.raises(EvalGateError) as exc_info:
             await client.traces.get(999)
         assert exc_info.value.status_code == 401
 
@@ -118,7 +118,7 @@ class TestErrorHandling:
         respx.get("https://api.test.com/api/traces/999").mock(
             return_value=httpx.Response(404, json={"message": "Not found"})
         )
-        with pytest.raises(EvalAIError) as exc_info:
+        with pytest.raises(EvalGateError) as exc_info:
             await client.traces.get(999)
         assert exc_info.value.code == "NOT_FOUND"
 

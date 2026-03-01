@@ -1,11 +1,11 @@
 # Python Examples
 
-Runnable examples and Jupyter notebooks for the [pauly4010-evalai-sdk](https://pypi.org/project/pauly4010-evalai-sdk/) Python SDK.
+Runnable examples and Jupyter notebooks for the [pauly4010-evalgate-sdk](https://pypi.org/project/pauly4010-evalgate-sdk/) Python SDK.
 
 ## Setup
 
 ```bash
-pip install "pauly4010-evalai-sdk[all]"
+pip install "pauly4010-evalgate-sdk[all]"
 ```
 
 For examples that call OpenAI/Anthropic, set your provider API key:
@@ -16,13 +16,13 @@ export OPENAI_API_KEY="sk-..."
 export ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
-For examples that send traces to the platform, set your EvalAI key:
+For examples that send traces to the platform, set your EvalGate key:
 
 ```bash
 export EVALAI_API_KEY="sk-..."
 ```
 
-Get your API key from the [Developer Dashboard](https://v0-ai-evaluation-platform-nu.vercel.app/developer).
+Get your API key from the [Developer Dashboard](https://evalgate.com/developer).
 
 ## Examples
 
@@ -66,7 +66,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install SDK
-        run: pip install "pauly4010-evalai-sdk[all]"
+        run: pip install "pauly4010-evalgate-sdk[all]"
 
       - name: Run evaluations
         env:
@@ -76,8 +76,8 @@ jobs:
 
 ## Links
 
-- [SDK on PyPI](https://pypi.org/project/pauly4010-evalai-sdk/)
-- [SDK Documentation](https://v0-ai-evaluation-platform-nu.vercel.app/sdk)
+- [SDK on PyPI](https://pypi.org/project/pauly4010-evalgate-sdk/)
+- [SDK Documentation](https://evalgate.com/sdk)
 - [GitHub](https://github.com/pauly7610/ai-evaluation-platform)
 
 Need help? [Open an issue](https://github.com/pauly7610/ai-evaluation-platform/issues) on GitHub.

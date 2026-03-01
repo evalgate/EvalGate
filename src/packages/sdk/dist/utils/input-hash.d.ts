@@ -1,6 +1,6 @@
 /**
  * Input normalization and hashing for deterministic matching.
- * Must match platform's @/lib/utils/input-hash.ts for reportToEvalAI.
+ * Must match platform's @/lib/utils/input-hash.ts for reportToEvalGate.
  */
 /** Normalize input for stable matching (whitespace, JSON key order). */
 export declare function normalizeInput(input: string): string;

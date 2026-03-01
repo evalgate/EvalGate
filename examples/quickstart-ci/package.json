@@ -8,6 +8,6 @@
 		"ci:full": "node ci-eval.js"
 	},
 	"dependencies": {
-		"@pauly4010/evalai-sdk": "^1.5.0"
+		"@evalgate/sdk": "^2.0.0"
 	}
 }

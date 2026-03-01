@@ -21,7 +21,7 @@ ai-evaluation-platform/
 │   │   ├── sdk/               # SDK mapper + transformer
 │   │   └── services/          # Domain services (workflow, LLM judge, etc.)
 │   └── packages/
-│       └── sdk/               # @pauly4010/evalai-sdk (published to npm)
+│       └── sdk/               # @evalgate/sdk (published to npm)
 ├── tests/                     # All test files (mirrors src/ structure)
 ├── scripts/                   # Build/CI/audit scripts
 ├── docs/                      # Documentation
@@ -87,7 +87,7 @@ If your test touches the database (directly or transitively), it belongs in the 
 
 ## SDK Development
 
-The SDK lives at `src/packages/sdk/` and is published as `@pauly4010/evalai-sdk`.
+The SDK lives at `src/packages/sdk/` and is published as `@evalgate/sdk`.
 
 ```bash
 # Build
@@ -104,13 +104,13 @@ pnpm vitest run src/packages/sdk/src/__tests__/cli/init-scaffolder.test.ts
 
 | Import path | What it provides |
 |-------------|-----------------|
-| `@pauly4010/evalai-sdk` | `AIEvalClient`, gate constants, core types |
-| `@pauly4010/evalai-sdk/regression` | `GATE_EXIT`, `GATE_CATEGORY`, report types |
-| `@pauly4010/evalai-sdk/assertions` | Test assertions |
-| `@pauly4010/evalai-sdk/testing` | Test suite builder |
-| `@pauly4010/evalai-sdk/matchers` | Custom matchers |
-| `@pauly4010/evalai-sdk/integrations/openai` | `traceOpenAI` |
-| `@pauly4010/evalai-sdk/integrations/anthropic` | `traceAnthropic` |
+| `@evalgate/sdk` | `AIEvalClient`, gate constants, core types |
+| `@evalgate/sdk/regression` | `GATE_EXIT`, `GATE_CATEGORY`, report types |
+| `@evalgate/sdk/assertions` | Test assertions |
+| `@evalgate/sdk/testing` | Test suite builder |
+| `@evalgate/sdk/matchers` | Custom matchers |
+| `@evalgate/sdk/integrations/openai` | `traceOpenAI` |
+| `@evalgate/sdk/integrations/anthropic` | `traceAnthropic` |
 
 ### CLI commands (source in `src/packages/sdk/src/cli/`)
 

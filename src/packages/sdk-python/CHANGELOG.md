@@ -1,11 +1,27 @@
 # Changelog
 
-All notable changes to the EvalAI Python SDK will be documented in this file.
+All notable changes to the EvalGate Python SDK will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Version numbering is aligned with the TypeScript SDK (`@pauly4010/evalai-sdk`) and the platform API.
+Version numbering is aligned with the TypeScript SDK (`@evalgate/sdk`) and the platform API.
+
+**Version history note:** The Python SDK jumped from 1.0.0 → 1.9.x → 2.0.0 to stay in sync with the TypeScript SDK. The TypeScript SDK had many releases (1.1–1.9) before the Python SDK existed. We now align both SDKs on the same major.minor version.
+
+## [2.0.0] - 2026-03-01
+
+### Breaking
+
+- **Rebrand:** Package renamed `pauly4010-evalai-sdk` → `pauly4010-evalgate-sdk`, module `evalai_sdk` → `evalgate_sdk`
+- **CLI:** `evalai` → `evalgate`
+- **Config:** `.evalai/` → `.evalgate/` (legacy `.evalai/` still read, with deprecation warning)
+- **Env vars:** `EVALAI_*` → `EVALGATE_*` (legacy `EVALAI_*` still work, with deprecation warning)
+- **Error class:** `EvalAIError` → `EvalGateError`
+
+### Added
+
+- Deprecation warnings when using legacy env vars or config paths
 
 ## [1.9.1] - 2026-03-01
 
@@ -46,7 +62,7 @@ Version numbering is aligned with the TypeScript SDK (`@pauly4010/evalai-sdk`) a
 ### Added
 
 - Initial Python SDK release
-- `AIEvalClient` — async HTTP client for EvalAI API
+- `AIEvalClient` — async HTTP client for EvalGate API
 - 20+ assertions: `expect()`, `to_contain`, `to_not_contain_pii`, `to_be_professional`, etc.
 - Test suites: `create_test_suite`, `TestSuiteConfig`, `TestSuiteCase`
 - Integrations: OpenAI, Anthropic, LangChain, CrewAI, AutoGen tracing

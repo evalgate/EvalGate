@@ -1,11 +1,11 @@
 /**
- * TICKET 1 — evalai discover
+ * TICKET 1 — evalgate discover
  *
  * Your first "holy shit" moment feature
  *
  * Goal:
  * npm install
- * evalai discover
+ * evalgate discover
  *
  * Output:
  * Found 42 behavioral specifications
@@ -15,7 +15,7 @@
  * Tools: 5
  *
  * Why this matters:
- * - makes EvalAI feel alive
+ * - makes EvalGate feel alive
  * - proves DSL works
  * - enables intelligence layer
  *
@@ -120,8 +120,8 @@ export async function discoverSpecs(
 				executionMode,
 			);
 			await writeManifest(manifest, projectRoot);
-			console.log(`✅ Manifest written to .evalai/manifest.json`);
-			console.log(`✅ Lock file written to .evalai/manifest.lock.json`);
+			console.log(`✅ Manifest written to .evalgate/manifest.json`);
+			console.log(`✅ Lock file written to .evalgate/manifest.lock.json`);
 		}
 
 		// Calculate statistics
@@ -377,7 +377,7 @@ function calculateStats(
  * Print discovery results in a beautiful format
  */
 export function printDiscoveryResults(stats: DiscoveryStats): void {
-	console.log(`🔍 EvalAI Discovery Results`);
+	console.log(`🔍 EvalGate Discovery Results`);
 	console.log(``);
 	console.log(`📊 Found ${stats.totalSpecs} behavioral specifications`);
 	console.log(``);
@@ -459,7 +459,7 @@ function printRecommendations(stats: DiscoveryStats): void {
 
 	if (stats.totalSpecs === 0) {
 		console.log(`   🚀 No specifications found. Create your first eval with:
-   echo 'import { defineEval } from "@pauly4010/evalai-sdk";
+   echo 'import { defineEval } from "@evalgate/sdk";
    defineEval("hello-world", async (context) => {
      return { pass: true, score: 100 };
    });' > eval/hello.spec.ts`);
@@ -468,14 +468,14 @@ function printRecommendations(stats: DiscoveryStats): void {
 	} else if (stats.totalSpecs < 20) {
 		console.log(`   🎯 Good start! Consider organizing by categories`);
 	} else {
-		console.log(`   🏆 Excellent coverage! Consider running evalai run`);
+		console.log(`   🏆 Excellent coverage! Consider running evalgate run`);
 	}
 
 	if (
 		!stats.executionMode.hasSpecRuntime &&
 		!stats.executionMode.hasLegacyRuntime
 	) {
-		console.log(`   🆕 New project? Try 'evalai init' to get started`);
+		console.log(`   🆕 New project? Try 'evalgate init' to get started`);
 	}
 
 	if (
@@ -483,13 +483,13 @@ function printRecommendations(stats: DiscoveryStats): void {
 		!stats.executionMode.hasSpecRuntime
 	) {
 		console.log(
-			`   🔄 Legacy project detected. Try 'evalai migrate config' to upgrade`,
+			`   🔄 Legacy project detected. Try 'evalgate migrate config' to upgrade`,
 		);
 	}
 
 	if (stats.executionMode.hasSpecRuntime) {
 		console.log(
-			`   🚀 Ready to run! Use 'evalai run' to execute specifications`,
+			`   🚀 Ready to run! Use 'evalgate run' to execute specifications`,
 		);
 	}
 

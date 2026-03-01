@@ -32,7 +32,7 @@
 				"prompts": [],
 				"datasets": [],
 				"tools": [],
-				"code": ["@pauly4010/evalai-sdk"]
+				"code": ["@evalgate/sdk"]
 			}
 		}
 	]

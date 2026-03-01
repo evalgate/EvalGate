@@ -1,6 +1,6 @@
 /**
- * evalai share — Create a share link for a run.
- * Usage: evalai share --scope run --expires 7d
+ * evalgate share — Create a share link for a run.
+ * Usage: evalgate share --scope run --expires 7d
  */
 
 import { fetchRunExport, publishShare } from "./api";
@@ -44,15 +44,22 @@ export function parseShareArgs(argv: string[]): ShareArgs | { error: string } {
 	}
 
 	const baseUrl =
-		args.baseUrl || process.env.EVALAI_BASE_URL || "http://localhost:3000";
-	const apiKey = args.apiKey || process.env.EVALAI_API_KEY || "";
+		args.baseUrl ||
+		process.env.EVALGATE_BASE_URL ||
+		process.env.EVALAI_BASE_URL ||
+		"http://localhost:3000";
+	const apiKey =
+		args.apiKey ||
+		process.env.EVALGATE_API_KEY ||
+		process.env.EVALAI_API_KEY ||
+		"";
 	const evaluationId = args.evaluationId || "";
 	const runId = args.runId ? parseInt(args.runId, 10) : NaN;
 	const scope = args.scope === "run" ? "run" : "run";
 	const expires = args.expires || "7d";
 
 	if (!apiKey)
-		return { error: "Error: --apiKey or EVALAI_API_KEY is required" };
+		return { error: "Error: --apiKey or EVALGATE_API_KEY is required" };
 	if (!evaluationId) return { error: "Error: --evaluationId is required" };
 	if (Number.isNaN(runId) || runId < 1)
 		return {
@@ -82,7 +89,7 @@ export async function runShare(args: ShareArgs): Promise<number> {
 	);
 	if (!exportRes.ok) {
 		console.error(
-			`EvalAI share: failed to fetch export — ${exportRes.status} ${exportRes.body}`,
+			`EvalGate share: failed to fetch export — ${exportRes.status} ${exportRes.body}`,
 		);
 		return 1;
 	}
@@ -97,7 +104,7 @@ export async function runShare(args: ShareArgs): Promise<number> {
 	);
 	if (!publishRes.ok) {
 		console.error(
-			`EvalAI share: failed to publish — ${publishRes.status} ${publishRes.body}`,
+			`EvalGate share: failed to publish — ${publishRes.status} ${publishRes.body}`,
 		);
 		return 1;
 	}

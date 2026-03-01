@@ -1,5 +1,5 @@
 /**
- * Standardized exit codes for evalai check.
+ * Standardized exit codes for evalgate check.
  */
 export const EXIT = {
 	PASS: 0,

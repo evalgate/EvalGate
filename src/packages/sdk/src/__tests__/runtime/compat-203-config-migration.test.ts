@@ -145,7 +145,7 @@ describe("COMPAT-203: Config → DSL Migration Generator", () => {
 				"// Auto-generated EvalAI DSL from configuration",
 			);
 			expect(outputContent).toContain(
-				"import { defineEval, createResult } from '@pauly4010/evalai-sdk';",
+				"import { defineEval, createResult } from '@evalgate/sdk';",
 			);
 			expect(outputContent).toContain(
 				'defineEval("simple-test", async (context) => {',

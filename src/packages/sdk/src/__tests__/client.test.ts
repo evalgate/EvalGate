@@ -63,7 +63,7 @@ describe("AIEvalClient", () => {
 			expect(options.headers["Content-Type"]).toBe("application/json");
 		});
 
-		it("should send X-EvalAI-SDK-Version and X-EvalAI-Spec-Version headers", async () => {
+		it("should send X-EvalGate-SDK-Version and X-EvalGate-Spec-Version headers", async () => {
 			mockFetch.mockResolvedValue({
 				ok: true,
 				json: async () => ({ data: "test" }),
@@ -77,10 +77,10 @@ describe("AIEvalClient", () => {
 			await client.request("/api/test");
 
 			const [, options] = mockFetch.mock.calls[0];
-			expect(options.headers["X-EvalAI-SDK-Version"]).toBeDefined();
-			expect(options.headers["X-EvalAI-Spec-Version"]).toBeDefined();
-			expect(typeof options.headers["X-EvalAI-SDK-Version"]).toBe("string");
-			expect(typeof options.headers["X-EvalAI-Spec-Version"]).toBe("string");
+			expect(options.headers["X-EvalGate-SDK-Version"]).toBeDefined();
+			expect(options.headers["X-EvalGate-Spec-Version"]).toBeDefined();
+			expect(typeof options.headers["X-EvalGate-SDK-Version"]).toBe("string");
+			expect(typeof options.headers["X-EvalGate-Spec-Version"]).toBe("string");
 		});
 
 		it("should return parsed JSON on success", async () => {

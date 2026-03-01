@@ -1,5 +1,5 @@
 /**
- * EvalAI Runtime Types - Layer 1 Foundation
+ * EvalGate Runtime Types - Layer 1 Foundation
  *
  * Core types for the evaluation specification programming model.
  * Everything revolves around the Evaluation Specification primitive.

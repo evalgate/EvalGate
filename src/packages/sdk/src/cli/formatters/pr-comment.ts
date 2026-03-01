@@ -1,5 +1,5 @@
 /**
- * PR comment markdown builder for evalai check --pr-comment-out.
+ * PR comment markdown builder for evalgate check --pr-comment-out.
  * Produces deterministic markdown for GitHub Action to post as PR comment.
  */
 
@@ -17,7 +17,7 @@ function escapeMarkdown(s: string): string {
  * Action should: 1) post body from file 2) search PR comments for this marker 3) update if found, else create.
  * Export for use in Action scripts.
  */
-export const PR_COMMENT_MARKER = "<!-- evalai-gate-comment -->";
+export const PR_COMMENT_MARKER = "<!-- evalgate-gate-comment -->";
 
 export function buildPrComment(report: CheckReport): string {
 	const lines: string[] = [];
@@ -29,7 +29,7 @@ export function buildPrComment(report: CheckReport): string {
 
 	// Verdict badge — distinguish "PASS" from "NOT GATED"
 	if (!gateApplied) {
-		lines.push("## ⚠️ EvalAI Regression Gate — NOT APPLIED");
+		lines.push("## ⚠️ EvalGate Regression Gate — NOT APPLIED");
 		lines.push("");
 		lines.push("**Gate not applied: baseline missing.**");
 		if (report.actionableMessage) {
@@ -39,8 +39,8 @@ export function buildPrComment(report: CheckReport): string {
 	} else {
 		lines.push(
 			passed
-				? "## ✅ EvalAI Regression Gate — PASSED"
-				: "## 🚨 EvalAI Regression Gate — FAILED",
+				? "## ✅ EvalGate Regression Gate — PASSED"
+				: "## 🚨 EvalGate Regression Gate — FAILED",
 		);
 	}
 	lines.push("");

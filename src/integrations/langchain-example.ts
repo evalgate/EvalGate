@@ -9,11 +9,8 @@
  * - Human-in-the-loop escalation
  */
 
-import { AIEvalClient } from "@pauly4010/evalai-sdk";
-import {
-	traceLangChainAgent,
-	WorkflowTracer,
-} from "@pauly4010/evalai-sdk/workflows";
+import { AIEvalClient } from "@evalgate/sdk";
+import { traceLangChainAgent, WorkflowTracer } from "@evalgate/sdk/workflows";
 import { CompliancePresets, GovernanceEngine } from "@/lib/governance/rules";
 import { executeWithRetry } from "@/lib/workflows/retry";
 

@@ -23,7 +23,7 @@ class LocalStorage {
         this.traces = new Map();
         this.evaluations = new Map();
         this.spans = new Map();
-        this.directory = options.directory || "./.evalai-data";
+        this.directory = options.directory || "./.evalgate-data";
         this.autoSave = options.autoSave !== false;
         this.initialize();
     }

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from evalai_sdk.workflows import WorkflowStatus, WorkflowTracer
+from evalgate_sdk.workflows import WorkflowStatus, WorkflowTracer
 
 
 def trace_autogen(
@@ -26,7 +26,7 @@ def trace_autogen(
     Example::
 
         from autogen import ConversableAgent
-        from evalai_sdk import WorkflowTracer, AIEvalClient
+        from evalgate_sdk import WorkflowTracer, AIEvalClient
 
         client = AIEvalClient.init()
         tracer = WorkflowTracer(client)

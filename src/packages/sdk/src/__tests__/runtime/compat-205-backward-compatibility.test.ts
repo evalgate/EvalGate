@@ -101,7 +101,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 							test: "node test.js",
 						},
 						dependencies: {
-							"@pauly4010/evalai-sdk": "^1.6.0",
+							"@evalgate/sdk": "^1.6.0",
 						},
 					},
 					null,
@@ -113,7 +113,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 			await fs.writeFile(
 				path.join(legacyProjectDir, "test.js"),
 				`
-        const { createTestSuite } = require('@pauly4010/evalai-sdk');
+        const { createTestSuite } = require('@evalgate/sdk');
         
         const config = require('./evalai.config.json');
         const suite = createTestSuite('legacy-tests', config);
@@ -131,7 +131,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 
 		it("should run legacy tests without modifications", async () => {
 			// Load and run legacy tests
-			const { createTestSuite } = require("@pauly4010/evalai-sdk");
+			const { createTestSuite } = require("@evalgate/sdk");
 			const config = JSON.parse(
 				await fs.readFile(
 					path.join(legacyProjectDir, "evalai.config.json"),
@@ -171,7 +171,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 		});
 
 		it("should work with TestSuite introspection", async () => {
-			const { createTestSuite } = require("@pauly4010/evalai-sdk");
+			const { createTestSuite } = require("@evalgate/sdk");
 			const config = JSON.parse(
 				await fs.readFile(
 					path.join(legacyProjectDir, "evalai.config.json"),
@@ -204,7 +204,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 		});
 
 		it("should adapt to DSL without breaking behavior", async () => {
-			const { createTestSuite } = require("@pauly4010/evalai-sdk");
+			const { createTestSuite } = require("@evalgate/sdk");
 			const config = JSON.parse(
 				await fs.readFile(
 					path.join(legacyProjectDir, "evalai.config.json"),
@@ -259,7 +259,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 			await fs.writeFile(
 				path.join(evalDir, "greeting.spec.ts"),
 				`
-        import { defineEval, createResult } from '@pauly4010/evalai-sdk';
+        import { defineEval, createResult } from '@evalgate/sdk';
         
         defineEval("greeting-hello", async (context) => {
           const input = context.input;
@@ -288,7 +288,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 			await fs.writeFile(
 				path.join(evalDir, "complex.spec.ts"),
 				`
-        import { defineEval, createResult } from '@pauly4010/evalai-sdk';
+        import { defineEval, createResult } from '@evalgate/sdk';
         
         defineEval("complex-processing", async (context) => {
           const input = context.input;
@@ -331,7 +331,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 							test: "node test-runner.js",
 						},
 						dependencies: {
-							"@pauly4010/evalai-sdk": "^1.6.0",
+							"@evalgate/sdk": "^1.6.0",
 						},
 					},
 					null,
@@ -343,7 +343,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 			await fs.writeFile(
 				path.join(specProjectDir, "test-runner.js"),
 				`
-        const { createEvalRuntime, createLocalExecutor } = require('@pauly4010/evalai-sdk');
+        const { createEvalRuntime, createLocalExecutor } = require('@evalgate/sdk');
         
         // This would normally load spec files and run them
         console.log('Spec-based test runner would execute defineEval specs');
@@ -481,7 +481,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 			await fs.writeFile(
 				path.join(evalDir, "mixed.spec.ts"),
 				`
-        import { defineEval, createResult } from '@pauly4010/evalai-sdk';
+        import { defineEval, createResult } from '@evalgate/sdk';
         
         defineEval("mixed-spec-1", async (context) => {
           const input = context.input;
@@ -500,7 +500,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 						name: "mixed-evalai-project",
 						version: "1.0.0",
 						dependencies: {
-							"@pauly4010/evalai-sdk": "^1.6.0",
+							"@evalgate/sdk": "^1.6.0",
 						},
 					},
 					null,
@@ -527,7 +527,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 
 		it("should run both legacy and spec tests", async () => {
 			// Run legacy tests
-			const { createTestSuite } = require("@pauly4010/evalai-sdk");
+			const { createTestSuite } = require("@evalgate/sdk");
 			const legacyConfig = JSON.parse(
 				await fs.readFile(
 					path.join(mixedProjectDir, "evalai.config.json"),
@@ -547,7 +547,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 		});
 
 		it("should adapt legacy tests to DSL", async () => {
-			const { createTestSuite } = require("@pauly4010/evalai-sdk");
+			const { createTestSuite } = require("@evalgate/sdk");
 			const config = JSON.parse(
 				await fs.readFile(
 					path.join(mixedProjectDir, "evalai.config.json"),
@@ -573,7 +573,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 			await fs.writeFile(
 				path.join(evalDir, "test.spec.ts"),
 				`
-        import { defineEval, createResult } from '@pauly4010/evalai-sdk';
+        import { defineEval, createResult } from '@evalgate/sdk';
         
         defineEval("doctor-test", async (context) => {
           return createResult({ pass: true, score: 100 });
@@ -609,7 +609,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 			await fs.writeFile(
 				path.join(evalDir, "check.spec.ts"),
 				`
-        import { defineEval, createResult } from '@pauly4010/evalai-sdk';
+        import { defineEval, createResult } from '@evalgate/sdk';
         
         defineEval("check-test", async (context) => {
           return createResult({ pass: true, score: 100 });
@@ -639,7 +639,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 			await fs.writeFile(
 				path.join(evalDir, "explain.spec.ts"),
 				`
-        import { defineEval, createResult } from '@pauly4010/evalai-sdk';
+        import { defineEval, createResult } from '@evalgate/sdk';
         
         defineEval("explain-test", async (context) => {
           const input = context.input;
@@ -743,7 +743,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 				),
 			);
 
-			const { createTestSuite } = require("@pauly4010/evalai-sdk");
+			const { createTestSuite } = require("@evalgate/sdk");
 			const config = JSON.parse(
 				await fs.readFile(
 					path.join(tempDir, "regression-legacy", "evalai.config.json"),
@@ -777,7 +777,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 			await fs.writeFile(
 				path.join(evalDir, "regression.spec.ts"),
 				`
-        import { defineEval, createResult } from '@pauly4010/evalai-sdk';
+        import { defineEval, createResult } from '@evalgate/sdk';
         
         defineEval("regression-spec-1", async (context) => {
           const input = context.input;
@@ -905,7 +905,7 @@ describe("COMPAT-205: Backward Compatibility Test Suite", () => {
 			await fs.writeFile(
 				path.join(evalDir, "scores.spec.ts"),
 				`
-        import { defineEval, createResult } from '@pauly4010/evalai-sdk';
+        import { defineEval, createResult } from '@evalgate/sdk';
         
         defineEval("high-score", async (context) => {
           return createResult({ pass: true, score: 95 });

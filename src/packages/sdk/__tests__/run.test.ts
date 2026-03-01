@@ -10,11 +10,11 @@ import { runEvaluations } from "../src/cli/run";
 
 describe("Run Command", () => {
 	const testDir = path.join(process.cwd(), ".test-run");
-	const manifestPath = path.join(testDir, ".evalai", "manifest.json");
+	const manifestPath = path.join(testDir, ".evalgate", "manifest.json");
 
 	beforeEach(async () => {
 		// Create test directory structure
-		await fs.mkdir(path.join(testDir, ".evalai"), { recursive: true });
+		await fs.mkdir(path.join(testDir, ".evalgate"), { recursive: true });
 
 		// Create test manifest
 		const testManifest: EvaluationManifest = {
@@ -152,7 +152,7 @@ describe("Run Command", () => {
 			testDir,
 		);
 
-		const resultsPath = path.join(testDir, ".evalai", "last-run.json");
+		const resultsPath = path.join(testDir, ".evalgate", "last-run.json");
 		const resultsExist = await fs
 			.access(resultsPath)
 			.then(() => true)
@@ -259,9 +259,9 @@ vi.mock("../src/cli/impact-analysis", async (importOriginal) => {
 describe("Run Command Integration", () => {
 	it("should work with impact analysis integration", async () => {
 		const testDir = path.join(process.cwd(), ".test-integration");
-		const manifestPath = path.join(testDir, ".evalai", "manifest.json");
+		const manifestPath = path.join(testDir, ".evalgate", "manifest.json");
 
-		await fs.mkdir(path.join(testDir, ".evalai"), { recursive: true });
+		await fs.mkdir(path.join(testDir, ".evalgate"), { recursive: true });
 
 		const testManifest: EvaluationManifest = {
 			schemaVersion: 1,

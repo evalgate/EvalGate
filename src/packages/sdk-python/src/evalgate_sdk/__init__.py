@@ -1,7 +1,7 @@
-"""EvalAI SDK — AI Evaluation Platform client for Python."""
+"""EvalGate SDK — EvalGate client for Python."""
 
-from evalai_sdk._version import SDK_VERSION, SPEC_VERSION, __version__
-from evalai_sdk.assertions import (
+from evalgate_sdk._version import SDK_VERSION, SPEC_VERSION, __version__
+from evalgate_sdk.assertions import (
     AssertionResult,
     Expectation,
     contains_all_required_fields,
@@ -27,10 +27,10 @@ from evalai_sdk.assertions import (
     similar_to,
     within_range,
 )
-from evalai_sdk.batch import RequestBatcher, batch_process, can_batch
-from evalai_sdk.cache import CacheTTL, RequestCache, get_ttl, should_cache
-from evalai_sdk.client import AIEvalClient
-from evalai_sdk.context import (
+from evalgate_sdk.batch import RequestBatcher, batch_process, can_batch
+from evalgate_sdk.cache import CacheTTL, RequestCache, get_ttl, should_cache
+from evalgate_sdk.client import AIEvalClient
+from evalgate_sdk.context import (
     EvalContext,
     WithContext,
     clone_context,
@@ -42,15 +42,15 @@ from evalai_sdk.context import (
     with_context,
     with_context_sync,
 )
-from evalai_sdk.errors import (
+from evalgate_sdk.errors import (
     AuthenticationError,
-    EvalAIError,
+    EvalGateError,
     NetworkError,
     RateLimitError,
     ValidationError,
     create_error_from_response,
 )
-from evalai_sdk.export import (
+from evalgate_sdk.export import (
     ExportData,
     ExportFormat,
     ExportOptions,
@@ -63,20 +63,20 @@ from evalai_sdk.export import (
     import_from_file,
     import_from_langsmith,
 )
-from evalai_sdk.integrations.anthropic import trace_anthropic, trace_anthropic_call
-from evalai_sdk.integrations.autogen import trace_autogen
-from evalai_sdk.integrations.crewai import trace_crewai
-from evalai_sdk.integrations.langchain import trace_langchain
-from evalai_sdk.integrations.openai import trace_openai, trace_openai_call
-from evalai_sdk.integrations.openai_eval import (
+from evalgate_sdk.integrations.anthropic import trace_anthropic, trace_anthropic_call
+from evalgate_sdk.integrations.autogen import trace_autogen
+from evalgate_sdk.integrations.crewai import trace_crewai
+from evalgate_sdk.integrations.langchain import trace_langchain
+from evalgate_sdk.integrations.openai import trace_openai, trace_openai_call
+from evalgate_sdk.integrations.openai_eval import (
     OpenAIChatEvalCase,
     OpenAIChatEvalCaseResult,
     OpenAIChatEvalResult,
     openai_chat_eval,
 )
-from evalai_sdk.logger import Logger, RequestLogger, create_logger, get_logger, set_logger
-from evalai_sdk.matchers import GateAssertionError, assert_passes_gate, to_pass_gate
-from evalai_sdk.pagination import (
+from evalgate_sdk.logger import Logger, RequestLogger, create_logger, get_logger, set_logger
+from evalgate_sdk.matchers import GateAssertionError, assert_passes_gate, to_pass_gate
+from evalgate_sdk.pagination import (
     PaginatedIterator,
     PaginatedResponse,
     auto_paginate,
@@ -86,7 +86,7 @@ from evalai_sdk.pagination import (
     encode_cursor,
     parse_pagination_params,
 )
-from evalai_sdk.regression import (
+from evalgate_sdk.regression import (
     ARTIFACTS,
     GATE_CATEGORY,
     GATE_EXIT,
@@ -97,34 +97,34 @@ from evalai_sdk.regression import (
     RegressionReport,
     evaluate_regression,
 )
-from evalai_sdk.runtime import (
+from evalgate_sdk.runtime import (
     EvalExecutionError,
     EvalRuntimeError,
     EvalSDKRuntimeError,
     SpecExecutionError,
     SpecRegistrationError,
 )
-from evalai_sdk.runtime.eval import create_result, define_eval, define_suite, evalai
-from evalai_sdk.runtime.executor import (
+from evalgate_sdk.runtime.eval import create_result, define_eval, define_suite, evalai
+from evalgate_sdk.runtime.executor import (
     LocalExecutor,
     create_local_executor,
     default_local_executor,
 )
-from evalai_sdk.runtime.registry import (
+from evalgate_sdk.runtime.registry import (
     create_eval_runtime,
     dispose_active_runtime,
     get_active_runtime,
     set_active_runtime,
     with_runtime,
 )
-from evalai_sdk.runtime.types import (
+from evalgate_sdk.runtime.types import (
     EvalResult,
     EvalSpec,
     ExecutorCapabilities,
     SpecConfig,
     SpecOptions,
 )
-from evalai_sdk.snapshot import (
+from evalgate_sdk.snapshot import (
     SnapshotComparison,
     SnapshotData,
     SnapshotManager,
@@ -135,7 +135,7 @@ from evalai_sdk.snapshot import (
     load_snapshot,
     snapshot,
 )
-from evalai_sdk.streaming import (
+from evalgate_sdk.streaming import (
     BatchProgress,
     BatchResult,
     RateLimiter,
@@ -143,9 +143,9 @@ from evalai_sdk.streaming import (
     chunk,
     stream_evaluation,
 )
-from evalai_sdk.testing import TestSuite, create_test_suite
-from evalai_sdk.types import CamelModel, QualityBreakdown, QualityScore
-from evalai_sdk.workflows import WorkflowTracer, create_workflow_tracer, trace_workflow_step
+from evalgate_sdk.testing import TestSuite, create_test_suite
+from evalgate_sdk.types import CamelModel, QualityBreakdown, QualityScore
+from evalgate_sdk.workflows import WorkflowTracer, create_workflow_tracer, trace_workflow_step
 
 __all__ = [
     # Version
@@ -155,7 +155,7 @@ __all__ = [
     # Client
     "AIEvalClient",
     # Errors
-    "EvalAIError",
+    "EvalGateError",
     "RateLimitError",
     "AuthenticationError",
     "NetworkError",

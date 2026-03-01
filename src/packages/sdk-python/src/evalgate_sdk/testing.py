@@ -5,8 +5,8 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from evalai_sdk.assertions import AssertionResult, expect
-from evalai_sdk.types import (
+from evalgate_sdk.assertions import AssertionResult, expect
+from evalgate_sdk.types import (
     TestSuiteCase,
     TestSuiteCaseResult,
     TestSuiteConfig,

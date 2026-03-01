@@ -10,11 +10,11 @@ import type { EvaluationManifest } from "../src/cli/manifest";
 
 describe("Impact Analysis", () => {
 	const testDir = path.join(process.cwd(), ".test-impact");
-	const manifestPath = path.join(testDir, ".evalai", "manifest.json");
+	const manifestPath = path.join(testDir, ".evalgate", "manifest.json");
 
 	beforeEach(async () => {
 		// Create test directory structure
-		await fs.mkdir(path.join(testDir, ".evalai"), { recursive: true });
+		await fs.mkdir(path.join(testDir, ".evalgate"), { recursive: true });
 
 		// Create test manifest
 		const testManifest: EvaluationManifest = {

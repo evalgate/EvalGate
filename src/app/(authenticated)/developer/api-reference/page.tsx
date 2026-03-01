@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-	title: "API Reference — EvalAI",
+	title: "API Reference — EvalGate",
 	description:
-		"Full OpenAPI reference for the EvalAI platform REST API — evaluations, traces, webhooks, and more.",
+		"Full OpenAPI reference for the EvalGate platform REST API — evaluations, traces, webhooks, and more.",
 };
 
 const endpointGroups = [
@@ -123,7 +123,7 @@ export default function ApiReferencePage() {
 			<div>
 				<h1 className="text-3xl font-bold tracking-tight">API Reference</h1>
 				<p className="mt-2 text-muted-foreground">
-					The EvalAI platform exposes a comprehensive REST API described by an{" "}
+					The EvalGate platform exposes a comprehensive REST API described by an{" "}
 					<Link
 						href="/docs/openapi.json"
 						className="font-medium text-primary hover:underline"
@@ -253,9 +253,7 @@ export default function ApiReferencePage() {
 						<span className="rounded bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600">
 							Production
 						</span>
-						<code className="text-xs font-mono">
-							https://v0-ai-evaluation-platform-nu.vercel.app
-						</code>
+						<code className="text-xs font-mono">https://evalgate.com</code>
 					</div>
 					<div className="flex items-center gap-3">
 						<span className="rounded bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-600">

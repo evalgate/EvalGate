@@ -276,23 +276,17 @@ describe("generateShareableLink", () => {
 	// Happy path tests
 	it("should generate correct shareable link", () => {
 		const link = generateShareableLink(123, 456);
-		expect(link).toBe(
-			"https://v0-ai-evaluation-platform-nu.vercel.app/share/123/456",
-		);
+		expect(link).toBe("https://evalgate.com/share/123/456");
 	});
 
 	it("should handle different organization and evaluation IDs", () => {
 		const link = generateShareableLink(999, 888);
-		expect(link).toBe(
-			"https://v0-ai-evaluation-platform-nu.vercel.app/share/999/888",
-		);
+		expect(link).toBe("https://evalgate.com/share/999/888");
 	});
 
 	it("should handle zero IDs", () => {
 		const link = generateShareableLink(0, 0);
-		expect(link).toBe(
-			"https://v0-ai-evaluation-platform-nu.vercel.app/share/0/0",
-		);
+		expect(link).toBe("https://evalgate.com/share/0/0");
 	});
 
 	// Edge case tests
@@ -313,9 +307,7 @@ describe("generateShareableLink", () => {
 
 	it("should handle large IDs", () => {
 		const link = generateShareableLink(999999, 888888);
-		expect(link).toBe(
-			"https://v0-ai-evaluation-platform-nu.vercel.app/share/999999/888888",
-		);
+		expect(link).toBe("https://evalgate.com/share/999999/888888");
 	});
 });
 

@@ -1,6 +1,6 @@
 # Example: EvalAI CI gate using quickstart-ci
 # Requires secrets: EVALAI_API_KEY
-# Set evaluationId in examples/quickstart-ci/evalai.config.json or pass --evaluationId
+# Set evaluationId in examples/quickstart-ci/evalgate.config.json or pass --evaluationId
 name: Quickstart CI Example
 
 on:

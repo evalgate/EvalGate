@@ -28,7 +28,7 @@ export function HomeHero() {
 				</p>
 				<p className="text-base text-muted-foreground mb-8 max-w-2xl mx-auto">
 					LLMs drift silently — a prompt tweak can degrade quality by 15% and
-					you won&apos;t notice until users complain. EvalAI turns evaluations
+					you won&apos;t notice until users complain. EvalGate turns evaluations
 					into CI gates so regressions never reach production.
 				</p>
 				<div className="flex flex-col sm:flex-row gap-4 justify-center">

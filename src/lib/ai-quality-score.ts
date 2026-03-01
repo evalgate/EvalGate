@@ -317,9 +317,7 @@ export function generateShareableLink(
 	organizationId: number,
 	evaluationId: number,
 ): string {
-	const baseUrl =
-		process.env.NEXT_PUBLIC_APP_URL ||
-		"https://v0-ai-evaluation-platform-nu.vercel.app";
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://evalgate.com";
 	return `${baseUrl}/share/${organizationId}/${evaluationId}`;
 }
 

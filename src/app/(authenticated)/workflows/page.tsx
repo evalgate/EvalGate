@@ -39,7 +39,7 @@ import { useSession } from "@/lib/auth-client";
 const WORKFLOW_EXAMPLES = {
 	basic: {
 		name: "Basic Workflow",
-		code: `import { WorkflowTracer } from '@pauly4010/evalai-sdk';
+		code: `import { WorkflowTracer } from '@evalgate/sdk';
 
 const tracer = new WorkflowTracer(client, { organizationId: 123 });
 
@@ -63,7 +63,7 @@ await tracer.endWorkflow({ resolution: 'resolved' });`,
 	},
 	langchain: {
 		name: "LangChain Agent",
-		code: `import { WorkflowTracer, traceLangChainAgent } from '@pauly4010/evalai-sdk';
+		code: `import { WorkflowTracer, traceLangChainAgent } from '@evalgate/sdk';
 import { AgentExecutor } from 'langchain/agents';
 
 const tracer = new WorkflowTracer(client);
@@ -85,7 +85,7 @@ await tracer.endWorkflow({ result });`,
 	},
 	multiagent: {
 		name: "Multi-Agent",
-		code: `import { WorkflowTracer } from '@pauly4010/evalai-sdk';
+		code: `import { WorkflowTracer } from '@evalgate/sdk';
 
 const tracer = new WorkflowTracer(client);
 

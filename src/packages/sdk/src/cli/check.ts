@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * evalai check — CI/CD evaluation gate
+ * evalgate check — CI/CD evaluation gate
  *
  * Usage:
- *   evalai check --minScore 92 --evaluationId 42
- *   evalai check --minScore 90 --maxDrop 5 --evaluationId 42
- *   evalai check --policy HIPAA --evaluationId 42
- *   evalai check --baseline published --evaluationId 42
+ *   evalgate check --minScore 92 --evaluationId 42
+ *   evalgate check --minScore 90 --maxDrop 5 --evaluationId 42
+ *   evalgate check --policy HIPAA --evaluationId 42
+ *   evalgate check --baseline published --evaluationId 42
  *
  * Flags:
  *   --minScore <n>       Fail if quality score < n (0-100)
@@ -17,8 +17,8 @@
  *   --policy <name>      Enforce a compliance policy (e.g. HIPAA, SOC2, GDPR)
  *   --baseline <mode>   Baseline comparison mode: "published" (default), "previous", or "production"
  *   --evaluationId <id>  Required. The evaluation to gate on.
- *   --baseUrl <url>      API base URL (default: EVALAI_BASE_URL or http://localhost:3000)
- *   --apiKey <key>       API key (default: EVALAI_API_KEY env var)
+ *   --baseUrl <url>      API base URL (default: EVALGATE_BASE_URL or http://localhost:3000)
+ *   --apiKey <key>       API key (default: EVALGATE_API_KEY env var)
  *   --share <mode>       Share link: "always" | "fail" | "never" (default: never)
  *                        fail = create public share link only when gate fails (CI-friendly)
  *   --pr-comment-out <file>  Write PR comment markdown to file (for GitHub Action to post)
@@ -36,8 +36,8 @@
  *   8  — Gate warned: near-regression (warnDrop ≤ drop < maxDrop)
  *
  * Environment:
- *   EVALAI_BASE_URL  — API base URL (default: http://localhost:3000)
- *   EVALAI_API_KEY   — API key for authentication
+ *   EVALGATE_BASE_URL  — API base URL (default: http://localhost:3000)
+ *   EVALGATE_API_KEY   — API key for authentication
  */
 
 import * as fs from "node:fs";
@@ -108,8 +108,12 @@ export function parseArgs(argv: string[]): ParseArgsResult {
 	}
 
 	let baseUrl =
-		args.baseUrl || process.env.EVALAI_BASE_URL || "http://localhost:3000";
-	const apiKey = args.apiKey || process.env.EVALAI_API_KEY || "";
+		args.baseUrl || process.env.EVALGATE_BASE_URL || "http://localhost:3000";
+	const apiKey =
+		args.apiKey ||
+		process.env.EVALGATE_API_KEY ||
+		process.env.EVALAI_API_KEY ||
+		"";
 	let minScore = parseInt(args.minScore || "0", 10);
 	let maxDrop = args.maxDrop ? parseInt(args.maxDrop, 10) : undefined;
 	let warnDrop = args.warnDrop ? parseInt(args.warnDrop, 10) : undefined;
@@ -157,7 +161,10 @@ export function parseArgs(argv: string[]): ParseArgsResult {
 	const config = loadConfig(process.cwd());
 	const merged = mergeConfigWithArgs(config, {
 		evaluationId: args.evaluationId,
-		baseUrl: args.baseUrl || process.env.EVALAI_BASE_URL,
+		baseUrl:
+			args.baseUrl ||
+			process.env.EVALGATE_BASE_URL ||
+			process.env.EVALAI_BASE_URL,
 		minScore: args.minScore,
 		maxDrop: args.maxDrop,
 		warnDrop: args.warnDrop,
@@ -184,7 +191,7 @@ export function parseArgs(argv: string[]): ParseArgsResult {
 		return {
 			ok: false,
 			exitCode: EXIT.BAD_ARGS,
-			message: "Error: --apiKey or EVALAI_API_KEY is required",
+			message: "Error: --apiKey or EVALGATE_API_KEY is required",
 		};
 	}
 
@@ -193,7 +200,7 @@ export function parseArgs(argv: string[]): ParseArgsResult {
 			ok: false,
 			exitCode: EXIT.BAD_ARGS,
 			message:
-				"Run npx evalai init and paste your evaluationId, or pass --evaluationId.",
+				"Run npx evalgate init and paste your evaluationId, or pass --evaluationId.",
 		};
 	}
 
@@ -258,11 +265,11 @@ export async function runCheck(args: CheckArgs): Promise<number> {
 	if (!qualityResult.ok) {
 		if (qualityResult.status === 0) {
 			console.error(
-				`EvalAI gate ERROR: Network failure — ${qualityResult.body}`,
+				`EvalGate gate ERROR: Network failure — ${qualityResult.body}`,
 			);
 		} else {
 			console.error(
-				`EvalAI gate ERROR: API returned ${qualityResult.status} — ${qualityResult.body}`,
+				`EvalGate gate ERROR: API returned ${qualityResult.status} — ${qualityResult.body}`,
 			);
 		}
 		return EXIT.API_ERROR;
@@ -323,9 +330,9 @@ export async function runCheck(args: CheckArgs): Promise<number> {
 		ciRunUrl: ci?.runUrl ?? undefined,
 	});
 
-	// Persist report artifact so `evalai explain` works with zero flags
+	// Persist report artifact so `evalgate explain` works with zero flags
 	try {
-		const reportDir = path.join(process.cwd(), ".evalai");
+		const reportDir = path.join(process.cwd(), ".evalgate");
 		if (!fs.existsSync(reportDir)) fs.mkdirSync(reportDir, { recursive: true });
 		fs.writeFileSync(
 			path.join(reportDir, "last-report.json"),
@@ -346,7 +353,7 @@ export async function runCheck(args: CheckArgs): Promise<number> {
 
 	// Guided flow hint on failure
 	if (!gateResult.passed) {
-		console.error("\nNext: evalai explain");
+		console.error("\nNext: evalgate explain");
 	}
 
 	// --pr-comment-out: write markdown to file for GitHub Action to post
@@ -356,7 +363,7 @@ export async function runCheck(args: CheckArgs): Promise<number> {
 			fs.writeFileSync(args.prCommentOut, markdown, "utf8");
 		} catch (err) {
 			console.error(
-				`EvalAI: failed to write PR comment to ${args.prCommentOut}: ${err instanceof Error ? err.message : String(err)}`,
+				`EvalGate: failed to write PR comment to ${args.prCommentOut}: ${err instanceof Error ? err.message : String(err)}`,
 			);
 		}
 	}
@@ -393,13 +400,13 @@ export async function runCheck(args: CheckArgs): Promise<number> {
 				{
 					idempotencyKey,
 					ci,
-					importClientVersion: "evalai-cli",
+					importClientVersion: "evalgate-cli",
 					checkReport: report as unknown as Record<string, unknown>,
 				},
 			);
 			if (!importRes.ok) {
 				console.error(
-					`EvalAI import (onFail): ${importRes.status} — ${importRes.body}`,
+					`EvalGate import (onFail): ${importRes.status} — ${importRes.body}`,
 				);
 			}
 		}
@@ -420,7 +427,7 @@ if (isDirectRun) {
 		.then((code) => process.exit(code))
 		.catch((err) => {
 			console.error(
-				`EvalAI gate ERROR: ${err instanceof Error ? err.message : String(err)}`,
+				`EvalGate gate ERROR: ${err instanceof Error ? err.message : String(err)}`,
 			);
 			process.exit(EXIT.API_ERROR);
 		});

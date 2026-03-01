@@ -240,25 +240,25 @@ async function hashFile(filePath) {
  * Write manifest to disk
  */
 async function writeManifest(manifest, projectRoot) {
-    const evalaiDir = path.join(projectRoot, ".evalai");
-    // Ensure .evalai directory exists
-    await fs.mkdir(evalaiDir, { recursive: true });
+    const evalgateDir = path.join(projectRoot, ".evalgate");
+    // Ensure .evalgate directory exists
+    await fs.mkdir(evalgateDir, { recursive: true });
     // Write manifest.json
-    const manifestPath = path.join(evalaiDir, "manifest.json");
+    const manifestPath = path.join(evalgateDir, "manifest.json");
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2), "utf-8");
     // Write lock file
     const lock = {
         generatedAt: manifest.generatedAt,
         fileHashes: Object.fromEntries(manifest.specFiles.map((f) => [f.filePath, f.fileHash])),
     };
-    const lockPath = path.join(evalaiDir, "manifest.lock.json");
+    const lockPath = path.join(evalgateDir, "manifest.lock.json");
     await fs.writeFile(lockPath, JSON.stringify(lock, null, 2), "utf-8");
 }
 /**
  * Read existing manifest
  */
 async function readManifest(projectRoot) {
-    const manifestPath = path.join(projectRoot, ".evalai", "manifest.json");
+    const manifestPath = path.join(projectRoot, ".evalgate", "manifest.json");
     try {
         const content = await fs.readFile(manifestPath, "utf-8");
         return JSON.parse(content);
@@ -271,7 +271,7 @@ async function readManifest(projectRoot) {
  * Read existing lock file
  */
 async function readLock(projectRoot) {
-    const lockPath = path.join(projectRoot, ".evalai", "manifest.lock.json");
+    const lockPath = path.join(projectRoot, ".evalgate", "manifest.lock.json");
     try {
         const content = await fs.readFile(lockPath, "utf-8");
         return JSON.parse(content);

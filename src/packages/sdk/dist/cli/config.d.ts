@@ -1,6 +1,6 @@
 /**
- * EvalAI config loader
- * Discovery: evalai.config.json → evalai.config.js → evalai.config.cjs → package.json evalai
+ * EvalGate config loader
+ * Discovery: evalgate.config.json → evalgate.config.js → evalgate.config.cjs → package.json evalgate
  */
 import { type ProfileName } from "./profiles";
 export interface EvalAIConfig {

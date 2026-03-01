@@ -2,7 +2,7 @@
 /**
  * Config → DSL Adapter - LAYER 2 Compatibility Bridge
  *
- * Migrates existing evalai.config.json and TestSuite configurations
+ * Migrates existing evalgate.config.json and TestSuite configurations
  * to the new defineEval() DSL without breaking user workflows.
  */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -105,7 +105,7 @@ function extractTestSuiteData(_testSuite) {
     };
 }
 /**
- * Convert evalai.config.json to DSL specifications
+ * Convert evalgate.config.json to DSL specifications
  */
 function migrateConfigToDSL(configPath, outputPath) {
     const result = {
@@ -136,7 +136,7 @@ function migrateConfigToDSL(configPath, outputPath) {
         // Write DSL file
         fs.writeFileSync(outputPath, dslContent, "utf-8");
         result.specsGenerated = 1; // Basic structure generated
-        result.warnings.push("Generated basic DSL structure from evalai.config.json. Manual completion required.");
+        result.warnings.push("Generated basic DSL structure from evalgate.config.json. Manual completion required.");
         // Cleanup runtime
         (0, registry_1.disposeActiveRuntime)();
     }
@@ -155,7 +155,7 @@ function generateDSLFromTestSuiteData(suiteData) {
         `// Generated at: ${new Date().toISOString()}`,
         `// This file replaces the old TestSuite configuration`,
         "",
-        `import { defineEval, createResult } from '@pauly4010/evalai-sdk';`,
+        `import { defineEval, createResult } from '@evalgate/sdk';`,
         "",
     ];
     const specs = suiteData.cases.map((testCase, index) => {
@@ -208,11 +208,11 @@ function generateDSLFromTestSuiteData(suiteData) {
  */
 function generateDSLFromConfig(config) {
     return [
-        `// Auto-generated from evalai.config.json`,
+        `// Auto-generated from evalgate.config.json`,
         `// Generated at: ${new Date().toISOString()}`,
         `// This is a basic DSL structure - complete with your actual evaluations`,
         "",
-        `import { defineEval, createResult } from '@pauly4010/evalai-sdk';`,
+        `import { defineEval, createResult } from '@evalgate/sdk';`,
         "",
         `defineEval("basic-evaluation", async (context) => {`,
         `  const input = context.input;`,
@@ -234,7 +234,7 @@ function generateDSLFromConfig(config) {
         `    },`,
         `  });`,
         `}, {`,
-        `  description: "Basic evaluation migrated from evalai.config.json",`,
+        `  description: "Basic evaluation migrated from evalgate.config.json",`,
         `  tags: ["migrated", "config"],`,
         `});`,
         "",
@@ -277,13 +277,19 @@ function migrateProjectToDSL(projectRoot, options = {}) {
         specsGenerated: 0,
         errors: [],
         warnings: [],
-        outputPath: options.outputDir || path.join(projectRoot, ".evalai", "migrated"),
+        outputPath: options.outputDir || path.join(projectRoot, ".evalgate", "migrated"),
     };
     try {
-        // Find evalai.config.json
-        const configPath = path.join(projectRoot, "evalai.config.json");
-        if (fs.existsSync(configPath)) {
-            const outputPath = path.join(result.outputPath, "evalai.config.migrated.ts");
+        // Find evalgate.config.json or evalai.config.json
+        const evalgatePath = path.join(projectRoot, "evalgate.config.json");
+        const legacyPath = path.join(projectRoot, "evalai.config.json");
+        const configPath = fs.existsSync(evalgatePath)
+            ? evalgatePath
+            : fs.existsSync(legacyPath)
+                ? legacyPath
+                : null;
+        if (configPath) {
+            const outputPath = path.join(result.outputPath, "evalgate.config.migrated.ts");
             if (!options.dryRun) {
                 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
                 const configResult = migrateConfigToDSL(configPath, outputPath);
@@ -292,7 +298,7 @@ function migrateProjectToDSL(projectRoot, options = {}) {
                 result.warnings.push(...configResult.warnings);
             }
             else {
-                result.warnings.push(`Would migrate evalai.config.json to ${outputPath}`);
+                result.warnings.push(`Would migrate evalgate.config.json to ${outputPath}`);
             }
         }
         // Look for TestSuite usage in TypeScript/JavaScript files
@@ -364,7 +370,7 @@ function generatePlaceholderDSL(originalFile) {
         `// Generated at: ${new Date().toISOString()}`,
         `// This file contains TestSuite usage that needs manual migration`,
         "",
-        `import { defineEval, createResult } from '@pauly4010/evalai-sdk';`,
+        `import { defineEval, createResult } from '@evalgate/sdk';`,
         "",
         `defineEval("placeholder-from-${path.basename(originalFile)}", async (context) => {`,
         `  // TODO: Manually migrate TestSuite from ${originalFile}`,

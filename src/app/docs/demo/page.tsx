@@ -25,7 +25,7 @@ export default function DemoPage() {
 					<div className="flex items-center justify-between gap-3">
 						<Link href="/">
 							<h1 className="text-base sm:text-xl font-bold truncate">
-								AI Evaluation Platform
+								EvalGate
 							</h1>
 						</Link>
 						<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -75,7 +75,7 @@ export default function DemoPage() {
 							</div>
 							<div>
 								<h1 className="text-3xl sm:text-4xl font-bold mb-2">
-									EvalAI Gate Demo
+									EvalGate Gate Demo
 								</h1>
 								<p className="text-lg text-muted-foreground">
 									Show, don't tell. Here's what a failing gate looks like in
@@ -128,7 +128,7 @@ export default function DemoPage() {
 									</h3>
 								</div>
 								<div className="bg-background border rounded-lg p-4 font-mono text-sm">
-									<pre className="text-red-600 dark:text-red-400">{`## EvalAI Gate
+									<pre className="text-red-600 dark:text-red-400">{`## EvalGate Gate
 
 ❌ FAILED: score_below_baseline
 
@@ -195,7 +195,7 @@ export default function DemoPage() {
 									</h3>
 								</div>
 								<div className="bg-background border rounded-lg p-4 font-mono text-sm">
-									<pre className="text-green-600 dark:text-green-400">{`## EvalAI Gate
+									<pre className="text-green-600 dark:text-green-400">{`## EvalGate Gate
 
 ✅ PASSED
 
@@ -336,7 +336,7 @@ export default function DemoPage() {
 											Screenshot the failing run
 										</h3>
 										<p className="text-sm text-muted-foreground">
-											Capture the "EvalAI gate" step in the GitHub Actions run
+											Capture the "EvalGate gate" step in the GitHub Actions run
 										</p>
 									</div>
 								</li>

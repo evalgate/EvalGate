@@ -53,7 +53,7 @@ import { cacheTracker, getTTL, shouldCache } from "./cache";
 
 describe("AIEvalClient.request", () => {
 	beforeEach(() => {
-		process.env.EVALAI_API_KEY = "test";
+		process.env.EVALGATE_API_KEY = "test";
 		shouldCache.mockReset().mockReturnValue(true);
 		getTTL.mockReset().mockReturnValue(1000);
 		cacheTracker.invalidatedPatterns.length = 0;
@@ -95,7 +95,7 @@ describe("AIEvalClient.request", () => {
 		const createErrorSpy = vi
 			.spyOn(errorsModule, "createErrorFromResponse")
 			.mockReturnValue(
-				new errorsModule.EvalAIError(
+				new errorsModule.EvalGateError(
 					"rate limited",
 					"RATE_LIMIT_EXCEEDED",
 					429,
@@ -130,7 +130,7 @@ describe("AIEvalClient.request", () => {
 		const createErrorSpy = vi
 			.spyOn(errorsModule, "createErrorFromResponse")
 			.mockReturnValue(
-				new errorsModule.EvalAIError(
+				new errorsModule.EvalGateError(
 					"rate limited",
 					"RATE_LIMIT_EXCEEDED",
 					429,

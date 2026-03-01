@@ -1,13 +1,13 @@
 "use strict";
 /**
- * evalai gate — Run the regression gate
+ * evalgate gate — Run the regression gate
  *
  * Two modes:
  *   1. Project mode: delegates to eval:regression-gate npm script (full gate)
  *   2. Built-in mode: runs `npm test`, compares against evals/baseline.json
  *
  * Built-in mode activates when no eval:regression-gate script is defined,
- * making `npx evalai gate` work for any project after `npx evalai init`.
+ * making `npx evalgate gate` work for any project after `npx evalgate init`.
  */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -109,7 +109,7 @@ function runBuiltinGate(cwd) {
             exitCode: 2,
             category: "infra_error",
             passed: false,
-            failures: ["Baseline file not found. Run: npx evalai init"],
+            failures: ["Baseline file not found. Run: npx evalgate init"],
             deltas: [],
             baseline: null,
             durationMs: Date.now() - t0,
@@ -208,7 +208,7 @@ function runBuiltinGate(cwd) {
 // ── Format helpers ──
 function formatHuman(report) {
     const icon = report.passed ? "✅" : "❌";
-    console.log(`\n${icon} EvalAI Gate: ${report.category.toUpperCase()}\n`);
+    console.log(`\n${icon} EvalGate Gate: ${report.category.toUpperCase()}\n`);
     if (report.deltas.length > 0) {
         const pad = (s, n) => s.padEnd(n);
         console.log(`  ${pad("Metric", 16)} ${pad("Baseline", 10)} ${pad("Current", 10)} ${pad("Delta", 8)} Status`);
@@ -229,7 +229,7 @@ function formatHuman(report) {
 function formatGithub(report) {
     const icon = report.passed ? "✅" : "❌";
     const lines = [
-        `## ${icon} EvalAI Gate: ${report.category}`,
+        `## ${icon} EvalGate Gate: ${report.category}`,
         "",
         "| Metric | Baseline | Current | Delta | Status |",
         "|--------|----------|---------|-------|--------|",
@@ -327,7 +327,7 @@ function runGate(argv) {
     }
     // ── Built-in mode: run tests + compare against baseline ──
     if (args.format === "human") {
-        console.log("\n  Running EvalAI regression gate (built-in mode)...\n");
+        console.log("\n  Running EvalGate regression gate (built-in mode)...\n");
     }
     const report = runBuiltinGate(cwd);
     // Write report artifact

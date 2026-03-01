@@ -2,9 +2,9 @@ import { Clock, Eye, FileText, Lock, Scale, Shield, Users } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: "Security & Data Handling — EvalAI",
+	title: "Security & Data Handling — EvalGate",
 	description:
-		"Learn how EvalAI protects your data with encryption, access controls, PII redaction, and compliance governance templates.",
+		"Learn how EvalGate protects your data with encryption, access controls, PII redaction, and compliance governance templates.",
 };
 
 export const revalidate = 3600;
@@ -48,7 +48,7 @@ export default function SecurityPage() {
 					Security &amp; Data Handling
 				</h1>
 				<p className="mt-4 text-lg text-muted-foreground">
-					How EvalAI protects your data throughout the evaluation lifecycle.
+					How EvalGate protects your data throughout the evaluation lifecycle.
 				</p>
 			</div>
 

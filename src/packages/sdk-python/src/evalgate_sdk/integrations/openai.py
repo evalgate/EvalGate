@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from evalai_sdk.types import CreateTraceParams
+from evalgate_sdk.types import CreateTraceParams
 
 
 async def trace_openai_call(
@@ -33,7 +33,7 @@ async def trace_openai_call(
     try:
         result = await fn()
         duration_ms = int((time.monotonic() - start) * 1000)
-        from evalai_sdk.types import UpdateTraceParams
+        from evalgate_sdk.types import UpdateTraceParams
 
         output_text = ""
         usage: dict[str, Any] = {}
@@ -57,7 +57,7 @@ async def trace_openai_call(
         )
         return result
     except Exception as exc:
-        from evalai_sdk.types import UpdateTraceParams
+        from evalgate_sdk.types import UpdateTraceParams
 
         await client.traces.update(
             trace.id,

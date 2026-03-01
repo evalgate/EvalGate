@@ -1,6 +1,6 @@
 # Data Retention & Privacy Guarantees
 
-This document describes what data the AI Evaluation Platform stores, retention windows, deletion workflows, and what is and is not persisted.
+This document describes what data the EvalGate stores, retention windows, deletion workflows, and what is and is not persisted.
 
 ---
 

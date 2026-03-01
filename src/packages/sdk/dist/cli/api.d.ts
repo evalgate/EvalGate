@@ -1,7 +1,7 @@
 /**
- * API fetch helpers for evalai check.
+ * API fetch helpers for evalgate check.
  * Captures x-request-id from response headers.
- * Sends X-EvalAI-SDK-Version and X-EvalAI-Spec-Version on all requests.
+ * Sends X-EvalGate-SDK-Version and X-EvalGate-Spec-Version on all requests.
  */
 export type QualityLatestData = {
     score?: number;

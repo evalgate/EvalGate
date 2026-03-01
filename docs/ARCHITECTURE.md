@@ -6,7 +6,7 @@
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        Your Repository                              │
 │                                                                     │
-│  package.json          evals/baseline.json     evalai.config.json   │
+│  package.json          evals/baseline.json     evalgate.config.json   │
 │  (test script)         (committed truth)       (optional)           │
 └──────────┬──────────────────────┬───────────────────┬───────────────┘
            │                      │                   │
@@ -16,8 +16,8 @@
 │   (no account)       │  │  Gate (no acct)  │  │  (API key required)  │
 ├──────────────────────┤  ├──────────────────┤  ├──────────────────────┤
 │                      │  │                  │  │                      │
-│  npx evalai init     │  │  npx evalai      │  │  npx evalai check    │
-│  npx evalai gate     │  │  upgrade --full  │  │  --format github     │
+│  npx evalgate init     │  │  npx evalgate      │  │  npx evalgate check    │
+│  npx evalgate gate     │  │  upgrade --full  │  │  --format github     │
 │                      │  │                  │  │  --onFail import     │
 │  Runs: <pm> test     │  │  Runs: custom    │  │                      │
 │  Compares: exit code │  │  gate script     │  │  Calls: quality API  │
@@ -42,7 +42,7 @@
 
 | | Tier 1 (Local) | Tier 2 (Full) | Platform |
 |--|-----------------|---------------|----------|
-| **Setup** | `npx evalai init` | `npx evalai upgrade --full` | Dashboard + config |
+| **Setup** | `npx evalgate init` | `npx evalgate upgrade --full` | Dashboard + config |
 | **Account** | No | No | Yes |
 | **API key** | No | No | Yes |
 | **What it gates** | Test pass/fail + count | Golden eval, latency, cost, tests | Quality score, policy |
@@ -57,7 +57,7 @@
 ### Upgrade Path
 
 ```
-npx evalai init          →  npx evalai upgrade --full  →  Add evaluationId +
+npx evalgate init          →  npx evalgate upgrade --full  →  Add evaluationId +
 (Tier 1 in 2 min)            (Tier 2 in 1 min)            EVALAI_API_KEY
                                                            (Platform in 5 min)
 ```
@@ -95,7 +95,7 @@ Each tier is additive. You can use Tier 1 + Platform simultaneously.
 
 ┌─────────────────────────────────────────────────────┐
 │              src/packages/sdk/                       │
-│              @pauly4010/evalai-sdk                   │
+│              @evalgate/sdk                   │
 │                                                     │
 │  ┌──────────┐  ┌──────────┐  ┌───────────────────┐ │
 │  │ CLI      │  │ Client   │  │ Integrations      │ │
@@ -116,7 +116,7 @@ Developer pushes PR
 CI triggers evalai-gate.yml
         │
         ▼
-npx evalai gate
+npx evalgate gate
         │
         ├── Has eval:regression-gate script?
         │       │

@@ -1,5 +1,5 @@
 /**
- * TICKET 4 — Unified evalai run CLI Command
+ * TICKET 4 — Unified evalgate run CLI Command
  *
  * Goal: Consolidated execution interface that consumes manifest
  *
@@ -7,7 +7,7 @@
  * - Manifest loading and spec filtering
  * - --impacted-only integration with impact analysis
  * - Local executor integration
- * - .evalai/last-run.json output
+ * - .evalgate/last-run.json output
  * - Legacy mode compatibility
  */
 
@@ -102,7 +102,7 @@ export async function runEvaluations(
 	const manifest = await loadManifest(projectRoot);
 	if (!manifest) {
 		throw new Error(
-			"No evaluation manifest found. Run 'evalai discover --manifest' first.",
+			"No evaluation manifest found. Run 'evalgate discover --manifest' first.",
 		);
 	}
 
@@ -179,7 +179,7 @@ export async function runEvaluations(
 async function loadManifest(
 	projectRoot: string = process.cwd(),
 ): Promise<EvaluationManifest | null> {
-	const manifestPath = path.join(projectRoot, ".evalai", "manifest.json");
+	const manifestPath = path.join(projectRoot, ".evalgate", "manifest.json");
 
 	try {
 		const content = await fs.readFile(manifestPath, "utf-8");
@@ -286,16 +286,16 @@ async function writeRunResults(
 	result: RunResult,
 	projectRoot: string = process.cwd(),
 ): Promise<void> {
-	const evalaiDir = path.join(projectRoot, ".evalai");
-	await fs.mkdir(evalaiDir, { recursive: true });
+	const evalgateDir = path.join(projectRoot, ".evalgate");
+	await fs.mkdir(evalgateDir, { recursive: true });
 
 	// Write last-run.json (existing behavior)
-	const lastRunPath = path.join(evalaiDir, "last-run.json");
+	const lastRunPath = path.join(evalgateDir, "last-run.json");
 	await fs.writeFile(lastRunPath, JSON.stringify(result, null, 2), "utf-8");
 
 	// Create runs directory and write timestamped artifact
 	if (result.runId) {
-		const runsDir = path.join(evalaiDir, "runs");
+		const runsDir = path.join(evalgateDir, "runs");
 		await fs.mkdir(runsDir, { recursive: true });
 
 		const timestampedPath = path.join(runsDir, `${result.runId}.json`);
@@ -310,9 +310,9 @@ async function writeRunResults(
 		await fs.writeFile(latestPath, JSON.stringify(result, null, 2), "utf-8");
 	}
 
-	console.log(`✅ Run results written to .evalai/last-run.json`);
+	console.log(`✅ Run results written to .evalgate/last-run.json`);
 	if (result.runId) {
-		console.log(`📁 Run artifact: .evalai/runs/${result.runId}.json`);
+		console.log(`📁 Run artifact: .evalgate/runs/${result.runId}.json`);
 	}
 }
 
@@ -337,7 +337,7 @@ async function updateRunIndex(
 	result: RunResult,
 	projectRoot: string = process.cwd(),
 ): Promise<void> {
-	const runsDir = path.join(projectRoot, ".evalai", "runs");
+	const runsDir = path.join(projectRoot, ".evalgate", "runs");
 	const indexPath = path.join(runsDir, "index.json");
 
 	await fs.mkdir(runsDir, { recursive: true });

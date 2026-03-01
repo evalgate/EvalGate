@@ -35,10 +35,7 @@ export const auth = betterAuth({
 				},
 			}),
 	},
-	trustedOrigins: [
-		"http://localhost:3000",
-		"https://v0-ai-evaluation-platform-nu.vercel.app",
-	],
+	trustedOrigins: ["http://localhost:3000", "https://evalgate.com"],
 	plugins: [bearer()],
 	advanced: {
 		useSecureCookies: process.env.NODE_ENV === "production",

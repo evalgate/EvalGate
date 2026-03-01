@@ -1,5 +1,5 @@
 /**
- * TICKET 4 — Unified evalai run CLI Command
+ * TICKET 4 — Unified evalgate run CLI Command
  *
  * Goal: Consolidated execution interface that consumes manifest
  *
@@ -7,7 +7,7 @@
  * - Manifest loading and spec filtering
  * - --impacted-only integration with impact analysis
  * - Local executor integration
- * - .evalai/last-run.json output
+ * - .evalgate/last-run.json output
  * - Legacy mode compatibility
  */
 /**

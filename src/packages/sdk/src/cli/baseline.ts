@@ -2,8 +2,8 @@
  * evalai baseline — Baseline management commands
  *
  * Subcommands:
- *   evalai baseline init    — Create a starter evals/baseline.json
- *   evalai baseline update  — Run tests + update baseline with real scores
+ *   evalgate baseline init    — Create a starter evals/baseline.json
+ *   evalgate baseline update  — Run tests + update baseline with real scores
  */
 
 import { spawnSync } from "node:child_process";
@@ -76,7 +76,7 @@ export function runBaselineInit(cwd: string): number {
 
 	if (fs.existsSync(baselinePath)) {
 		console.log(
-			`⚠ ${BASELINE_REL} already exists. Delete it first or use 'evalai baseline update'.`,
+			`⚠ ${BASELINE_REL} already exists. Delete it first or use 'evalgate baseline update'.`,
 		);
 		return 1;
 	}
@@ -92,7 +92,7 @@ export function runBaselineInit(cwd: string): number {
 
 	const baseline: BaselineTemplate = {
 		schemaVersion: 1,
-		description: "Regression gate baseline — created by evalai baseline init",
+		description: "Regression gate baseline — created by evalgate baseline init",
 		generatedAt: now,
 		generatedBy: user,
 		commitSha: "0000000",
@@ -133,8 +133,10 @@ export function runBaselineInit(cwd: string): number {
 	console.log(`✅ Created ${BASELINE_REL} with sample values\n`);
 	console.log("Next steps:");
 	console.log(`  1. Commit ${BASELINE_REL} to your repo`);
-	console.log("  2. Run 'evalai baseline update' to populate with real scores");
-	console.log("  3. Run 'evalai gate' to verify the regression gate\n");
+	console.log(
+		"  2. Run 'evalgate baseline update' to populate with real scores",
+	);
+	console.log("  3. Run 'evalgate gate' to verify the regression gate\n");
 
 	return 0;
 }
@@ -186,12 +188,12 @@ export function runBaseline(argv: string[]): number {
 	console.log(`evalai baseline — Manage regression gate baselines
 
 Usage:
-  evalai baseline init     Create starter ${BASELINE_REL}
-  evalai baseline update   Run tests and update baseline with real scores
+  evalgate baseline init     Create starter ${BASELINE_REL}
+  evalgate baseline update   Run tests and update baseline with real scores
 
 Examples:
-  evalai baseline init
-  evalai baseline update
+  evalgate baseline init
+  evalgate baseline update
 `);
 	return sub === "--help" || sub === "-h" ? 0 : 1;
 }

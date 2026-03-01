@@ -4,9 +4,9 @@
  * Goal: "Git diff for AI behavior" from two RunReports
  *
  * Command:
- * evalai diff --base main (default uses git to find baseline run)
- * evalai diff --a <runReportPath> --b <runReportPath>
- * evalai diff main..feature (nice-to-have alias)
+ * evalgate diff --base main (default uses git to find baseline run)
+ * evalgate diff --a <runReportPath> --b <runReportPath>
+ * evalgate diff main..feature (nice-to-have alias)
  */
 import type { RunResult } from "./run";
 /**

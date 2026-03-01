@@ -10,7 +10,7 @@
 
 // ── Exit codes ──
 
-/** Exit codes emitted by `evalai gate` / `scripts/regression-gate.ts`. */
+/** Exit codes emitted by `evalgate gate` / `scripts/regression-gate.ts`. */
 export const GATE_EXIT = {
 	/** Gate passed — no regressions detected */
 	PASS: 0,

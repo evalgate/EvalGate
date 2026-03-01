@@ -1,4 +1,4 @@
-// Shared constants for the AI Evaluation Platform
+// Shared constants for the EvalGate
 
 export const EVALUATION_TYPES = {
 	UNIT_TEST: "unit_test",

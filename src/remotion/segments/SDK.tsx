@@ -161,7 +161,7 @@ export const SDK: React.FC = () => {
 						npm
 					</div>
 					<span style={{ color: "#a1a1aa", fontSize: 14 }}>
-						@pauly4010/evalai-sdk v1.3.0
+						@evalgate/sdk v1.3.0
 					</span>
 				</div>
 			</div>

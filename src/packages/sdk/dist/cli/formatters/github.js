@@ -1,6 +1,6 @@
 "use strict";
 /**
- * GitHub formatter for evalai check.
+ * GitHub formatter for evalgate check.
  * - stdout: minimal (verdict + score + link) + ::error annotations for failed cases
  * - Step summary: full Markdown written to GITHUB_STEP_SUMMARY (not stdout)
  */
@@ -50,7 +50,7 @@ function formatAnnotation(fc) {
     const id = fc.testCaseId ?? fc.name ?? "unknown";
     const reason = fc.reason ?? fc.outputSnippet ?? fc.output ?? "no output";
     const msg = escapeAnnotationMessage(`TestCase ${id} failed - ${(0, snippet_1.truncateSnippet)(reason, 100)}`);
-    return `::error title=EvalAI regression::${msg}`;
+    return `::error title=EvalGate regression::${msg}`;
 }
 function appendStepSummary(report) {
     const path = typeof process !== "undefined" && process.env?.GITHUB_STEP_SUMMARY;
@@ -59,7 +59,7 @@ function appendStepSummary(report) {
     const lines = [];
     const passed = report.verdict === "pass";
     const warned = report.verdict === "warn";
-    lines.push("## EvalAI Gate");
+    lines.push("## EvalGate Gate");
     lines.push("");
     lines.push(passed && !warned
         ? "✅ **PASSED**"
@@ -93,8 +93,8 @@ function appendStepSummary(report) {
         lines.push("");
     }
     if (!passed) {
-        lines.push("> **Tip:** Run `evalai explain` locally to see root causes and suggested fixes.");
-        lines.push("> Report saved to `.evalai/last-report.json` — upload as a build artifact for offline analysis.");
+        lines.push("> **Tip:** Run `evalgate explain` locally to see root causes and suggested fixes.");
+        lines.push("> Report saved to `.evalgate/last-report.json` — upload as a build artifact for offline analysis.");
         lines.push("");
     }
     try {
@@ -117,11 +117,11 @@ function formatGitHub(report) {
     const warned = report.verdict === "warn";
     const failReason = report.reasonMessage ?? report.reasonCode;
     if (passed && !warned)
-        stdoutLines.push("\n✓ EvalAI gate PASSED");
+        stdoutLines.push("\n✓ EvalGate gate PASSED");
     else if (warned)
-        stdoutLines.push(`\n⚠ EvalAI gate WARNED: ${failReason}`);
+        stdoutLines.push(`\n⚠ EvalGate gate WARNED: ${failReason}`);
     else
-        stdoutLines.push(`\n✗ EvalAI gate FAILED: ${failReason}`);
+        stdoutLines.push(`\n✗ EvalGate gate FAILED: ${failReason}`);
     const deltaStr = report.baselineScore != null && report.delta != null
         ? ` (baseline ${report.baselineScore}, ${report.delta >= 0 ? "+" : ""}${report.delta} pts)`
         : "";

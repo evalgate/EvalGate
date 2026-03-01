@@ -1,7 +1,7 @@
 /**
  * COMPAT-204: Dual-path execution toggle tests
  *
- * Tests for environment flag EVALAI_RUNTIME=legacy|spec|auto
+ * Tests for environment flag EVALGATE_RUNTIME=legacy|spec|auto
  * Auto uses spec runtime if manifest/specs exist, else legacy
  */
 
@@ -32,8 +32,8 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 		tempDir = await fs.mkdtemp(
 			path.join(os.tmpdir(), "evalai-execution-test-"),
 		);
-		originalEnv = process.env.EVALAI_RUNTIME;
-		delete process.env.EVALAI_RUNTIME;
+		originalEnv = process.env.EVALGATE_RUNTIME;
+		delete process.env.EVALGATE_RUNTIME;
 	});
 
 	afterEach(async () => {
@@ -41,15 +41,15 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 		await fs.rm(tempDir, { recursive: true, force: true });
 		// Restore environment variable
 		if (originalEnv) {
-			process.env.EVALAI_RUNTIME = originalEnv;
+			process.env.EVALGATE_RUNTIME = originalEnv;
 		} else {
-			delete process.env.EVALAI_RUNTIME;
+			delete process.env.EVALGATE_RUNTIME;
 		}
 	});
 
 	describe("Environment variable detection", () => {
 		it("should detect legacy mode from environment", async () => {
-			process.env.EVALAI_RUNTIME = "legacy";
+			process.env.EVALGATE_RUNTIME = "legacy";
 
 			const config = await getExecutionMode(tempDir);
 
@@ -60,7 +60,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 		});
 
 		it("should detect spec mode from environment", async () => {
-			process.env.EVALAI_RUNTIME = "spec";
+			process.env.EVALGATE_RUNTIME = "spec";
 
 			const config = await getExecutionMode(tempDir);
 
@@ -70,7 +70,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 		});
 
 		it("should detect auto mode from environment", async () => {
-			process.env.EVALAI_RUNTIME = "auto";
+			process.env.EVALGATE_RUNTIME = "auto";
 
 			const config = await getExecutionMode(tempDir);
 
@@ -80,7 +80,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 		});
 
 		it("should be case insensitive", async () => {
-			process.env.EVALAI_RUNTIME = "LEGACY";
+			process.env.EVALGATE_RUNTIME = "LEGACY";
 
 			const config = await getExecutionMode(tempDir);
 
@@ -88,7 +88,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 		});
 
 		it("should handle invalid environment values", async () => {
-			process.env.EVALAI_RUNTIME = "invalid";
+			process.env.EVALGATE_RUNTIME = "invalid";
 
 			const config = await getExecutionMode(tempDir);
 
@@ -104,7 +104,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 			await fs.writeFile(
 				path.join(specDir, "test.spec.ts"),
 				`
-        import { defineEval } from '@pauly4010/evalai-sdk';
+        import { defineEval } from '@evalgate/sdk';
         
         defineEval("test-spec", async (context) => {
           return { pass: true, score: 100 };
@@ -154,7 +154,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 			await fs.writeFile(
 				path.join(specDir, "test.spec.ts"),
 				`
-        import { defineEval } from '@pauly4010/evalai-sdk';
+        import { defineEval } from '@evalgate/sdk';
         
         defineEval("test-spec", async (context) => {
           return { pass: true, score: 100 };
@@ -206,7 +206,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 			await fs.writeFile(
 				path.join(specDir, "test.spec.ts"),
 				`
-        import { defineEval } from '@pauly4010/evalai-sdk';
+        import { defineEval } from '@evalgate/sdk';
         defineEval("test", async (context) => ({ pass: true, score: 100 }));
       `,
 			);
@@ -243,7 +243,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 			await fs.writeFile(
 				path.join(specDir, "test.spec.ts"),
 				`
-        import { defineEval } from '@pauly4010/evalai-sdk';
+        import { defineEval } from '@evalgate/sdk';
         defineEval("test", async (context) => ({ pass: true, score: 100 }));
       `,
 			);
@@ -274,7 +274,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 			await fs.writeFile(
 				path.join(specDir, "test.spec.ts"),
 				`
-        import { defineEval } from '@pauly4010/evalai-sdk';
+        import { defineEval } from '@evalgate/sdk';
         defineEval("test", async (context) => ({ pass: true, score: 100 }));
       `,
 			);
@@ -301,7 +301,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 			await fs.writeFile(
 				path.join(specDir, "test.spec.ts"),
 				`
-        import { defineEval } from '@pauly4010/evalai-sdk';
+        import { defineEval } from '@evalgate/sdk';
         defineEval("test", async (context) => ({ pass: true, score: 100 }));
       `,
 			);
@@ -342,7 +342,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 			await fs.writeFile(
 				path.join(specDir, "test.spec.ts"),
 				`
-        import { defineEval } from '@pauly4010/evalai-sdk';
+        import { defineEval } from '@evalgate/sdk';
         defineEval("test", async (context) => ({ pass: true, score: 100 }));
       `,
 			);
@@ -361,7 +361,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 			await fs.writeFile(
 				path.join(specDir, "test.spec.ts"),
 				`
-        import { defineEval } from '@pauly4010/evalai-sdk';
+        import { defineEval } from '@evalgate/sdk';
         defineEval("test", async (context) => ({ pass: true, score: 100 }));
       `,
 			);
@@ -417,33 +417,33 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 		it("should check if environment variable is set", () => {
 			expect(hasExecutionModeEnv()).toBe(false);
 
-			process.env.EVALAI_RUNTIME = "spec";
+			process.env.EVALGATE_RUNTIME = "spec";
 			expect(hasExecutionModeEnv()).toBe(true);
 
-			delete process.env.EVALAI_RUNTIME;
+			delete process.env.EVALGATE_RUNTIME;
 			expect(hasExecutionModeEnv()).toBe(false);
 		});
 
 		it("should get environment variable value", () => {
 			expect(getExecutionModeEnv()).toBeUndefined();
 
-			process.env.EVALAI_RUNTIME = "legacy";
+			process.env.EVALGATE_RUNTIME = "legacy";
 			expect(getExecutionModeEnv()).toBe("legacy");
 
-			delete process.env.EVALAI_RUNTIME;
+			delete process.env.EVALGATE_RUNTIME;
 			expect(getExecutionModeEnv()).toBeUndefined();
 		});
 
 		it("should set environment variable", () => {
 			setExecutionModeEnv("spec");
-			expect(process.env.EVALAI_RUNTIME).toBe("spec");
+			expect(process.env.EVALGATE_RUNTIME).toBe("spec");
 
 			clearExecutionModeEnv();
-			expect(process.env.EVALAI_RUNTIME).toBeUndefined();
+			expect(process.env.EVALGATE_RUNTIME).toBeUndefined();
 		});
 
 		it("should clear environment variable", () => {
-			process.env.EVALAI_RUNTIME = "auto";
+			process.env.EVALGATE_RUNTIME = "auto";
 			expect(hasExecutionModeEnv()).toBe(true);
 
 			clearExecutionModeEnv();
@@ -459,7 +459,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 			await fs.writeFile(
 				path.join(specDir, "test.spec.ts"),
 				`
-        import { defineEval } from '@pauly4010/evalai-sdk';
+        import { defineEval } from '@evalgate/sdk';
         defineEval("test", async (context) => ({ pass: true, score: 100 }));
       `,
 			);
@@ -477,7 +477,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 
 			const logOutput = logs.join("\n");
 
-			expect(logOutput).toContain("EvalAI Execution Mode: AUTO");
+			expect(logOutput).toContain("EvalGate Execution Mode: AUTO");
 			expect(logOutput).toContain("Project root:");
 			expect(logOutput).toContain("Spec runtime available");
 			expect(logOutput).toContain("Found 1 spec file(s):");
@@ -487,7 +487,7 @@ describe("COMPAT-204: Dual-path Execution Toggle", () => {
 
 	describe("Constants", () => {
 		it("should have correct environment variable constants", () => {
-			expect(ENV_VARS.EXECUTION_MODE).toBe("EVALAI_RUNTIME");
+			expect(ENV_VARS.EXECUTION_MODE).toBe("EVALGATE_RUNTIME");
 			expect(ENV_VARS.POSSIBLE_VALUES).toEqual(["legacy", "spec", "auto"]);
 			expect(ENV_VARS.DEFAULT).toBe("auto");
 		});

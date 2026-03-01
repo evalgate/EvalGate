@@ -8,18 +8,18 @@ import {
 import { PricingHeader } from "./pricing-header";
 
 export const metadata: Metadata = {
-	title: "Pricing - AI Evaluation Platform",
+	title: "Pricing - EvalGate",
 	description:
 		"Start with our free Developer plan or upgrade for more traces, projects, and premium support. Transparent pricing with no hidden fees.",
 	openGraph: {
-		title: "Pricing - AI Evaluation Platform",
+		title: "Pricing - EvalGate",
 		description:
 			"Start with our free Developer plan or upgrade for more traces, projects, and premium support.",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "Pricing - AI Evaluation Platform",
+		title: "Pricing - EvalGate",
 		description:
 			"Start with our free Developer plan or upgrade for more traces, projects, and premium support.",
 	},

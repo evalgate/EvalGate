@@ -2,7 +2,7 @@
 /**
  * COMPAT-204: Dual-path execution toggle
  *
- * Environment flag EVALAI_RUNTIME=legacy|spec|auto
+ * Environment flag EVALGATE_RUNTIME=legacy|spec|auto
  * Auto uses spec runtime if manifest/specs exist, else legacy
  * Existing projects continue unchanged; new projects can use DSL only
  */
@@ -58,7 +58,7 @@ const path = __importStar(require("node:path"));
  */
 async function getExecutionMode(projectRoot = process.cwd()) {
     // Check environment variable first
-    const envMode = process.env.EVALAI_RUNTIME?.toLowerCase();
+    const envMode = process.env.EVALGATE_RUNTIME?.toLowerCase();
     if (envMode === "legacy" || envMode === "spec" || envMode === "auto") {
         return {
             mode: envMode,
@@ -194,8 +194,8 @@ async function findLegacyConfig(projectRoot) {
         "evalai.config.json",
         "evalai.config.js",
         "evalai.config.ts",
-        ".evalairc",
-        ".evalairc.json",
+        ".evalgaterc",
+        ".evalgaterc.json",
     ];
     for (const configPath of configPaths) {
         const fullPath = path.join(projectRoot, configPath);
@@ -253,7 +253,7 @@ function validateExecutionMode(config) {
     // Check for no runtime
     if (!config.hasSpecRuntime && !config.hasLegacyRuntime) {
         warnings.push("No tests found. This appears to be an empty project. " +
-            "Use 'evalai init' to create a new project.");
+            "Use 'evalgate init' to create a new project.");
     }
     // Check for spec mode without spec files
     if (config.mode === "spec" && !canRunSpecMode(config)) {
@@ -262,7 +262,7 @@ function validateExecutionMode(config) {
     }
     // Check for legacy mode without config
     if (config.mode === "legacy" && !canRunLegacyMode(config)) {
-        errors.push("Legacy mode requested but no evalai.config.json found. " +
+        errors.push("Legacy mode requested but no evalgate.config.json (or evalai.config.json) found. " +
             "Create a config file or use spec mode.");
     }
     return {
@@ -275,7 +275,7 @@ function validateExecutionMode(config) {
  * Print execution mode information
  */
 function printExecutionModeInfo(config) {
-    console.log(`🔧 EvalAI Execution Mode: ${config.mode.toUpperCase()}`);
+    console.log(`🔧 EvalGate Execution Mode: ${config.mode.toUpperCase()}`);
     console.log(`📁 Project root: ${config.projectRoot}`);
     console.log(``);
     if (config.hasSpecRuntime) {
@@ -327,7 +327,7 @@ function printExecutionModeInfo(config) {
  * Environment variable helpers
  */
 exports.ENV_VARS = {
-    EXECUTION_MODE: "EVALAI_RUNTIME",
+    EXECUTION_MODE: "EVALGATE_RUNTIME",
     POSSIBLE_VALUES: ["legacy", "spec", "auto"],
     DEFAULT: "auto",
 };
@@ -335,23 +335,23 @@ exports.ENV_VARS = {
  * Check if environment variable is set
  */
 function hasExecutionModeEnv() {
-    return !!process.env.EVALAI_RUNTIME;
+    return !!process.env.EVALGATE_RUNTIME;
 }
 /**
  * Get current environment variable value
  */
 function getExecutionModeEnv() {
-    return process.env.EVALAI_RUNTIME;
+    return process.env.EVALGATE_RUNTIME;
 }
 /**
  * Set execution mode environment variable
  */
 function setExecutionModeEnv(mode) {
-    process.env.EVALAI_RUNTIME = mode;
+    process.env.EVALGATE_RUNTIME = mode;
 }
 /**
  * Clear execution mode environment variable
  */
 function clearExecutionModeEnv() {
-    delete process.env.EVALAI_RUNTIME;
+    delete process.env.EVALGATE_RUNTIME;
 }

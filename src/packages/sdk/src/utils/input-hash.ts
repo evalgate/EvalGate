@@ -1,6 +1,6 @@
 /**
  * Input normalization and hashing for deterministic matching.
- * Must match platform's @/lib/utils/input-hash.ts for reportToEvalAI.
+ * Must match platform's @/lib/utils/input-hash.ts for reportToEvalGate.
  */
 
 import crypto from "node:crypto";

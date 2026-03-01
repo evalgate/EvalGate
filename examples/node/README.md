@@ -1,6 +1,6 @@
 # Node.js Examples
 
-This directory contains practical examples for using the AI Evaluation Platform SDK in Node.js applications.
+This directory contains practical examples for using the EvalGate SDK in Node.js applications.
 
 ## Setup
 
@@ -16,7 +16,7 @@ This directory contains practical examples for using the AI Evaluation Platform 
    ```
 
 3. **Get your API key:**
-   - Go to [Developer Dashboard](https://v0-ai-evaluation-platform-nu.vercel.app/developer)
+   - Go to [Developer Dashboard](https://evalgate.com/developer)
    - Scroll to API Keys section
    - Click "Create API Key"
    - Copy the key to your `.env` file
@@ -150,9 +150,9 @@ const result = await client.evaluations.create({
 
 ## Learn More
 
-- [SDK Documentation](https://v0-ai-evaluation-platform-nu.vercel.app/sdk)
-- [API Reference](https://v0-ai-evaluation-platform-nu.vercel.app/api-reference)
-- [Guides](https://v0-ai-evaluation-platform-nu.vercel.app/guides)
+- [SDK Documentation](https://evalgate.com/sdk)
+- [API Reference](https://evalgate.com/api-reference)
+- [Guides](https://evalgate.com/guides)
 
 ## Support
 

@@ -1,12 +1,12 @@
 /**
- * evalai print-config — Show resolved configuration with source-of-truth annotations.
+ * evalgate print-config — Show resolved configuration with source-of-truth annotations.
  *
  * Prints every config field, where it came from (file, env, default, CLI arg),
  * and redacts secrets. Useful for debugging "why is it using this baseUrl?"
  *
  * Usage:
- *   evalai print-config
- *   evalai print-config --format json
+ *   evalgate print-config
+ *   evalgate print-config --format json
  *
  * Exit codes:
  *   0 — Always (informational only)
@@ -134,7 +134,7 @@ function buildResolvedConfig(
 	});
 
 	// baseUrl
-	const envBaseUrl = process.env.EVALAI_BASE_URL;
+	const envBaseUrl = process.env.EVALGATE_BASE_URL;
 	const baseUrlSource: Source = flags.baseUrl
 		? "arg"
 		: envBaseUrl
@@ -153,7 +153,7 @@ function buildResolvedConfig(
 	});
 
 	// apiKey (always redacted)
-	const envApiKey = process.env.EVALAI_API_KEY;
+	const envApiKey = process.env.EVALGATE_API_KEY;
 	const rawApiKey = flags.apiKey || envApiKey || "";
 	const apiKeySource: Source = flags.apiKey
 		? "arg"
@@ -229,8 +229,8 @@ function buildResolvedConfig(
 
 	// Environment variables summary
 	const envVars: Record<string, string | null> = {
-		EVALAI_API_KEY: redact(envApiKey),
-		EVALAI_BASE_URL: envBaseUrl ?? null,
+		EVALGATE_API_KEY: redact(envApiKey),
+		EVALGATE_BASE_URL: envBaseUrl ?? null,
 		OPENAI_API_KEY: redact(process.env.OPENAI_API_KEY),
 		ANTHROPIC_API_KEY: redact(process.env.ANTHROPIC_API_KEY),
 		AZURE_OPENAI_API_KEY: redact(process.env.AZURE_OPENAI_API_KEY),
@@ -250,7 +250,7 @@ function buildResolvedConfig(
 // ── Output formatting ──
 
 function printHuman(output: PrintConfigOutput): void {
-	console.log("\n  evalai print-config\n");
+	console.log("\n  evalgate print-config\n");
 
 	console.log(`  CLI version: ${output.cliVersion}`);
 	console.log(`  Config file: ${output.configFile ?? "(none found)"}`);

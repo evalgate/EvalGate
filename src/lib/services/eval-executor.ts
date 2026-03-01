@@ -174,8 +174,8 @@ export class WebhookExecutor implements EvalExecutor {
 
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
-			"X-EvalAI-Timestamp": timestamp,
-			"X-EvalAI-Idempotency-Key": idempotencyKey,
+			"X-EvalGate-Timestamp": timestamp,
+			"X-EvalGate-Idempotency-Key": idempotencyKey,
 		};
 
 		if (this.secret) {
@@ -184,7 +184,7 @@ export class WebhookExecutor implements EvalExecutor {
 				.createHmac("sha256", this.secret)
 				.update(payloadToSign)
 				.digest("hex");
-			headers["X-EvalAI-Signature"] = `sha256=${signature}`;
+			headers["X-EvalGate-Signature"] = `sha256=${signature}`;
 		}
 
 		const response = await fetch(this.url, {

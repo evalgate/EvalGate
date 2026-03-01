@@ -13,7 +13,7 @@ const versions = [
 		version: "1.7.0",
 		date: "2026-02-20",
 		highlights: [
-			"evalai upgrade --full — one command to upgrade from Tier 1 (built-in gate) to Tier 2 (full metric gate)",
+			"evalgate upgrade --full — one command to upgrade from Tier 1 (built-in gate) to Tier 2 (full metric gate)",
 			"detectRunner() — auto-detect CI environment (GitHub Actions, GitLab CI, etc.)",
 			"Machine-readable gate output with --format json|github|human",
 			"Init test matrix — scaffolder now validates across npm/yarn/pnpm",
@@ -25,10 +25,10 @@ const versions = [
 		version: "1.6.0",
 		date: "2026-02-10",
 		highlights: [
-			"evalai init — full project scaffolder: detects repo, creates baseline, installs CI workflow",
-			"evalai gate — built-in regression gate mode (no project scripts required)",
-			"evalai baseline init|update — manage regression baselines from CLI",
-			"Regression gate exports via @pauly4010/evalai-sdk/regression",
+			"evalgate init — full project scaffolder: detects repo, creates baseline, installs CI workflow",
+			"evalgate gate — built-in regression gate mode (no project scripts required)",
+			"evalgate baseline init|update — manage regression baselines from CLI",
+			"Regression gate exports via @evalgate/sdk/regression",
 			"Two-mode gate: built-in (Tier 1) and project mode (Tier 2)",
 		],
 		type: "feature" as const,
@@ -137,7 +137,7 @@ export default function ChangelogPage() {
 			<header className="border-b border-border px-4 sm:px-6 py-4">
 				<div className="mx-auto max-w-4xl flex items-center justify-between">
 					<Link href="/" className="text-lg font-bold">
-						EvalAI
+						EvalGate
 					</Link>
 					<div className="flex items-center gap-3">
 						<Button variant="outline" size="sm" asChild>
@@ -162,12 +162,12 @@ export default function ChangelogPage() {
 						<p className="text-muted-foreground text-lg">
 							All notable changes to the{" "}
 							<a
-								href="https://www.npmjs.com/package/@pauly4010/evalai-sdk"
+								href="https://www.npmjs.com/package/@evalgate/sdk"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="text-primary hover:underline inline-flex items-center gap-1"
 							>
-								@pauly4010/evalai-sdk
+								@evalgate/sdk
 								<ExternalLink className="h-3.5 w-3.5" />
 							</a>{" "}
 							package.

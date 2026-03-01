@@ -232,7 +232,7 @@ export function generateDefineEvalCode(
 		`// Generated at: ${new Date().toISOString()}`,
 		`// This file replaces the legacy TestSuite with defineEval() specifications`,
 		"",
-		`import { defineEval, createResult } from '@pauly4010/evalai-sdk';`,
+		`import { defineEval, createResult } from '@evalgate/sdk';`,
 		"",
 	];
 

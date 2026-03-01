@@ -1,13 +1,13 @@
 {
 	"openapi": "3.1.0",
 	"info": {
-		"title": "EvalAI API",
-		"version": "1.9.1",
-		"description": "AI Evaluation Platform API. See docs/api-contract.md for stability commitments."
+		"title": "EvalGate API",
+		"version": "2.0.0",
+		"description": "EvalGate API. See docs/api-contract.md for stability commitments."
 	},
 	"servers": [
 		{
-			"url": "https://v0-ai-evaluation-platform-nu.vercel.app",
+			"url": "https://evalgate.com",
 			"description": "Production"
 		},
 		{

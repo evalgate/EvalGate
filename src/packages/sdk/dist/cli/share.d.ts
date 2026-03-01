@@ -1,6 +1,6 @@
 /**
- * evalai share — Create a share link for a run.
- * Usage: evalai share --scope run --expires 7d
+ * evalgate share — Create a share link for a run.
+ * Usage: evalgate share --scope run --expires 7d
  */
 export type ShareArgs = {
     baseUrl: string;

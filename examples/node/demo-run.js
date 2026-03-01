@@ -1,7 +1,7 @@
 /**
  * Demo Evaluation Run
  *
- * This example demonstrates how to run an evaluation using the AI Evaluation Platform SDK.
+ * This example demonstrates how to run an evaluation using the EvalGate SDK.
  * It creates an evaluation against a demo dataset and saves the results to a JSON file.
  *
  * Usage:
@@ -9,7 +9,7 @@
  */
 
 import fs from "node:fs";
-import { AIEvalClient } from "@pauly4010/evalai-sdk";
+import { AIEvalClient } from "@evalgate/sdk";
 import dotenv from "dotenv";
 
 // Load environment variables

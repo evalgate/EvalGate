@@ -1,7 +1,7 @@
 {
-	"name": "@evalai/examples-node",
+	"name": "@evalgate/examples-node",
 	"version": "1.0.0",
-	"description": "Node.js examples for AI Evaluation Platform SDK",
+	"description": "Node.js examples for EvalGate SDK",
 	"type": "module",
 	"scripts": {
 		"demo": "node demo-run.js",
@@ -9,7 +9,7 @@
 		"trace": "node trace-example.js"
 	},
 	"dependencies": {
-		"@pauly4010/evalai-sdk": "^1.0.0",
+		"@evalgate/sdk": "^2.0.0",
 		"dotenv": "^16.3.1"
 	},
 	"keywords": [
@@ -18,6 +18,6 @@
 		"llm",
 		"testing"
 	],
-	"author": "AI Evaluation Platform",
+	"author": "EvalGate",
 	"license": "MIT"
 }

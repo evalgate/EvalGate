@@ -501,7 +501,7 @@ export default function DeveloperDashboardPage() {
 						<div>
 							<div className="font-semibold mb-1">2. Install SDK</div>
 							<code className="text-xs bg-background/50 px-2 py-1 rounded">
-								npm install @pauly4010/evalai-sdk
+								npm install @evalgate/sdk
 							</code>
 						</div>
 						<div>
@@ -761,16 +761,12 @@ export default function DeveloperDashboardPage() {
 								Step 2: Install the SDK
 							</Label>
 							<div className="bg-muted p-3 rounded-md">
-								<code className="text-sm">
-									npm install @pauly4010/evalai-sdk
-								</code>
+								<code className="text-sm">npm install @evalgate/sdk</code>
 								<Button
 									size="sm"
 									variant="ghost"
 									className="ml-2"
-									onClick={() =>
-										copyToClipboard("npm install @pauly4010/evalai-sdk")
-									}
+									onClick={() => copyToClipboard("npm install @evalgate/sdk")}
 								>
 									<Copy className="h-3 w-3" />
 								</Button>
@@ -814,7 +810,7 @@ export default function DeveloperDashboardPage() {
 							</Label>
 							<div className="bg-muted p-3 rounded-md">
 								<pre className="text-sm overflow-x-auto">
-									{`import { AIEvalClient } from '@pauly4010/evalai-sdk'
+									{`import { AIEvalClient } from '@evalgate/sdk'
 
 // Auto-loads from environment variables
 const client = AIEvalClient.init()
@@ -831,7 +827,7 @@ const trace = await client.traces.create({
 									className="mt-2"
 									onClick={() =>
 										copyToClipboard(
-											`import { AIEvalClient } from '@pauly4010/evalai-sdk'\n\nconst client = AIEvalClient.init()\n\nconst trace = await client.traces.create({\n  name: 'My First Trace',\n  traceId: 'trace-001'\n})`,
+											`import { AIEvalClient } from '@evalgate/sdk'\n\nconst client = AIEvalClient.init()\n\nconst trace = await client.traces.create({\n  name: 'My First Trace',\n  traceId: 'trace-001'\n})`,
 										)
 									}
 								>

@@ -55,7 +55,7 @@ async def export_data(client: Any, options: ExportOptions | None = None) -> Expo
     data = ExportData(format=opts.format)
 
     if opts.include_traces:
-        from evalai_sdk.types import ListTracesParams
+        from evalgate_sdk.types import ListTracesParams
 
         params = ListTracesParams(limit=100)
         if opts.organization_id:
@@ -90,7 +90,7 @@ async def import_data(client: Any, data: ExportData, options: ImportOptions | No
         result.imported = len(data.traces) + len(data.evaluations)
         return result
 
-    from evalai_sdk.types import CreateEvaluationParams, CreateTraceParams
+    from evalgate_sdk.types import CreateEvaluationParams, CreateTraceParams
 
     for trace_data in data.traces:
         try:

@@ -1,7 +1,7 @@
-# @pauly4010/evalai-sdk
+# @evalgate/sdk
 
-[![npm version](https://img.shields.io/npm/v/@pauly4010/evalai-sdk.svg)](https://www.npmjs.com/package/@pauly4010/evalai-sdk)
-[![npm downloads](https://img.shields.io/npm/dm/@pauly4010/evalai-sdk.svg)](https://www.npmjs.com/package/@pauly4010/evalai-sdk)
+[![npm version](https://img.shields.io/npm/v/@evalgate/sdk.svg)](https://www.npmjs.com/package/@evalgate/sdk)
+[![npm downloads](https://img.shields.io/npm/dm/@evalgate/sdk.svg)](https://www.npmjs.com/package/@evalgate/sdk)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)](https://www.typescriptlang.org/)
 [![SDK Tests](https://img.shields.io/badge/tests-172%20passed-brightgreen.svg)](#)
 [![Contract Version](https://img.shields.io/badge/report%20schema-v1-blue.svg)](#)
@@ -18,7 +18,7 @@ Zero to production CI in 60 seconds. No infra. No lock-in. Remove anytime.
 Add this to your `.github/workflows/evalai.yml`:
 
 ```yaml
-name: EvalAI CI
+name: EvalGate CI
 on: [push, pull_request]
 jobs:
   evalai:
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - run: npm ci
-      - run: npx @pauly4010/evalai-sdk ci --format github --write-results --base main
+      - run: npx @evalgate/sdk ci --format github --write-results --base main
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -38,7 +38,7 @@ jobs:
 Create `eval/your-spec.spec.ts`:
 
 ```typescript
-import { defineEval } from "@pauly4010/evalai-sdk";
+import { defineEval } from "@evalgate/sdk";
 
 defineEval({
   name: "Basic Math Operations",
@@ -52,7 +52,7 @@ defineEval({
 
 ```bash
 git add .github/workflows/evalai.yml eval/
-git commit -m "feat: add EvalAI CI pipeline"
+git commit -m "feat: add EvalGate CI pipeline"
 git push
 ```
 
@@ -65,12 +65,12 @@ That's it! Your CI now:
 
 ---
 
-## 🚀 New in v1.9.1: One-Command CI
+## 🚀 New in v2.0.0: One-Command CI
 
 ### `evalai ci` - Complete CI Pipeline
 
 ```bash
-npx @pauly4010/evalai-sdk ci --format github --write-results --base main
+npx @evalgate/sdk ci --format github --write-results --base main
 ```
 
 **What it does:**
@@ -84,15 +84,15 @@ npx @pauly4010/evalai-sdk ci --format github --write-results --base main
 
 **Advanced Options:**
 ```bash
-npx @pauly4010/evalai-sdk ci --base main --impacted-only    # Run only impacted specs
-npx @pauly4010/evalai-sdk ci --format json --write-results   # JSON output for automation
-npx @pauly4010/evalai-sdk ci --base develop                  # Custom base branch
+npx @evalgate/sdk ci --base main --impacted-only    # Run only impacted specs
+npx @evalgate/sdk ci --format json --write-results   # JSON output for automation
+npx @evalgate/sdk ci --base develop                  # Custom base branch
 ```
 
 ### Smart Diffing & GitHub Integration
 
 ```bash
-npx @pauly4010/evalai-sdk diff --base main --head last --format github
+npx @evalgate/sdk diff --base main --head last --format github
 ```
 
 **Features:**
@@ -116,72 +116,72 @@ Every failure prints a clear next step:
 
 ## CLI Commands
 
-### 🚀 One-Command CI (v1.9.1)
+### 🚀 One-Command CI (v2.0.0)
 
 | Command | Description |
 |---------|-------------|
-| `npx evalai ci` | Complete CI pipeline: discover → manifest → impact → run → diff → PR summary |
-| `npx evalai ci --base main` | Run CI with diff against main branch |
-| `npx evalai ci --impacted-only` | Run only specs impacted by changes |
-| `npx evalai ci --format github` | GitHub Step Summary with rich markdown |
-| `npx evalai ci --format json` | JSON output for automation |
+| `npx evalgate ci` | Complete CI pipeline: discover → manifest → impact → run → diff → PR summary |
+| `npx evalgate ci --base main` | Run CI with diff against main branch |
+| `npx evalgate ci --impacted-only` | Run only specs impacted by changes |
+| `npx evalgate ci --format github` | GitHub Step Summary with rich markdown |
+| `npx evalgate ci --format json` | JSON output for automation |
 
 ### Discovery & Manifest
 
 | Command | Description |
 |---------|-------------|
-| `npx evalai discover` | Find and analyze evaluation specs |
-| `npx evalai discover --manifest` | Generate stable manifest for incremental analysis |
+| `npx evalgate discover` | Find and analyze evaluation specs |
+| `npx evalgate discover --manifest` | Generate stable manifest for incremental analysis |
 
 ### Impact Analysis
 
 | Command | Description |
 |---------|-------------|
-| `npx evalai impact-analysis --base main` | Analyze impact of changes |
-| `npx evalai impact-analysis --changed-files file1.ts,file2.ts` | Analyze specific changed files |
+| `npx evalgate impact-analysis --base main` | Analyze impact of changes |
+| `npx evalgate impact-analysis --changed-files file1.ts,file2.ts` | Analyze specific changed files |
 
 ### Run & Diff
 
 | Command | Description |
 |---------|-------------|
-| `npx evalai run` | Run evaluation specifications |
-| `npx evalai run --write-results` | Run with artifact retention |
-| `npx evalai diff --base main` | Compare results against base branch |
-| `npx evalai diff --base last --head last` | Compare last two runs |
-| `npx evalai diff --format github` | GitHub Step Summary with regressions |
+| `npx evalgate run` | Run evaluation specifications |
+| `npx evalgate run --write-results` | Run with artifact retention |
+| `npx evalgate diff --base main` | Compare results against base branch |
+| `npx evalgate diff --base last --head last` | Compare last two runs |
+| `npx evalgate diff --format github` | GitHub Step Summary with regressions |
 
 ### Legacy Regression Gate (local, no account needed)
 
 | Command | Description |
 |---------|-------------|
-| `npx evalai init` | Full project scaffolder — creates everything you need |
-| `npx evalai gate` | Run regression gate locally |
-| `npx evalai gate --format json` | Machine-readable JSON output |
-| `npx evalai gate --format github` | GitHub Step Summary with delta table |
-| `npx evalai baseline init` | Create starter `evals/baseline.json` |
-| `npx evalai baseline update` | Re-run tests and update baseline with real scores |
-| `npx evalai upgrade --full` | Upgrade from Tier 1 (built-in) to Tier 2 (full gate) |
+| `npx evalgate init` | Full project scaffolder — creates everything you need |
+| `npx evalgate gate` | Run regression gate locally |
+| `npx evalgate gate --format json` | Machine-readable JSON output |
+| `npx evalgate gate --format github` | GitHub Step Summary with delta table |
+| `npx evalgate baseline init` | Create starter `evals/baseline.json` |
+| `npx evalgate baseline update` | Re-run tests and update baseline with real scores |
+| `npx evalgate upgrade --full` | Upgrade from Tier 1 (built-in) to Tier 2 (full gate) |
 
 ### API Gate (requires account)
 
 | Command | Description |
 |---------|-------------|
-| `npx evalai check` | Gate on quality score from dashboard |
-| `npx evalai share` | Create share link for a run |
+| `npx evalgate check` | Gate on quality score from dashboard |
+| `npx evalgate share` | Create share link for a run |
 
 ### Debugging & Diagnostics
 
 | Command | Description |
 |---------|-------------|
-| `npx evalai doctor` | Comprehensive preflight checklist — verifies config, baseline, auth, API, CI wiring |
-| `npx evalai explain` | Offline report explainer — top failures, root cause classification, suggested fixes |
-| `npx evalai print-config` | Show resolved config with source-of-truth annotations (file/env/default/arg) |
+| `npx evalgate doctor` | Comprehensive preflight checklist — verifies config, baseline, auth, API, CI wiring |
+| `npx evalgate explain` | Offline report explainer — top failures, root cause classification, suggested fixes |
+| `npx evalgate print-config` | Show resolved config with source-of-truth annotations (file/env/default/arg) |
 
 ### Migration Tools
 
 | Command | Description |
 |---------|-------------|
-| `npx evalai migrate config --in evalai.config.json --out eval/migrated.spec.ts` | Convert legacy config to DSL |
+| `npx evalgate migrate config --in evalai.config.json --out eval/migrated.spec.ts` | Convert legacy config to DSL |
 
 **Guided failure flow:**
 
@@ -251,11 +251,11 @@ All commands automatically write artifacts so `explain` works with zero flags.
 ## Run a Regression Test Locally (no account)
 
 ```bash
-npm install @pauly4010/evalai-sdk openai
+npm install @evalgate/sdk openai
 ```
 
 ```typescript
-import { openAIChatEval } from "@pauly4010/evalai-sdk";
+import { openAIChatEval } from "@evalgate/sdk";
 
 await openAIChatEval({
   name: "chat-regression",
@@ -271,7 +271,7 @@ Output: `PASS 2/2 (score: 100)`. No account needed. Just a score.
 ### Vitest Integration
 
 ```typescript
-import { openAIChatEval, extendExpectWithToPassGate } from "@pauly4010/evalai-sdk";
+import { openAIChatEval, extendExpectWithToPassGate } from "@evalgate/sdk";
 import { expect } from "vitest";
 
 extendExpectWithToPassGate(expect);
@@ -300,10 +300,10 @@ import {
   GATE_CATEGORY,       // { PASS: "pass", REGRESSION: "regression", INFRA_ERROR: "infra_error" }
   REPORT_SCHEMA_VERSION,
   ARTIFACTS,           // { BASELINE, REGRESSION_REPORT, CONFIDENCE_SUMMARY, LATENCY_BENCHMARK }
-} from "@pauly4010/evalai-sdk";
+} from "@evalgate/sdk";
 
 // Or tree-shakeable:
-import { GATE_EXIT } from "@pauly4010/evalai-sdk/regression";
+import { GATE_EXIT } from "@evalgate/sdk/regression";
 ```
 
 ### Types
@@ -316,13 +316,13 @@ import type {
   BaselineTolerance,
   GateExitCode,
   GateCategory,
-} from "@pauly4010/evalai-sdk/regression";
+} from "@evalgate/sdk/regression";
 ```
 
 ### Platform Client
 
 ```typescript
-import { AIEvalClient } from "@pauly4010/evalai-sdk";
+import { AIEvalClient } from "@evalgate/sdk";
 
 const client = AIEvalClient.init(); // from EVALAI_API_KEY env
 // or
@@ -332,8 +332,8 @@ const client = new AIEvalClient({ apiKey: "...", organizationId: 123 });
 ### Framework Integrations
 
 ```typescript
-import { traceOpenAI } from "@pauly4010/evalai-sdk/integrations/openai";
-import { traceAnthropic } from "@pauly4010/evalai-sdk/integrations/anthropic";
+import { traceOpenAI } from "@evalgate/sdk/integrations/openai";
+import { traceAnthropic } from "@evalgate/sdk/integrations/anthropic";
 ```
 
 ---
@@ -341,11 +341,11 @@ import { traceAnthropic } from "@pauly4010/evalai-sdk/integrations/anthropic";
 ## Installation
 
 ```bash
-npm install @pauly4010/evalai-sdk
+npm install @evalgate/sdk
 # or
-yarn add @pauly4010/evalai-sdk
+yarn add @evalgate/sdk
 # or
-pnpm add @pauly4010/evalai-sdk
+pnpm add @evalgate/sdk
 ```
 
 Add `openai` as a peer dependency if using `openAIChatEval`:
@@ -394,5 +394,5 @@ MIT
 
 ## Support
 
-- **Docs:** https://v0-ai-evaluation-platform-nu.vercel.app/documentation
+- **Docs:** https://evalgate.com/documentation
 - **Issues:** https://github.com/pauly7610/ai-evaluation-platform/issues

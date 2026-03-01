@@ -1,5 +1,5 @@
 /**
- * UX-401: One-command CI loop (evalai ci)
+ * UX-401: One-command CI loop (evalgate ci)
  *
  * Provides a single command teams put in .github/workflows/* and never think about again.
  */

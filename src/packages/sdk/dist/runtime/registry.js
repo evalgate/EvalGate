@@ -1,6 +1,6 @@
 "use strict";
 /**
- * EvalAI Runtime Registry - Layer 1 Foundation
+ * EvalGate Runtime Registry - Layer 1 Foundation
  *
  * Scoped registry with proper lifecycle management.
  * Prevents cross-run contamination and memory leaks.

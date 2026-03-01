@@ -12,7 +12,7 @@ import pytest
 
 class TestWithContextDecorator:
     def test_sync_function(self):
-        from evalai_sdk.context import WithContext, get_current_context
+        from evalgate_sdk.context import WithContext, get_current_context
 
         @WithContext({"service": "TestService", "version": "1.0"})
         def my_func():
@@ -24,7 +24,7 @@ class TestWithContextDecorator:
         assert result["version"] == "1.0"
 
     def test_sync_method(self):
-        from evalai_sdk.context import WithContext, get_current_context
+        from evalgate_sdk.context import WithContext, get_current_context
 
         class MyService:
             @WithContext({"component": "parser"})
@@ -39,7 +39,7 @@ class TestWithContextDecorator:
 
     @pytest.mark.asyncio
     async def test_async_function(self):
-        from evalai_sdk.context import WithContext, get_current_context
+        from evalgate_sdk.context import WithContext, get_current_context
 
         @WithContext({"service": "AsyncService"})
         async def my_async_func():
@@ -51,7 +51,7 @@ class TestWithContextDecorator:
 
     @pytest.mark.asyncio
     async def test_async_method(self):
-        from evalai_sdk.context import WithContext, get_current_context
+        from evalgate_sdk.context import WithContext, get_current_context
 
         class MyAgent:
             @WithContext({"agent": "researcher"})
@@ -65,7 +65,7 @@ class TestWithContextDecorator:
         assert result["agent"] == "researcher"
 
     def test_preserves_function_name(self):
-        from evalai_sdk.context import WithContext
+        from evalgate_sdk.context import WithContext
 
         @WithContext({"service": "test"})
         def my_named_function():
@@ -74,7 +74,7 @@ class TestWithContextDecorator:
         assert my_named_function.__name__ == "my_named_function"
 
     def test_context_does_not_leak(self):
-        from evalai_sdk.context import WithContext, get_current_context
+        from evalgate_sdk.context import WithContext, get_current_context
 
         @WithContext({"leaked": True})
         def scoped():
@@ -85,7 +85,7 @@ class TestWithContextDecorator:
         assert get_current_context() is None
 
     def test_nested_decorators(self):
-        from evalai_sdk.context import WithContext, get_current_context
+        from evalgate_sdk.context import WithContext, get_current_context
 
         @WithContext({"outer": True})
         def outer():
@@ -136,7 +136,7 @@ class _MockTracer:
 class TestTraceLangChain:
     @pytest.mark.asyncio
     async def test_ainvoke_traced(self):
-        from evalai_sdk.integrations.langchain import trace_langchain
+        from evalgate_sdk.integrations.langchain import trace_langchain
 
         class FakeExecutor:
             async def ainvoke(self, input, config=None):
@@ -154,7 +154,7 @@ class TestTraceLangChain:
 
     @pytest.mark.asyncio
     async def test_ainvoke_error_traced(self):
-        from evalai_sdk.integrations.langchain import trace_langchain
+        from evalgate_sdk.integrations.langchain import trace_langchain
 
         class FailingExecutor:
             async def ainvoke(self, input, config=None):
@@ -171,7 +171,7 @@ class TestTraceLangChain:
 
     @pytest.mark.asyncio
     async def test_passthrough_attributes(self):
-        from evalai_sdk.integrations.langchain import trace_langchain
+        from evalgate_sdk.integrations.langchain import trace_langchain
 
         class Executor:
             custom_attr = "hello"
@@ -190,7 +190,7 @@ class TestTraceLangChain:
 class TestTraceCrewAI:
     @pytest.mark.asyncio
     async def test_kickoff_traced(self):
-        from evalai_sdk.integrations.crewai import trace_crewai
+        from evalgate_sdk.integrations.crewai import trace_crewai
 
         class FakeCrew:
             async def kickoff(self, input=None):
@@ -208,7 +208,7 @@ class TestTraceCrewAI:
 
     @pytest.mark.asyncio
     async def test_kickoff_error(self):
-        from evalai_sdk.integrations.crewai import trace_crewai
+        from evalgate_sdk.integrations.crewai import trace_crewai
 
         class FailingCrew:
             async def kickoff(self, input=None):
@@ -231,7 +231,7 @@ class TestTraceCrewAI:
 class TestTraceAutoGen:
     @pytest.mark.asyncio
     async def test_initiate_chat_traced(self):
-        from evalai_sdk.integrations.autogen import trace_autogen
+        from evalgate_sdk.integrations.autogen import trace_autogen
 
         class FakeAgent:
             async def initiate_chat(self, recipient, message=""):
@@ -248,7 +248,7 @@ class TestTraceAutoGen:
 
     @pytest.mark.asyncio
     async def test_initiate_chat_error(self):
-        from evalai_sdk.integrations.autogen import trace_autogen
+        from evalgate_sdk.integrations.autogen import trace_autogen
 
         class FailingAgent:
             async def initiate_chat(self, *args, **kwargs):
@@ -268,13 +268,13 @@ class TestTraceAutoGen:
 
 class TestEvalAIAlias:
     def test_evalai_test_is_define_eval(self):
-        from evalai_sdk.runtime.eval import define_eval, evalai
+        from evalgate_sdk.runtime.eval import define_eval, evalai
 
         assert evalai.test is define_eval
 
     def test_evalai_test_registers_spec(self):
-        from evalai_sdk.runtime.eval import create_result, evalai
-        from evalai_sdk.runtime.registry import create_eval_runtime, dispose_active_runtime
+        from evalgate_sdk.runtime.eval import create_result, evalai
+        from evalgate_sdk.runtime.registry import create_eval_runtime, dispose_active_runtime
 
         handle = create_eval_runtime("/tmp/test-alias")
         try:
@@ -286,7 +286,7 @@ class TestEvalAIAlias:
             dispose_active_runtime()
 
     def test_evalai_importable_from_package(self):
-        from evalai_sdk import evalai
+        from evalgate_sdk import evalai
 
         assert hasattr(evalai, "test")
 
@@ -296,7 +296,7 @@ class TestEvalAIAlias:
 
 class TestDisposeActiveRuntime:
     def test_dispose_clears_runtime(self):
-        from evalai_sdk.runtime.registry import (
+        from evalgate_sdk.runtime.registry import (
             create_eval_runtime,
             dispose_active_runtime,
             get_active_runtime,
@@ -308,14 +308,14 @@ class TestDisposeActiveRuntime:
         assert get_active_runtime() is None
 
     def test_dispose_noop_when_none(self):
-        from evalai_sdk.runtime.registry import dispose_active_runtime, get_active_runtime
+        from evalgate_sdk.runtime.registry import dispose_active_runtime, get_active_runtime
 
         dispose_active_runtime()
         assert get_active_runtime() is None
         dispose_active_runtime()  # should not raise
 
     def test_importable_from_package(self):
-        from evalai_sdk import dispose_active_runtime
+        from evalgate_sdk import dispose_active_runtime
 
         assert callable(dispose_active_runtime)
 
@@ -325,7 +325,7 @@ class TestDisposeActiveRuntime:
 
 class TestRunAssertions:
     def test_all_pass(self):
-        from evalai_sdk import expect, run_assertions
+        from evalgate_sdk import expect, run_assertions
 
         results = run_assertions(
             [
@@ -337,7 +337,7 @@ class TestRunAssertions:
         assert all(r.passed for r in results)
 
     def test_mixed_results(self):
-        from evalai_sdk import expect, run_assertions
+        from evalgate_sdk import expect, run_assertions
 
         results = run_assertions(
             [
@@ -349,7 +349,7 @@ class TestRunAssertions:
         assert results[1].passed is False
 
     def test_exception_caught(self):
-        from evalai_sdk import run_assertions
+        from evalgate_sdk import run_assertions
 
         def bad_assertion():
             raise RuntimeError("assertion exploded")
@@ -360,7 +360,7 @@ class TestRunAssertions:
         assert "assertion exploded" in results[0].message
 
     def test_empty_list(self):
-        from evalai_sdk import run_assertions
+        from evalgate_sdk import run_assertions
 
         results = run_assertions([])
         assert results == []
@@ -368,7 +368,7 @@ class TestRunAssertions:
 
 class TestNewExports:
     def test_all_new_symbols_importable(self):
-        from evalai_sdk import (
+        from evalgate_sdk import (
             WithContext,
             dispose_active_runtime,
             evalai,
@@ -385,8 +385,8 @@ class TestNewExports:
         assert callable(dispose_active_runtime)
 
     def test_full_export_parity(self):
-        """Verify every symbol the TS SDK exports is importable from evalai_sdk."""
-        from evalai_sdk import (
+        """Verify every symbol the TS SDK exports is importable from evalgate_sdk."""
+        from evalgate_sdk import (
             SDK_VERSION,
             SPEC_VERSION,
             AIEvalClient,
@@ -400,7 +400,7 @@ class TestNewExports:
         )
 
         assert __version__ == SDK_VERSION
-        assert SPEC_VERSION == "1.9.1"
+        assert SPEC_VERSION == "2.0.0"
         assert callable(AIEvalClient)
         assert callable(define_eval)
         assert callable(trace_openai)

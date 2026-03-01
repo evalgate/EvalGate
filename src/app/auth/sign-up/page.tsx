@@ -94,7 +94,7 @@ export default function SignUpPage() {
 			<div className="w-full max-w-md">
 				<div className="mb-6 sm:mb-8 text-center">
 					<h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-						AI Evaluation Platform
+						EvalGate
 					</h1>
 					<p className="mt-2 text-xs sm:text-sm text-muted-foreground">
 						Ship LLM products that work

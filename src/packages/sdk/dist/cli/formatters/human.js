@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Human-readable formatter for evalai check output.
+ * Human-readable formatter for evalgate check output.
  * Deterministic: verdict → score → failures → link → hint.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -13,10 +13,10 @@ function formatHuman(report) {
     const warned = report.verdict === "warn";
     const failReason = report.reasonMessage;
     lines.push(passed && !warned
-        ? "\n✓ EvalAI gate PASSED"
+        ? "\n✓ EvalGate gate PASSED"
         : warned
-            ? `\n⚠ EvalAI gate WARNED: ${failReason ?? report.reasonCode}`
-            : `\n✗ EvalAI gate FAILED: ${failReason ?? report.reasonCode}`);
+            ? `\n⚠ EvalGate gate WARNED: ${failReason ?? report.reasonCode}`
+            : `\n✗ EvalGate gate FAILED: ${failReason ?? report.reasonCode}`);
     const deltaStr = report.baselineScore != null && report.delta != null
         ? ` (baseline ${report.baselineScore}, ${report.delta >= 0 ? "+" : ""}${report.delta} pts)`
         : "";

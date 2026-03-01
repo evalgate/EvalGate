@@ -14,7 +14,7 @@ export function APIReferenceHeader() {
 				<div className="flex items-center justify-between gap-3">
 					<Link href="/">
 						<h1 className="text-base sm:text-xl font-bold truncate">
-							AI Evaluation Platform
+							EvalGate
 						</h1>
 					</Link>
 					<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">

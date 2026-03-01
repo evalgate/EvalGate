@@ -1,19 +1,19 @@
-# EvalAI Quickstart CI
+# EvalGate Quickstart CI
 
-Minimal example that gates CI on EvalAI quality score using `evalai check`.
+Minimal example that gates CI on EvalGate quality score using `evalai check`.
 
 ## Setup
 
 1. Copy this folder to your project or use it as reference.
-2. Create an evaluation in the [EvalAI dashboard](https://v0-ai-evaluation-platform-nu.vercel.app) and add test cases.
-3. Run `npx -y @pauly4010/evalai-sdk@^1 init` (or copy `evalai.config.json`) and paste your evaluation ID.
-4. Create an API key at EvalAI (owner/admin role) with `runs:read` scope.
+2. Create an evaluation in the [EvalGate dashboard](https://evalgate.com) and add test cases.
+3. Run `npx -y @evalgate/sdk@^2 init` (or copy `evalgate.config.json`) and paste your evaluation ID.
+4. Create an API key at EvalGate (owner/admin role) with `runs:read` scope.
 
 ## Run Locally
 
 ```bash
 npm install
-# Paste your evaluation ID into evalai.config.json (replace "42" with your ID)
+# Paste your evaluation ID into evalgate.config.json (replace "42" with your ID)
 EVALAI_API_KEY=sk_test_xxx npm run ci
 ```
 
@@ -22,10 +22,10 @@ EVALAI_API_KEY=sk_test_xxx npm run ci
 Add a workflow step:
 
 ```yaml
-- name: EvalAI gate
+- name: EvalGate gate
   env:
     EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
-  run: npx -y @pauly4010/evalai-sdk@^1 check --format github --onFail import
+  run: npx -y @evalgate/sdk@^2 check --format github --onFail import
 ```
 
 Or run `npm run ci` if the SDK is a dependency (uses local `evalai check`).

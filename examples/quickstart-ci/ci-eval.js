@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * EvalAI Quickstart CI Script
+ * EvalGate Quickstart CI Script
  *
  * Creates an evaluation, adds test cases, runs it, and gates on quality score.
  * Use in GitHub Actions or unknown CI pipeline.
@@ -9,11 +9,9 @@
  * Optional: EVALAI_BASE_URL (default: production)
  */
 
-import { AIEvalClient } from "@pauly4010/evalai-sdk";
+import { AIEvalClient } from "@evalgate/sdk";
 
-const baseUrl =
-	process.env.EVALAI_BASE_URL ||
-	"https://v0-ai-evaluation-platform-nu.vercel.app";
+const baseUrl = process.env.EVALAI_BASE_URL || "https://evalgate.com";
 const apiKey = process.env.EVALAI_API_KEY;
 const webhookUrl = process.env.WEBHOOK_URL;
 
@@ -97,7 +95,7 @@ async function main() {
 		process.exit(7);
 	}
 
-	console.log("\n✓ EvalAI gate PASSED");
+	console.log("\n✓ EvalGate gate PASSED");
 }
 
 main().catch((err) => {

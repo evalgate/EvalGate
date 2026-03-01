@@ -1,7 +1,7 @@
 /**
  * Config → DSL Adapter - LAYER 2 Compatibility Bridge
  *
- * Migrates existing evalai.config.json and TestSuite configurations
+ * Migrates existing evalgate.config.json and TestSuite configurations
  * to the new defineEval() DSL without breaking user workflows.
  */
 import type { TestSuite } from "../../testing";
@@ -20,7 +20,7 @@ interface MigrationResult {
  */
 export declare function migrateTestSuiteToDSL(testSuite: TestSuite, outputPath: string): MigrationResult;
 /**
- * Convert evalai.config.json to DSL specifications
+ * Convert evalgate.config.json to DSL specifications
  */
 export declare function migrateConfigToDSL(configPath: string, outputPath: string): MigrationResult;
 /**

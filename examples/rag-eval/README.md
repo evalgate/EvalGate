@@ -71,7 +71,7 @@ Each case has a query, expected answer pattern, and expected citation doc IDs:
 
 ```yaml
 - name: RAG regression gate
-  run: npx evalai gate --format github
+  run: npx evalgate gate --format github
 ```
 
 ## Scoring

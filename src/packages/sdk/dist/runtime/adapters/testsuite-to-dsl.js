@@ -179,7 +179,7 @@ function generateDefineEvalCode(suite, options = {}) {
         `// Generated at: ${new Date().toISOString()}`,
         `// This file replaces the legacy TestSuite with defineEval() specifications`,
         "",
-        `import { defineEval, createResult } from '@pauly4010/evalai-sdk';`,
+        `import { defineEval, createResult } from '@evalgate/sdk';`,
         "",
     ];
     const specCode = specs.map((spec, _index) => {

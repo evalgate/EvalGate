@@ -1,5 +1,5 @@
 /**
- * Versioned policy packs for evalai check --policy.
+ * Versioned policy packs for evalgate check --policy.
  * Schema: policyId, version, thresholds, rationale, checks.
  * Usage: --policy HIPAA@1
  */

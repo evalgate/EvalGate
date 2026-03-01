@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SPEC_VERSION = exports.SDK_VERSION = void 0;
 /**
  * SDK and API spec versions for request headers.
- * X-EvalAI-SDK-Version: SDK package version
- * X-EvalAI-Spec-Version: OpenAPI spec version (docs/openapi.json info.version)
+ * X-EvalGate-SDK-Version: SDK package version
+ * X-EvalGate-Spec-Version: OpenAPI spec version (docs/openapi.json info.version)
  */
-exports.SDK_VERSION = "1.9.1";
-exports.SPEC_VERSION = "1.9.1";
+exports.SDK_VERSION = "2.0.0";
+exports.SPEC_VERSION = "2.0.0";

@@ -85,15 +85,15 @@ export default function CICDIntegrationGuidePage() {
 
 					<section className="mb-8 sm:mb-12">
 						<h2 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-semibold">
-							🚀 One-Command CI Setup (EvalAI 1.9.1)
+							🚀 One-Command CI Setup (EvalGate 2.0.0)
 						</h2>
 						<p className="mb-4 text-sm sm:text-base text-muted-foreground">
-							With EvalAI 1.9.1, you get a complete CI pipeline in a single
+							With EvalGate 2.0.0, you get a complete CI pipeline in a single
 							command:
 						</p>
 						<div className="rounded-md bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 p-4 sm:p-4 mb-6">
 							<code className="text-xs sm:text-sm">
-								{`name: EvalAI CI
+								{`name: EvalGate CI
 on: [push, pull_request]
 jobs:
   evalai:
@@ -102,7 +102,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - run: npm ci
-      - run: npx evalai ci --format github --write-results --base main
+      - run: npx evalgate ci --format github --write-results --base main
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -141,7 +141,7 @@ jobs:
 
 					<section className="mb-8 sm:mb-12">
 						<h2 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-semibold">
-							Legacy Setup (Pre-1.9.1)
+							Legacy Setup (Pre-2.0.0)
 						</h2>
 						<p className="mb-4 text-sm sm:text-base text-muted-foreground">
 							For existing workflows, you can use the traditional regression
@@ -150,13 +150,13 @@ jobs:
 						<p className="mb-2 text-sm sm:text-base text-muted-foreground">
 							<strong>Option A: Zero-config</strong> — run{" "}
 							<code className="bg-muted px-1 rounded">
-								npx @pauly4010/evalai-sdk init
+								npx @evalgate/sdk init
 							</code>{" "}
 							to auto-generate this workflow.
 						</p>
 						<div className="rounded-md bg-muted p-3 sm:p-4 overflow-x-auto">
 							<code className="text-xs sm:text-sm">
-								{`name: EvalAI CI Gate
+								{`name: EvalGate CI Gate
 
 on:
   pull_request:
@@ -176,14 +176,14 @@ jobs:
       - run: npm ci
 
       # Option A: Local gate (no API key needed)
-      - name: EvalAI regression gate
-        run: npx evalai gate --format github
+      - name: EvalGate regression gate
+        run: npx evalgate gate --format github
 
       # Option B: Platform gate (requires API key)
-      # - name: EvalAI quality gate
+      # - name: EvalGate quality gate
       #   env:
       #     EVALAI_API_KEY: \${{ secrets.EVALAI_API_KEY }}
-      #   run: npx evalai check --format github --onFail import`}
+      #   run: npx evalgate check --format github --onFail import`}
 							</code>
 						</div>
 					</section>
@@ -202,7 +202,7 @@ jobs:
   image: node:20
   script:
     - npm ci
-    - npx evalai gate --format json
+    - npx evalgate gate --format json
   only:
     - merge_requests
     - main`}
@@ -293,21 +293,21 @@ jobs:
 						<div className="rounded-md bg-muted p-3 sm:p-4 overflow-x-auto">
 							<code className="text-xs sm:text-sm">
 								{`# Setup (run once)
-npx @pauly4010/evalai-sdk init     # scaffolds everything: baseline, CI workflow, config
+npx @evalgate/sdk init     # scaffolds everything: baseline, CI workflow, config
 
 # Gate commands
-npx evalai gate                     # run regression gate locally
-npx evalai gate --format github     # CI step summary + PR annotations
-npx evalai gate --format json       # machine-readable output
+npx evalgate gate                     # run regression gate locally
+npx evalgate gate --format github     # CI step summary + PR annotations
+npx evalgate gate --format json       # machine-readable output
 
 # Baseline management
-npx evalai baseline update           # re-run tests and update baseline
+npx evalgate baseline update           # re-run tests and update baseline
 
 # Platform gate (requires API key)
-npx evalai check --format github --onFail import
+npx evalgate check --format github --onFail import
 
 # Diagnostics
-npx evalai doctor                    # verify CI/CD setup`}
+npx evalgate doctor                    # verify CI/CD setup`}
 							</code>
 						</div>
 					</section>

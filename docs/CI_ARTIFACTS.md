@@ -9,7 +9,7 @@ The generated CI workflow uploads two report files as a single `evalai-report` a
 | File | Source | Contents |
 |------|--------|----------|
 | `evals/regression-report.json` | `evalai gate` | Built-in gate report (deltas, pass/fail, test counts) |
-| `.evalai/last-report.json` | `evalai check` | API gate report (scores, failed cases, policy evidence) |
+| `.evalgate/last-report.json` | `evalai check` | API gate report (scores, failed cases, policy evidence) |
 
 ## Downloading Artifacts from GitHub Actions
 
@@ -36,14 +36,14 @@ Once you have the report file, run `evalai explain`:
 
 ```bash
 # If you extracted to the default paths, explain finds it automatically:
-npx evalai explain
+npx evalgate explain
 
 # Or point to the downloaded file explicitly:
-npx evalai explain --report ./evalai-report/.evalai/last-report.json
-npx evalai explain --report ./evalai-report/evals/regression-report.json
+npx evalgate explain --report ./evalai-report/.evalgate/last-report.json
+npx evalgate explain --report ./evalai-report/evals/regression-report.json
 
 # Machine-readable output for scripts:
-npx evalai explain --format json --report ./path/to/report.json
+npx evalgate explain --format json --report ./path/to/report.json
 ```
 
 `explain` works completely offline — no API key, no network calls.
@@ -89,12 +89,12 @@ The generated workflow runs `evalai doctor` as a preflight step with `continue-o
 ```yaml
 - name: EvalAI Doctor (preflight)
   continue-on-error: true
-  run: npx -y @pauly4010/evalai-sdk@^1 doctor
+  run: npx -y @evalgate/sdk@^1 doctor
 ```
 
 - **Recommended (default):** Non-blocking — doctor warns but doesn't fail the job. Reduces "CI red because of config/env" frustration.
 - **Strict mode:** Set `continue-on-error: false` for teams that want config issues to block merges.
-- **CLI strict mode:** `npx evalai doctor --strict` exits `2` if any required check fails (auth, config, baseline).
+- **CLI strict mode:** `npx evalgate doctor --strict` exits `2` if any required check fails (auth, config, baseline).
 
 ## Workflow Reference
 
@@ -118,10 +118,10 @@ jobs:
 
       - name: EvalAI Doctor (preflight)
         continue-on-error: true
-        run: npx -y @pauly4010/evalai-sdk@^1 doctor
+        run: npx -y @evalgate/sdk@^1 doctor
 
       - name: EvalAI Regression Gate
-        run: npx -y @pauly4010/evalai-sdk@^1 gate --format github
+        run: npx -y @evalgate/sdk@^1 gate --format github
 
       - name: Upload report
         if: always()
@@ -130,6 +130,6 @@ jobs:
           name: evalai-report
           path: |
             evals/regression-report.json
-            .evalai/last-report.json
+            .evalgate/last-report.json
           if-no-files-found: ignore
 ```

@@ -15,7 +15,7 @@ export default function AboutPage() {
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4">
 					<div className="flex items-center justify-between gap-3">
 						<Link href="/" className="text-lg sm:text-xl font-bold truncate">
-							AI Evaluation Platform
+							EvalGate
 						</Link>
 						<div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
 							<ThemeToggle />

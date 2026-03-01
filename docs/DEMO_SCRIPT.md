@@ -16,19 +16,19 @@ echo 'test("array", () => assert.deepStrictEqual([1,2,3].filter(x=>x>1), [2,3]))
 
 ### 1. Init (10s)
 ```bash
-npx @pauly4010/evalai-sdk init
+npx @evalgate/sdk init
 ```
 Shows: config created, baseline created, CI workflow created, "Next: evalai doctor"
 
 ### 2. Doctor (5s)
 ```bash
-npx evalai doctor
+npx evalgate doctor
 ```
 Shows: 9 checks, ✅/❌/⚠️/⏭️ status for each
 
 ### 3. Gate — passes (5s)
 ```bash
-npx evalai gate
+npx evalgate gate
 ```
 Shows: ✅ PASS, 3/3 tests passing
 
@@ -40,14 +40,14 @@ sed -i 's/1+1, 2/1+1, 3/' test.js
 
 ### 5. Gate — fails (5s)
 ```bash
-npx evalai gate --format json > .evalai/last-report.json 2>/dev/null || true
-npx evalai gate
+npx evalgate gate --format json > .evalgate/last-report.json 2>/dev/null || true
+npx evalgate gate
 ```
 Shows: ❌ FAIL, regression detected
 
 ### 6. Explain (10s)
 ```bash
-npx evalai explain
+npx evalgate explain
 ```
 Shows: verdict FAIL, what changed, top failures, root causes, suggested fixes
 
@@ -58,7 +58,7 @@ sed -i 's/1+1, 3/1+1, 2/' test.js
 
 ### 8. Gate — green again (5s)
 ```bash
-npx evalai gate
+npx evalgate gate
 ```
 Shows: ✅ PASS
 

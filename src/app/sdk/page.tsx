@@ -8,20 +8,20 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-	title: "SDK Quick Start - EvalAI | CI for AI Behavior",
+	title: "SDK Quick Start - EvalGate | CI for AI Behavior",
 	description:
-		"EvalAI 1.9.1: CI for AI behavior. One-command CI workflow, TypeScript & Python SDKs. 1.4k+ npm downloads/month. Stop LLM regressions before they reach production.",
+		"EvalGate 2.0.0: CI for AI behavior. One-command CI workflow, TypeScript & Python SDKs. 1.4k+ npm downloads/month. Stop LLM regressions before they reach production.",
 	openGraph: {
-		title: "SDK Quick Start - EvalAI | CI for AI Behavior",
+		title: "SDK Quick Start - EvalGate | CI for AI Behavior",
 		description:
-			"EvalAI 1.9.1: CI for AI behavior. One-command CI workflow, TypeScript & Python SDKs. Stop LLM regressions before they reach production.",
+			"EvalGate 2.0.0: CI for AI behavior. One-command CI workflow, TypeScript & Python SDKs. Stop LLM regressions before they reach production.",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "SDK Quick Start - EvalAI | CI for AI Behavior",
+		title: "SDK Quick Start - EvalGate | CI for AI Behavior",
 		description:
-			"EvalAI 1.9.1: CI for AI behavior. One-command CI workflow, TypeScript & Python SDKs. Stop LLM regressions before they reach production.",
+			"EvalGate 2.0.0: CI for AI behavior. One-command CI workflow, TypeScript & Python SDKs. Stop LLM regressions before they reach production.",
 	},
 };
 
@@ -83,22 +83,21 @@ const assertionGroups = [
 ];
 
 export default function SDKPage() {
-	const installCode =
-		"npm install @pauly4010/evalai-sdk\n# or\nyarn add @pauly4010/evalai-sdk";
+	const installCode = "npm install @evalgate/sdk\n# or\nyarn add @evalgate/sdk";
 
-	const installCodePython = "pip install pauly4010-evalai-sdk";
+	const installCodePython = "pip install pauly4010-evalgate-sdk";
 
-	const initCode = `import { AIEvalClient } from '@pauly4010/evalai-sdk';
+	const initCode = `import { AIEvalClient } from '@evalgate/sdk';
 
 const client = AIEvalClient.init({ 
   apiKey: process.env.EVALAI_API_KEY 
 });`;
 
-	const initCodePython = `from evalai_sdk import AIEvalClient
+	const initCodePython = `from evalgate_sdk import AIEvalClient
 
 client = AIEvalClient.init()  # reads EVALAI_API_KEY env var`;
 
-	const testSuiteCode = `import { createTestSuite, expect } from '@pauly4010/evalai-sdk';
+	const testSuiteCode = `import { createTestSuite, expect } from '@evalgate/sdk';
 
 const suite = createTestSuite('Customer Support Bot', {
   executor: async (input) => await callMyLLM(input),
@@ -124,8 +123,8 @@ const suite = createTestSuite('Customer Support Bot', {
 const results = await suite.run();
 // { name: 'Customer Support Bot', total: 2, passed: 2, failed: 0, results: [...] }`;
 
-	const testSuiteCodePython = `from evalai_sdk import create_test_suite, expect
-from evalai_sdk.types import TestSuiteCase, TestSuiteConfig
+	const testSuiteCodePython = `from evalgate_sdk import create_test_suite, expect
+from evalgate_sdk.types import TestSuiteCase, TestSuiteConfig
 
 suite = create_test_suite('Customer Support Bot', TestSuiteConfig(
     evaluator=call_my_llm,
@@ -158,7 +157,7 @@ await client.traces.createSpan(trace.id, {
   metadata: { tokens: 150, latency_ms: 1200 }
 });`;
 
-	const traceCodePython = `from evalai_sdk.types import CreateTraceParams, CreateSpanParams
+	const traceCodePython = `from evalgate_sdk.types import CreateTraceParams, CreateSpanParams
 
 trace = await client.traces.create(CreateTraceParams(
     name='Chat Completion',
@@ -174,12 +173,12 @@ await client.traces.create_span(trace.id, CreateSpanParams(
 ))`;
 
 	const ciCode = `# In your CI workflow (or run locally):
-npx evalai gate                    # compare against baseline
-npx evalai gate --format github    # CI step summary + PR annotations
-npx evalai gate --format json      # machine-readable output
+npx evalgate gate                    # compare against baseline
+npx evalgate gate --format github    # CI step summary + PR annotations
+npx evalgate gate --format json      # machine-readable output
 
 # Or with the platform (requires API key):
-npx evalai check --format github --onFail import`;
+npx evalgate check --format github --onFail import`;
 
 	return (
 		<div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -187,7 +186,7 @@ npx evalai check --format github --onFail import`;
 			<header className="border-b">
 				<div className="container mx-auto px-4 py-4 flex items-center justify-between">
 					<Link href="/" className="text-xl font-bold">
-						AI Evaluation Platform
+						EvalGate
 					</Link>
 					<div className="flex items-center gap-4">
 						<Link href="/api-reference">
@@ -211,25 +210,25 @@ npx evalai check --format github --onFail import`;
 							<Badge variant="outline">TypeScript & Python</Badge>
 							<Badge variant="outline">20+ Assertions</Badge>
 							<Badge variant="outline">1.4k+ npm/month</Badge>
-							<Badge variant="default">EvalAI 1.9.1</Badge>
+							<Badge variant="default">EvalGate 2.0.0</Badge>
 						</div>
 						<h1 className="text-4xl font-bold tracking-tight">
 							SDK Quick Start
 						</h1>
 						<p className="text-xl text-muted-foreground">
-							EvalAI is CI for AI behavior. One-command CI workflow with
+							EvalGate is CI for AI behavior. One-command CI workflow with
 							complete evaluation pipeline. Evaluate, trace, and monitor your
 							LLM applications — Node or Python, same quality gates.
 						</p>
 					</div>
 
-					{/* One-Command CI (EvalAI 1.9.1) */}
+					{/* One-Command CI (EvalGate 2.0.0) */}
 					<section className="space-y-4">
 						<div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-lg p-6">
 							<div className="flex items-center gap-2 mb-3">
 								<Sparkles className="h-5 w-5 text-blue-500" />
 								<h2 className="text-xl font-semibold">
-									🚀 One-Command CI (New in 1.9.1)
+									🚀 One-Command CI (New in 2.0.0)
 								</h2>
 							</div>
 							<p className="text-muted-foreground mb-4">
@@ -238,7 +237,7 @@ npx evalai check --format github --onFail import`;
 							<div className="bg-muted p-4 rounded-lg font-mono text-sm overflow-x-auto relative group">
 								<pre>
 									<code>{`# Add this to .github/workflows/evalai.yml
-name: EvalAI CI
+name: EvalGate CI
 on: [push, pull_request]
 jobs:
   evalai:
@@ -247,7 +246,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - run: npm ci
-      - run: npx evalai ci --format github --write-results --base main
+      - run: npx evalgate ci --format github --write-results --base main
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -273,7 +272,7 @@ jobs:
 						</p>
 						<div className="bg-muted p-4 rounded-lg font-mono text-sm overflow-x-auto relative group">
 							<pre>
-								<code>{`npx @pauly4010/evalai-sdk init\ngit push`}</code>
+								<code>{`npx @evalgate/sdk init\ngit push`}</code>
 							</pre>
 						</div>
 						<p className="text-sm text-muted-foreground">
@@ -284,7 +283,7 @@ jobs:
 						<div className="grid sm:grid-cols-4 gap-2 text-sm">
 							<Card className="p-3">
 								<code className="text-xs font-mono font-medium text-primary">
-									npx evalai gate
+									npx evalgate gate
 								</code>
 								<p className="text-xs text-muted-foreground mt-0.5">
 									Run gate locally
@@ -292,7 +291,7 @@ jobs:
 							</Card>
 							<Card className="p-3">
 								<code className="text-xs font-mono font-medium text-primary">
-									npx evalai baseline update
+									npx evalgate baseline update
 								</code>
 								<p className="text-xs text-muted-foreground mt-0.5">
 									Update baseline
@@ -300,7 +299,7 @@ jobs:
 							</Card>
 							<Card className="p-3">
 								<code className="text-xs font-mono font-medium text-primary">
-									npx evalai upgrade --full
+									npx evalgate upgrade --full
 								</code>
 								<p className="text-xs text-muted-foreground mt-0.5">
 									Full metric gate
@@ -308,7 +307,7 @@ jobs:
 							</Card>
 							<Card className="p-3">
 								<code className="text-xs font-mono font-medium text-primary">
-									npx evalai doctor
+									npx evalgate doctor
 								</code>
 								<p className="text-xs text-muted-foreground mt-0.5">
 									Verify CI setup

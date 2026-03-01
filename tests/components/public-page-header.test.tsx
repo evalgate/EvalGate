@@ -20,7 +20,7 @@ import { PublicPageHeader } from "@/components/public-page-header";
 describe("PublicPageHeader", () => {
 	it("should render the platform title", () => {
 		render(<PublicPageHeader />);
-		expect(screen.getByText("AI Evaluation Platform")).toBeDefined();
+		expect(screen.getByText("EvalGate")).toBeDefined();
 	});
 
 	it("should show sign-in and get-started when logged out", () => {

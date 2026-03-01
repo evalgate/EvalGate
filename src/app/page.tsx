@@ -7,20 +7,20 @@ import { HomeScreenshots } from "@/components/home-screenshots";
 import { InteractivePlayground } from "@/components/interactive-playground";
 
 export const metadata: Metadata = {
-	title: "EvalAI - Stop LLM Regressions in CI in 2 Minutes",
+	title: "EvalGate - Stop LLM Regressions in CI in 2 Minutes",
 	description:
-		"EvalAI is CI for AI behavior. Stop LLM regressions before they reach production. No infra. No lock-in. 1.4k+ npm downloads/month. TypeScript & Python SDKs.",
+		"EvalGate is CI for AI behavior. Stop LLM regressions before they reach production. No infra. No lock-in. 1.4k+ npm downloads/month. TypeScript & Python SDKs.",
 	openGraph: {
-		title: "EvalAI - Stop LLM Regressions in CI in 2 Minutes",
+		title: "EvalGate - Stop LLM Regressions in CI in 2 Minutes",
 		description:
-			"EvalAI is CI for AI behavior. Stop LLM regressions before they reach production. No infra. No lock-in.",
+			"EvalGate is CI for AI behavior. Stop LLM regressions before they reach production. No infra. No lock-in.",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "EvalAI - Stop LLM Regressions in CI in 2 Minutes",
+		title: "EvalGate - Stop LLM Regressions in CI in 2 Minutes",
 		description:
-			"EvalAI is CI for AI behavior. Stop LLM regressions before they reach production. No infra. No lock-in.",
+			"EvalGate is CI for AI behavior. Stop LLM regressions before they reach production. No infra. No lock-in.",
 	},
 };
 

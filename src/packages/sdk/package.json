@@ -1,11 +1,11 @@
 {
-	"name": "@pauly4010/evalai-sdk",
-	"version": "1.9.1",
+	"name": "@evalgate/sdk",
+	"version": "2.0.0",
 	"publishConfig": {
 		"access": "public",
 		"registry": "https://registry.npmjs.org/"
 	},
-	"description": "AI Evaluation Platform SDK - Complete API Coverage with Performance Optimizations",
+	"description": "EvalGate SDK - Complete API Coverage with Performance Optimizations",
 	"main": "dist/index.js",
 	"module": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -16,7 +16,7 @@
 		"CHANGELOG.md"
 	],
 	"bin": {
-		"evalai": "./dist/cli/index.js"
+		"evalgate": "./dist/cli/index.js"
 	},
 	"engines": {
 		"node": ">=16.0.0"
@@ -40,14 +40,14 @@
 		"openai",
 		"anthropic"
 	],
-	"author": "EvalAI Team",
+	"author": "EvalGate Team",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/pauly7610/ai-evaluation-platform.git",
 		"directory": "src/packages/sdk"
 	},
-	"homepage": "https://v0-ai-evaluation-platform-nu.vercel.app",
+	"homepage": "https://evalgate.com",
 	"bugs": {
 		"url": "https://github.com/pauly7610/ai-evaluation-platform/issues"
 	},

@@ -190,7 +190,7 @@ describe("COMPAT-202: Legacy TestSuite → defineEval Adapter", () => {
 				"// Auto-generated from TestSuite: code-gen-suite",
 			);
 			expect(code).toContain(
-				"import { defineEval, createResult } from '@pauly4010/evalai-sdk';",
+				"import { defineEval, createResult } from '@evalgate/sdk';",
 			);
 			expect(code).toContain('defineEval("code-test", async (context) => {');
 			expect(code).toContain("return result;");

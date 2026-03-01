@@ -1,12 +1,12 @@
 "use strict";
 /**
- * TICKET 1 — evalai discover
+ * TICKET 1 — evalgate discover
  *
  * Your first "holy shit" moment feature
  *
  * Goal:
  * npm install
- * evalai discover
+ * evalgate discover
  *
  * Output:
  * Found 42 behavioral specifications
@@ -16,7 +16,7 @@
  * Tools: 5
  *
  * Why this matters:
- * - makes EvalAI feel alive
+ * - makes EvalGate feel alive
  * - proves DSL works
  * - enables intelligence layer
  *
@@ -96,8 +96,8 @@ async function discoverSpecs(options = {}) {
             console.log("🔧 Generating evaluation manifest...");
             const manifest = await (0, manifest_1.generateManifest)(specs, projectRoot, project.name, executionMode);
             await (0, manifest_1.writeManifest)(manifest, projectRoot);
-            console.log(`✅ Manifest written to .evalai/manifest.json`);
-            console.log(`✅ Lock file written to .evalai/manifest.lock.json`);
+            console.log(`✅ Manifest written to .evalgate/manifest.json`);
+            console.log(`✅ Lock file written to .evalgate/manifest.lock.json`);
         }
         // Calculate statistics
         const stats = calculateStats(specs, executionMode, project);
@@ -309,7 +309,7 @@ function calculateStats(specs, executionMode, project) {
  * Print discovery results in a beautiful format
  */
 function printDiscoveryResults(stats) {
-    console.log(`🔍 EvalAI Discovery Results`);
+    console.log(`🔍 EvalGate Discovery Results`);
     console.log(``);
     console.log(`📊 Found ${stats.totalSpecs} behavioral specifications`);
     console.log(``);
@@ -376,7 +376,7 @@ function printRecommendations(stats) {
     console.log(`💡 Recommendations:`);
     if (stats.totalSpecs === 0) {
         console.log(`   🚀 No specifications found. Create your first eval with:
-   echo 'import { defineEval } from "@pauly4010/evalai-sdk";
+   echo 'import { defineEval } from "@evalgate/sdk";
    defineEval("hello-world", async (context) => {
      return { pass: true, score: 100 };
    });' > eval/hello.spec.ts`);
@@ -388,18 +388,18 @@ function printRecommendations(stats) {
         console.log(`   🎯 Good start! Consider organizing by categories`);
     }
     else {
-        console.log(`   🏆 Excellent coverage! Consider running evalai run`);
+        console.log(`   🏆 Excellent coverage! Consider running evalgate run`);
     }
     if (!stats.executionMode.hasSpecRuntime &&
         !stats.executionMode.hasLegacyRuntime) {
-        console.log(`   🆕 New project? Try 'evalai init' to get started`);
+        console.log(`   🆕 New project? Try 'evalgate init' to get started`);
     }
     if (stats.executionMode.hasLegacyRuntime &&
         !stats.executionMode.hasSpecRuntime) {
-        console.log(`   🔄 Legacy project detected. Try 'evalai migrate config' to upgrade`);
+        console.log(`   🔄 Legacy project detected. Try 'evalgate migrate config' to upgrade`);
     }
     if (stats.executionMode.hasSpecRuntime) {
-        console.log(`   🚀 Ready to run! Use 'evalai run' to execute specifications`);
+        console.log(`   🚀 Ready to run! Use 'evalgate run' to execute specifications`);
     }
     console.log(``);
 }

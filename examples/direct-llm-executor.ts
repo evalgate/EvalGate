@@ -9,7 +9,7 @@
  *   npx ts-node examples/direct-llm-executor.ts
  */
 
-import { AIEvalClient } from "@pauly4010/evalai-sdk";
+import { AIEvalClient } from "@evalgate/sdk";
 
 async function main() {
 	const client = new AIEvalClient({

@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sdk-version: ["1.4.1", "1.5.0", "1.5.5"]
+        sdk-version: ["2.0.0"]
     steps:
       - uses: actions/checkout@v4
 
@@ -27,14 +27,14 @@ jobs:
         run: |
           mkdir -p /tmp/sdk-compat && cd /tmp/sdk-compat
           npm init -y
-          npm install @pauly4010/evalai-sdk@${{ matrix.sdk-version }}
+          npm install @evalgate/sdk@${{ matrix.sdk-version }}
           node -e "
-            const sdk = require('@pauly4010/evalai-sdk');
+            const sdk = require('@evalgate/sdk');
 
             // Core exports that must exist in every version
             const required = [
               'AIEvalClient',
-              'EvalAIError',
+              'EvalGateError',
               'createTestSuite',
               'traceOpenAI',
             ];
@@ -71,12 +71,12 @@ jobs:
       - name: Verify Python SDK exports match TypeScript surface
         run: |
           python -c "
-          import evalai_sdk
+          import evalgate_sdk
 
           # Core exports that must exist (matching TypeScript SDK)
           required = [
               'AIEvalClient',
-              'EvalAIError',
+              'EvalGateError',
               'RateLimitError',
               'AuthenticationError',
               'NetworkError',
@@ -141,18 +141,18 @@ jobs:
               'SPEC_VERSION',
           ]
 
-          missing = [name for name in required if not hasattr(evalai_sdk, name)]
+          missing = [name for name in required if not hasattr(evalgate_sdk, name)]
           if missing:
               print(f'FAIL: Missing exports: {missing}')
               exit(1)
 
           # Verify client is constructable
-          client = evalai_sdk.AIEvalClient(api_key='test-key', base_url='http://localhost')
+          client = evalgate_sdk.AIEvalClient(api_key='test-key', base_url='http://localhost')
           assert client.organization_id is None
 
           # Verify expect() returns an Expectation
-          result = evalai_sdk.expect('hello').to_contain('hello')
+          result = evalgate_sdk.expect('hello').to_contain('hello')
           assert result.passed
 
-          print(f'Python SDK v{evalai_sdk.__version__} OK — {len(required)} core exports verified')
+          print(f'Python SDK v{evalgate_sdk.__version__} OK — {len(required)} core exports verified')
           "

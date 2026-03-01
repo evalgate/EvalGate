@@ -12,14 +12,14 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from evalai_sdk._version import __version__
+from evalgate_sdk._version import __version__
 
 console = Console()
 
 
 def _load_saved_config() -> dict[str, Any]:
-    """Load api_key/base_url from .evalai/config.json if present."""
-    config_path = Path.cwd() / ".evalai" / "config.json"
+    """Load api_key/base_url from .evalgate/config.json if present."""
+    config_path = Path.cwd() / ".evalgate" / "config.json"
     if config_path.exists():
         try:
             data = json.loads(config_path.read_text())
@@ -58,9 +58,9 @@ def _run_async(coro: Any) -> Any:
 def init(
     directory: str = typer.Argument(".", help="Project directory"),
 ) -> None:
-    """Initialize an EvalAI project — creates config, baseline, and CI workflow."""
+    """Initialize an EvalGate project — creates config, baseline, and CI workflow."""
     cwd = Path(directory).resolve()
-    evalai_dir = cwd / ".evalai"
+    evalai_dir = cwd / ".evalgate"
     evalai_dir.mkdir(exist_ok=True)
 
     baseline_path = evalai_dir / "baseline.json"
@@ -100,7 +100,7 @@ def init(
     if not example.exists():
         example.write_text(
             '"""Example evaluation spec — replace with your LLM call."""\n\n'
-            "from evalai_sdk.runtime import define_eval, create_result, EvalContext\n\n\n"
+            "from evalgate_sdk.runtime import define_eval, create_result, EvalContext\n\n\n"
             "def my_first_eval(ctx: EvalContext):\n"
             "    # Replace this with your actual LLM call\n"
             "    output = ctx.input or 'hello world'\n"
@@ -110,7 +110,7 @@ def init(
         console.print(f"[green]✓[/green] Created {example.relative_to(cwd)}")
 
     gitignore = cwd / ".gitignore"
-    evalai_pattern = ".evalai/"
+    evalai_pattern = ".evalgate/"
     if gitignore.exists():
         content = gitignore.read_text()
         if evalai_pattern not in content:
@@ -125,7 +125,7 @@ def init(
 
     console.print("\n[bold green]Project initialized![/bold green]")
     console.print("  Next: [cyan]evalai run[/cyan] to execute evaluations")
-    console.print("  Docs: https://v0-ai-evaluation-platform-nu.vercel.app/docs")
+    console.print("  Docs: https://evalgate.com/docs")
 
 
 # ── run ──────────────────────────────────────────────────────────────
@@ -138,7 +138,7 @@ def run(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
 ) -> None:
     """Run evaluation specs."""
-    from evalai_sdk.runtime import create_eval_runtime, create_local_executor
+    from evalgate_sdk.runtime import create_eval_runtime, create_local_executor
 
     cwd = Path.cwd()
     eval_path = cwd / eval_dir
@@ -185,7 +185,7 @@ def run(
 
         console.print(f"\n[bold]Running {len(specs)} eval(s)...[/bold]\n")
 
-        from evalai_sdk.runtime.types import EvalContext
+        from evalgate_sdk.runtime.types import EvalContext
 
         results = []
         for spec in specs:
@@ -234,13 +234,13 @@ def run(
 
 
 def gate(
-    baseline_path: str = typer.Option(".evalai/baseline.json", "--baseline", "-b", help="Baseline file"),
+    baseline_path: str = typer.Option(".evalgate/baseline.json", "--baseline", "-b", help="Baseline file"),
     report_path: str | None = typer.Option(None, "--report", help="Run report file"),
     min_score: float = typer.Option(0.8, "--min-score", help="Minimum passing score"),
     max_drop: float = typer.Option(0.05, "--max-drop", help="Max allowed score drop"),
 ) -> None:
     """Run regression gate against a baseline."""
-    from evalai_sdk.regression import GATE_EXIT, Baseline, BaselineTolerance, evaluate_regression
+    from evalgate_sdk.regression import GATE_EXIT, Baseline, BaselineTolerance, evaluate_regression
 
     bp = Path(baseline_path)
     if not bp.exists():
@@ -291,8 +291,8 @@ def gate(
 
 
 def check(
-    api_key: str | None = typer.Option(None, "--api-key", envvar="EVALAI_API_KEY"),
-    base_url: str | None = typer.Option(None, "--base-url", envvar="EVALAI_BASE_URL"),
+    api_key: str | None = typer.Option(None, "--api-key", envvar="EVALGATE_API_KEY"),
+    base_url: str | None = typer.Option(None, "--base-url", envvar="EVALGATE_BASE_URL"),
     evaluation_id: int | None = typer.Option(None, "--evaluation-id", help="Evaluation to check"),
     min_score: float = typer.Option(0.0, "--min-score", help="Minimum passing score (0-100)"),
     max_drop: float | None = typer.Option(None, "--max-drop", help="Max allowed regression delta"),
@@ -300,8 +300,8 @@ def check(
     fmt: str = typer.Option("human", "--format", "-f", help="Output format: human|json"),
 ) -> None:
     """CI/CD gate — check evaluation quality score via the API."""
-    from evalai_sdk.client import AIEvalClient
-    from evalai_sdk.errors import EvalAIError
+    from evalgate_sdk.client import AIEvalClient
+    from evalgate_sdk.errors import EvalGateError
 
     EXIT_PASS = 0
     EXIT_SCORE_FAIL = 1
@@ -316,14 +316,14 @@ def check(
         raise typer.Exit(EXIT_BAD_ARGS)
 
     if not api_key:
-        console.print("[red]--api-key or EVALAI_API_KEY is required (or run evalai configure)[/red]")
+        console.print("[red]--api-key or EVALGATE_API_KEY is required (or run evalgate configure)[/red]")
         raise typer.Exit(EXIT_BAD_ARGS)
 
     async def _check() -> int:
         client = AIEvalClient(api_key=api_key, base_url=base_url)
         try:
             quality = await client.get_quality(evaluation_id, baseline=baseline)
-        except EvalAIError as exc:
+        except EvalGateError as exc:
             console.print(f"[red]API error:[/red] {exc}")
             return EXIT_API_ERROR
         finally:
@@ -384,13 +384,13 @@ def check(
 
 def ci(
     eval_dir: str = typer.Option("evals", "--dir", "-d"),
-    baseline_path: str = typer.Option(".evalai/baseline.json", "--baseline", "-b"),
-    output: str = typer.Option(".evalai/last-run.json", "--output", "-o"),
+    baseline_path: str = typer.Option(".evalgate/baseline.json", "--baseline", "-b"),
+    output: str = typer.Option(".evalgate/last-run.json", "--output", "-o"),
     min_score: float = typer.Option(0.8, "--min-score", help="Minimum passing score"),
     max_drop: float = typer.Option(0.05, "--max-drop", help="Max allowed score drop"),
 ) -> None:
     """CI loop — run evals then gate against baseline (one command for CI)."""
-    console.print("[bold]EvalAI CI Pipeline[/bold]\n")
+    console.print("[bold]EvalGate CI Pipeline[/bold]\n")
 
     console.print("[bold]Step 1/2:[/bold] Running evaluations...")
     try:
@@ -409,7 +409,7 @@ def ci(
 
 def doctor() -> None:
     """Pre-flight check — verify environment and configuration."""
-    console.print("[bold]EvalAI Doctor[/bold]\n")
+    console.print("[bold]EvalGate Doctor[/bold]\n")
     checks = []
 
     # Python version
@@ -420,21 +420,21 @@ def doctor() -> None:
     checks.append(("Python >= 3.9", py_ok, py_ver))
 
     # SDK installed
-    checks.append(("evalai-sdk installed", True, __version__))
+    checks.append(("evalgate-sdk installed", True, __version__))
 
     # API key
     saved_cfg = _load_saved_config()
-    has_key = bool(os.environ.get("EVALAI_API_KEY") or saved_cfg.get("api_key"))
-    key_source = "env" if os.environ.get("EVALAI_API_KEY") else ("config" if saved_cfg.get("api_key") else "missing")
+    has_key = bool(os.environ.get("EVALGATE_API_KEY") or saved_cfg.get("api_key"))
+    key_source = "env" if os.environ.get("EVALGATE_API_KEY") else ("config" if saved_cfg.get("api_key") else "missing")
     checks.append(("API key configured", has_key, key_source))
 
     # Config file
-    config_exists = Path(".evalai/config.json").exists()
-    checks.append((".evalai/config.json", config_exists, "found" if config_exists else "missing"))
+    config_exists = Path(".evalgate/config.json").exists()
+    checks.append((".evalgate/config.json", config_exists, "found" if config_exists else "missing"))
 
     # Baseline
-    baseline_exists = Path(".evalai/baseline.json").exists()
-    checks.append((".evalai/baseline.json", baseline_exists, "found" if baseline_exists else "missing"))
+    baseline_exists = Path(".evalgate/baseline.json").exists()
+    checks.append((".evalgate/baseline.json", baseline_exists, "found" if baseline_exists else "missing"))
 
     # Eval directory
     evals_exist = Path("evals").exists()
@@ -480,7 +480,7 @@ def discover(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show load errors"),
 ) -> None:
     """Discover eval specs in the project."""
-    from evalai_sdk.runtime import create_eval_runtime
+    from evalgate_sdk.runtime import create_eval_runtime
 
     cwd = Path.cwd()
     eval_path = cwd / eval_dir
@@ -569,7 +569,7 @@ def diff(
 
 
 def explain(
-    report_path: str = typer.Argument(".evalai/last-run.json", help="Run report to explain"),
+    report_path: str = typer.Argument(".evalgate/last-run.json", help="Run report to explain"),
 ) -> None:
     """Explain failures in a run report."""
     rp = Path(report_path)
@@ -598,7 +598,7 @@ def explain(
 
 def baseline(
     action: str = typer.Argument("init", help="Action: init or update"),
-    path: str = typer.Option(".evalai/baseline.json", "--path", "-p"),
+    path: str = typer.Option(".evalgate/baseline.json", "--path", "-p"),
     report_path: str | None = typer.Option(None, "--from-report", help="Update baseline from a run report"),
 ) -> None:
     """Manage baselines — init or update from a run report."""
@@ -651,7 +651,7 @@ def baseline(
 
 
 def print_config(
-    path: str = typer.Option(".evalai/config.json", "--path", "-p"),
+    path: str = typer.Option(".evalgate/config.json", "--path", "-p"),
 ) -> None:
     """Print the current project configuration."""
     cp = Path(path)
@@ -680,17 +680,17 @@ def share(
     evaluation_id: int = typer.Option(..., "--evaluation-id", help="Evaluation ID"),
     run_id: int = typer.Option(..., "--run-id", help="Evaluation run ID"),
     expires: str = typer.Option("7d", "--expires", help="Expiry e.g. 7d, 24h"),
-    api_key: str | None = typer.Option(None, "--api-key", envvar="EVALAI_API_KEY"),
-    base_url: str | None = typer.Option(None, "--base-url", envvar="EVALAI_BASE_URL"),
+    api_key: str | None = typer.Option(None, "--api-key", envvar="EVALGATE_API_KEY"),
+    base_url: str | None = typer.Option(None, "--base-url", envvar="EVALGATE_BASE_URL"),
 ) -> None:
     """Create a shareable link for an evaluation run."""
-    from evalai_sdk.client import AIEvalClient
-    from evalai_sdk.errors import EvalAIError
+    from evalgate_sdk.client import AIEvalClient
+    from evalgate_sdk.errors import EvalGateError
 
     api_key, base_url = _resolve_credentials(api_key, base_url)
 
     if not api_key:
-        console.print("[red]--api-key or EVALAI_API_KEY required (or run evalai configure)[/red]")
+        console.print("[red]--api-key or EVALGATE_API_KEY required (or run evalgate configure)[/red]")
         raise typer.Exit(1)
 
     def _parse_expires(spec: str) -> int | None:
@@ -729,7 +729,7 @@ def share(
             share_url = result.get("shareUrl", "")
             console.print(f"[green]✓[/green] Share link (expires in {expires}): {share_url}")
             return 0
-        except EvalAIError as exc:
+        except EvalGateError as exc:
             console.print(f"[red]API error:[/red] {exc}")
             return 1
         finally:
@@ -745,14 +745,14 @@ def share(
 def configure(
     api_key: str | None = typer.Option(None, "--api-key", help="API key (prompted if not given)"),
     base_url: str = typer.Option(
-        "https://v0-ai-evaluation-platform-nu.vercel.app",
+        "https://evalgate.com",
         "--base-url",
         help="Platform base URL",
     ),
 ) -> None:
     """Set up API key and validate connection."""
-    from evalai_sdk.client import AIEvalClient
-    from evalai_sdk.errors import EvalAIError
+    from evalgate_sdk.client import AIEvalClient
+    from evalgate_sdk.errors import EvalGateError
 
     if not api_key:
         api_key = typer.prompt("Enter your API key", hide_input=True)
@@ -769,7 +769,7 @@ def configure(
             org = await client.organizations.get_current()
             console.print(f"[green]✓[/green] Connected — org [bold]{org.name}[/bold] (id={org.id})")
             return True
-        except EvalAIError as exc:
+        except EvalGateError as exc:
             console.print(f"[red]✗ Validation failed:[/red] {exc}")
             return False
         finally:
@@ -778,7 +778,7 @@ def configure(
     if not _run_async(_validate()):
         raise typer.Exit(1)
 
-    config_dir = Path.cwd() / ".evalai"
+    config_dir = Path.cwd() / ".evalgate"
     config_dir.mkdir(exist_ok=True)
     config_path = config_dir / "config.json"
 
@@ -791,7 +791,7 @@ def configure(
 
     config_path.write_text(json.dumps(config, indent=2))
     console.print(f"[green]✓[/green] Saved to {config_path.relative_to(Path.cwd())}")
-    console.print("\n[dim]Tip: add .evalai/ to .gitignore to avoid committing credentials[/dim]")
+    console.print("\n[dim]Tip: add .evalgate/ to .gitignore to avoid committing credentials[/dim]")
 
 
 # ── upgrade ───────────────────────────────────────────────────────
@@ -804,7 +804,7 @@ def upgrade() -> None:
     console.print("[bold]Checking for updates...[/bold]\n")
 
     try:
-        resp = httpx.get("https://pypi.org/pypi/pauly4010-evalai-sdk/json", timeout=10)
+        resp = httpx.get("https://pypi.org/pypi/pauly4010-evalgate-sdk/json", timeout=10)
         if resp.status_code == 200:
             latest = resp.json()["info"]["version"]
             if latest == __version__:
@@ -813,7 +813,7 @@ def upgrade() -> None:
                 console.print(f"  Current: [yellow]{__version__}[/yellow]")
                 console.print(f"  Latest:  [green]{latest}[/green]\n")
                 console.print("Upgrade with:")
-                console.print(f'  [cyan]pip install "pauly4010-evalai-sdk=={latest}"[/cyan]')
+                console.print(f'  [cyan]pip install "pauly4010-evalgate-sdk=={latest}"[/cyan]')
         else:
             console.print(f"[yellow]Could not check PyPI (HTTP {resp.status_code})[/yellow]")
     except Exception as exc:
@@ -825,10 +825,10 @@ def upgrade() -> None:
 
 def impact_analysis(
     eval_dir: str = typer.Option("evals", "--dir", "-d"),
-    baseline_path: str = typer.Option(".evalai/baseline.json", "--baseline", "-b"),
+    baseline_path: str = typer.Option(".evalgate/baseline.json", "--baseline", "-b"),
 ) -> None:
     """Analyze which eval specs would be affected by code changes."""
-    from evalai_sdk.runtime import create_eval_runtime
+    from evalgate_sdk.runtime import create_eval_runtime
 
     cwd = Path.cwd()
     eval_path = cwd / eval_dir
@@ -894,7 +894,7 @@ def impact_analysis(
 
 def migrate(
     action: str = typer.Argument("config", help="What to migrate: config"),
-    path: str = typer.Option(".evalai/config.json", "--path", "-p"),
+    path: str = typer.Option(".evalgate/config.json", "--path", "-p"),
 ) -> None:
     """Migrate config or baseline to the latest format."""
     if action != "config":
@@ -918,7 +918,7 @@ def migrate(
     config["version"] = 1
     config.setdefault("project_name", Path.cwd().name)
     config.setdefault("eval_dir", "evals")
-    config.setdefault("baseline", ".evalai/baseline.json")
+    config.setdefault("baseline", ".evalgate/baseline.json")
 
     cp.write_text(json.dumps(config, indent=2))
     console.print(f"[green]✓ Migrated config from v{current_version} to v1[/green]")

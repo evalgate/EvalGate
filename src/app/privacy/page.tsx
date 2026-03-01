@@ -13,7 +13,7 @@ export default function PrivacyPage() {
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4">
 					<div className="flex items-center justify-between gap-3">
 						<Link href="/" className="text-base sm:text-xl font-bold truncate">
-							AI Evaluation Platform
+							EvalGate
 						</Link>
 						<Button asChild size="sm" className="h-9 flex-shrink-0">
 							<Link href="/dashboard">Dashboard</Link>
@@ -40,10 +40,10 @@ export default function PrivacyPage() {
 							Introduction
 						</h2>
 						<p className="text-muted-foreground mb-4">
-							At AI Evaluation Platform ("we," "our," or "us"), we take your
-							privacy seriously. This Privacy Policy explains how we collect,
-							use, disclose, and safeguard your information when you use our
-							platform and services.
+							At EvalGate ("we," "our," or "us"), we take your privacy
+							seriously. This Privacy Policy explains how we collect, use,
+							disclose, and safeguard your information when you use our platform
+							and services.
 						</p>
 						<p className="text-muted-foreground">
 							By using our services, you agree to the collection and use of
@@ -335,7 +335,7 @@ export default function PrivacyPage() {
 								</a>
 							</p>
 							<p className="text-sm mb-2">
-								<strong>Address:</strong> AI Evaluation Platform, Inc.
+								<strong>Address:</strong> EvalGate, Inc.
 								<br />
 								123 Market Street, Suite 400
 								<br />

@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from evalai_sdk.types import (
+from evalgate_sdk.types import (
     CostCategory,
     HandoffType,
     RecordCostParams,
@@ -12,7 +12,7 @@ from evalai_sdk.types import (
     Trace,
     WorkflowStatus,
 )
-from evalai_sdk.workflows import WorkflowTracer, create_workflow_tracer, trace_workflow_step
+from evalgate_sdk.workflows import WorkflowTracer, create_workflow_tracer, trace_workflow_step
 
 
 def _make_mock_client():

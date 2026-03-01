@@ -6,9 +6,9 @@ When you use the **webhook executor**, EvalAI sends test inputs to your endpoint
 
 | Header | Description |
 |--------|-------------|
-| `X-EvalAI-Timestamp` | ISO 8601 timestamp when the request was created |
-| `X-EvalAI-Signature` | `sha256=<hex>` HMAC of `timestamp + "." + rawBody` |
-| `X-EvalAI-Idempotency-Key` | Deterministic key per test case attempt (for deduplication) |
+| `X-EvalGate-Timestamp` | ISO 8601 timestamp when the request was created |
+| `X-EvalGate-Signature` | `sha256=<hex>` HMAC of `timestamp + "." + rawBody` |
+| `X-EvalGate-Idempotency-Key` | Deterministic key per test case attempt (for deduplication) |
 | `Content-Type` | `application/json` |
 
 ## Verification Steps
@@ -70,7 +70,7 @@ if (!verifySignature(rawBody, timestamp, signature, process.env.WEBHOOK_SECRET!)
 
 ### 3. Idempotency deduplication
 
-Use `X-EvalAI-Idempotency-Key` to deduplicate retries. The key is deterministic per `(evaluationRunId, testCaseId, inputHash)`, so retries produce the same key.
+Use `X-EvalGate-Idempotency-Key` to deduplicate retries. The key is deterministic per `(evaluationRunId, testCaseId, inputHash)`, so retries produce the same key.
 
 - Store processed keys (e.g. in Redis or DB) with a TTL (e.g. 1 hour)
 - If the key was already processed, return the cached response instead of re-running

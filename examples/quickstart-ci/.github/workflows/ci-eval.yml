@@ -27,7 +27,7 @@ jobs:
       - name: Run evaluation and gate
         env:
           EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
-        run: npx -y @pauly4010/evalai-sdk@^1 check --format github --pr-comment-out .evalai-pr-comment.md
+        run: npx -y @evalgate/sdk@^1 check --format github --pr-comment-out .evalai-pr-comment.md
         working-directory: examples/quickstart-ci
 
       - name: Post or update PR comment (sticky)

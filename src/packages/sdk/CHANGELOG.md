@@ -1,9 +1,30 @@
 # Changelog
 
-All notable changes to the @pauly4010/evalai-sdk package will be documented in this file.
+All notable changes to the @evalgate/sdk package will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [2.0.0] - 2026-03-01
+
+### Breaking — EvalGate Rebrand
+
+- **Package:** `@pauly4010/evalai-sdk` → `@evalgate/sdk`
+- **CLI:** `evalai` → `evalgate`
+- **Config dir:** `.evalai/` → `.evalgate/` (legacy still read with deprecation warning)
+- **Env vars:** `EVALAI_*` → `EVALGATE_*` (legacy still work with deprecation warning)
+- **Error class:** `EvalAIError` → `EvalGateError`
+- **HTTP headers:** `X-EvalAI-*` → `X-EvalGate-*`
+
+### Added
+
+- Deprecation warnings when using `EVALAI_*` env vars or `.evalai/` config
+
+### Deprecated
+
+- `@pauly4010/evalai-sdk` — use `@evalgate/sdk` instead
+
+---
 
 ## [1.9.0] - 2026-02-27
 

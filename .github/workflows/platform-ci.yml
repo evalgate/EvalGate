@@ -439,7 +439,7 @@ jobs:
           echo "| Check | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| pytest | ✅ |" >> "$GITHUB_STEP_SUMMARY"
-          VERSION=$(python -c "from evalai_sdk._version import __version__; print(__version__)")
+          VERSION=$(python -c "from evalgate_sdk._version import __version__; print(__version__)")
           echo "| Version | $VERSION |" >> "$GITHUB_STEP_SUMMARY"
 
   # ── 5. Audits (non-coverage) ──────────────────────────────────────

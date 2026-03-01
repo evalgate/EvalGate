@@ -9,7 +9,7 @@ import { expect, test } from "@playwright/test";
 test("home page loads", async ({ page }) => {
 	await page.goto("/");
 	await page.waitForLoadState("domcontentloaded");
-	await expect(page).toHaveTitle(/EvalAI|Stop LLM Regressions/i);
+	await expect(page).toHaveTitle(/EvalGate|Stop LLM Regressions/i);
 	// Hero section is present in DOM
 	await expect(page.locator("h1").first()).toBeAttached();
 	// No error boundary triggered

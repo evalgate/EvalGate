@@ -13,8 +13,8 @@ All SDK and CLI requests send version headers so the platform can identify clien
 
 | Header | Source | Purpose |
 |--------|--------|---------|
-| `X-EvalAI-SDK-Version` | `@pauly4010/evalai-sdk` package version | Identify SDK release |
-| `X-EvalAI-Spec-Version` | `docs/openapi.json` `info.version` | Identify API spec version |
+| `X-EvalGate-SDK-Version` | `@evalgate/sdk` package version | Identify SDK release |
+| `X-EvalGate-Spec-Version` | `docs/openapi.json` `info.version` | Identify API spec version |
 
 These headers are sent on every request. The platform can use them for compatibility checks, deprecation warnings, and support debugging.
 

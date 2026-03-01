@@ -4,9 +4,9 @@
  *
  * @example
  * ```ts
- * import { openAIChatEval } from '@pauly4010/evalai-sdk';
+ * import { openAIChatEval } from '@evalgate/sdk';
  * import { expect } from 'vitest';
- * import { extendExpectWithToPassGate } from '@pauly4010/evalai-sdk/matchers';
+ * import { extendExpectWithToPassGate } from '@evalgate/sdk/matchers';
  *
  * extendExpectWithToPassGate(expect);
  *

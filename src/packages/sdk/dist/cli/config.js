@@ -1,7 +1,7 @@
 "use strict";
 /**
- * EvalAI config loader
- * Discovery: evalai.config.json → evalai.config.js → evalai.config.cjs → package.json evalai
+ * EvalGate config loader
+ * Discovery: evalgate.config.json → evalgate.config.js → evalgate.config.cjs → package.json evalgate
  */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -44,6 +44,9 @@ const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
 const profiles_1 = require("./profiles");
 const CONFIG_FILES = [
+    "evalgate.config.json",
+    "evalgate.config.js",
+    "evalgate.config.cjs",
     "evalai.config.json",
     "evalai.config.js",
     "evalai.config.cjs",
@@ -61,12 +64,12 @@ function findConfigPath(cwd = process.cwd()) {
                 return filePath;
             }
         }
-        // Check package.json for evalai field
+        // Check package.json for evalgate or evalai field
         const pkgPath = path.join(dir, "package.json");
         if (fs.existsSync(pkgPath)) {
             try {
                 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-                if (pkg.evalai != null) {
+                if (pkg.evalgate != null || pkg.evalai != null) {
                     return pkgPath;
                 }
             }
@@ -89,7 +92,7 @@ function loadConfig(cwd = process.cwd()) {
         let config = null;
         if (configPath.endsWith("package.json")) {
             const pkg = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-            config = pkg.evalai ?? null;
+            config = (pkg.evalgate ?? pkg.evalai);
         }
         else {
             const content = fs.readFileSync(configPath, "utf-8");

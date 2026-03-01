@@ -220,9 +220,9 @@ export const RADAR_DATA = {
 	tot: [78, 60, 55, 82, 85],
 };
 
-export const SDK_INSTALL = "npm install @pauly4010/evalai-sdk";
+export const SDK_INSTALL = "npm install @evalgate/sdk";
 
-export const SDK_CODE = `import { WorkflowTracer } from '@pauly4010/evalai-sdk';
+export const SDK_CODE = `import { WorkflowTracer } from '@evalgate/sdk';
 
 const tracer = new WorkflowTracer(client, {
   organizationId: 123
@@ -341,7 +341,7 @@ export const CAPTIONS: Array<{
 		endFrame: 58.8 * FPS,
 	},
 	{
-		text: "Published on npm — install @pauly4010/evalai-sdk and start tracing in minutes.",
+		text: "Published on npm — install @evalgate/sdk and start tracing in minutes.",
 		startFrame: 59 * FPS,
 		endFrame: 63.8 * FPS,
 	},

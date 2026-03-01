@@ -8,18 +8,18 @@ import { Card } from "@/components/ui/card";
 import { APIReferenceHeader } from "./api-reference-header";
 
 export const metadata: Metadata = {
-	title: "API Reference - AI Evaluation Platform",
+	title: "API Reference - EvalGate",
 	description:
 		"Complete REST API documentation for programmatic access to the platform. Includes authentication, rate limits, and endpoint details.",
 	openGraph: {
-		title: "API Reference - AI Evaluation Platform",
+		title: "API Reference - EvalGate",
 		description:
 			"Complete REST API documentation for programmatic access to the platform.",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "API Reference - AI Evaluation Platform",
+		title: "API Reference - EvalGate",
 		description:
 			"Complete REST API documentation for programmatic access to the platform.",
 	},
@@ -41,9 +41,7 @@ interface APISection {
 }
 
 // Use environment variable or default to production URL
-const API_BASE_URL =
-	process.env.NEXT_PUBLIC_API_URL ||
-	"https://v0-ai-evaluation-platform-nu.vercel.app";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://evalgate.com";
 
 const apiSections: APISection[] = [
 	{

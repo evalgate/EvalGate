@@ -1,13 +1,13 @@
-# GitHub Actions — EvalAI CI Gate
+# GitHub Actions — EvalGate CI Gate
 
-Copy-paste workflow to gate merges on EvalAI quality scores. When the score drops below baseline, CI fails and optionally imports failing runs to the dashboard.
+Copy-paste workflow to gate merges on EvalGate quality scores. When the score drops below baseline, CI fails and optionally imports failing runs to the dashboard.
 
 ## Minimal Workflow
 
 Add this job to your workflow (or use as a standalone workflow):
 
 ```yaml
-name: EvalAI Gate
+name: EvalGate Gate
 
 on:
   push:
@@ -26,24 +26,24 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: EvalAI gate
+      - name: EvalGate gate
         env:
           EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
-        run: npx -y @pauly4010/evalai-sdk@^1 check --format github --onFail import
+        run: npx -y @evalgate/sdk@^2 check --format github --onFail import
 ```
 
-**Required:** Add `EVALAI_API_KEY` to your repo secrets (Settings → Secrets and variables → Actions). Create an API key in the [EvalAI dashboard](https://v0-ai-evaluation-platform-nu.vercel.app) with `runs:read` scope.
+**Required:** Add `EVALAI_API_KEY` to your repo secrets (Settings → Secrets and variables → Actions). Create an API key in the [EvalGate dashboard](https://evalgate.com) with `runs:read` scope.
 
 ## Setup
 
-1. Run `npx -y @pauly4010/evalai-sdk@^1 init` to create `evalai.config.json`
+1. Run `npx -y @evalgate/sdk@^2 init` to create `evalgate.config.json`
 2. Create an evaluation in the dashboard and add test cases
-3. Paste the evaluation ID into `evalai.config.json`
+3. Paste the evaluation ID into `evalgate.config.json`
 4. Add the workflow above
 
 ## `--format github` Output
 
-When you use `--format github`, EvalAI produces:
+When you use `--format github`, EvalGate produces:
 
 - **Annotations** — `::error` lines for each failed test case (up to 10), visible in the Files changed tab
 - **Step summary** — Markdown written to `$GITHUB_STEP_SUMMARY` with verdict, score, delta vs baseline, and failing cases
@@ -51,7 +51,7 @@ When you use `--format github`, EvalAI produces:
 Example step summary:
 
 ```markdown
-## EvalAI Gate
+## EvalGate Gate
 
 ❌ **FAILED**: score_below_baseline
 
@@ -62,12 +62,12 @@ Example step summary:
 - **Hello** — expected: greeting, got "Hi there"
 - **2 + 2 = ?** — expected: 4, got ""
 
-[View Dashboard](https://v0-ai-evaluation-platform-nu.vercel.app/...)
+[View Dashboard](https://evalgate.com/...)
 ```
 
 ## `--onFail import` Behavior
 
-When the gate fails, `--onFail import` uploads the run metadata and failing cases to the EvalAI dashboard. This lets you:
+When the gate fails, `--onFail import` uploads the run metadata and failing cases to the EvalGate dashboard. This lets you:
 
 - Debug failures without re-running locally
 - See which cases failed and why
@@ -88,11 +88,11 @@ See [examples/quickstart-ci](../../examples/quickstart-ci) for a minimal project
 | `--minScore N` | Override minimum score (default: from baseline) |
 | `--maxDrop N` | Fail if score dropped > N from baseline |
 | `--warnDrop N` | Warn (exit 8) if score dropped > N but < maxDrop — near-regression early warning |
-| `--evaluationId ID` | Override `evalai.config.json` |
+| `--evaluationId ID` | Override `evalgate.config.json` |
 | `--baseline published\|previous\|production` | Which baseline to compare against |
 
 ## Troubleshooting
 
 - **Missing EVALAI_API_KEY** — Add the secret in repo Settings → Secrets
-- **Evaluation not found** — Ensure `evalai.config.json` has the correct `evaluationId`
+- **Evaluation not found** — Ensure `evalgate.config.json` has the correct `evaluationId`
 - **No baseline** — Run the evaluation at least once and publish a baseline in the dashboard

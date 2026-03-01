@@ -1,6 +1,6 @@
 "use strict";
 /**
- * EvalAI Runtime Context - Layer 1 Foundation
+ * EvalGate Runtime Context - Layer 1 Foundation
  *
  * Execution context management for specifications.
  * Provides clean isolation and proper resource management.

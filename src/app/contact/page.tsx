@@ -14,7 +14,7 @@ export default function ContactPage() {
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4">
 					<div className="flex items-center justify-between gap-3">
 						<Link href="/" className="text-base sm:text-xl font-bold truncate">
-							AI Evaluation Platform
+							EvalGate
 						</Link>
 						<Button asChild size="sm" className="h-9 flex-shrink-0">
 							<Link href="/dashboard">Dashboard</Link>
@@ -116,8 +116,8 @@ export default function ContactPage() {
 							Open Source
 						</h2>
 						<p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 max-w-2xl mx-auto px-2">
-							AI Evaluation Platform is open source. Star the repo, open issues,
-							submit PRs — all contributions are welcome.
+							EvalGate is open source. Star the repo, open issues, submit PRs —
+							all contributions are welcome.
 						</p>
 						<div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
 							<Button variant="outline" asChild className="w-full sm:w-auto">

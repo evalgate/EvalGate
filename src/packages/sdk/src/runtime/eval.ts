@@ -1,5 +1,5 @@
 /**
- * EvalAI defineEval() DSL - Layer 1 Foundation
+ * EvalGate defineEval() DSL - Layer 1 Foundation
  *
  * The core DSL function for defining behavioral specifications.
  * Uses content-addressable identity with AST position for stability.
@@ -229,7 +229,7 @@ function defineEvalImpl<_TInput = string>(
 export const defineEval: DefineEvalFunction = defineEvalImpl;
 
 /**
- * Convenience export for evalai.test() alias
+ * Convenience export for evalai.test() alias (backward compatibility)
  * Provides alternative naming that matches the original roadmap vision
  */
 export const evalai = {

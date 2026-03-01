@@ -42,7 +42,7 @@ jobs:
         run: ruff format --check src/ tests/
 
       - name: Mypy typecheck
-        run: mypy src/evalai_sdk/ --ignore-missing-imports
+        run: mypy src/evalgate_sdk/ --ignore-missing-imports
         continue-on-error: true
 
   # ── 2. Tests ───────────────────────────────────────────────────────
@@ -109,12 +109,12 @@ jobs:
         run: |
           pip install dist/*.whl
           python -c "
-          import evalai_sdk
-          print(f'Version: {evalai_sdk.__version__}')
+          import evalgate_sdk
+          print(f'Version: {evalgate_sdk.__version__}')
 
           required = [
               'AIEvalClient',
-              'EvalAIError',
+              'EvalGateError',
               'create_test_suite',
               'expect',
               'WorkflowTracer',
@@ -124,19 +124,19 @@ jobs:
               'GATE_EXIT',
           ]
 
-          missing = [name for name in required if not hasattr(evalai_sdk, name)]
+          missing = [name for name in required if not hasattr(evalgate_sdk, name)]
           if missing:
               print(f'ERROR: Missing exports: {missing}')
               exit(1)
 
           print(f'All {len(required)} core exports verified')
-          print(f'Total exports: {len([x for x in dir(evalai_sdk) if not x.startswith(\"_\")])}')
+          print(f'Total exports: {len([x for x in dir(evalgate_sdk) if not x.startswith(\"_\")])}')
           "
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: evalai-sdk-python-package
+          name: evalgate-sdk-python-package
           path: src/packages/sdk-python/dist/*
 
       - name: Package summary
@@ -148,7 +148,7 @@ jobs:
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Build (sdist + wheel) | ✅ |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Export verification | ✅ |" >> "$GITHUB_STEP_SUMMARY"
-          VERSION=$(python -c "from evalai_sdk._version import __version__; print(__version__)")
+          VERSION=$(python -c "from evalgate_sdk._version import __version__; print(__version__)")
           echo "| Version | $VERSION |" >> "$GITHUB_STEP_SUMMARY"
           ls -lh dist/ | tail -n+2 | while read line; do
             echo "| $(echo $line | awk '{print $NF}') | $(echo $line | awk '{print $5}') |" >> "$GITHUB_STEP_SUMMARY"

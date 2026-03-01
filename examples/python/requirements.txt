@@ -1,2 +1,2 @@
-pauly4010-evalai-sdk[all]>=1.0.0
+pauly4010-evalgate-sdk[all]>=2.0.0
 jupyter>=1.0

@@ -1,4 +1,4 @@
-"""AIEvalClient — async HTTP client for the AI Evaluation Platform API."""
+"""AIEvalClient — async HTTP client for the EvalGate API."""
 
 from __future__ import annotations
 
@@ -9,13 +9,13 @@ from typing import Any, TypeVar
 
 import httpx
 
-from evalai_sdk._version import SDK_VERSION, SPEC_VERSION, __version__
-from evalai_sdk.errors import (
-    EvalAIError,
+from evalgate_sdk._version import SDK_VERSION, SPEC_VERSION, __version__
+from evalgate_sdk.errors import (
+    EvalGateError,
     NetworkError,
     create_error_from_response,
 )
-from evalai_sdk.types import (
+from evalgate_sdk.types import (
     Annotation,
     AnnotationItem,
     AnnotationTask,
@@ -67,28 +67,56 @@ from evalai_sdk.types import (
     WebhookDelivery,
 )
 
-logger = logging.getLogger("evalai_sdk")
+logger = logging.getLogger("evalgate_sdk")
 
 T = TypeVar("T")
 
 
-def _env(name: str) -> str | None:
-    return os.environ.get(name)
+_LEGACY_WARNED: set[str] = set()
+
+
+def _env(name: str, legacy: str | None = None) -> str | None:
+    v = os.environ.get(name)
+    if v:
+        return v
+    if legacy:
+        legacy_val = os.environ.get(legacy)
+        if legacy_val and legacy not in _LEGACY_WARNED:
+            import warnings
+
+            warnings.warn(
+                f"[EvalGate] Deprecation: {legacy} is deprecated. Use {name} instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            _LEGACY_WARNED.add(legacy)
+        return legacy_val
+    return None
 
 
 def _load_config_file() -> dict[str, Any]:
-    """Load saved config from .evalai/config.json if it exists."""
+    """Load saved config from .evalgate/config.json or .evalai/config.json if it exists."""
     import json
+    import warnings
     from pathlib import Path
 
     for parent in [Path.cwd(), *Path.cwd().parents]:
-        config_path = parent / ".evalai" / "config.json"
-        if config_path.exists():
-            try:
-                data = json.loads(config_path.read_text())
-                return data if isinstance(data, dict) else {}
-            except Exception:
-                return {}
+        for cfg_dir in (".evalgate", ".evalai"):
+            config_path = parent / cfg_dir / "config.json"
+            if config_path.exists():
+                try:
+                    data = json.loads(config_path.read_text())
+                    if cfg_dir == ".evalai" and ".evalai" not in _LEGACY_WARNED:
+                        warnings.warn(
+                            "[EvalGate] Deprecation: .evalai/ config is deprecated. "
+                            "Migrate to .evalgate/ (e.g. mv .evalai .evalgate).",
+                            DeprecationWarning,
+                            stacklevel=2,
+                        )
+                        _LEGACY_WARNED.add(".evalai")
+                    return data if isinstance(data, dict) else {}
+                except Exception:
+                    pass
     return {}
 
 
@@ -363,13 +391,13 @@ class OrganizationsAPI(_BaseAPI):
 
 
 class AIEvalClient:
-    """Async client for the AI Evaluation Platform API.
+    """Async client for the EvalGate API.
 
     Usage::
 
         client = AIEvalClient(api_key="sk-...")
 
-        # Or zero-config (reads EVALAI_API_KEY env var)
+        # Or zero-config (reads EVALGATE_API_KEY env var)
         client = AIEvalClient.init()
 
         trace = await client.traces.create(CreateTraceParams(name="my-trace"))
@@ -385,9 +413,9 @@ class AIEvalClient:
         **kwargs: Any,
     ) -> None:
         file_cfg = _load_config_file()
-        self._api_key = api_key or _env("EVALAI_API_KEY") or file_cfg.get("api_key", "")
-        self._base_url = (base_url or _env("EVALAI_BASE_URL") or file_cfg.get("base_url") or "http://localhost:3000").rstrip("/")
-        self._organization_id = organization_id or (int(v) if (v := _env("EVALAI_ORGANIZATION_ID")) else None)
+        self._api_key = api_key or _env("EVALGATE_API_KEY", "EVALAI_API_KEY") or file_cfg.get("api_key", "")
+        self._base_url = (base_url or _env("EVALGATE_BASE_URL", "EVALAI_BASE_URL") or file_cfg.get("base_url") or "http://localhost:3000").rstrip("/")
+        self._organization_id = organization_id or (int(v) if (v := _env("EVALGATE_ORGANIZATION_ID", "EVALAI_ORGANIZATION_ID")) else None)
         self._timeout = timeout / 1000
         self._debug = debug
         self._config = ClientConfig(
@@ -410,7 +438,7 @@ class AIEvalClient:
 
     @classmethod
     def init(cls, **kwargs: Any) -> AIEvalClient:
-        """Zero-config factory — reads EVALAI_API_KEY, EVALAI_BASE_URL, EVALAI_ORGANIZATION_ID."""
+        """Zero-config factory — reads EVALGATE_API_KEY, EVALGATE_BASE_URL, EVALGATE_ORGANIZATION_ID."""
         return cls(**kwargs)
 
     @property
@@ -424,8 +452,8 @@ class AIEvalClient:
             headers: dict[str, str] = {
                 "User-Agent": f"evalai-python/{__version__}",
                 "Content-Type": "application/json",
-                "X-EvalAI-SDK-Version": SDK_VERSION,
-                "X-EvalAI-Spec-Version": SPEC_VERSION,
+                "X-EvalGate-SDK-Version": SDK_VERSION,
+                "X-EvalGate-Spec-Version": SPEC_VERSION,
             }
             if self._api_key:
                 headers["Authorization"] = f"Bearer {self._api_key}"
@@ -480,10 +508,10 @@ class AIEvalClient:
                     return {}
                 return resp.json()
 
-            except EvalAIError:
+            except EvalGateError:
                 raise
             except httpx.TimeoutException as exc:
-                last_error = EvalAIError(str(exc), "TIMEOUT", 408)
+                last_error = EvalGateError(str(exc), "TIMEOUT", 408)
                 if attempt < max_attempts:
                     import asyncio
 

@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import { EvalAIError } from "../errors";
+import { EvalGateError } from "../errors";
 import { createTestSuite } from "../testing";
 
 describe("Executor failure modes", () => {
@@ -29,8 +29,8 @@ describe("Executor failure modes", () => {
 		expect(result.results[0].passed).toBe(false);
 	});
 
-	it("429 upstream: executor throws rate limit — error captured, retry guidance in EvalAIError", async () => {
-		const err = new EvalAIError(
+	it("429 upstream: executor throws rate limit — error captured, retry guidance in EvalGateError", async () => {
+		const err = new EvalGateError(
 			"Rate limit exceeded",
 			"RATE_LIMIT_EXCEEDED",
 			429,

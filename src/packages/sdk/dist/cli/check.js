@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 "use strict";
 /**
- * evalai check — CI/CD evaluation gate
+ * evalgate check — CI/CD evaluation gate
  *
  * Usage:
- *   evalai check --minScore 92 --evaluationId 42
- *   evalai check --minScore 90 --maxDrop 5 --evaluationId 42
- *   evalai check --policy HIPAA --evaluationId 42
- *   evalai check --baseline published --evaluationId 42
+ *   evalgate check --minScore 92 --evaluationId 42
+ *   evalgate check --minScore 90 --maxDrop 5 --evaluationId 42
+ *   evalgate check --policy HIPAA --evaluationId 42
+ *   evalgate check --baseline published --evaluationId 42
  *
  * Flags:
  *   --minScore <n>       Fail if quality score < n (0-100)
@@ -17,8 +17,8 @@
  *   --policy <name>      Enforce a compliance policy (e.g. HIPAA, SOC2, GDPR)
  *   --baseline <mode>   Baseline comparison mode: "published" (default), "previous", or "production"
  *   --evaluationId <id>  Required. The evaluation to gate on.
- *   --baseUrl <url>      API base URL (default: EVALAI_BASE_URL or http://localhost:3000)
- *   --apiKey <key>       API key (default: EVALAI_API_KEY env var)
+ *   --baseUrl <url>      API base URL (default: EVALGATE_BASE_URL or http://localhost:3000)
+ *   --apiKey <key>       API key (default: EVALGATE_API_KEY env var)
  *   --share <mode>       Share link: "always" | "fail" | "never" (default: never)
  *                        fail = create public share link only when gate fails (CI-friendly)
  *   --pr-comment-out <file>  Write PR comment markdown to file (for GitHub Action to post)
@@ -36,8 +36,8 @@
  *   8  — Gate warned: near-regression (warnDrop ≤ drop < maxDrop)
  *
  * Environment:
- *   EVALAI_BASE_URL  — API base URL (default: http://localhost:3000)
- *   EVALAI_API_KEY   — API key for authentication
+ *   EVALGATE_BASE_URL  — API base URL (default: http://localhost:3000)
+ *   EVALGATE_API_KEY   — API key for authentication
  */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -106,8 +106,11 @@ function parseArgs(argv) {
             }
         }
     }
-    let baseUrl = args.baseUrl || process.env.EVALAI_BASE_URL || "http://localhost:3000";
-    const apiKey = args.apiKey || process.env.EVALAI_API_KEY || "";
+    let baseUrl = args.baseUrl || process.env.EVALGATE_BASE_URL || "http://localhost:3000";
+    const apiKey = args.apiKey ||
+        process.env.EVALGATE_API_KEY ||
+        process.env.EVALAI_API_KEY ||
+        "";
     let minScore = parseInt(args.minScore || "0", 10);
     let maxDrop = args.maxDrop ? parseInt(args.maxDrop, 10) : undefined;
     let warnDrop = args.warnDrop ? parseInt(args.warnDrop, 10) : undefined;
@@ -142,7 +145,9 @@ function parseArgs(argv) {
     const config = (0, config_1.loadConfig)(process.cwd());
     const merged = (0, config_1.mergeConfigWithArgs)(config, {
         evaluationId: args.evaluationId,
-        baseUrl: args.baseUrl || process.env.EVALAI_BASE_URL,
+        baseUrl: args.baseUrl ||
+            process.env.EVALGATE_BASE_URL ||
+            process.env.EVALAI_BASE_URL,
         minScore: args.minScore,
         maxDrop: args.maxDrop,
         warnDrop: args.warnDrop,
@@ -172,14 +177,14 @@ function parseArgs(argv) {
         return {
             ok: false,
             exitCode: constants_1.EXIT.BAD_ARGS,
-            message: "Error: --apiKey or EVALAI_API_KEY is required",
+            message: "Error: --apiKey or EVALGATE_API_KEY is required",
         };
     }
     if (!evaluationId) {
         return {
             ok: false,
             exitCode: constants_1.EXIT.BAD_ARGS,
-            message: "Run npx evalai init and paste your evaluationId, or pass --evaluationId.",
+            message: "Run npx evalgate init and paste your evaluationId, or pass --evaluationId.",
         };
     }
     if (Number.isNaN(minScore) || minScore < 0 || minScore > 100) {
@@ -230,10 +235,10 @@ async function runCheck(args) {
     const qualityResult = await (0, api_1.fetchQualityLatest)(args.baseUrl, args.apiKey, args.evaluationId, args.baseline);
     if (!qualityResult.ok) {
         if (qualityResult.status === 0) {
-            console.error(`EvalAI gate ERROR: Network failure — ${qualityResult.body}`);
+            console.error(`EvalGate gate ERROR: Network failure — ${qualityResult.body}`);
         }
         else {
-            console.error(`EvalAI gate ERROR: API returned ${qualityResult.status} — ${qualityResult.body}`);
+            console.error(`EvalGate gate ERROR: API returned ${qualityResult.status} — ${qualityResult.body}`);
         }
         return constants_1.EXIT.API_ERROR;
     }
@@ -271,9 +276,9 @@ async function runCheck(args) {
         baselineRunId: quality?.baselineRunId ?? undefined,
         ciRunUrl: ci?.runUrl ?? undefined,
     });
-    // Persist report artifact so `evalai explain` works with zero flags
+    // Persist report artifact so `evalgate explain` works with zero flags
     try {
-        const reportDir = path.join(process.cwd(), ".evalai");
+        const reportDir = path.join(process.cwd(), ".evalgate");
         if (!fs.existsSync(reportDir))
             fs.mkdirSync(reportDir, { recursive: true });
         fs.writeFileSync(path.join(reportDir, "last-report.json"), JSON.stringify(report, null, 2), "utf8");
@@ -289,7 +294,7 @@ async function runCheck(args) {
     console.log(formatted);
     // Guided flow hint on failure
     if (!gateResult.passed) {
-        console.error("\nNext: evalai explain");
+        console.error("\nNext: evalgate explain");
     }
     // --pr-comment-out: write markdown to file for GitHub Action to post
     if (args.prCommentOut) {
@@ -298,7 +303,7 @@ async function runCheck(args) {
             fs.writeFileSync(args.prCommentOut, markdown, "utf8");
         }
         catch (err) {
-            console.error(`EvalAI: failed to write PR comment to ${args.prCommentOut}: ${err instanceof Error ? err.message : String(err)}`);
+            console.error(`EvalGate: failed to write PR comment to ${args.prCommentOut}: ${err instanceof Error ? err.message : String(err)}`);
         }
     }
     // --onFail import: when gate fails, import run with CI context
@@ -323,11 +328,11 @@ async function runCheck(args) {
             const importRes = await (0, api_1.importRunOnFail)(args.baseUrl, args.apiKey, args.evaluationId, importResults, {
                 idempotencyKey,
                 ci,
-                importClientVersion: "evalai-cli",
+                importClientVersion: "evalgate-cli",
                 checkReport: report,
             });
             if (!importRes.ok) {
-                console.error(`EvalAI import (onFail): ${importRes.status} — ${importRes.body}`);
+                console.error(`EvalGate import (onFail): ${importRes.status} — ${importRes.body}`);
             }
         }
     }
@@ -344,7 +349,7 @@ if (isDirectRun) {
     runCheck(parsed.args)
         .then((code) => process.exit(code))
         .catch((err) => {
-        console.error(`EvalAI gate ERROR: ${err instanceof Error ? err.message : String(err)}`);
+        console.error(`EvalGate gate ERROR: ${err instanceof Error ? err.message : String(err)}`);
         process.exit(constants_1.EXIT.API_ERROR);
     });
 }

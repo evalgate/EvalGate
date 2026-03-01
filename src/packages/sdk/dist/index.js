@@ -1,14 +1,14 @@
 "use strict";
 /**
- * AI Evaluation Platform SDK
+ * EvalGate SDK
  *
- * Official TypeScript/JavaScript SDK for the AI Evaluation Platform.
+ * Official TypeScript/JavaScript SDK for EvalGate.
  * Build confidence in your AI systems with comprehensive evaluation tools.
  *
  * @packageDocumentation
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createTestSuite = exports.SpecRegistrationError = exports.SpecExecutionError = exports.RuntimeError = exports.EvalRuntimeError = exports.setActiveRuntime = exports.getActiveRuntime = exports.disposeActiveRuntime = exports.createEvalRuntime = exports.defaultLocalExecutor = exports.createLocalExecutor = exports.evalai = exports.defineSuite = exports.defineEval = exports.createResult = exports.createEvalContext = exports.validateContext = exports.mergeContexts = exports.cloneContext = exports.ContextManager = exports.withContext = exports.getContext = exports.createContext = exports.withinRange = exports.similarTo = exports.respondedWithinTime = exports.notContainsPII = exports.matchesSchema = exports.matchesPattern = exports.isValidURL = exports.isValidEmail = exports.hasValidCodeSyntax = exports.hasSentiment = exports.hasReadabilityScore = exports.hasNoToxicity = exports.hasNoHallucinations = exports.hasLength = exports.hasFactualAccuracy = exports.followsInstructions = exports.expect = exports.containsLanguage = exports.containsKeywords = exports.containsJSON = exports.containsAllRequiredFields = exports.NetworkError = exports.ValidationError = exports.AuthenticationError = exports.RateLimitError = exports.EvalAIError = exports.AIEvalClient = void 0;
+exports.createTestSuite = exports.SpecRegistrationError = exports.SpecExecutionError = exports.RuntimeError = exports.EvalRuntimeError = exports.setActiveRuntime = exports.getActiveRuntime = exports.disposeActiveRuntime = exports.createEvalRuntime = exports.defaultLocalExecutor = exports.createLocalExecutor = exports.evalai = exports.defineSuite = exports.defineEval = exports.createResult = exports.createEvalContext = exports.validateContext = exports.mergeContexts = exports.cloneContext = exports.ContextManager = exports.withContext = exports.getContext = exports.createContext = exports.withinRange = exports.similarTo = exports.respondedWithinTime = exports.notContainsPII = exports.matchesSchema = exports.matchesPattern = exports.isValidURL = exports.isValidEmail = exports.hasValidCodeSyntax = exports.hasSentiment = exports.hasReadabilityScore = exports.hasNoToxicity = exports.hasNoHallucinations = exports.hasLength = exports.hasFactualAccuracy = exports.followsInstructions = exports.expect = exports.containsLanguage = exports.containsKeywords = exports.containsJSON = exports.containsAllRequiredFields = exports.NetworkError = exports.ValidationError = exports.AuthenticationError = exports.RateLimitError = exports.EvalGateError = exports.AIEvalClient = void 0;
 exports.WorkflowTracer = exports.traceWorkflowStep = exports.traceLangChainAgent = exports.traceCrewAI = exports.traceAutoGen = exports.createWorkflowTracer = exports.EvaluationTemplates = exports.streamEvaluation = exports.RateLimiter = exports.batchRead = exports.batchProcess = exports.REPORT_SCHEMA_VERSION = exports.GATE_EXIT = exports.GATE_CATEGORY = exports.ARTIFACTS = exports.PaginatedIterator = exports.encodeCursor = exports.decodeCursor = exports.createPaginatedIterator = exports.autoPaginate = exports.extendExpectWithToPassGate = exports.Logger = exports.openAIChatEval = exports.traceOpenAI = exports.traceAnthropic = exports.runCheck = exports.parseArgs = exports.EXIT = exports.RequestCache = exports.CacheTTL = exports.RequestBatcher = exports.importData = exports.exportData = exports.compareSnapshots = exports.saveSnapshot = exports.compareWithSnapshot = exports.snapshot = exports.TestSuite = void 0;
 // Main SDK exports
 var client_1 = require("./client");
@@ -16,7 +16,7 @@ Object.defineProperty(exports, "AIEvalClient", { enumerable: true, get: function
 // Enhanced error handling (Tier 1.5)
 const errors_1 = require("./errors");
 Object.defineProperty(exports, "AuthenticationError", { enumerable: true, get: function () { return errors_1.AuthenticationError; } });
-Object.defineProperty(exports, "EvalAIError", { enumerable: true, get: function () { return errors_1.EvalAIError; } });
+Object.defineProperty(exports, "EvalGateError", { enumerable: true, get: function () { return errors_1.EvalGateError; } });
 Object.defineProperty(exports, "NetworkError", { enumerable: true, get: function () { return errors_1.NetworkError; } });
 Object.defineProperty(exports, "RateLimitError", { enumerable: true, get: function () { return errors_1.RateLimitError; } });
 Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function () { return errors_1.SDKError; } });

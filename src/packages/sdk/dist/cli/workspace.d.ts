@@ -1,16 +1,19 @@
 /**
- * CORE-402: Centralized .evalai workspace resolution
+ * CORE-402: Centralized .evalgate workspace resolution
  *
- * Provides unified workspace path resolution for all EvalAI CLI commands
+ * Provides unified workspace path resolution for all EvalGate CLI commands.
+ * Prefers .evalgate/; falls back to .evalai/ for backward compatibility.
  */
 /**
- * EvalAI workspace paths
+ * EvalGate workspace paths
  */
 export interface EvalWorkspace {
     /** Project root directory */
     root: string;
-    /** .evalai directory */
-    evalaiDir: string;
+    /** .evalgate directory (or .evalai for legacy projects) */
+    evalDir: string;
+    /** @deprecated Use evalDir */
+    evalgateDir: string;
     /** runs directory */
     runsDir: string;
     /** manifest.json path */
@@ -23,6 +26,6 @@ export interface EvalWorkspace {
     baselinePath: string;
 }
 /**
- * Resolve EvalAI workspace paths
+ * Resolve EvalGate workspace paths. Prefers .evalgate/, falls back to .evalai/.
  */
 export declare function resolveEvalWorkspace(projectRoot?: string): EvalWorkspace;

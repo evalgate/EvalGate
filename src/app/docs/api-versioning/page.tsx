@@ -19,7 +19,7 @@ export default function APIVersioningPage() {
 					<div className="flex items-center justify-between gap-3">
 						<Link href="/">
 							<h1 className="text-base sm:text-xl font-bold truncate">
-								AI Evaluation Platform
+								EvalGate
 							</h1>
 						</Link>
 						<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -139,16 +139,16 @@ export default function APIVersioningPage() {
 								<tbody>
 									<tr>
 										<td className="py-2">
-											<code>X-EvalAI-SDK-Version</code>
+											<code>X-EvalGate-SDK-Version</code>
 										</td>
 										<td className="py-2">
-											<code>@pauly4010/evalai-sdk</code> package version
+											<code>@evalgate/sdk</code> package version
 										</td>
 										<td className="py-2">Identify SDK release</td>
 									</tr>
 									<tr>
 										<td className="py-2">
-											<code>X-EvalAI-Spec-Version</code>
+											<code>X-EvalGate-Spec-Version</code>
 										</td>
 										<td className="py-2">
 											<code>docs/openapi.json</code> <code>info.version</code>
@@ -370,8 +370,8 @@ export default function APIVersioningPage() {
 GET /api/v1/evaluations/42
 Host: eval.ai
 Authorization: Bearer sk_test_...
-X-EvalAI-SDK-Version: 1.5.0
-X-EvalAI-Spec-Version: 1.0.0
+X-EvalGate-SDK-Version: 1.5.0
+X-EvalGate-Spec-Version: 1.0.0
 Content-Type: application/json`}</pre>
 						</div>
 
@@ -380,9 +380,9 @@ Content-Type: application/json`}</pre>
 							<div className="bg-muted rounded-lg p-4 font-mono text-sm overflow-x-auto">
 								<pre>{`HTTP/2 200 OK
 Content-Type: application/json
-X-EvalAI-API-Version: v1
-X-EvalAI-Spec-Version: 1.0.0
-X-EvalAI-Deprecation-Warning: endpoint will be deprecated on 2024-06-01`}</pre>
+X-EvalGate-API-Version: v1
+X-EvalGate-Spec-Version: 1.0.0
+X-EvalGate-Deprecation-Warning: endpoint will be deprecated on 2024-06-01`}</pre>
 							</div>
 						</div>
 					</Card>

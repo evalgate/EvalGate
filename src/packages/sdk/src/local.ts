@@ -31,7 +31,7 @@ export class LocalStorage {
 	private spans: Map<string, Span[]> = new Map();
 
 	constructor(options: LocalStorageOptions = {}) {
-		this.directory = options.directory || "./.evalai-data";
+		this.directory = options.directory || "./.evalgate-data";
 		this.autoSave = options.autoSave !== false;
 		this.initialize();
 	}

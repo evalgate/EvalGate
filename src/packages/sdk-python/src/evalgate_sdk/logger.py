@@ -31,7 +31,7 @@ class Logger:
         self._level = level
         self._prefix = prefix
         self._handler = handler
-        self._py_logger = logging.getLogger(f"evalai_sdk.{prefix}")
+        self._py_logger = logging.getLogger(f"evalgate_sdk.{prefix}")
         self._py_logger.setLevel(_LEVEL_MAP.get(level, logging.INFO))
         if not self._py_logger.handlers:
             h = logging.StreamHandler(sys.stderr)

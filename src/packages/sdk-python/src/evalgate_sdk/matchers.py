@@ -12,7 +12,7 @@ def to_pass_gate(result: Any) -> bool:
 
     Usage in pytest::
 
-        from evalai_sdk.matchers import to_pass_gate
+        from evalgate_sdk.matchers import to_pass_gate
 
         result = await openai_chat_eval(...)
         assert to_pass_gate(result)

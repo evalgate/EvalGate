@@ -17,7 +17,7 @@ export interface ErrorDocumentation {
  * try {
  *   await client.traces.create({ ... });
  * } catch (error) {
- *   if (error instanceof EvalAIError) {
+ *   if (error instanceof EvalGateError) {
  *     console.log(error.code); // 'RATE_LIMIT_EXCEEDED'
  *     console.log(error.documentation); // Link to docs
  *     console.log(error.solutions); // Array of solutions
@@ -30,7 +30,7 @@ export interface ErrorDocumentation {
  * }
  * ```
  */
-export declare class EvalAIError extends Error {
+export declare class EvalGateError extends Error {
     /** Error code for programmatic handling */
     code: string;
     /** HTTP status code */
@@ -66,17 +66,17 @@ export declare class EvalAIError extends Error {
 /**
  * Create an error from an HTTP response
  */
-export declare function createErrorFromResponse(response: Response, data: unknown): EvalAIError;
-export declare class RateLimitError extends EvalAIError {
+export declare function createErrorFromResponse(response: Response, data: unknown): EvalGateError;
+export declare class RateLimitError extends EvalGateError {
     constructor(message: string, retryAfter?: number);
 }
-export declare class AuthenticationError extends EvalAIError {
+export declare class AuthenticationError extends EvalGateError {
     constructor(message?: string);
 }
-export declare class ValidationError extends EvalAIError {
+export declare class ValidationError extends EvalGateError {
     constructor(message?: string, details?: unknown);
 }
-export declare class NetworkError extends EvalAIError {
+export declare class NetworkError extends EvalGateError {
     constructor(message?: string);
 }
-export { EvalAIError as SDKError };
+export { EvalGateError as SDKError };

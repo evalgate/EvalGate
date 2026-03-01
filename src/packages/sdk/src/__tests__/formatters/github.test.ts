@@ -22,10 +22,10 @@ describe("formatGitHub", () => {
 			],
 		};
 		const out = formatGitHub(report);
-		expect(out).toContain("::error title=EvalAI regression::");
+		expect(out).toContain("::error title=EvalGate regression::");
 		expect(out).toContain("TestCase 1 failed");
 		expect(out).toContain("TestCase 2 failed");
-		expect(out).toContain("✗ EvalAI gate FAILED");
+		expect(out).toContain("✗ EvalGate gate FAILED");
 		expect(out).toContain("Score: 60/100");
 	});
 
@@ -38,7 +38,7 @@ describe("formatGitHub", () => {
 		};
 		const out = formatGitHub(report);
 		expect(out).not.toContain("::error");
-		expect(out).toContain("✓ EvalAI gate PASSED");
+		expect(out).toContain("✓ EvalGate gate PASSED");
 	});
 
 	it("emits minimal stdout (verdict + score + link)", () => {
@@ -50,7 +50,7 @@ describe("formatGitHub", () => {
 			dashboardUrl: "https://example.com/dash",
 		};
 		const out = formatGitHub(report);
-		expect(out).toContain("✓ EvalAI gate PASSED");
+		expect(out).toContain("✓ EvalGate gate PASSED");
 		expect(out).toContain("Score: 90/100");
 		expect(out).toContain("Dashboard: https://example.com/dash");
 	});
@@ -81,7 +81,7 @@ describe("appendStepSummary", () => {
 
 	it("writes summary to GITHUB_STEP_SUMMARY when set", () => {
 		const tmpDir = process.env.TEMP || process.env.TMP || "/tmp";
-		summaryPath = `${tmpDir}/evalai-step-summary-${Date.now()}.md`;
+		summaryPath = `${tmpDir}/evalgate-step-summary-${Date.now()}.md`;
 		process.env.GITHUB_STEP_SUMMARY = summaryPath;
 
 		const report: CheckReport = {
@@ -97,7 +97,7 @@ describe("appendStepSummary", () => {
 
 		expect(fs.existsSync(summaryPath)).toBe(true);
 		const content = fs.readFileSync(summaryPath, "utf8");
-		expect(content).toContain("## EvalAI Gate");
+		expect(content).toContain("## EvalGate Gate");
 		expect(content).toContain("FAILED");
 		expect(content).toContain("70/100");
 		expect(content).toContain("tc1");

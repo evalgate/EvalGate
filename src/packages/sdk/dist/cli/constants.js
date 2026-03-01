@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EXIT = void 0;
 /**
- * Standardized exit codes for evalai check.
+ * Standardized exit codes for evalgate check.
  */
 exports.EXIT = {
     PASS: 0,

@@ -43,7 +43,7 @@ export default function LangChainIntegrationGuide() {
 
 					<h2>Installation</h2>
 					<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4">
-						npm install @pauly4010/evalai-sdk langchain
+						npm install @evalgate/sdk langchain
 					</div>
 
 					<h2>Environment Setup</h2>
@@ -60,7 +60,7 @@ OPENAI_API_KEY=your_openai_key`}
 
 					<h3>1. Initialize the SDK</h3>
 					<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-						{`import { AIEvalClient } from '@pauly4010/evalai-sdk'
+						{`import { AIEvalClient } from '@evalgate/sdk'
 import { ChatOpenAI } from 'langchain/chat_models/openai'
 import { LLMChain } from 'langchain/chains'
 

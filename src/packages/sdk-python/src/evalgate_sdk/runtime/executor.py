@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import time
 
-from evalai_sdk.runtime.types import (
+from evalgate_sdk.runtime.types import (
     EvalContext,
     EvalResult,
     EvalSpec,

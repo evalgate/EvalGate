@@ -4,6 +4,10 @@ When you change `docs/openapi.json`, add an entry here before running `pnpm open
 
 Format: `## X.Y.Z` or `## [X.Y.Z]` with a short description.
 
+## 2.0.0
+
+- Align with SDK 2.0.0 (EvalGate rebrand)
+
 ## 1.9.1
 
 - Align OpenAPI spec version with SDK 1.9.1 (security, type fixes, PostgreSQL migration)

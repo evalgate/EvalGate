@@ -128,18 +128,17 @@ export function Footer() {
 				<div className="mt-8 sm:mt-12 border-t border-border pt-8">
 					<div className="flex flex-col sm:flex-row items-center justify-between gap-4">
 						<p className="text-sm text-muted-foreground">
-							© {new Date().getFullYear()} AI Evaluation Platform. All rights
-							reserved.
+							© {new Date().getFullYear()} EvalGate. All rights reserved.
 						</p>
 						<div className="flex gap-2 items-center">
 							<a
-								href="https://www.npmjs.com/package/@pauly4010/evalai-sdk"
+								href="https://www.npmjs.com/package/@evalgate/sdk"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="opacity-70 hover:opacity-100 transition-opacity"
 							>
 								<Image
-									src="https://img.shields.io/npm/v/@pauly4010/evalai-sdk.svg"
+									src="https://img.shields.io/npm/v/@evalgate/sdk.svg"
 									alt="npm version"
 									width={20}
 									height={20}
@@ -147,13 +146,13 @@ export function Footer() {
 								/>
 							</a>
 							<a
-								href="https://www.npmjs.com/package/@pauly4010/evalai-sdk"
+								href="https://www.npmjs.com/package/@evalgate/sdk"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="opacity-70 hover:opacity-100 transition-opacity"
 							>
 								<Image
-									src="https://img.shields.io/npm/dm/@pauly4010/evalai-sdk.svg"
+									src="https://img.shields.io/npm/dm/@evalgate/sdk.svg"
 									alt="npm downloads"
 									width={20}
 									height={20}
@@ -161,13 +160,13 @@ export function Footer() {
 								/>
 							</a>
 							<a
-								href="https://pypi.org/project/pauly4010-evalai-sdk/"
+								href="https://pypi.org/project/pauly4010-evalgate-sdk/"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="opacity-70 hover:opacity-100 transition-opacity"
 							>
 								<Image
-									src="https://img.shields.io/pypi/v/pauly4010-evalai-sdk.svg"
+									src="https://img.shields.io/pypi/v/pauly4010-evalgate-sdk.svg"
 									alt="PyPI version"
 									width={20}
 									height={20}

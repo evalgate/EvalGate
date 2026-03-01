@@ -1,7 +1,7 @@
 import { type Logger } from "./logger";
 import type { Annotation, AnnotationItem, AnnotationTask, APIKey, APIKeyUsage, APIKeyWithSecret, ClientConfig, CreateAnnotationItemParams, CreateAnnotationParams, CreateAnnotationTaskParams, CreateAPIKeyParams, CreateEvaluationParams, CreateLLMJudgeConfigParams, CreateRunParams, CreateSpanParams, CreateTestCaseParams, CreateTraceParams, CreateWebhookParams, Evaluation, EvaluationRun, EvaluationRunDetail, GetLLMJudgeAlignmentParams, GetUsageParams, ListAnnotationItemsParams, ListAnnotationsParams, ListAnnotationTasksParams, ListAPIKeysParams, ListEvaluationsParams, ListLLMJudgeConfigsParams, ListLLMJudgeResultsParams, ListTracesParams, ListWebhookDeliveriesParams, ListWebhooksParams, LLMJudgeAlignment, LLMJudgeConfig, LLMJudgeEvaluateResult, LLMJudgeResult, Organization, OrganizationLimits, RunLLMJudgeParams, Span, TestCase, Trace, TraceDetail, UpdateAPIKeyParams, UpdateEvaluationParams, UpdateTraceParams, UpdateWebhookParams, UsageStats, UsageSummary, Webhook, WebhookDelivery } from "./types";
 /**
- * AI Evaluation Platform SDK Client
+ * EvalGate SDK Client
  *
  * @example
  * ```typescript
@@ -48,15 +48,15 @@ export declare class AIEvalClient {
      * In browsers, you must provide config explicitly.
      *
      * Environment variables (Node.js only):
-     * - EVALAI_API_KEY or AI_EVAL_API_KEY: Your API key
-     * - EVALAI_ORGANIZATION_ID or AI_EVAL_ORGANIZATION_ID: Your organization ID
-     * - EVALAI_BASE_URL: Custom API base URL (optional)
+     * - EVALGATE_API_KEY (or EVALAI_API_KEY): Your API key
+     * - EVALGATE_ORGANIZATION_ID (or EVALAI_ORGANIZATION_ID): Your organization ID
+     * - EVALGATE_BASE_URL (or EVALAI_BASE_URL): Custom API base URL (optional)
      *
      * @example
      * ```typescript
      * // Node.js - reads from env vars:
-     * // EVALAI_API_KEY=your-key
-     * // EVALAI_ORGANIZATION_ID=123
+     * // EVALGATE_API_KEY=your-key
+     * // EVALGATE_ORGANIZATION_ID=123
      * const client = AIEvalClient.init();
      *
      * // Browser - must provide config:

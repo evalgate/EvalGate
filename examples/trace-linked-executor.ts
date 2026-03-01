@@ -13,7 +13,7 @@
  *   npx ts-node examples/trace-linked-executor.ts
  */
 
-import { AIEvalClient, WorkflowTracer } from "@pauly4010/evalai-sdk";
+import { AIEvalClient, WorkflowTracer } from "@evalgate/sdk";
 
 async function main() {
 	const client = new AIEvalClient({

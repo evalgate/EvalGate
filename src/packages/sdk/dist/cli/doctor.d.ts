@@ -1,5 +1,5 @@
 /**
- * evalai doctor — Comprehensive CI/CD readiness checklist.
+ * evalgate doctor — Comprehensive CI/CD readiness checklist.
  *
  * Runs itemized pass/fail checks with exact remediation commands.
  *
@@ -11,7 +11,7 @@
  * Flags:
  *   --report          Output JSON diagnostic bundle (redacted)
  *   --format <fmt>    Output format: human (default), json
- *   --apiKey <key>    API key (or EVALAI_API_KEY env)
+ *   --apiKey <key>    API key (or EVALGATE_API_KEY env)
  *   --baseUrl <url>   API base URL
  *   --evaluationId <id>  Evaluation to verify
  *   --baseline <mode> Baseline mode

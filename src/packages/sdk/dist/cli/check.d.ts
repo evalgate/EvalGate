@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * evalai check — CI/CD evaluation gate
+ * evalgate check — CI/CD evaluation gate
  *
  * Usage:
- *   evalai check --minScore 92 --evaluationId 42
- *   evalai check --minScore 90 --maxDrop 5 --evaluationId 42
- *   evalai check --policy HIPAA --evaluationId 42
- *   evalai check --baseline published --evaluationId 42
+ *   evalgate check --minScore 92 --evaluationId 42
+ *   evalgate check --minScore 90 --maxDrop 5 --evaluationId 42
+ *   evalgate check --policy HIPAA --evaluationId 42
+ *   evalgate check --baseline published --evaluationId 42
  *
  * Flags:
  *   --minScore <n>       Fail if quality score < n (0-100)
@@ -16,8 +16,8 @@
  *   --policy <name>      Enforce a compliance policy (e.g. HIPAA, SOC2, GDPR)
  *   --baseline <mode>   Baseline comparison mode: "published" (default), "previous", or "production"
  *   --evaluationId <id>  Required. The evaluation to gate on.
- *   --baseUrl <url>      API base URL (default: EVALAI_BASE_URL or http://localhost:3000)
- *   --apiKey <key>       API key (default: EVALAI_API_KEY env var)
+ *   --baseUrl <url>      API base URL (default: EVALGATE_BASE_URL or http://localhost:3000)
+ *   --apiKey <key>       API key (default: EVALGATE_API_KEY env var)
  *   --share <mode>       Share link: "always" | "fail" | "never" (default: never)
  *                        fail = create public share link only when gate fails (CI-friendly)
  *   --pr-comment-out <file>  Write PR comment markdown to file (for GitHub Action to post)
@@ -35,8 +35,8 @@
  *   8  — Gate warned: near-regression (warnDrop ≤ drop < maxDrop)
  *
  * Environment:
- *   EVALAI_BASE_URL  — API base URL (default: http://localhost:3000)
- *   EVALAI_API_KEY   — API key for authentication
+ *   EVALGATE_BASE_URL  — API base URL (default: http://localhost:3000)
+ *   EVALGATE_API_KEY   — API key for authentication
  */
 export { EXIT } from "./constants";
 export type FormatType = "human" | "json" | "github";

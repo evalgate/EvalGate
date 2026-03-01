@@ -2,7 +2,7 @@
 
 ## Overview
 
-EvalAI's orchestration layer provides enterprise-grade governance for multi-agent AI systems. This framework enables organizations to deploy, monitor, audit, and optimize AI agents with full compliance and cost visibility.
+EvalGate's orchestration layer provides enterprise-grade governance for multi-agent AI systems. This framework enables organizations to deploy, monitor, audit, and optimize AI agents with full compliance and cost visibility.
 
 ## Table of Contents
 
@@ -372,7 +372,7 @@ const workflow = {
 ### LangChain
 
 ```typescript
-import { traceLangChainAgent } from '@pauly4010/evalai-sdk/workflows';
+import { traceLangChainAgent } from '@evalgate/sdk/workflows';
 
 const agent = await initializeAgent(tools, model, {
   callbacks: [traceLangChainAgent({
@@ -381,14 +381,14 @@ const agent = await initializeAgent(tools, model, {
   })]
 });
 
-// Every LangChain execution auto-logs to EvalAI
+// Every LangChain execution auto-logs to EvalGate
 const result = await agent.invoke({ input: userQuery });
 ```
 
 ### CrewAI (Python)
 
 ```python
-from evalai.workflows import trace_crewai
+from evalgate_sdk.workflows import trace_crewai
 
 @trace_crewai(workflow_name='market_research')
 class MarketResearchCrew:
@@ -408,7 +408,7 @@ result = crew.kickoff()
 ### AutoGen
 
 ```typescript
-import { traceAutoGen } from '@pauly4010/evalai-sdk/workflows';
+import { traceAutoGen } from '@evalgate/sdk/workflows';
 
 const tracedConversation = traceAutoGen(conversation, tracer, {
   conversationName: 'CodeReview'
@@ -480,6 +480,6 @@ interface GovernanceResult {
 
 ## Support
 
-- **Documentation**: https://v0-ai-evaluation-platform-nu.vercel.app/documentation
-- **API Reference**: https://v0-ai-evaluation-platform-nu.vercel.app/api-reference
+- **Documentation**: https://evalgate.com/documentation
+- **API Reference**: https://evalgate.com/api-reference
 - **Support**: https://github.com/pauly7610/ai-evaluation-platform/issues

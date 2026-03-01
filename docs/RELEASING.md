@@ -1,4 +1,4 @@
-# Releasing @pauly4010/evalai-sdk
+# Releasing @evalgate/sdk
 
 How to cut a new release. The CI does the heavy lifting — you just tag and push.
 
@@ -48,7 +48,7 @@ The `release.yml` workflow triggers on `sdk/v*` tags and:
 ### 5. Verify
 
 - Check [GitHub Releases](https://github.com/pauly7610/ai-evaluation-platform/releases) for the new entry
-- Check [npm](https://www.npmjs.com/package/@pauly4010/evalai-sdk) for the published version
+- Check [npm](https://www.npmjs.com/package/@evalgate/sdk) for the published version
 
 ## Manual npm Publish (if NPM_TOKEN not configured)
 
@@ -75,7 +75,7 @@ npm publish --access public
 
 Every GitHub Release body includes:
 - The changelog snippet extracted from `src/packages/sdk/CHANGELOG.md`
-- An install command: `npm install @pauly4010/evalai-sdk@X.Y.Z`
+- An install command: `npm install @evalgate/sdk@X.Y.Z`
 - Auto-generated release notes (commits since last tag)
 
 The `scripts/release-changelog-snippet.ts` script handles extraction. It fails the release if:
@@ -90,7 +90,7 @@ The `scripts/release-changelog-snippet.ts` script handles extraction. It fails t
 | **Tests fail in release.yml** | Tag exists, no GitHub Release, no npm publish | Fix the test, delete the tag (`git tag -d sdk/vX.Y.Z && git push --delete origin sdk/vX.Y.Z`), re-tag after fix |
 | **GitHub Release created, npm publish failed** | Release visible on GitHub, old version on npm | Run manual publish: `cd src/packages/sdk && pnpm run build && npm publish --access public` |
 | **npm publish succeeded, GitHub Release failed** | Package live on npm, no release notes | Create the GitHub Release manually from the [releases page](https://github.com/pauly7610/ai-evaluation-platform/releases/new) using the tag |
-| **Published wrong version / broken package** | Bad version live on npm | Yank immediately: `npm unpublish @pauly4010/evalai-sdk@X.Y.Z` (within 72h). Then bump to X.Y.Z+1 as a patch fix and re-release. Never re-use a yanked version number. |
+| **Published wrong version / broken package** | Bad version live on npm | Yank immediately: `npm unpublish @evalgate/sdk@X.Y.Z` (within 72h). Then bump to X.Y.Z+1 as a patch fix and re-release. Never re-use a yanked version number. |
 
 ### Key rules
 
@@ -118,5 +118,5 @@ If you change the tag format, update both `release.yml` triggers and this doc.
 [ ] git tag sdk/vX.Y.Z && git push origin sdk/vX.Y.Z
 [ ] GitHub Release created (automatic)
 [ ] npm version updated (automatic or manual)
-[ ] Verify: npm view @pauly4010/evalai-sdk version
+[ ] Verify: npm view @evalgate/sdk version
 ```

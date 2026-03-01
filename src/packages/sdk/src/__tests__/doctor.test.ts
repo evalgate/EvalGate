@@ -1,5 +1,5 @@
 /**
- * evalai doctor tests — comprehensive checklist.
+ * evalgate doctor tests — comprehensive checklist.
  */
 
 import * as fs from "node:fs";
@@ -27,7 +27,7 @@ describe("doctor individual checks", () => {
 	beforeEach(() => {
 		tmpDir = path.join(
 			process.env.TEMP || process.env.TMPDIR || "/tmp",
-			`evalai-doctor-test-${Date.now()}`,
+			`evalgate-doctor-test-${Date.now()}`,
 		);
 		fs.mkdirSync(tmpDir, { recursive: true });
 	});
@@ -72,7 +72,7 @@ describe("doctor individual checks", () => {
 			fs.writeFileSync(path.join(tmpDir, "package.json"), "{}");
 			const result = checkConfig(tmpDir);
 			expect(result.status).toBe("fail");
-			expect(result.remediation).toContain("npx evalai init");
+			expect(result.remediation).toContain("npx evalgate init");
 		});
 
 		it("passes with valid config", () => {
@@ -81,7 +81,7 @@ describe("doctor individual checks", () => {
 				gate: { baseline: "evals/baseline.json" },
 			};
 			fs.writeFileSync(
-				path.join(tmpDir, "evalai.config.json"),
+				path.join(tmpDir, "evalgate.config.json"),
 				JSON.stringify(config),
 			);
 			const result = checkConfig(tmpDir);
@@ -182,23 +182,23 @@ describe("doctor individual checks", () => {
 			expect(result.ciInfo.exists).toBe(false);
 		});
 
-		it("warns when workflow exists but no evalai reference", () => {
+		it("warns when workflow exists but no evalgate reference", () => {
 			const wfDir = path.join(tmpDir, ".github", "workflows");
 			fs.mkdirSync(wfDir, { recursive: true });
 			fs.writeFileSync(
-				path.join(wfDir, "evalai-gate.yml"),
+				path.join(wfDir, "evalgate-gate.yml"),
 				"name: CI\non: push\njobs: {}",
 			);
 			const result = checkCiWiring(tmpDir);
 			expect(result.status).toBe("warn");
 		});
 
-		it("passes when workflow references evalai", () => {
+		it("passes when workflow references evalgate", () => {
 			const wfDir = path.join(tmpDir, ".github", "workflows");
 			fs.mkdirSync(wfDir, { recursive: true });
 			fs.writeFileSync(
-				path.join(wfDir, "evalai-gate.yml"),
-				"run: npx evalai gate --format github",
+				path.join(wfDir, "evalgate-gate.yml"),
+				"run: npx evalgate gate --format github",
 			);
 			const result = checkCiWiring(tmpDir);
 			expect(result.status).toBe("pass");

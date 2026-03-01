@@ -1,7 +1,7 @@
 /**
  * CORE-401: Centralized environment detection
  *
- * Provides unified environment detection for all EvalAI CLI commands
+ * Provides unified environment detection for all EvalGate CLI commands
  */
 /**
  * Check if running in CI environment

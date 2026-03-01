@@ -7,7 +7,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from evalai_sdk.assertions import expect
+from evalgate_sdk.assertions import expect
 
 
 @dataclass
@@ -178,7 +178,7 @@ async def openai_chat_eval(
 
     if report_to_evalai and evalai_client and evaluation_id:
         try:
-            from evalai_sdk.types import CreateRunParams
+            from evalgate_sdk.types import CreateRunParams
 
             await evalai_client.evaluations.create_run(
                 evaluation_id,
@@ -204,7 +204,7 @@ def _make_openai_call(
         try:
             import openai
         except ImportError as exc:
-            raise ImportError("Install openai: pip install 'evalai-sdk[openai]'") from exc
+            raise ImportError("Install openai: pip install 'pauly4010-evalgate-sdk[openai]'") from exc
 
         import os
 

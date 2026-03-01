@@ -2,7 +2,7 @@
 /**
  * COMPAT-203: Config → DSL migration generator (file-based)
  *
- * CLI command: evalai migrate config --in evalai.config.json --out eval/legacy.spec.ts
+ * CLI command: evalgate migrate config --in evalgate.config.json --out eval/legacy.spec.ts
  * Generates defineEval() calls with comments and TODOs for manual completion
  */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -49,7 +49,7 @@ const commander_1 = require("commander");
 const testsuite_to_dsl_1 = require("../runtime/adapters/testsuite-to-dsl");
 const testing_1 = require("../testing");
 /**
- * Read and parse evalai.config.json
+ * Read and parse evalgate.config.json (or evalai.config.json)
  */
 async function readConfigFile(filePath) {
     try {
@@ -103,13 +103,13 @@ function generateFileHeader(_config, options) {
     const outputPath = path.resolve(options.output);
     return [
         `/**`,
-        ` * Auto-generated EvalAI DSL from configuration`,
+        ` * Auto-generated EvalGate DSL from configuration`,
         ` * `,
         ` * Generated at: ${timestamp}`,
         ` * Source config: ${inputPath}`,
         ` * Output file: ${outputPath}`,
         ` * `,
-        ` * This file contains defineEval() specifications migrated from evalai.config.json`,
+        ` * This file contains defineEval() specifications migrated from evalgate.config.json`,
         ` * `,
         ` * ⚠️  IMPORTANT: This is a best-effort migration. Manual review and completion required.`,
         ` * `,
@@ -120,7 +120,7 @@ function generateFileHeader(_config, options) {
         ` * - Review TODO comments for items requiring attention`,
         ` */`,
         ``,
-        `import { defineEval, createResult } from '@pauly4010/evalai-sdk';`,
+        `import { defineEval, createResult } from '@evalgate/sdk';`,
         ``,
     ].join("\n");
 }
@@ -191,7 +191,7 @@ function generateSuiteDSL(suiteName, suite, options) {
     const header = [
         `/**`,
         ` * Test suite: ${suiteName}`,
-        ` * Migrated from evalai.config.json`,
+        ` * Migrated from evalgate.config.json`,
         ` * `,
         ` * TODO items for this suite:`,
         ` * - Review executor implementation`,
@@ -226,7 +226,7 @@ function generateSummary(suites, options) {
         ` * 2. Implement actual executor logic`,
         ` * 3. Adapt complex assertions`,
         ` * 4. Test with real data`,
-        ` * 5. Remove evalai.config.json when satisfied`,
+        ` * 5. Remove evalgate.config.json when satisfied`,
         ` * `,
         ` * For help with migration, see: https://github.com/pauly7610/ai-evaluation-platform/docs/MIGRATION.md`,
         ` */`,
@@ -274,7 +274,7 @@ function createMigrateCommand() {
     const command = new commander_1.Command("migrate")
         .description("Migrate legacy configuration to new DSL format")
         .command("config")
-        .description("Migrate evalai.config.json to defineEval() specifications")
+        .description("Migrate evalgate.config.json to defineEval() specifications")
         .requiredOption("-i, --in <path>", "Input config file path")
         .requiredOption("-o, --out <path>", "Output DSL file path")
         .option("-v, --verbose", "Include detailed comments and logging", false)
@@ -341,7 +341,7 @@ async function previewMigration(filePath) {
         console.log(``);
         console.log(`Total tests to migrate: ${suites.reduce((sum, { suite }) => sum + suite.getTests().length, 0)}`);
         console.log(``);
-        console.log(`To migrate, run: evalai migrate config --in ${filePath} --out eval/migrated.spec.ts`);
+        console.log(`To migrate, run: evalgate migrate config --in ${filePath} --out eval/migrated.spec.ts`);
     }
     catch (error) {
         console.error(`❌ Preview failed: ${error instanceof Error ? error.message : String(error)}`);

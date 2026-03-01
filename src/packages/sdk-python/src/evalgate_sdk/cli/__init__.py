@@ -1,4 +1,4 @@
-"""EvalAI CLI — command-line interface for the AI Evaluation Platform."""
+"""EvalGate CLI — command-line interface for the EvalGate."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ def _ensure_typer() -> None:
     try:
         import typer  # noqa: F401
     except ImportError as exc:
-        raise SystemExit("CLI requires typer. Install with: pip install 'evalai-sdk[cli]'") from exc
+        raise SystemExit("CLI requires typer. Install with: pip install 'pauly4010-evalgate-sdk[cli]'") from exc
 
 
 _ensure_typer()
@@ -16,12 +16,12 @@ import typer  # noqa: E402
 
 app = typer.Typer(
     name="evalai",
-    help="AI Evaluation Platform CLI — run evals, manage baselines, gate regressions.",
+    help="EvalGate CLI — run evals, manage baselines, gate regressions.",
     no_args_is_help=True,
 )
 
 
-from evalai_sdk.cli.commands import (  # noqa: E402
+from evalgate_sdk.cli.commands import (  # noqa: E402
     baseline,
     check,
     ci,

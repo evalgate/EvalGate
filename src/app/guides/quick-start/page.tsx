@@ -23,21 +23,21 @@ export default function QuickStartPage() {
 					<div className="mb-12">
 						<h1 className="text-4xl font-bold mb-4">Quick Start Guide</h1>
 						<p className="text-xl text-muted-foreground mb-2">
-							Get started with the EvalAI SDK in under 5 minutes
+							Get started with the EvalGate SDK in under 5 minutes
 						</p>
 						<p className="text-muted-foreground">
-							<strong>EvalAI is CI for AI behavior.</strong> LLMs drift silently
-							— EvalAI turns evaluations into CI gates so regressions never
-							reach production.
+							<strong>EvalGate is CI for AI behavior.</strong> LLMs drift
+							silently — EvalGate turns evaluations into CI gates so regressions
+							never reach production.
 						</p>
 					</div>
 
-					{/* One-Command CI (EvalAI 1.9.1) */}
+					{/* One-Command CI (EvalGate 2.0.0) */}
 					<Card className="mb-8 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<Rocket className="h-5 w-5 text-blue-500" />
-								One-Command CI (EvalAI 1.9.1)
+								One-Command CI (EvalGate 2.0.0)
 							</CardTitle>
 							<CardDescription>
 								Complete CI pipeline in a single command. No config needed.
@@ -46,7 +46,7 @@ export default function QuickStartPage() {
 						<CardContent>
 							<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
 								<pre>{`# Add this to .github/workflows/evalai.yml
-name: EvalAI CI
+name: EvalGate CI
 on: [push, pull_request]
 jobs:
   evalai:
@@ -55,7 +55,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - run: npm ci
-      - run: npx evalai ci --format github --write-results --base main
+      - run: npx evalgate ci --format github --write-results --base main
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -83,9 +83,9 @@ jobs:
 						</CardHeader>
 						<CardContent>
 							<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
-								<pre>{`npx @pauly4010/evalai-sdk init    # detects repo, creates baseline, installs CI workflow
+								<pre>{`npx @evalgate/sdk init    # detects repo, creates baseline, installs CI workflow
 git add evals/ .github/workflows/evalai-gate.yml evalai.config.json
-git commit -m "chore: add EvalAI regression gate"
+git commit -m "chore: add EvalGate regression gate"
 git push                           # open a PR → CI blocks regressions`}</pre>
 							</div>
 							<p className="text-sm text-muted-foreground">
@@ -101,19 +101,19 @@ git push                           # open a PR → CI blocks regressions`}</pre>
 								<div className="p-3 bg-background rounded-lg border">
 									<p className="font-medium">Run gate locally</p>
 									<code className="text-xs text-muted-foreground">
-										npx evalai gate
+										npx evalgate gate
 									</code>
 								</div>
 								<div className="p-3 bg-background rounded-lg border">
 									<p className="font-medium">Update baseline</p>
 									<code className="text-xs text-muted-foreground">
-										npx evalai baseline update
+										npx evalgate baseline update
 									</code>
 								</div>
 								<div className="p-3 bg-background rounded-lg border">
 									<p className="font-medium">Upgrade to full gate</p>
 									<code className="text-xs text-muted-foreground">
-										npx evalai upgrade --full
+										npx evalgate upgrade --full
 									</code>
 								</div>
 							</div>
@@ -133,10 +133,10 @@ git push                           # open a PR → CI blocks regressions`}</pre>
 						</CardHeader>
 						<CardContent>
 							<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
-								<pre>{`pip install pauly4010-evalai-sdk`}</pre>
+								<pre>{`pip install pauly4010-evalgate-sdk`}</pre>
 							</div>
 							<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
-								<pre>{`from evalai_sdk import expect
+								<pre>{`from evalgate_sdk import expect
 
 result = expect("The capital of France is Paris.").to_contain("Paris")
 print(result.passed)  # True`}</pre>
@@ -188,7 +188,7 @@ print(result.passed)  # True`}</pre>
 								</li>
 								<li className="flex items-center gap-2">
 									<CheckCircle2 className="h-4 w-4 text-green-500" />
-									An EvalAI account (sign up above)
+									An EvalGate account (sign up above)
 								</li>
 							</ul>
 						</CardContent>
@@ -247,13 +247,13 @@ print(result.passed)  # True`}</pre>
 						<Card>
 							<CardContent className="pt-6">
 								<p className="text-muted-foreground mb-4">
-									Install the EvalAI SDK in your project using your preferred
+									Install the EvalGate SDK in your project using your preferred
 									package manager:
 								</p>
 								<div className="space-y-3">
 									<div className="bg-muted p-4 rounded-lg font-mono text-sm">
 										<div className="flex items-center justify-between">
-											<span>npm install @pauly4010/evalai-sdk</span>
+											<span>npm install @evalgate/sdk</span>
 											<Button size="sm" variant="ghost">
 												<Copy className="h-3 w-3" />
 											</Button>
@@ -261,7 +261,7 @@ print(result.passed)  # True`}</pre>
 									</div>
 									<div className="bg-muted p-4 rounded-lg font-mono text-sm">
 										<div className="flex items-center justify-between">
-											<span>yarn add @pauly4010/evalai-sdk</span>
+											<span>yarn add @evalgate/sdk</span>
 											<Button size="sm" variant="ghost">
 												<Copy className="h-3 w-3" />
 											</Button>
@@ -269,7 +269,7 @@ print(result.passed)  # True`}</pre>
 									</div>
 									<div className="bg-muted p-4 rounded-lg font-mono text-sm">
 										<div className="flex items-center justify-between">
-											<span>pnpm add @pauly4010/evalai-sdk</span>
+											<span>pnpm add @evalgate/sdk</span>
 											<Button size="sm" variant="ghost">
 												<Copy className="h-3 w-3" />
 											</Button>
@@ -278,7 +278,7 @@ print(result.passed)  # True`}</pre>
 									<p className="text-sm font-semibold mt-4 mb-2">Python</p>
 									<div className="bg-muted p-4 rounded-lg font-mono text-sm">
 										<div className="flex items-center justify-between">
-											<span>pip install pauly4010-evalai-sdk</span>
+											<span>pip install pauly4010-evalgate-sdk</span>
 											<Button size="sm" variant="ghost">
 												<Copy className="h-3 w-3" />
 											</Button>
@@ -358,7 +358,7 @@ EVALAI_ORGANIZATION_ID=your_org_id_here`}</pre>
 									TypeScript
 								</p>
 								<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
-									<pre>{`import { AIEvalClient } from '@pauly4010/evalai-sdk'
+									<pre>{`import { AIEvalClient } from '@evalgate/sdk'
 
 // Auto-loads from environment variables
 const client = AIEvalClient.init()
@@ -374,7 +374,7 @@ const client = new AIEvalClient({
 									Python
 								</p>
 								<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
-									<pre>{`from evalai_sdk import AIEvalClient
+									<pre>{`from evalgate_sdk import AIEvalClient
 
 # Auto-loads from environment variables
 client = AIEvalClient.init()
@@ -440,7 +440,7 @@ console.log('Span created:', span.id)`}</pre>
 									Python
 								</p>
 								<div className="bg-muted p-4 rounded-lg font-mono text-sm">
-									<pre>{`from evalai_sdk.types import CreateTraceParams, CreateSpanParams
+									<pre>{`from evalgate_sdk.types import CreateTraceParams, CreateSpanParams
 
 # Create a trace
 trace = await client.traces.create(CreateTraceParams(
@@ -487,7 +487,7 @@ print(f"Span created: {span.id}")`}</pre>
 									TypeScript
 								</p>
 								<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
-									<pre>{`import { createTestSuite, expect } from '@pauly4010/evalai-sdk';
+									<pre>{`import { createTestSuite, expect } from '@evalgate/sdk';
 
 const suite = createTestSuite('My First Eval', {
   executor: async (input) => await myLLM(input),
@@ -508,7 +508,7 @@ console.log(\`Results: \${passed}/\${total} passed\`);`}</pre>
 									Python
 								</p>
 								<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
-									<pre>{`from evalai_sdk import create_test_suite, expect
+									<pre>{`from evalgate_sdk import create_test_suite, expect
 
 suite = create_test_suite("My First Eval",
     executor=lambda input: my_llm(input),

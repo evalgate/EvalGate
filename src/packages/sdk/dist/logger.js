@@ -43,7 +43,7 @@ class Logger {
             pretty: options.pretty ?? false,
             timestamps: options.timestamps ?? true,
             handler: options.handler || this.defaultHandler.bind(this),
-            prefix: options.prefix || "EvalAI",
+            prefix: options.prefix || "EvalGate",
         };
     }
     /**

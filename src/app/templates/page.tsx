@@ -25,7 +25,7 @@ import {
 } from "@/lib/evaluation-templates-library";
 
 export const metadata: Metadata = {
-	title: "Evaluation Templates | EvalAI",
+	title: "Evaluation Templates | EvalGate",
 	description: `${COMPREHENSIVE_TEMPLATES.length + evaluationTemplates.length}+ ready-to-use evaluation templates across 17 categories. Chatbots, RAG, adversarial testing, LLM judge, and more.`,
 };
 

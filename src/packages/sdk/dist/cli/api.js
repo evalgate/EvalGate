@@ -1,8 +1,8 @@
 "use strict";
 /**
- * API fetch helpers for evalai check.
+ * API fetch helpers for evalgate check.
  * Captures x-request-id from response headers.
- * Sends X-EvalAI-SDK-Version and X-EvalAI-Spec-Version on all requests.
+ * Sends X-EvalGate-SDK-Version and X-EvalGate-Spec-Version on all requests.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchQualityLatest = fetchQualityLatest;
@@ -12,8 +12,8 @@ exports.publishShare = publishShare;
 exports.importRunOnFail = importRunOnFail;
 const version_1 = require("../version");
 const API_HEADERS = {
-    "X-EvalAI-SDK-Version": version_1.SDK_VERSION,
-    "X-EvalAI-Spec-Version": version_1.SPEC_VERSION,
+    "X-EvalGate-SDK-Version": version_1.SDK_VERSION,
+    "X-EvalGate-Spec-Version": version_1.SPEC_VERSION,
 };
 async function fetchQualityLatest(baseUrl, apiKey, evaluationId, baseline) {
     const headers = { ...API_HEADERS, Authorization: `Bearer ${apiKey}` };
@@ -107,7 +107,7 @@ async function importRunOnFail(baseUrl, apiKey, evaluationId, results, options) 
     const body = {
         environment: "dev",
         results,
-        importClientVersion: options.importClientVersion ?? "evalai-cli",
+        importClientVersion: options.importClientVersion ?? "evalgate-cli",
         ci: options.ci,
         ...(options.checkReport != null && { checkReport: options.checkReport }),
     };

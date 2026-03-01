@@ -1,5 +1,5 @@
 /**
- * Human-readable formatter for evalai check output.
+ * Human-readable formatter for evalgate check output.
  * Deterministic: verdict → score → failures → link → hint.
  */
 
@@ -16,10 +16,10 @@ export function formatHuman(report: CheckReport): string {
 
 	lines.push(
 		passed && !warned
-			? "\n✓ EvalAI gate PASSED"
+			? "\n✓ EvalGate gate PASSED"
 			: warned
-				? `\n⚠ EvalAI gate WARNED: ${failReason ?? report.reasonCode}`
-				: `\n✗ EvalAI gate FAILED: ${failReason ?? report.reasonCode}`,
+				? `\n⚠ EvalGate gate WARNED: ${failReason ?? report.reasonCode}`
+				: `\n✗ EvalGate gate FAILED: ${failReason ?? report.reasonCode}`,
 	);
 
 	const deltaStr =

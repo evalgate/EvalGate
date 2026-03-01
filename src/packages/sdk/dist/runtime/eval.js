@@ -1,6 +1,6 @@
 "use strict";
 /**
- * EvalAI defineEval() DSL - Layer 1 Foundation
+ * EvalGate defineEval() DSL - Layer 1 Foundation
  *
  * The core DSL function for defining behavioral specifications.
  * Uses content-addressable identity with AST position for stability.
@@ -197,7 +197,7 @@ function defineEvalImpl(nameOrConfig, executor, options) {
  */
 exports.defineEval = defineEvalImpl;
 /**
- * Convenience export for evalai.test() alias
+ * Convenience export for evalai.test() alias (backward compatibility)
  * Provides alternative naming that matches the original roadmap vision
  */
 exports.evalai = {

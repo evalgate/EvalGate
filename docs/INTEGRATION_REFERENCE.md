@@ -1,13 +1,13 @@
-# EvalAI Integration Reference
+# EvalGate Integration Reference
 
-> Complete technical reference for wiring external projects into the AI Evaluation Platform.
+> Complete technical reference for wiring external projects into the EvalGate.
 > Generated from source code — every type, endpoint, and method signature below is real.
 
 ---
 
 ## Table of Contents
 
-1. [SDK Package (`@pauly4010/evalai-sdk`)](#1-sdk-package)
+1. [SDK Package (`@evalgate/sdk`)](#1-sdk-package)
 2. [REST API Contracts](#2-rest-api-contracts)
 3. [Governance System](#3-governance-system)
 4. [Python Integration](#4-python-integration)
@@ -20,7 +20,7 @@
 
 | Field | Value |
 |-------|-------|
-| **npm package** | `@pauly4010/evalai-sdk` |
+| **npm package** | `@evalgate/sdk` |
 | **Version** | `1.5.0` |
 | **Source** | `src/packages/sdk/` |
 | **Exports** | `.` (main), `./assertions`, `./testing`, `./integrations/openai`, `./integrations/anthropic` |
@@ -31,7 +31,7 @@
 ### 1.1 AIEvalClient — Constructor & Auth
 
 ```typescript
-import { AIEvalClient } from '@pauly4010/evalai-sdk';
+import { AIEvalClient } from '@evalgate/sdk';
 
 // Option A: Zero-config (reads env vars)
 // Env: EVALAI_API_KEY, EVALAI_ORGANIZATION_ID, EVALAI_BASE_URL
@@ -117,7 +117,7 @@ client.traces.listSpans(traceId: number) → Promise<Span[]>
 ### 1.4 WorkflowTracer — Full Method Signatures
 
 ```typescript
-import { WorkflowTracer, createWorkflowTracer } from '@pauly4010/evalai-sdk';
+import { WorkflowTracer, createWorkflowTracer } from '@evalgate/sdk';
 
 const tracer = new WorkflowTracer(client, {
   organizationId?: number,
@@ -283,22 +283,22 @@ tracer.getCosts() → CostRecord[]
 
 ```typescript
 // LangChain
-import { traceLangChainAgent } from '@pauly4010/evalai-sdk';
+import { traceLangChainAgent } from '@evalgate/sdk';
 const tracedExecutor = traceLangChainAgent(executor, tracer, { agentName?: string });
 // Wraps .invoke() and .call() with automatic span creation
 
 // CrewAI (JS)
-import { traceCrewAI } from '@pauly4010/evalai-sdk';
+import { traceCrewAI } from '@evalgate/sdk';
 const tracedCrew = traceCrewAI(crew, tracer, { crewName?: string });
 // Wraps .kickoff() with automatic workflow start/end
 
 // AutoGen
-import { traceAutoGen } from '@pauly4010/evalai-sdk';
+import { traceAutoGen } from '@evalgate/sdk';
 const tracedConversation = traceAutoGen(conversation, tracer, { conversationName?: string });
 // Wraps .initiate_chat() with automatic workflow start/end
 
 // Helper: trace unknown async function as a workflow step
-import { traceWorkflowStep } from '@pauly4010/evalai-sdk';
+import { traceWorkflowStep } from '@evalgate/sdk';
 const result = await traceWorkflowStep(tracer, 'MyAgent', async () => {
   return await doWork();
 }, { input: 'data' });
@@ -317,13 +317,13 @@ const result = await traceWorkflowStep(tracer, 'MyAgent', async () => {
 | `Logger` | Debug logger |
 | `createContext`, `getContext`, `withContext` | Context propagation |
 | `exportData`, `importData` | Data export/import |
-| `EvalAIError`, `RateLimitError`, `AuthenticationError`, `NetworkError` | Error classes |
+| `EvalGateError`, `RateLimitError`, `AuthenticationError`, `NetworkError` | Error classes |
 
 ---
 
 ## 2. REST API Contracts
 
-**Base URL**: Your deployed app (e.g., `https://v0-ai-evaluation-platform-nu.vercel.app`)
+**Base URL**: Your deployed app (e.g., `https://evalgate.com`)
 **Auth**: `Authorization: Bearer <API_KEY>` header on all requests
 **Content-Type**: `application/json`
 
@@ -635,17 +635,17 @@ Execution is **blocked** when:
 
 **Source**: `src/integrations/crewai-example.py`
 
-There is a **full Python EvalAI tracer** implementation in the codebase. It is **not published as a PyPI package** — it's an example/reference implementation that can be copied into your Python project or extracted into a standalone package.
+There is a **full Python EvalGate tracer** implementation in the codebase. It is **not published as a PyPI package** — it's an example/reference implementation that can be copied into your Python project or extracted into a standalone package.
 
-### 4.1 Python EvalAITracer
+### 4.1 Python EvalGateTracer
 
 ```python
-from evalai_tracer import EvalAITracer, Decision, DecisionAlternative, CostRecord
+from evalai_tracer import EvalGateTracer, Decision, DecisionAlternative, CostRecord
 
-tracer = EvalAITracer(
+tracer = EvalGateTracer(
     api_key=os.environ['EVALAI_API_KEY'],
     organization_id=123,
-    base_url='https://v0-ai-evaluation-platform-nu.vercel.app',
+    base_url='https://evalgate.com',
     debug=True
 )
 
@@ -726,7 +726,7 @@ If you don't want to copy the full example, here's the minimal HTTP pattern:
 ```python
 import requests
 
-BASE_URL = "https://v0-ai-evaluation-platform-nu.vercel.app"
+BASE_URL = "https://evalgate.com"
 HEADERS = {
     "Authorization": f"Bearer {os.environ['EVALAI_API_KEY']}",
     "Content-Type": "application/json"
@@ -781,11 +781,11 @@ workflow = requests.post(f"{BASE_URL}/api/workflows", headers=HEADERS, json={
 
 ## 5. Integration Paths
 
-### Path A: Python Backend → EvalAI (REST API)
+### Path A: Python Backend → EvalGate (REST API)
 
 ```
 ┌─────────────────────┐     HTTP POST      ┌─────────────────────────┐
-│  Python Backend      │ ──────────────────→│  EvalAI REST API        │
+│  Python Backend      │ ──────────────────→│  EvalGate REST API        │
 │  (AgentExecutor,     │                    │  /api/traces            │
 │   CrewAI, AutoGen)   │  POST /api/traces  │  /api/decisions         │
 │                      │  POST /api/decisions│  /api/costs             │
@@ -795,11 +795,11 @@ workflow = requests.post(f"{BASE_URL}/api/workflows", headers=HEADERS, json={
 
 **Use when**: Your agent framework runs in Python. Call the REST endpoints directly with `requests` or `httpx`. No npm SDK needed.
 
-### Path B: JS/TS Frontend → EvalAI (npm SDK)
+### Path B: JS/TS Frontend → EvalGate (npm SDK)
 
 ```
 ┌─────────────────────┐     npm import     ┌─────────────────────────┐
-│  JS/TS App           │ ──────────────────→│  @pauly4010/evalai-sdk  │
+│  JS/TS App           │ ──────────────────→│  @evalgate/sdk  │
 │  (Next.js, React,    │                    │  AIEvalClient           │
 │   Node.js service)   │  client.traces.*   │  WorkflowTracer         │
 │                      │  tracer.*          │  GovernanceEngine       │
@@ -812,7 +812,7 @@ workflow = requests.post(f"{BASE_URL}/api/workflows", headers=HEADERS, json={
 
 ```
 ┌──────────────┐  REST   ┌──────────┐  SDK   ┌──────────────┐
-│ Python Agent │ ───────→│  EvalAI  │←───────│ JS Dashboard │
+│ Python Agent │ ───────→│  EvalGate  │←───────│ JS Dashboard │
 │ Framework    │  POST   │  API     │ import │ (governance, │
 │              │         │          │        │  DAG viz,    │
 │              │         │          │        │  monitoring) │
@@ -844,7 +844,7 @@ def trace_agent_call(agent_name, model, input_tokens, output_tokens, decision, c
 ### Recipe 2: Full JS workflow tracing
 
 ```typescript
-import { AIEvalClient, WorkflowTracer } from '@pauly4010/evalai-sdk';
+import { AIEvalClient, WorkflowTracer } from '@evalgate/sdk';
 
 const client = AIEvalClient.init(); // reads EVALAI_API_KEY env
 const tracer = new WorkflowTracer(client, { debug: true });
@@ -879,7 +879,7 @@ console.log('Total cost:', tracer.getTotalCost());
 ### Recipe 3: LangChain + governance
 
 ```typescript
-import { AIEvalClient, WorkflowTracer, traceLangChainAgent } from '@pauly4010/evalai-sdk';
+import { AIEvalClient, WorkflowTracer, traceLangChainAgent } from '@evalgate/sdk';
 import { GovernanceEngine, CompliancePresets } from './lib/governance/rules';
 
 const client = AIEvalClient.init();
@@ -904,7 +904,7 @@ const result = await tracedAgent.invoke({ input: userQuery });
 | Question | Answer |
 |----------|--------|
 | Is there a published Python package? | **No.** There's a reference implementation in `src/integrations/crewai-example.py`. Use it directly or call REST endpoints. |
-| What's the npm package name? | `@pauly4010/evalai-sdk` (published on npm) |
+| What's the npm package name? | `@evalgate/sdk` (published on npm) |
 | Does the SDK handle auth? | Yes — `Authorization: Bearer <apiKey>` on every request |
 | Does the SDK auto-retry? | Yes — up to 3 attempts with exponential backoff for rate limits, timeouts, network errors |
 | Does the SDK cache? | Yes — GET requests are cached (configurable size, TTL per endpoint) |

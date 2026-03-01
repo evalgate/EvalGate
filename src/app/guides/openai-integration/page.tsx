@@ -38,13 +38,13 @@ export default function OpenAIIntegrationGuide() {
 						TypeScript
 					</p>
 					<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4">
-						npm install openai @pauly4010/evalai-sdk
+						npm install openai @evalgate/sdk
 					</div>
 					<p className="text-xs font-semibold text-muted-foreground mb-1">
 						Python
 					</p>
 					<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4">
-						pip install openai pauly4010-evalai-sdk
+						pip install openai pauly4010-evalgate-sdk
 					</div>
 
 					<h2>Basic Setup</h2>
@@ -53,7 +53,7 @@ export default function OpenAIIntegrationGuide() {
 					</p>
 					<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
 						{`import OpenAI from 'openai'
-import { AIEvalClient, WorkflowTracer, traceOpenAI, traceWorkflowStep } from '@pauly4010/evalai-sdk'
+import { AIEvalClient, WorkflowTracer, traceOpenAI, traceWorkflowStep } from '@evalgate/sdk'
 
 const client = new AIEvalClient({ apiKey: process.env.EVALAI_API_KEY })
 const tracer = new WorkflowTracer(client)
@@ -66,8 +66,8 @@ const openai = traceOpenAI(new OpenAI(), client)`}
 					</p>
 					<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
 						{`from openai import OpenAI
-from evalai_sdk import AIEvalClient, WorkflowTracer
-from evalai_sdk.integrations.openai import trace_openai
+from evalgate_sdk import AIEvalClient, WorkflowTracer
+from evalgate_sdk.integrations.openai import trace_openai
 
 client = AIEvalClient(api_key=os.environ["EVALAI_API_KEY"])
 tracer = WorkflowTracer(client)
@@ -222,7 +222,7 @@ const vector = embedding.data[0].embedding`}
 
 					<h3>Multi-Turn Conversations</h3>
 					<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-						{`import { traceWorkflowStep } from '@pauly4010/evalai-sdk'
+						{`import { traceWorkflowStep } from '@evalgate/sdk'
 
 await tracer.startWorkflow('multi-turn-conversation', undefined, { sessionId: 'session_456' });
 

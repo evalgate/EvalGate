@@ -11,7 +11,7 @@ on:
     branches: [main, develop]
 
 jobs:
-  evalai:
+  evalgate:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -33,7 +33,7 @@ jobs:
         run: npm ci
       
       - name: Run EvalAI CI
-        run: npx evalai ci --format github --write-results --base ${{ github.base_ref || 'main' }}
+        run: npx evalgate ci --format github --write-results --base ${{ github.base_ref || 'main' }}
         env:
           EVALAI_API_KEY: ${{ secrets.EVALAI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -43,10 +43,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: evalai-results-${{ github.sha }}
+          name: evalgate-results-${{ github.sha }}
           path: |
-            .evalai/last-run.json
-            .evalai/runs/
+            .evalgate/last-run.json
+            .evalgate/runs/
           retention-days: 30
       
       - name: Upload baseline artifact
@@ -54,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: evalai-baseline-${{ github.sha }}
-          path: .evalai/last-run.json
+          path: .evalgate/last-run.json
           retention-days: 90
 ```
 
@@ -81,17 +81,17 @@ jobs:
 
 ### **Different Base Branch**
 ```yaml
-- run: npx evalai ci --format github --write-results --base develop
+- run: npx evalgate ci --format github --write-results --base develop
 ```
 
 ### **No Diff (Run Only)**
 ```yaml
-- run: npx evalai ci --format github --write-results
+- run: npx evalgate ci --format github --write-results
 ```
 
 ### **Impact Analysis Only**
 ```yaml
-- run: npx evalai ci --format github --write-results --base main --impacted-only
+- run: npx evalgate ci --format github --write-results --base main --impacted-only
 ```
 
 ### **Custom Retention**
@@ -125,7 +125,7 @@ env:
 - 📁 Links to run artifacts
 
 ### **In Artifacts**
-- `evalai-results-*.zip`: All run data
+- `evalgate-results-*.zip`: All run data
 - `evalai-baseline-*.zip`: Main branch baseline
 
 ### **Exit Codes**
@@ -137,22 +137,22 @@ env:
 
 ### **Download Artifacts**
 1. Go to Actions → Run → Artifacts
-2. Download `evalai-results-*.zip`
+2. Download `evalgate-results-*.zip`
 3. Extract and run:
    ```bash
-   evalai explain --report .evalai/last-run.json
+   evalai explain --report .evalgate/last-run.json
    ```
 
 ### **Local Debugging**
 ```bash
 # Same as CI
-npx evalai ci --format github --write-results --base main
+npx evalgate ci --format github --write-results --base main
 
 # Impact analysis only
 evalai impact-analysis --base main
 
 # Explain failures
-evalai explain --report .evalai/last-run.json
+evalai explain --report .evalgate/last-run.json
 ```
 
 ---

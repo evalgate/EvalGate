@@ -7,7 +7,7 @@
 | 1.x     | :white_check_mark: |
 | < 1.0   | :x:                |
 
-The SDK (`@pauly4010/evalai-sdk`) and the hosted platform follow semantic versioning. Security fixes are backported to the latest minor of the current major when feasible.
+The SDK (`@evalgate/sdk`) and the hosted platform follow semantic versioning. Security fixes are backported to the latest minor of the current major when feasible.
 
 ## Reporting a Vulnerability
 

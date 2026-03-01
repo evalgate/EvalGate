@@ -1,6 +1,6 @@
 "use strict";
 /**
- * UX-401: One-command CI loop (evalai ci)
+ * UX-401: One-command CI loop (evalgate ci)
  *
  * Provides a single command teams put in .github/workflows/* and never think about again.
  */
@@ -53,8 +53,8 @@ async function runCI(options, projectRoot = process.cwd()) {
     const workspace = (0, workspace_1.resolveEvalWorkspace)(projectRoot);
     const narrative = [];
     try {
-        // 1. Ensure .evalai workspace exists
-        await fs.mkdir(workspace.evalaiDir, { recursive: true });
+        // 1. Ensure .evalgate workspace exists
+        await fs.mkdir(workspace.evalDir, { recursive: true });
         narrative.push("✅ workspace ok");
         // 2. Ensure manifest exists (build if missing)
         let manifestExists = true;
@@ -151,16 +151,16 @@ async function runCI(options, projectRoot = process.cwd()) {
 function printNextStep(error, options, workspace) {
     console.log("\n🔧 Next step for debugging:");
     if (error.includes("No evaluation manifest found")) {
-        console.log("   evalai discover --manifest");
+        console.log("   evalgate discover --manifest");
     }
     else if (error.includes("Base run report not found in CI environment")) {
-        console.log(`   Download base artifact and run: evalai diff --base .evalai/base-run.json --head ${workspace.lastRunPath}`);
+        console.log(`   Download base artifact and run: evalgate diff --base .evalgate/base-run.json --head ${workspace.lastRunPath}`);
     }
     else if (options.base && error.includes("Base run report not found")) {
-        console.log(`   evalai explain --report ${workspace.lastRunPath}`);
+        console.log(`   evalgate explain --report ${workspace.lastRunPath}`);
     }
     else {
-        console.log(`   evalai explain --report ${workspace.lastRunPath}`);
+        console.log(`   evalgate explain --report ${workspace.lastRunPath}`);
     }
     console.log(`   Artifacts: ${workspace.runsDir}/`);
 }

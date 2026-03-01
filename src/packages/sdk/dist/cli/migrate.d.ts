@@ -1,7 +1,7 @@
 /**
  * COMPAT-203: Config → DSL migration generator (file-based)
  *
- * CLI command: evalai migrate config --in evalai.config.json --out eval/legacy.spec.ts
+ * CLI command: evalgate migrate config --in evalgate.config.json --out eval/legacy.spec.ts
  * Generates defineEval() calls with comments and TODOs for manual completion
  */
 import { Command } from "commander";

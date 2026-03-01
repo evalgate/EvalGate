@@ -35,10 +35,10 @@ export default function EvaluationTypesGuide() {
 
 				<div className="prose prose-sm sm:prose-base max-w-none">
 					<p>
-						The AI Evaluation Platform supports four distinct evaluation
-						methodologies, each serving different purposes in your AI
-						development lifecycle. Understanding when to use each type is key to
-						building reliable AI systems.
+						The EvalGate supports four distinct evaluation methodologies, each
+						serving different purposes in your AI development lifecycle.
+						Understanding when to use each type is key to building reliable AI
+						systems.
 					</p>
 
 					<h2>1. Unit Tests</h2>
