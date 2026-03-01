@@ -17,6 +17,7 @@ export default defineConfig({
 		setupFiles: ["tests/setup.unit.ts"],
 		include: [
 			"tests/unit/**/*.test.ts",
+			"tests/audits/**/*.test.ts",
 			"src/lib/jobs/__tests__/**/*.test.ts",
 			"tests/sdk/**/*.test.ts",
 		],
@@ -35,7 +36,6 @@ export default defineConfig({
 			"**/drizzle/**",
 			"**/examples/**",
 			"**/evals/**",
-			"tests/audits-disabled/**",
 		],
 		coverage: {
 			provider: "v8",

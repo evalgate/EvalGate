@@ -1,12 +1,46 @@
 /**
  * Structured logging utility
- * Replaces console.log/error calls with proper structured logging
+ *
+ * Console output is always emitted (Vercel captures it automatically).
+ * For external log drains, set LOG_DRAIN_URL to an HTTPS ingest endpoint
+ * (Axiom, Betterstack, Datadog, etc.) and logs are shipped in batches.
  */
 
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogContext {
 	[key: string]: unknown;
+}
+
+const LOG_DRAIN_URL =
+	typeof process !== "undefined" ? process.env.LOG_DRAIN_URL : undefined;
+const DRAIN_BATCH_SIZE = 20;
+const DRAIN_FLUSH_MS = 5_000;
+
+let drainBuffer: Record<string, unknown>[] = [];
+let drainTimer: ReturnType<typeof setTimeout> | null = null;
+
+function flushDrain() {
+	if (drainBuffer.length === 0 || !LOG_DRAIN_URL) return;
+	const batch = drainBuffer;
+	drainBuffer = [];
+	drainTimer = null;
+
+	fetch(LOG_DRAIN_URL, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(batch),
+	}).catch(() => {});
+}
+
+function enqueueDrain(entry: Record<string, unknown>) {
+	if (!LOG_DRAIN_URL) return;
+	drainBuffer.push(entry);
+	if (drainBuffer.length >= DRAIN_BATCH_SIZE) {
+		flushDrain();
+	} else if (!drainTimer) {
+		drainTimer = setTimeout(flushDrain, DRAIN_FLUSH_MS);
+	}
 }
 
 /** Structured JSON logger that writes to the console and can be extended with child contexts. */
@@ -27,8 +61,6 @@ class Logger {
 			...meta,
 		};
 
-		// In production, this could send to external logging service
-		// For now, structured console output
 		const output = JSON.stringify(logEntry);
 
 		switch (level) {
@@ -45,6 +77,10 @@ class Logger {
 				break;
 			default:
 				console.log(output);
+		}
+
+		if (level !== "debug") {
+			enqueueDrain(logEntry);
 		}
 	}
 

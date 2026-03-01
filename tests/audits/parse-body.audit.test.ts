@@ -4,15 +4,26 @@
  * Verifies that migrated routes (Slice 1: evaluations, Slice 2: traces, webhooks, api-keys)
  * use parseBody() instead of raw req.json(). Documents remaining routes for future migration.
  *
- * TEMPORARILY DISABLED: TODO - Fix glob pattern for Windows path resolution
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { globSync } from "glob";
 import { describe, expect, it } from "vitest";
 
-const API_DIR = path.resolve(__dirname, "../../../src/app/api");
+function walkRouteFiles(dir: string, base = ""): string[] {
+	const results: string[] = [];
+	for (const entry of readdirSync(dir, { withFileTypes: true })) {
+		const rel = base ? `${base}/${entry.name}` : entry.name;
+		if (entry.isDirectory()) {
+			results.push(...walkRouteFiles(path.join(dir, entry.name), rel));
+		} else if (entry.name === "route.ts") {
+			results.push(rel);
+		}
+	}
+	return results;
+}
+
+const API_DIR = path.resolve(__dirname, "../../src/app/api");
 
 /** Routes that must use parseBody (migrated in T0.2) */
 const MUST_USE_PARSE_BODY = [
@@ -46,8 +57,8 @@ function hasPostPutPatch(content: string): boolean {
 	);
 }
 
-describe.skip("parseBody Audit - DISABLED: Fix glob pattern", () => {
-	const routeFiles = globSync("**/route.ts", { cwd: API_DIR });
+describe("parseBody Audit", () => {
+	const routeFiles = walkRouteFiles(API_DIR);
 
 	it("should find route files", () => {
 		expect(routeFiles.length).toBeGreaterThan(0);

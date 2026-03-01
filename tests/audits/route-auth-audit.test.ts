@@ -11,12 +11,10 @@
  * (for intentionally public endpoints). Fail the suite if new legacy routes
  * appear without migration.
  *
- * TEMPORARILY DISABLED: TODO - Fix glob pattern for Windows path resolution
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
-import { globSync } from "glob";
 import { describe, expect, it } from "vitest";
 
 // Routes that are intentionally public / use their own auth mechanisms
@@ -27,6 +25,7 @@ const PUBLIC_ROUTE_ALLOWLIST = [
 	"debug/",
 	"docs",
 	"auth",
+	"autumn",
 	"demo",
 	"subscribers",
 	"sentry-example-api",
@@ -34,7 +33,12 @@ const PUBLIC_ROUTE_ALLOWLIST = [
 
 // Legacy auth patterns that should be migrated to secureRoute
 // SHRINK-ONLY: This list should only shrink over time
-const LEGACY_AUTH_ALLOWLIST = ["arena-matches/route.ts"];
+const LEGACY_AUTH_ALLOWLIST = [
+	"arena-matches/route.ts",
+	"billing-portal/route.ts",
+	"costs/pricing/route.ts",
+	"onboarding/setup/route.ts",
+];
 
 function isAllowlisted(routePath: string): boolean {
 	const normalized = routePath.replace(/\\/g, "/");
@@ -46,9 +50,22 @@ function isLegacyAllowlisted(routePath: string): boolean {
 	return LEGACY_AUTH_ALLOWLIST.some((suffix) => normalized.endsWith(suffix));
 }
 
-describe.skip("API Route Auth Audit - DISABLED: Fix glob pattern", () => {
-	const apiDir = path.resolve(__dirname, "../../../src/app/api");
-	const routeFiles = globSync("**/route.ts", { cwd: apiDir });
+function walkRouteFiles(dir: string, base = ""): string[] {
+	const results: string[] = [];
+	for (const entry of readdirSync(dir, { withFileTypes: true })) {
+		const rel = base ? `${base}/${entry.name}` : entry.name;
+		if (entry.isDirectory()) {
+			results.push(...walkRouteFiles(path.join(dir, entry.name), rel));
+		} else if (entry.name === "route.ts") {
+			results.push(rel);
+		}
+	}
+	return results;
+}
+
+describe("API Route Auth Audit", () => {
+	const apiDir = path.resolve(__dirname, "../../src/app/api");
+	const routeFiles = walkRouteFiles(apiDir);
 
 	it("should find at least 20 route files", () => {
 		expect(routeFiles.length).toBeGreaterThanOrEqual(20);

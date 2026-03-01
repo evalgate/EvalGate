@@ -11,16 +11,27 @@
  * Uses AST-based scan (ts-morph) to avoid false positives on docs, helpers,
  * and non-error payloads.
  *
- * TEMPORARILY DISABLED: TODO - Fix glob pattern for Windows path resolution
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { globSync } from "glob";
 import { Project, SyntaxKind } from "ts-morph";
 import { describe, expect, it } from "vitest";
 
-const API_DIR = path.resolve(__dirname, "../../../src/app/api");
+function walkRouteFiles(dir: string, base = ""): string[] {
+	const results: string[] = [];
+	for (const entry of readdirSync(dir, { withFileTypes: true })) {
+		const rel = base ? `${base}/${entry.name}` : entry.name;
+		if (entry.isDirectory()) {
+			results.push(...walkRouteFiles(path.join(dir, entry.name), rel));
+		} else if (entry.name === "route.ts") {
+			results.push(rel);
+		}
+	}
+	return results;
+}
+
+const API_DIR = path.resolve(__dirname, "../../src/app/api");
 
 /**
  * Check if a route file uses canonical error helpers (apiError, validationError, etc.)
@@ -41,8 +52,8 @@ function hasAdHocErrorPattern(content: string): boolean {
 	return false;
 }
 
-describe.skip("API Error Envelope Audit - DISABLED: Fix glob pattern", () => {
-	const routeFiles = globSync("**/route.ts", { cwd: API_DIR });
+describe("API Error Envelope Audit", () => {
+	const routeFiles = walkRouteFiles(API_DIR);
 
 	it("should find route files", () => {
 		expect(routeFiles.length).toBeGreaterThan(0);

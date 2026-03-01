@@ -16,7 +16,7 @@ export default defineConfig({
 		globals: true,
 		environment: "node",
 		setupFiles: ["tests/setup.unit.ts"],
-		include: ["tests/unit/**/*.test.ts"],
+		include: ["tests/unit/**/*.test.ts", "tests/audits/**/*.test.ts"],
 		exclude: [
 			"**/node_modules/**",
 			"**/dist/**",
@@ -32,7 +32,6 @@ export default defineConfig({
 			"**/drizzle/**",
 			"**/examples/**",
 			"**/evals/**",
-			"tests/audits-disabled/**",
 		],
 		coverage: {
 			provider: "v8",
