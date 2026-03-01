@@ -27,27 +27,10 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 
+import type { EvaluationTemplate } from "@/lib/evaluation-templates/types";
+
 /** Serializable template data (icon stripped since functions can't cross server/client boundary) */
-export interface CatalogTemplateData {
-	id: string;
-	name: string;
-	category: string;
-	description: string;
-	type: "unit_test" | "human_eval" | "model_eval" | "ab_test";
-	complexity: "beginner" | "intermediate" | "advanced";
-	testCases: Array<{
-		input: string;
-		expectedOutput: string;
-		rubric: string;
-	}>;
-	judgePrompt?: string;
-	humanEvalCriteria?: Array<{
-		name: string;
-		description: string;
-		scale: string;
-	}>;
-	code?: string;
-}
+export type CatalogTemplateData = Omit<EvaluationTemplate, "icon">;
 
 const typeConfig: Record<string, { label: string; className: string }> = {
 	unit_test: {

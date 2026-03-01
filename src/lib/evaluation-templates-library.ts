@@ -4,27 +4,13 @@
  * 7 copy-paste-ready templates for common AI evaluation scenarios.
  * These are the "quick start" templates shown on the public /templates page.
  *
- * A separate catalog of 39 templates with richer metadata (icons, judge prompts,
- * human-eval criteria) lives in `@/lib/evaluation-templates/`. The two systems
- * are unified at the API layer via SerializedTemplate in the
- * /api/evaluation-templates route.
+ * Uses the unified EvaluationTemplate interface shared with the 39-template
+ * catalog in `@/lib/evaluation-templates/`.
  */
 
-export interface EvaluationTemplate {
-	id: string;
-	name: string;
-	description: string;
-	category: "chatbot" | "rag" | "code-gen" | "content" | "classification";
-	complexity: "beginner" | "intermediate" | "advanced";
-	estimatedTime: string;
-	code: string;
-	testCases: Array<{
-		input: string;
-		expectedOutput?: string;
-		metadata?: Record<string, unknown>;
-	}>;
-	rubric?: string;
-}
+import type { EvaluationTemplate } from "@/lib/evaluation-templates/types";
+
+export type { EvaluationTemplate };
 
 export const evaluationTemplates: EvaluationTemplate[] = [
 	// CHATBOT TEMPLATES

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pauly4010-evalai-sdk"
-version = "1.0.1"
+version = "1.9.0"
 description = "AI Evaluation Platform SDK — traces, evaluations, assertions, and workflow tracing for LLM apps"
 readme = "README.md"
 license = "MIT"

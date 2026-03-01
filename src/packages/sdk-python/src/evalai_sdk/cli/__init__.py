@@ -30,8 +30,13 @@ from evalai_sdk.cli.commands import (  # noqa: E402
     doctor,
     explain,
     gate,
+    impact_analysis,
     init,
+    migrate,
+    print_config,
     run,
+    share,
+    upgrade,
 )
 
 app.command("init")(init)
@@ -44,3 +49,8 @@ app.command("discover")(discover)
 app.command("diff")(diff)
 app.command("explain")(explain)
 app.command("baseline")(baseline)
+app.command("print-config")(print_config)
+app.command("share")(share)
+app.command("upgrade")(upgrade)
+app.command("impact-analysis")(impact_analysis)
+app.command("migrate")(migrate)

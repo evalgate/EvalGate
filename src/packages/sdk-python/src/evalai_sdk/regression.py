@@ -24,10 +24,10 @@ REPORT_SCHEMA_VERSION = 1
 
 
 class ARTIFACTS:
-    BASELINE = ".evalai/baseline.json"
-    REGRESSION_REPORT = ".evalai/regression-report.json"
-    CONFIDENCE_SUMMARY = ".evalai/confidence-summary.json"
-    LATENCY_BENCHMARK = ".evalai/latency-benchmark.json"
+    BASELINE = "evals/baseline.json"
+    REGRESSION_REPORT = "evals/regression-report.json"
+    CONFIDENCE_SUMMARY = "evals/confidence-summary.json"
+    LATENCY_BENCHMARK = "evals/latency-benchmark.json"
 
 
 @dataclass

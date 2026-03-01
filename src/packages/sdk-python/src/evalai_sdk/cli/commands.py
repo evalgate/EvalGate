@@ -514,3 +514,199 @@ def baseline(
     else:
         console.print(f"[red]Unknown action:[/red] {action}")
         raise typer.Exit(1)
+
+
+# ── print-config ──────────────────────────────────────────────────
+
+
+def print_config(
+    path: str = typer.Option(".evalai/config.json", "--path", "-p"),
+) -> None:
+    """Print the current project configuration."""
+    cp = Path(path)
+    if not cp.exists():
+        console.print(f"[yellow]No config found at {path}[/yellow]")
+        console.print("Run [cyan]evalai init[/cyan] first")
+        raise typer.Exit(1)
+
+    config = json.loads(cp.read_text())
+
+    table = Table(title="Project Configuration")
+    table.add_column("Key", style="cyan")
+    table.add_column("Value")
+
+    for key, value in config.items():
+        table.add_row(key, json.dumps(value) if isinstance(value, (dict, list)) else str(value))
+
+    console.print(table)
+    console.print(f"\n[dim]Config path: {cp.resolve()}[/dim]")
+
+
+# ── share ─────────────────────────────────────────────────────────
+
+
+def share(
+    report_path: str = typer.Argument(".evalai/last-run.json", help="Run report to share"),
+    api_key: str | None = typer.Option(None, "--api-key", envvar="EVALAI_API_KEY"),
+    base_url: str | None = typer.Option(None, "--base-url", envvar="EVALAI_BASE_URL"),
+) -> None:
+    """Upload a run report and get a shareable link."""
+    rp = Path(report_path)
+    if not rp.exists():
+        console.print(f"[red]Report not found:[/red] {report_path}")
+        raise typer.Exit(1)
+
+    report = json.loads(rp.read_text())
+
+    if not api_key:
+        console.print("[red]--api-key or EVALAI_API_KEY required to share[/red]")
+        raise typer.Exit(1)
+
+    url = base_url or "https://v0-ai-evaluation-platform-nu.vercel.app"
+
+    import httpx
+
+    resp = httpx.post(
+        f"{url}/api/reports",
+        json=report,
+        headers={"Authorization": f"Bearer {api_key}"},
+        timeout=30,
+    )
+
+    if resp.status_code == 200 or resp.status_code == 201:
+        data = resp.json()
+        link = data.get("url", f"{url}/reports/{data.get('id', 'unknown')}")
+        console.print(f"[green]✓[/green] Report shared: {link}")
+    else:
+        console.print(f"[red]Upload failed:[/red] {resp.status_code} — {resp.text}")
+        raise typer.Exit(1)
+
+
+# ── upgrade ───────────────────────────────────────────────────────
+
+
+def upgrade() -> None:
+    """Check for SDK updates and print upgrade instructions."""
+    import httpx
+
+    console.print("[bold]Checking for updates...[/bold]\n")
+
+    try:
+        resp = httpx.get("https://pypi.org/pypi/pauly4010-evalai-sdk/json", timeout=10)
+        if resp.status_code == 200:
+            latest = resp.json()["info"]["version"]
+            if latest == __version__:
+                console.print(f"[green]✓ You're on the latest version ({__version__})[/green]")
+            else:
+                console.print(f"  Current: [yellow]{__version__}[/yellow]")
+                console.print(f"  Latest:  [green]{latest}[/green]\n")
+                console.print("Upgrade with:")
+                console.print(f'  [cyan]pip install "pauly4010-evalai-sdk=={latest}"[/cyan]')
+        else:
+            console.print(f"[yellow]Could not check PyPI (HTTP {resp.status_code})[/yellow]")
+    except Exception as exc:
+        console.print(f"[yellow]Could not reach PyPI:[/yellow] {exc}")
+
+
+# ── impact-analysis ───────────────────────────────────────────────
+
+
+def impact_analysis(
+    eval_dir: str = typer.Option("evals", "--dir", "-d"),
+    baseline_path: str = typer.Option(".evalai/baseline.json", "--baseline", "-b"),
+) -> None:
+    """Analyze which eval specs would be affected by code changes."""
+    from evalai_sdk.runtime import create_eval_runtime
+
+    cwd = Path.cwd()
+    eval_path = cwd / eval_dir
+
+    if not eval_path.exists():
+        console.print(f"[yellow]No eval directory at {eval_dir}/[/yellow]")
+        raise typer.Exit(0)
+
+    handle = create_eval_runtime(str(cwd))
+
+    for spec_file in sorted(eval_path.glob("**/*.py")):
+        if spec_file.name.startswith("_"):
+            continue
+        try:
+            import importlib.util
+
+            spec_module = importlib.util.spec_from_file_location(spec_file.stem, spec_file)
+            if spec_module and spec_module.loader:
+                mod = importlib.util.module_from_spec(spec_module)
+                spec_module.loader.exec_module(mod)
+        except Exception:
+            pass
+
+    specs = handle.runtime.list()
+
+    bp = Path(baseline_path)
+    baseline_scores: dict[str, float] = {}
+    if bp.exists():
+        raw = json.loads(bp.read_text())
+        baseline_scores = raw.get("scores", {})
+
+    table = Table(title="Impact Analysis")
+    table.add_column("Spec", style="cyan")
+    table.add_column("Suite")
+    table.add_column("Baseline Score", justify="right")
+    table.add_column("Has Baseline")
+    table.add_column("Risk")
+
+    for s in specs:
+        score = baseline_scores.get(s.name)
+        has_baseline = score is not None
+        risk = "[green]low[/green]"
+        if not has_baseline:
+            risk = "[yellow]unknown[/yellow]"
+        elif score is not None and score < 0.8:
+            risk = "[red]high[/red]"
+
+        table.add_row(
+            s.name,
+            s.suite or "-",
+            f"{score:.3f}" if score is not None else "-",
+            "[green]yes[/green]" if has_baseline else "[red]no[/red]",
+            risk,
+        )
+
+    console.print(table)
+    console.print(f"\n[dim]{len(specs)} spec(s) discovered, {len(baseline_scores)} with baselines[/dim]")
+    handle.dispose()
+
+
+# ── migrate ───────────────────────────────────────────────────────
+
+
+def migrate(
+    action: str = typer.Argument("config", help="What to migrate: config"),
+    path: str = typer.Option(".evalai/config.json", "--path", "-p"),
+) -> None:
+    """Migrate config or baseline to the latest format."""
+    if action != "config":
+        console.print(f"[red]Unknown migration target:[/red] {action}")
+        console.print("Supported: [cyan]config[/cyan]")
+        raise typer.Exit(1)
+
+    cp = Path(path)
+    if not cp.exists():
+        console.print(f"[yellow]No config at {path}[/yellow]")
+        console.print("Run [cyan]evalai init[/cyan] first")
+        raise typer.Exit(1)
+
+    config = json.loads(cp.read_text())
+    current_version = config.get("version", 0)
+
+    if current_version >= 1:
+        console.print(f"[green]✓ Config already at latest version ({current_version})[/green]")
+        return
+
+    config["version"] = 1
+    config.setdefault("project_name", Path.cwd().name)
+    config.setdefault("eval_dir", "evals")
+    config.setdefault("baseline", ".evalai/baseline.json")
+
+    cp.write_text(json.dumps(config, indent=2))
+    console.print(f"[green]✓ Migrated config from v{current_version} to v1[/green]")

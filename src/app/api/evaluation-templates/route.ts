@@ -15,14 +15,11 @@ import {
 import { evaluationTemplates } from "@/lib/evaluation-templates-library";
 import { logger } from "@/lib/logger";
 
-interface SerializedTemplate {
-	id: string;
-	name: string;
-	description: string;
-	category: string;
+import type { EvaluationTemplate } from "@/lib/evaluation-templates/types";
+
+type SerializedTemplate = Omit<EvaluationTemplate, "icon"> & {
 	source: "featured" | "catalog";
-	[key: string]: unknown;
-}
+};
 
 export const GET = secureRoute(
 	async (req: NextRequest, _ctx, _params) => {
