@@ -81,7 +81,12 @@ def trace_openai(openai_client: Any, eval_client: Any, **kwargs: Any) -> Any:
 
     import inspect
 
-    is_async = hasattr(openai_client, "chat") and hasattr(openai_client.chat, "completions") and inspect.iscoroutinefunction(getattr(openai_client.chat.completions, "create", None))
+    create_fn = getattr(openai_client.chat.completions, "create", None)
+    is_async = (
+        hasattr(openai_client, "chat")
+        and hasattr(openai_client.chat, "completions")
+        and inspect.iscoroutinefunction(create_fn)
+    )
 
     class _TracedCompletions:
         def __init__(self, original: Any) -> None:

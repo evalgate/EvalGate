@@ -140,7 +140,8 @@ class TraceAPI(_BaseAPI):
         return await self._delete(f"/api/traces/{trace_id}")
 
     async def create_span(self, trace_id: int, params: CreateSpanParams) -> Span:
-        data = await self._post(f"/api/traces/{trace_id}/spans", json=params.model_dump(by_alias=True, exclude_none=True))
+        payload = params.model_dump(by_alias=True, exclude_none=True)
+        data = await self._post(f"/api/traces/{trace_id}/spans", json=payload)
         return Span.model_validate(data)
 
     async def list_spans(self, trace_id: int) -> builtins.list[Span]:
@@ -166,7 +167,8 @@ class EvaluationAPI(_BaseAPI):
         return [Evaluation.model_validate(e) for e in items]
 
     async def update(self, evaluation_id: int, params: UpdateEvaluationParams) -> Evaluation:
-        data = await self._patch(f"/api/evaluations/{evaluation_id}", json=params.model_dump(by_alias=True, exclude_none=True))
+        body = params.model_dump(by_alias=True, exclude_none=True)
+        data = await self._patch(f"/api/evaluations/{evaluation_id}", json=body)
         payload = data.get("evaluation", data) if isinstance(data, dict) else data
         return Evaluation.model_validate(payload)
 
@@ -264,7 +266,8 @@ class _AnnotationTasksAPI(_BaseAPI):
 
 class _AnnotationItemsAPI(_BaseAPI):
     async def create(self, task_id: int, params: CreateAnnotationItemParams) -> AnnotationItem:
-        data = await self._post(f"/api/annotation-tasks/{task_id}/items", json=params.model_dump(by_alias=True, exclude_none=True))
+        payload = params.model_dump(by_alias=True, exclude_none=True)
+        data = await self._post(f"/api/annotation-tasks/{task_id}/items", json=payload)
         return AnnotationItem.model_validate(data)
 
     async def list(
@@ -305,7 +308,8 @@ class _APIKeysAPI(_BaseAPI):
         return [APIKey.model_validate(k) for k in items]
 
     async def update(self, key_id: int, params: UpdateAPIKeyParams) -> APIKey:
-        data = await self._patch(f"/api/developer/api-keys/{key_id}", json=params.model_dump(by_alias=True, exclude_none=True))
+        payload = params.model_dump(by_alias=True, exclude_none=True)
+        data = await self._patch(f"/api/developer/api-keys/{key_id}", json=payload)
         return APIKey.model_validate(data)
 
     async def revoke(self, key_id: int) -> dict[str, str]:
@@ -332,7 +336,8 @@ class _WebhooksAPI(_BaseAPI):
         return Webhook.model_validate(data)
 
     async def update(self, webhook_id: int, params: UpdateWebhookParams) -> Webhook:
-        data = await self._patch(f"/api/developer/webhooks/{webhook_id}", json=params.model_dump(by_alias=True, exclude_none=True))
+        payload = params.model_dump(by_alias=True, exclude_none=True)
+        data = await self._patch(f"/api/developer/webhooks/{webhook_id}", json=payload)
         return Webhook.model_validate(data)
 
     async def delete(self, webhook_id: int) -> dict[str, str]:

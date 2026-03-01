@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import uuid
 from datetime import datetime, timezone
@@ -151,13 +152,11 @@ class WorkflowTracer:
                 metadata["span_error"] = error
             metadata["span_id"] = span.span_id
             metadata["ended_at"] = span.ended_at.isoformat()
-            try:
+            with contextlib.suppress(Exception):
                 await self._client.traces.update(
                     span.trace_id,
                     UpdateTraceParams(metadata=metadata),
                 )
-            except Exception:
-                pass
 
     # ── Handoffs ─────────────────────────────────────────────────
 

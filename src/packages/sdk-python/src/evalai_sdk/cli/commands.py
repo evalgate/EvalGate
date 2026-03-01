@@ -357,10 +357,16 @@ def check(
                 table.add_row("Flags", ", ".join(quality.flags))
             console.print(table)
 
-        if max_drop is not None and quality.regression_delta is not None:
-            if quality.regression_delta <= -max_drop:
-                console.print(f"[red]✗ FAIL — regression {quality.regression_delta:+.1f} exceeds max drop {max_drop}[/red]")
-                return EXIT_REGRESSION
+        if (
+            max_drop is not None
+            and quality.regression_delta is not None
+            and quality.regression_delta <= -max_drop
+        ):
+            console.print(
+                f"[red]✗ FAIL — regression {quality.regression_delta:+.1f} "
+                f"exceeds max drop {max_drop}[/red]"
+            )
+            return EXIT_REGRESSION
 
         if score < min_score:
             console.print(f"[red]✗ FAIL — score {score:.1f} < min {min_score:.1f}[/red]")
