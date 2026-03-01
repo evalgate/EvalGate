@@ -2,6 +2,7 @@
 
 import { useCustomer } from "autumn-js/react";
 import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
@@ -89,25 +90,32 @@ export function HomeHero() {
 							title: "Dashboard",
 							description:
 								"Track evaluation quality scores, pass rates, and trends",
+							src: "/screenshots/dashboard.png",
 						},
 						{
 							title: "Trace Viewer",
 							description:
 								"Inspect multi-agent workflow decisions and handoffs",
+							src: "/screenshots/traces.png",
 						},
 						{
 							title: "Evaluation Builder",
 							description: "50+ templates with drag-and-drop configuration",
+							src: "/screenshots/evaluation-detail.png",
 						},
 					].map((item) => (
 						<div
 							key={item.title}
 							className="rounded-lg border border-border bg-card p-6 text-center"
 						>
-							<div className="h-40 bg-muted/50 rounded-md flex items-center justify-center mb-4">
-								<span className="text-muted-foreground text-sm">
-									Screenshot coming soon
-								</span>
+							<div className="rounded-md overflow-hidden mb-4">
+								<Image
+									src={item.src}
+									alt={item.title}
+									width={1920}
+									height={1080}
+									className="w-full h-auto"
+								/>
 							</div>
 							<h3 className="font-semibold">{item.title}</h3>
 							<p className="text-sm text-muted-foreground mt-1">
