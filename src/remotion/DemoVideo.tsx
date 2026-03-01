@@ -99,60 +99,39 @@ export const DemoStills: React.FC = () => {
 		<AbsoluteFill>
 			<div
 				style={{
-					...fullScreen,
-					padding: "48px 80px",
+					width: 1920,
+					height: 1080,
+					backgroundColor: colors.bg,
+					fontFamily:
+						'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+					color: colors.text,
+					overflow: "hidden",
+					padding: "40px 60px",
 					display: "flex",
 					flexDirection: "column",
 				}}
 			>
-				<Sequence
-					from={SEGMENTS.dashboard.start}
-					durationInFrames={SEGMENTS.dashboard.duration}
-				>
-					<Dashboard />
-				</Sequence>
-				<Sequence
-					from={SEGMENTS.evaluationsList.start}
-					durationInFrames={SEGMENTS.evaluationsList.duration}
-				>
-					<EvaluationsList />
-				</Sequence>
-				<Sequence
-					from={SEGMENTS.evaluationDetail.start}
-					durationInFrames={SEGMENTS.evaluationDetail.duration}
-				>
-					<EvaluationDetail />
-				</Sequence>
-				<Sequence
-					from={SEGMENTS.traces.start}
-					durationInFrames={SEGMENTS.traces.duration}
-				>
-					<Traces />
-				</Sequence>
-				<Sequence
-					from={SEGMENTS.workflowsList.start}
-					durationInFrames={SEGMENTS.workflowsList.duration}
-				>
-					<WorkflowsList />
-				</Sequence>
-				<Sequence
-					from={SEGMENTS.workflowDag.start}
-					durationInFrames={SEGMENTS.workflowDag.duration}
-				>
-					<WorkflowDAG />
-				</Sequence>
-				<Sequence
-					from={SEGMENTS.costsSummary.start}
-					durationInFrames={SEGMENTS.costsSummary.duration}
-				>
-					<CostsSummary />
-				</Sequence>
-				<Sequence
-					from={SEGMENTS.benchmarks.start}
-					durationInFrames={SEGMENTS.benchmarks.duration}
-				>
-					<Benchmarks />
-				</Sequence>
+				{[
+					{ seg: SEGMENTS.dashboard, El: Dashboard },
+					{ seg: SEGMENTS.evaluationsList, El: EvaluationsList },
+					{ seg: SEGMENTS.evaluationDetail, El: EvaluationDetail },
+					{ seg: SEGMENTS.traces, El: Traces },
+					{ seg: SEGMENTS.workflowsList, El: WorkflowsList },
+					{ seg: SEGMENTS.workflowDag, El: WorkflowDAG },
+					{ seg: SEGMENTS.costsSummary, El: CostsSummary },
+					{ seg: SEGMENTS.benchmarks, El: Benchmarks },
+				].map(({ seg, El }) => (
+					<Sequence
+						key={seg.start}
+						from={seg.start}
+						durationInFrames={seg.duration}
+						style={{ flex: 1 }}
+					>
+						<div style={{ width: "100%", height: "100%" }}>
+							<El />
+						</div>
+					</Sequence>
+				))}
 			</div>
 		</AbsoluteFill>
 	);

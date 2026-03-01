@@ -106,9 +106,9 @@ export function HomeHero() {
 					].map((item) => (
 						<div
 							key={item.title}
-							className="rounded-lg border border-border bg-card p-6 text-center"
+							className="rounded-lg border border-border bg-card p-3 text-center"
 						>
-							<div className="rounded-md overflow-hidden mb-4">
+							<div className="rounded-md overflow-hidden mb-3">
 								<Image
 									src={item.src}
 									alt={item.title}
