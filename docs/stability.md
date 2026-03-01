@@ -105,7 +105,7 @@ This document classifies every major feature by maturity level and provides API 
 | Cost Records | **Stable** | v1.0 | Per-call token + cost tracking |
 | LLM Judge | **Beta** | v1.0 | Meta-judge post-eval hook |
 
-### SDK (`@pauly4010/evalai-sdk`) — v1.9.0
+### SDK (`@pauly4010/evalai-sdk`) — v1.9.1
 
 | Feature | Tier | Since | Notes |
 |---------|------|-------|-------|

@@ -2,6 +2,25 @@
 
 Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANGELOG.md](src/packages/sdk/CHANGELOG.md).
 
+## [1.9.1] - 2026-03-01
+
+### Fixed
+- Fix 7 cross-tenant IDOR vulnerabilities across API routes
+- Fix SSE server killing all clients after 30s (lastPing never updated)
+- Fix SSE stream TDZ crash on response variable
+- Fix Redis outage taking down all endpoints (add in-memory fallback)
+- Fix shared reports .run() crash (SQLite method on PostgreSQL)
+- Fix raw error message disclosure in 500 responses
+- Fix SameSite=None cookie weakening CSRF protection
+- Fix OAuth provider crash when credentials not configured
+- Fix logger crash on circular references
+- Fix report-card metadata overwrite making totalCost always 0
+- Align TypeScript SDK types with actual API response shapes (12+ fixes)
+- Fix Python SDK CLI init template, run output, credential resolution
+- Add rate limiting to demo playground, onboarding, billing-portal
+- Add NaN guards to parseInt across API routes
+- Fix DB connection pool config for serverless (max: 1 on Vercel)
+
 ## [1.9.0] - 2026-02-27
 
 ### Added

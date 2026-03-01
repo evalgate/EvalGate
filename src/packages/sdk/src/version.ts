@@ -3,5 +3,5 @@
  * X-EvalAI-SDK-Version: SDK package version
  * X-EvalAI-Spec-Version: OpenAPI spec version (docs/openapi.json info.version)
  */
-export const SDK_VERSION = "1.9.0";
+export const SDK_VERSION = "1.9.1";
 export const SPEC_VERSION = "1.0.0";
