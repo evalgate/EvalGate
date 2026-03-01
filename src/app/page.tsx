@@ -3,6 +3,7 @@ import { Footer } from "@/components/footer";
 import { HomeFeatures } from "@/components/home-features";
 import { HomeHeader } from "@/components/home-header";
 import { HomeHero } from "@/components/home-hero";
+import { HomeScreenshots } from "@/components/home-screenshots";
 import { InteractivePlayground } from "@/components/interactive-playground";
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default function HomePage() {
 			<main className="flex-1">
 				<HomeHero />
 				<HomeFeatures />
+				<HomeScreenshots />
 
 				{/* Interactive Playground Section */}
 				<section
