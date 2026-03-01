@@ -82,17 +82,17 @@ export const WorkflowDAG: React.FC = () => {
 									strokeWidth={2}
 									markerEnd="url(#ah)"
 								/>
-								{edge.label && (
-									<text
-										x={mx}
-										y={(fy + ty) / 2 - 10}
-										textAnchor="middle"
-										fill={colors.textDim}
-										fontSize={13}
-									>
-										{edge.label}
-									</text>
-								)}
+							{"label" in edge && edge.label && (
+								<text
+									x={mx}
+									y={(fy + ty) / 2 - 10}
+									textAnchor="middle"
+									fill={colors.textDim}
+									fontSize={13}
+								>
+									{edge.label}
+								</text>
+							)}
 							</g>
 						);
 					})}
@@ -147,7 +147,7 @@ export const WorkflowDAG: React.FC = () => {
 												: colors.textDim
 									}
 								/>
-								{node.requiresApproval && (
+								{"requiresApproval" in node && node.requiresApproval && (
 									<g transform={`translate(${NODE_W - 80}, 42)`}>
 										<rect
 											width={65}
@@ -169,7 +169,7 @@ export const WorkflowDAG: React.FC = () => {
 										</text>
 									</g>
 								)}
-								{node.blocked && (
+								{"blocked" in node && node.blocked && (
 									<g transform={`translate(${NODE_W - 70}, 42)`}>
 										<rect
 											width={55}

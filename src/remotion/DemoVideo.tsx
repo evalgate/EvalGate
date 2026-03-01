@@ -5,8 +5,12 @@ import { Benchmarks } from "./segments/Benchmarks";
 import { Closing } from "./segments/Closing";
 import { CostsCharts } from "./segments/CostsCharts";
 import { CostsSummary } from "./segments/CostsSummary";
+import { Dashboard } from "./segments/Dashboard";
+import { EvaluationDetail } from "./segments/EvaluationDetail";
+import { EvaluationsList } from "./segments/EvaluationsList";
 import { Intro } from "./segments/Intro";
 import { SDK } from "./segments/SDK";
+import { Traces } from "./segments/Traces";
 import { WorkflowDAG } from "./segments/WorkflowDAG";
 import { WorkflowRuns } from "./segments/WorkflowRuns";
 import { WorkflowStats } from "./segments/WorkflowStats";
@@ -111,6 +115,34 @@ export const DemoVideo: React.FC = () => {
 						durationInFrames={SEGMENTS.intro.duration}
 					>
 						<Intro />
+					</Sequence>
+
+					<Sequence
+						from={SEGMENTS.dashboard.start}
+						durationInFrames={SEGMENTS.dashboard.duration}
+					>
+						<Dashboard />
+					</Sequence>
+
+					<Sequence
+						from={SEGMENTS.evaluationsList.start}
+						durationInFrames={SEGMENTS.evaluationsList.duration}
+					>
+						<EvaluationsList />
+					</Sequence>
+
+					<Sequence
+						from={SEGMENTS.evaluationDetail.start}
+						durationInFrames={SEGMENTS.evaluationDetail.duration}
+					>
+						<EvaluationDetail />
+					</Sequence>
+
+					<Sequence
+						from={SEGMENTS.traces.start}
+						durationInFrames={SEGMENTS.traces.duration}
+					>
+						<Traces />
 					</Sequence>
 
 					<Sequence

@@ -243,18 +243,22 @@ await tracer.endWorkflow({ resolution: 'resolved' });`;
 export const FPS = 30;
 export const SEGMENTS = {
 	intro: { start: 0, duration: 4 * FPS },
-	workflowsList: { start: 4 * FPS, duration: 4 * FPS },
-	workflowStats: { start: 8 * FPS, duration: 4 * FPS },
-	workflowDag: { start: 12 * FPS, duration: 7 * FPS },
-	workflowRuns: { start: 19 * FPS, duration: 5 * FPS },
-	costsSummary: { start: 24 * FPS, duration: 4 * FPS },
-	costsCharts: { start: 28 * FPS, duration: 6 * FPS },
-	benchmarks: { start: 34 * FPS, duration: 6 * FPS },
-	sdk: { start: 40 * FPS, duration: 5 * FPS },
-	closing: { start: 45 * FPS, duration: 6 * FPS },
+	dashboard: { start: 4 * FPS, duration: 5 * FPS },
+	evaluationsList: { start: 9 * FPS, duration: 4 * FPS },
+	evaluationDetail: { start: 13 * FPS, duration: 5 * FPS },
+	traces: { start: 18 * FPS, duration: 5 * FPS },
+	workflowsList: { start: 23 * FPS, duration: 4 * FPS },
+	workflowStats: { start: 27 * FPS, duration: 4 * FPS },
+	workflowDag: { start: 31 * FPS, duration: 7 * FPS },
+	workflowRuns: { start: 38 * FPS, duration: 5 * FPS },
+	costsSummary: { start: 43 * FPS, duration: 4 * FPS },
+	costsCharts: { start: 47 * FPS, duration: 6 * FPS },
+	benchmarks: { start: 53 * FPS, duration: 6 * FPS },
+	sdk: { start: 59 * FPS, duration: 5 * FPS },
+	closing: { start: 64 * FPS, duration: 6 * FPS },
 };
 
-export const TOTAL_FRAMES = 51 * FPS;
+export const TOTAL_FRAMES = 70 * FPS;
 
 export const CAPTIONS: Array<{
 	text: string;
@@ -267,63 +271,83 @@ export const CAPTIONS: Array<{
 		endFrame: 3.8 * FPS,
 	},
 	{
-		text: "Workflow cards show DAG previews, status badges, run counts, and success rates.",
+		text: "Dashboard overview — evaluations, recent runs, traces, and quality scores at a glance.",
 		startFrame: 4 * FPS,
-		endFrame: 7.8 * FPS,
+		endFrame: 8.8 * FPS,
+	},
+	{
+		text: "Evaluations list with type badges, pass rates, and filters for unit tests, model evals, and A/B tests.",
+		startFrame: 9 * FPS,
+		endFrame: 12.8 * FPS,
+	},
+	{
+		text: "Drill into an evaluation — AI quality grade, test case results, and metric breakdowns.",
+		startFrame: 13 * FPS,
+		endFrame: 17.8 * FPS,
+	},
+	{
+		text: "Traces — monitor every LLM call, tool invocation, and agent span with a waterfall timeline.",
+		startFrame: 18 * FPS,
+		endFrame: 22.8 * FPS,
+	},
+	{
+		text: "Workflow cards show DAG previews, status badges, run counts, and success rates.",
+		startFrame: 23 * FPS,
+		endFrame: 26.8 * FPS,
 	},
 	{
 		text: "Each workflow tracks total runs, success rate, average duration, and total cost.",
-		startFrame: 8 * FPS,
-		endFrame: 11.8 * FPS,
+		startFrame: 27 * FPS,
+		endFrame: 30.8 * FPS,
 	},
 	{
 		text: "Interactive SVG DAG with 6 node types: agent, tool, decision, parallel, human, LLM.",
-		startFrame: 12 * FPS,
-		endFrame: 15.5 * FPS,
+		startFrame: 31 * FPS,
+		endFrame: 34.5 * FPS,
 	},
 	{
 		text: 'Governance badges — amber "Approval" and red "Blocked" — render directly on nodes.',
-		startFrame: 15.5 * FPS,
-		endFrame: 18.8 * FPS,
+		startFrame: 34.5 * FPS,
+		endFrame: 37.8 * FPS,
 	},
 	{
 		text: "Full execution history — per-run cost, duration, agent count, and handoff tracking.",
-		startFrame: 19 * FPS,
-		endFrame: 23.8 * FPS,
+		startFrame: 38 * FPS,
+		endFrame: 42.8 * FPS,
 	},
 	{
 		text: "Real-time cost analytics: 30-day spend, 7-day trend, total tokens, avg cost per request.",
-		startFrame: 24 * FPS,
-		endFrame: 27.8 * FPS,
+		startFrame: 43 * FPS,
+		endFrame: 46.8 * FPS,
 	},
 	{
 		text: "Daily cost trend and model distribution. Spot spikes immediately.",
-		startFrame: 28 * FPS,
-		endFrame: 31 * FPS,
+		startFrame: 47 * FPS,
+		endFrame: 50 * FPS,
 	},
 	{
 		text: "Cost breakdown by model — see exactly where money goes.",
-		startFrame: 31 * FPS,
-		endFrame: 33.8 * FPS,
+		startFrame: 50 * FPS,
+		endFrame: 52.8 * FPS,
 	},
 	{
 		text: "Leaderboard ranks agents by accuracy, latency, success rate, and composite score.",
-		startFrame: 34 * FPS,
-		endFrame: 37 * FPS,
+		startFrame: 53 * FPS,
+		endFrame: 56 * FPS,
 	},
 	{
 		text: "Radar chart compares ReAct vs Chain-of-Thought vs Tree-of-Thought across 5 metrics.",
-		startFrame: 37 * FPS,
-		endFrame: 39.8 * FPS,
+		startFrame: 56 * FPS,
+		endFrame: 58.8 * FPS,
 	},
 	{
 		text: "Published on npm — install @pauly4010/evalai-sdk and start tracing in minutes.",
-		startFrame: 40 * FPS,
-		endFrame: 44.8 * FPS,
+		startFrame: 59 * FPS,
+		endFrame: 63.8 * FPS,
 	},
 	{
-		text: "Visual DAG orchestration. Cost analytics. Agent benchmarking. Published SDK.",
-		startFrame: 45 * FPS,
-		endFrame: 50.8 * FPS,
+		text: "Evaluations. Traces. Workflows. Cost analytics. Benchmarking. Published SDK.",
+		startFrame: 64 * FPS,
+		endFrame: 69.8 * FPS,
 	},
 ];
