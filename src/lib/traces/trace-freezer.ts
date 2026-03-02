@@ -7,8 +7,18 @@
  * - regression baseline
  *
  * A frozen snapshot captures the full behavioral state at the moment of
- * freezing. The redaction pass (Phase 0B) runs before any snapshot is stored.
+ * freezing. Redaction runs inline (default: on) so stored snapshots are
+ * guaranteed not to contain raw secrets or PII.
  */
+
+import {
+	DEFAULT_REDACTION_PROFILE,
+	NO_REDACTION_PROFILE,
+	STRICT_REDACTION_PROFILE,
+	redactObject,
+	redactString,
+	type RedactionProfile,
+} from "@/lib/security/redaction";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -163,6 +173,23 @@ export interface TraceForFreezing {
 
 // ── Core freeze function ──────────────────────────────────────────────────────
 
+// ── Redaction profile lookup ─────────────────────────────────────────────────
+
+function resolveRedactionProfile(id: string | null | undefined): RedactionProfile {
+	if (id === "strict") return STRICT_REDACTION_PROFILE;
+	if (id === "none") return NO_REDACTION_PROFILE;
+	return DEFAULT_REDACTION_PROFILE;
+}
+
+/** Apply redaction to any value (string, object, or pass-through). */
+function redactValue(value: unknown, shouldRedact: boolean, profile: RedactionProfile): unknown {
+	if (!shouldRedact || value === null || value === undefined) return value;
+	if (typeof value === "string") return redactString(value, profile).result;
+	if (typeof value === "object" && !Array.isArray(value))
+		return redactObject(value as Record<string, unknown>, profile).result;
+	return value;
+}
+
 /**
  * Freeze a live trace into an immutable behavioral snapshot.
  *
@@ -171,8 +198,8 @@ export interface TraceForFreezing {
  * 2. Determine replay tier based on captured data
  * 3. Snapshot all spans with their behavioral payloads
  * 4. Mark external deps that were not captured
- *
- * Note: Redaction must be applied separately via the security pipeline.
+ * 5. Apply redaction inline (default: on) — guarantees frozen snapshots
+ *    contain no raw secrets or PII
  */
 export function freezeTrace(
 	trace: TraceForFreezing,
@@ -180,6 +207,8 @@ export function freezeTrace(
 ): FrozenTraceSnapshot {
 	const captureMode = options.toolOutputCaptureMode ?? "full";
 	const commitSha = options.commitSha ?? trace.environment?.commitSha ?? null;
+	const shouldRedact = options.applyRedaction !== false;
+	const profile = resolveRedactionProfile(options.redactionProfileId);
 
 	const frozenSpans: FrozenSpanSnapshot[] = trace.spans.map((span) => {
 		const meta = span.metadata ?? {};
@@ -187,22 +216,26 @@ export function freezeTrace(
 			spanId: span.spanId,
 			name: span.name,
 			type: span.type,
-			input: span.input ?? null,
-			output: span.output ?? null,
+			input: redactValue(span.input ?? null, shouldRedact, profile),
+			output: redactValue(span.output ?? null, shouldRedact, profile),
 			durationMs: span.durationMs ?? null,
 			model: (meta.model as string) ?? null,
 			provider: (meta.provider as string) ?? null,
 			temperature: (meta.temperature as number) ?? null,
 			toolCalls: (span.behavioral?.toolCalls ?? []).map((tc) => ({
 				name: tc.name,
-				arguments: tc.arguments,
-				output: captureMode === "full" ? (tc.output ?? null) : null,
+				arguments: shouldRedact
+					? redactObject(tc.arguments, profile).result
+					: tc.arguments,
+				output: captureMode === "full"
+					? redactValue(tc.output ?? null, shouldRedact, profile)
+					: null,
 				success: tc.success ?? null,
 				captureMode,
 			})),
 			messages: (span.behavioral?.messages ?? []).map((m) => ({
 				role: m.role,
-				content: m.content,
+				content: shouldRedact ? redactString(m.content, profile).result : m.content,
 				timestamp: m.timestamp ?? null,
 			})),
 			retrievedDocuments: (span.behavioral?.retrievedDocuments ?? []).map(
@@ -250,8 +283,8 @@ export function freezeTrace(
 		toolOutputCaptureMode: captureMode,
 		externalDeps,
 		spans: frozenSpans,
-		redacted: false,
-		redactionProfileId: options.redactionProfileId ?? null,
+		redacted: shouldRedact,
+		redactionProfileId: shouldRedact ? (options.redactionProfileId ?? "default") : null,
 		environment: {
 			runtime: trace.environment?.runtime ?? null,
 			sdkVersion: trace.environment?.sdkVersion ?? null,

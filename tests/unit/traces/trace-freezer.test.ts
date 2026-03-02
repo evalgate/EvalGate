@@ -48,9 +48,16 @@ describe("freezeTrace", () => {
 		expect(snapshot.spans[0]!.spanId).toBe("span-1");
 	});
 
-	it("marks redacted: false by default", () => {
+	it("marks redacted: true by default (redaction on by default)", () => {
 		const snapshot = freezeTrace(minimalTrace);
+		expect(snapshot.redacted).toBe(true);
+		expect(snapshot.redactionProfileId).toBe("default");
+	});
+
+	it("marks redacted: false when applyRedaction=false", () => {
+		const snapshot = freezeTrace(minimalTrace, { applyRedaction: false });
 		expect(snapshot.redacted).toBe(false);
+		expect(snapshot.redactionProfileId).toBeNull();
 	});
 
 	it("includes commitSha from environment", () => {
