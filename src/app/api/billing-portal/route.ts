@@ -1,21 +1,14 @@
 import { Autumn as autumn } from "autumn-js";
 import { type NextRequest, NextResponse } from "next/server";
-import { internalError, unauthorized } from "@/lib/api/errors";
-import { withRateLimit } from "@/lib/api-rate-limit";
-import { auth } from "@/lib/auth";
+import { internalError } from "@/lib/api/errors";
+import { secureRoute } from "@/lib/api/secure-route";
 import { logger } from "@/lib/logger";
 
-export function POST(request: NextRequest) {
-	return withRateLimit(request, async () => {
-		const session = await auth.api.getSession({ headers: request.headers });
-
-		if (!session?.user) {
-			return unauthorized("Unauthorized");
-		}
-
+export const POST = secureRoute(
+	async (req, ctx) => {
 		let body = {};
 		try {
-			body = await request.json();
+			body = await req.json();
 		} catch {
 			logger.warn("Failed to parse billing portal request body");
 		}
@@ -23,7 +16,7 @@ export function POST(request: NextRequest) {
 		const { returnUrl } = body as { returnUrl?: string };
 
 		try {
-			const result = await autumn.customers.billingPortal(session.user.id, {
+			const result = await autumn.customers.billingPortal(ctx.userId, {
 				return_url: returnUrl || undefined,
 			});
 
@@ -41,5 +34,6 @@ export function POST(request: NextRequest) {
 			logger.error("Billing portal error", { error: err });
 			return internalError("Failed to generate billing portal URL");
 		}
-	});
-}
+	},
+	{ requireOrg: false },
+);

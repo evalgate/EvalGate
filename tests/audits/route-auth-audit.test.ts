@@ -33,12 +33,7 @@ const PUBLIC_ROUTE_ALLOWLIST = [
 
 // Legacy auth patterns that should be migrated to secureRoute
 // SHRINK-ONLY: This list should only shrink over time
-const LEGACY_AUTH_ALLOWLIST = [
-	"arena-matches/route.ts",
-	"billing-portal/route.ts",
-	"costs/pricing/route.ts",
-	"onboarding/setup/route.ts",
-];
+const LEGACY_AUTH_ALLOWLIST = ["arena-matches/route.ts"];
 
 function isAllowlisted(routePath: string): boolean {
 	const normalized = routePath.replace(/\\/g, "/");
@@ -85,11 +80,11 @@ describe("API Route Auth Audit", () => {
 			// Should use secureRoute
 			const usesSecureRoute = content.includes("secureRoute");
 
-			// Should NOT use legacy patterns
+			// Should NOT use legacy patterns (exclude requireAuth: false in secureRoute options)
 			const usesLegacyAuth =
-				content.includes("requireAuth") ||
-				content.includes("getCurrentUser") ||
-				content.includes("requireAuthWithOrg");
+				/\brequireAuth\s*\(/.test(content) ||
+				/\bgetCurrentUser\s*\(/.test(content) ||
+				/\brequireAuthWithOrg\s*\(/.test(content);
 
 			expect(usesSecureRoute).toBe(true);
 			if (usesLegacyAuth) {

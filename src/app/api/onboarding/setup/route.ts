@@ -1,24 +1,18 @@
 import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { organizationMembers, organizations } from "@/db/schema";
-import { internalError, unauthorized } from "@/lib/api/errors";
-import { withRateLimit } from "@/lib/api-rate-limit";
-import { getCurrentUser } from "@/lib/auth";
+import { organizationMembers, organizations, user } from "@/db/schema";
+import { internalError } from "@/lib/api/errors";
+import { secureRoute } from "@/lib/api/secure-route";
 import { logger } from "@/lib/logger";
 
-export function POST(request: NextRequest) {
-	return withRateLimit(request, async () => {
+export const POST = secureRoute(
+	async (_req, ctx) => {
 		try {
-			const user = await getCurrentUser(request);
-			if (!user) {
-				return unauthorized("Authentication required");
-			}
-
 			const existingMembership = await db
 				.select()
 				.from(organizationMembers)
-				.where(eq(organizationMembers.userId, user.id))
+				.where(eq(organizationMembers.userId, ctx.userId))
 				.limit(1);
 
 			if (existingMembership.length > 0) {
@@ -32,9 +26,16 @@ export function POST(request: NextRequest) {
 			}
 
 			const now = new Date();
-			const organizationName = user.name
-				? `${user.name}'s Organization`
-				: `${user.email}'s Organization`;
+			const [userRow] = await db
+				.select({ name: user.name, email: user.email })
+				.from(user)
+				.where(eq(user.id, ctx.userId))
+				.limit(1);
+			const organizationName = userRow?.name
+				? `${userRow.name}'s Organization`
+				: userRow?.email
+					? `${userRow.email}'s Organization`
+					: `User ${ctx.userId}'s Organization`;
 
 			const newOrganization = await db
 				.insert(organizations)
@@ -49,7 +50,7 @@ export function POST(request: NextRequest) {
 
 			await db.insert(organizationMembers).values({
 				organizationId: organizationId,
-				userId: user.id,
+				userId: ctx.userId,
 				role: "owner",
 				createdAt: now,
 			});
@@ -66,5 +67,6 @@ export function POST(request: NextRequest) {
 			logger.error("Onboarding setup error", { error });
 			return internalError("Failed to setup organization");
 		}
-	});
-}
+	},
+	{ requireOrg: false },
+);
