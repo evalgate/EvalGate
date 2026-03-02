@@ -130,7 +130,7 @@ export function deriveRateLimitTier(
 export function secureRoute(
 	handler: (
 		req: NextRequest,
-		ctx: any,
+		ctx: AuthContext,
 		params: Record<string, string>,
 	) => Promise<NextResponse>,
 	options?: SecureRouteOptions & {
@@ -176,7 +176,7 @@ export function secureRoute(
 export function secureRoute(
 	handler: (
 		req: NextRequest,
-		ctx: any,
+		ctx: AuthContext | AuthOnlyContext | unknownAuthContext,
 		params: Record<string, string>,
 	) => Promise<NextResponse>,
 	options: SecureRouteOptions = {},

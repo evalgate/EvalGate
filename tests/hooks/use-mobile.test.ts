@@ -2,10 +2,29 @@
  * @vitest-environment jsdom
  */
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+const mockMatchMedia = (matches = false) =>
+	vi.fn().mockImplementation((query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addListener: vi.fn(),
+		removeListener: vi.fn(),
+		addEventListener: vi.fn(),
+		removeEventListener: vi.fn(),
+		dispatchEvent: vi.fn(),
+	}));
+
 describe("useIsMobile", () => {
+	beforeAll(() => {
+		Object.defineProperty(window, "matchMedia", {
+			writable: true,
+			value: mockMatchMedia(false),
+		});
+	});
+
 	it("should return false when window width is above breakpoint", () => {
 		Object.defineProperty(window, "innerWidth", {
 			value: 1024,

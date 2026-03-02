@@ -33,7 +33,7 @@ const PUBLIC_ROUTE_ALLOWLIST = [
 
 // Legacy auth patterns that should be migrated to secureRoute
 // SHRINK-ONLY: This list should only shrink over time
-const LEGACY_AUTH_ALLOWLIST = ["arena-matches/route.ts"];
+const LEGACY_AUTH_ALLOWLIST: string[] = [];
 
 function isAllowlisted(routePath: string): boolean {
 	const normalized = routePath.replace(/\\/g, "/");
@@ -98,11 +98,17 @@ describe("API Route Auth Audit", () => {
 	describe("legacy auth tracking", () => {
 		const legacyRoutes = nonAllowlisted.filter((f) => isLegacyAllowlisted(f));
 
-		it.each(
-			legacyRoutes,
-		)("%s is tracked for legacy auth migration", (routeFile) => {
-			// This test just documents legacy routes for future migration
-			expect(routeFile).toBeDefined();
-		});
+		if (legacyRoutes.length > 0) {
+			it.each(legacyRoutes)(
+				"%s is tracked for legacy auth migration",
+				(routeFile) => {
+					expect(routeFile).toBeDefined();
+				},
+			);
+		} else {
+			it("no legacy routes remaining (all migrated to secureRoute)", () => {
+				expect(LEGACY_AUTH_ALLOWLIST).toHaveLength(0);
+			});
+		}
 	});
 });

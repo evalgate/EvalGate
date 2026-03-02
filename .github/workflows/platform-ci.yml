@@ -247,6 +247,9 @@ jobs:
       - name: Coverage audit
         run: pnpm run audit:coverage
 
+      - name: Coverage gate (thresholds)
+        run: pnpm test:coverage:gate
+
       - name: CI quality gate summary
         if: always()
         run: |
@@ -274,6 +277,7 @@ jobs:
           echo "| \`pnpm test:db:coverage\` | ✅ |" >> "$GITHUB_STEP_SUMMARY"
           echo "| \`pnpm test:dom:coverage\` | ✅ |" >> "$GITHUB_STEP_SUMMARY"
           echo "| \`pnpm run audit:coverage\` | ✅ |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| \`pnpm test:coverage:gate\` | ✅ |" >> "$GITHUB_STEP_SUMMARY"
 
   # ── 3. Build + E2E ────────────────────────────────────────────────
   build:

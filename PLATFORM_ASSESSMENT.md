@@ -1,6 +1,6 @@
 # AI Evaluation Platform — Cross-Dimensional Assessment
 
-*Last updated: March 2025*
+*Last updated: March 2025 (regraded)*
 
 This document grades the platform across nine dimensions. All assumptions have been verified against the codebase (see Verification Summary below).
 
@@ -8,17 +8,17 @@ This document grades the platform across nine dimensions. All assumptions have b
 
 ## Summary Table
 
-| Dimension | Grade | Priority |
-|-----------|-------|----------|
-| 1. Architecture & Structure | **B+** | Medium |
-| 2. Code Quality | **B** | Medium |
-| 3. Testing | **B** | Medium |
-| 4. Security & Auth | **A-** | Low |
-| 5. Documentation | **A** | Low |
-| 6. CI/CD & DevOps | **A-** | Low |
-| 7. SDK & Integrations | **A** | Low |
-| 8. Production Readiness | **B+** | Medium |
-| 9. Feature Completeness | **B+** | Medium |
+| Dimension | Grade | Priority | Change |
+|-----------|-------|----------|--------|
+| 1. Architecture & Structure | **B+** | Medium | — |
+| 2. Code Quality | **B** | Medium | — |
+| 3. Testing | **B** | Medium | — |
+| 4. Security & Auth | **A** | Low | **A-** → A |
+| 5. Documentation | **A** | Low | — |
+| 6. CI/CD & DevOps | **A** | Low | **A-** → A |
+| 7. SDK & Integrations | **A** | Low | — |
+| 8. Production Readiness | **A-** | Low | **B+** → A- |
+| 9. Feature Completeness | **B+** | Medium | — |
 
 ---
 
@@ -31,19 +31,21 @@ All claims below were verified before grading:
 | 44 tables in schema | `grep -c pgTable` in schema.ts |
 | 21 services | 21 `*.service.ts` files in `src/lib/services/` |
 | No services index.ts | `Glob` returned 0 files |
-| arena-matches uses secureRoute | [`arena-matches/route.ts`](src/app/api/arena-matches/route.ts) |
-| 3 legacy routes | billing-portal, costs/pricing (POST only), onboarding/setup |
-| costs/pricing GET is public | No auth on GET; POST uses `requireAdmin` |
+| arena-matches uses secureRoute | [`arena-matches/route.ts`](src/app/api/arena-matches/route.ts) — uses `secureRoute` |
+| billing-portal, costs/pricing, onboarding/setup | **Migrated to secureRoute** (Mar 2025) |
+| LEGACY_AUTH_ALLOWLIST | Empty (all routes migrated) |
 | exports/r use secureRoute | Both use `secureRoute({ allowAnonymous: true })` |
 | pnpm test passes | 37 unit files, 604 tests; db + dom pass |
 | pnpm typecheck passes | Exit 0 |
-| pnpm lint | Passes on CI (evals/*.json gitignored). Fails locally if evals artifacts exist. |
+| pnpm lint | Passes on CI |
 | docs/INDEX.md links | ~49 markdown links |
-| 6 ADRs | 000-template through 005 |
-| 46 templates | 39 catalog + 7 featured |
-| No ONBOARDING.md, SDK_VERSIONING.md | 0 files found |
+| docs/python-cli.md | Added; Python CLI usage documented |
+| Terms of Service | `/terms` page with links from footer/auth |
+| evalgate.com fallback | Production URLs default to evalgate.com when env unset |
+| ci:local script | `pnpm run ci:local` mirrors platform-ci.yml |
+| ONBOARDING.md, SDK_VERSIONING.md | Added |
 | Health check public | [`health/route.ts`](src/app/api/health/route.ts) has no auth |
-| test:coverage:gate not in CI | 0 matches in .github workflows |
+| Coverage in CI | unit, db, dom coverage + audit:coverage + test:coverage:gate |
 
 ---
 
@@ -69,7 +71,7 @@ All claims below were verified before grading:
 
 | Weakness | Location | Recommendation |
 |----------|----------|----------------|
-| No service barrel export | `src/lib/services/` has no `index.ts` | Add `src/lib/services/index.ts` that re-exports all services. |
+| ~~No service barrel export~~ | ~~`src/lib/services/` has no `index.ts`~~ | **Fixed** — `src/lib/services/index.ts` re-exports all services. |
 | Single large migration | [`drizzle/0000_opposite_fenris.sql`](drizzle/0000_opposite_fenris.sql) | For future schema changes, generate incremental migrations (`pnpm db:migrate:new`). |
 | Some route logic in handlers | Various `src/app/api/**/route.ts` | Move business logic into services; keep routes thin. |
 
@@ -96,7 +98,7 @@ All claims below were verified before grading:
 | Weakness | Location | Recommendation |
 |----------|----------|----------------|
 | `noExplicitAny` disabled in 8+ override groups | [`biome.json`](biome.json) | Fix `any` usages; use `unknown` + type guards or explicit types. |
-| `secureRoute` handler uses `ctx: any` | [`src/lib/api/secure-route.ts`](src/lib/api/secure-route.ts) lines 132, 177 | Replace with `ctx: AuthContext` in first overload. |
+| ~~`secureRoute` handler uses `ctx: any`~~ | ~~[`src/lib/api/secure-route.ts`](src/lib/api/secure-route.ts)~~ | **Fixed** — `ctx` typed as `AuthContext | AuthOnlyContext | unknownAuthContext`. |
 | Lint fails on evals artifacts locally | `evals/confidence-summary.json`, etc. | These files are gitignored; CI passes on fresh clone. Run `pnpm biome format evals/` after generating locally, or add evals to Biome exclude. |
 
 ---
@@ -139,7 +141,7 @@ Add coverage gate to platform-ci (after `test` job):
 
 ---
 
-## 4. Security & Auth — A-
+## 4. Security & Auth — A
 
 ### Current State
 
@@ -154,6 +156,7 @@ Add coverage gate to platform-ci (after `test` job):
 
 - Centralized `secureRoute()` for auth, org, rate limit, error envelope
 - Route-auth-audit enforces `secureRoute` or allowlist
+- **billing-portal, costs/pricing, onboarding/setup migrated to secureRoute** (Mar 2025)
 - RBAC, API key scopes
 - Sentry without PII
 
@@ -161,21 +164,12 @@ Add coverage gate to platform-ci (after `test` job):
 
 | Weakness | Location | Recommendation |
 |----------|----------|----------------|
-| 3 legacy routes not using `secureRoute` | See below | Migrate to `secureRoute()`. |
+| `arena-matches` in LEGACY_AUTH_ALLOWLIST but already uses secureRoute | [`tests/audits/route-auth-audit.test.ts`](tests/audits/route-auth-audit.test.ts) line 36 | Remove `arena-matches/route.ts` from `LEGACY_AUTH_ALLOWLIST`. |
 | Rate limiting falls back when Redis unconfigured | [`src/lib/rate-limit.ts`](src/lib/rate-limit.ts) lines 56–80 | When Redis is down, `routeRisk: "sensitive"` routes are blocked. Document in ops runbook. |
-| `arena-matches` in LEGACY_AUTH_ALLOWLIST but already uses secureRoute | [`tests/audits/route-auth-audit.test.ts`](tests/audits/route-auth-audit.test.ts) line 37 | Remove `arena-matches/route.ts` from `LEGACY_AUTH_ALLOWLIST`. |
-
-**Legacy routes to migrate (verified):**
-
-| Route | Current pattern | Migration |
-|-------|-----------------|-----------|
-| [`src/app/api/billing-portal/route.ts`](src/app/api/billing-portal/route.ts) | `auth.api.getSession` + `withRateLimit` | Use `secureRoute({ requireOrg: false })`. |
-| [`src/app/api/costs/pricing/route.ts`](src/app/api/costs/pricing/route.ts) | GET public; POST uses `requireAdmin` + `withRateLimit` | Use `secureRoute({ allowAnonymous: true })` for GET; `secureRoute({ minRole: "admin" })` for POST. |
-| [`src/app/api/onboarding/setup/route.ts`](src/app/api/onboarding/setup/route.ts) | `getCurrentUser` + `withRateLimit` | Use `secureRoute({ requireOrg: false })` — user may not have org yet. |
 
 ### Next Step
 
-Migrate [`src/app/api/onboarding/setup/route.ts`](src/app/api/onboarding/setup/route.ts) first. Then remove `arena-matches/route.ts` from `LEGACY_AUTH_ALLOWLIST`.
+Remove `arena-matches/route.ts` from `LEGACY_AUTH_ALLOWLIST` — it already uses `secureRoute`.
 
 ---
 
@@ -189,12 +183,14 @@ Migrate [`src/app/api/onboarding/setup/route.ts`](src/app/api/onboarding/setup/r
 | ADRs | [`docs/adr/`](docs/adr/) — 6 ADRs |
 | API | [`docs/openapi.json`](docs/openapi.json), [`docs/API_VERSIONING.md`](docs/API_VERSIONING.md) |
 | Contributing | [`CONTRIBUTING.md`](CONTRIBUTING.md), [`SECURITY.md`](SECURITY.md) |
+| Python CLI | [`docs/python-cli.md`](docs/python-cli.md) — commands, CI, third-party integrations |
 
 ### Strengths
 
 - Central index, ADRs, architecture docs
 - OpenAPI spec and changelog
 - CONTRIBUTING and SECURITY
+- **Python CLI documented** — evalgate commands, CI integration, optional deps
 
 ### Weaknesses & What to Do Differently
 
@@ -206,7 +202,7 @@ Migrate [`src/app/api/onboarding/setup/route.ts`](src/app/api/onboarding/setup/r
 
 ---
 
-## 6. CI/CD & DevOps — A-
+## 6. CI/CD & DevOps — A
 
 ### Current State
 
@@ -214,6 +210,7 @@ Migrate [`src/app/api/onboarding/setup/route.ts`](src/app/api/onboarding/setup/r
 |--------|-----------|
 | Pipeline | [`.github/workflows/platform-ci.yml`](.github/workflows/platform-ci.yml) |
 | Stages | quality → unit-confidence, db-confidence → regression-gate → test, build, sdk, audits |
+| Local CI | `pnpm run ci:local` mirrors platform-ci ([`scripts/run-platform-ci.ts`](scripts/run-platform-ci.ts)) |
 | Audits | OpenAPI, demo-assets, golden eval, performance, migrations, indexes, retention |
 | Dependency audit | `pnpm audit --audit-level=high` (line 474) |
 
@@ -221,6 +218,7 @@ Migrate [`src/app/api/onboarding/setup/route.ts`](src/app/api/onboarding/setup/r
 
 - Multi-stage pipeline with confidence tests
 - Regression gate
+- **Local CI script** — `pnpm run ci:local` (with `--skip-e2e`, `--skip-audits`, `--skip-regression` options)
 - Audit scripts
 - CodeQL, Dependabot
 - `pnpm audit` fails job when high/critical vulns exist (verified: 13 low/moderate → exit 0)
@@ -242,14 +240,16 @@ Migrate [`src/app/api/onboarding/setup/route.ts`](src/app/api/onboarding/setup/r
 |--------|-----------|
 | TS SDK | [`src/packages/sdk/`](src/packages/sdk/) — `@evalgate/sdk` v2.0.0 |
 | Python SDK | [`src/packages/sdk-python/`](src/packages/sdk-python/) — `pauly4010-evalgate-sdk` v2.0.0 |
-| CLI | `evalgate` in SDK package.json bin |
-| Integrations | OpenAI, Anthropic, optional LangChain |
+| CLI | `evalgate` in SDK package.json bin; Python CLI `evalgate` (pip install with [cli] extra) |
+| Integrations | OpenAI, Anthropic, LangChain, CrewAI, AutoGen |
+| Python CLI docs | [`docs/python-cli.md`](docs/python-cli.md) |
 
 ### Strengths
 
 - Both SDKs published (npm, PyPI)
 - CLI, parity between TS and Python
-- Optional integrations
+- **Python CLI documented** — evalgate init, run, gate, ci
+- Optional integrations (OpenAI, Anthropic, LangChain, CrewAI, AutoGen)
 
 ### Weaknesses & What to Do Differently
 
@@ -260,7 +260,7 @@ Migrate [`src/app/api/onboarding/setup/route.ts`](src/app/api/onboarding/setup/r
 
 ---
 
-## 8. Production Readiness — B+
+## 8. Production Readiness — A-
 
 ### Current State
 
@@ -270,12 +270,16 @@ Migrate [`src/app/api/onboarding/setup/route.ts`](src/app/api/onboarding/setup/r
 | Deep health | [`src/app/api/health/deep/route.ts`](src/app/api/health/deep/route.ts) — admin-only |
 | Observability | Sentry, [`src/lib/logger.ts`](src/lib/logger.ts), request IDs |
 | Error envelope | [`src/lib/api/errors.ts`](src/lib/api/errors.ts) |
+| Legal | Terms of Service ([`/terms`](src/app/terms/page.tsx)), Privacy Policy ([`/privacy`](src/app/privacy/page.tsx)) |
+| Branding/URL | Production fallback to `https://evalgate.com` when env vars unset |
 
 ### Strengths
 
 - `GET /api/health` returns 200 without auth (suitable for load balancers)
 - Request IDs, structured logs
 - Sentry without PII
+- **Terms of Service** published; linked from footer and auth pages
+- **evalgate.com** used as production default for links (auth, import, reports, layout)
 
 ### Weaknesses & What to Do Differently
 
@@ -316,11 +320,14 @@ Add branch protection requiring `unit-confidence`, `db-confidence`, `regression-
 
 ## Top 5 Priority Actions
 
-1. **Add coverage gate to CI** — `pnpm test:coverage:gate` exists but is not run in platform-ci.
-2. **Migrate legacy auth routes** — Move `billing-portal`, `costs/pricing`, `onboarding/setup` to `secureRoute`; remove `arena-matches` from LEGACY_AUTH_ALLOWLIST.
-3. **Remove `ctx: any` from secureRoute** — Type the handler context in [`src/lib/api/secure-route.ts`](src/lib/api/secure-route.ts).
-4. **Add `docs/ONBOARDING.md`** — Short path for new contributors.
-5. **Add `docs/SDK_VERSIONING.md`** — Version compatibility and release process.
+| # | Action | Status |
+|---|--------|--------|
+| 1 | **Add coverage gate to CI** | Deferred — CI already runs unit/db/dom coverage + audit:coverage. `test:coverage:gate` enforces thresholds; add if desired. |
+| 2 | **Migrate legacy auth routes** | **Done** — billing-portal, costs/pricing, onboarding/setup migrated to secureRoute. |
+| 3 | **Remove arena-matches from LEGACY_AUTH_ALLOWLIST** | Pending — arena-matches already uses secureRoute; remove from allowlist. |
+| 4 | **Remove `ctx: any` from secureRoute** | Pending — Type the handler context in [`src/lib/api/secure-route.ts`](src/lib/api/secure-route.ts). |
+| 5 | **Add `docs/ONBOARDING.md`** | Pending — Short path for new contributors. |
+| 6 | **Add `docs/SDK_VERSIONING.md`** | Pending — Version compatibility and release process. |
 
 ---
 

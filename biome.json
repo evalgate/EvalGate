@@ -151,7 +151,6 @@
 		},
 		{
 			"includes": [
-				"src/lib/api/secure-route.ts",
 				"src/lib/export-templates.ts",
 				"src/lib/jobs/runner-in-memory.ts",
 				"src/components/webmcp-provider.tsx"

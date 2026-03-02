@@ -140,3 +140,22 @@ npx evalgate gate
                 ▼
         CI blocks or allows merge
 ```
+
+## Scaling
+
+The platform is designed to scale horizontally:
+
+| Layer | Scaling approach |
+|-------|------------------|
+| **Next.js** | Vercel serverless; auto-scales per request |
+| **PostgreSQL** | Single primary; use read replicas for heavy read workloads |
+| **Workers** | In-memory runner (`src/lib/workers/eval-worker.ts`); for production, replace with a queue (e.g. BullMQ, Inngest) and scale worker processes |
+| **LLM calls** | Throttled per provider; use provider key rotation for higher limits |
+| **Rate limits** | Per-tier (anonymous 30/min, free 200/min, pro 1000/min, enterprise 10000/min) |
+
+For high-volume evaluation runs, consider:
+
+1. **Batch imports** — Use the batch import API to reduce per-run overhead
+2. **Async execution** — Run evaluations asynchronously; poll or webhook for completion
+3. **Caching** — LLM responses are cached where applicable; ensure cache keys are stable
+4. **Database** — Add indexes for hot queries; use connection pooling (e.g. PgBouncer) if needed
