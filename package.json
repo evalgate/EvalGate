@@ -55,7 +55,7 @@
 		"openapi:generate-paths": "npx tsx scripts/generate-openapi-paths.ts",
 		"release:preflight": "npx tsx scripts/release-preflight.ts",
 		"ci:local": "npx tsx scripts/run-platform-ci.ts",
-		"prepare": "husky"
+		"prepare": "husky || true"
 	},
 	"lint-staged": {
 		"*.{ts,tsx,js,jsx,json,md}": [
