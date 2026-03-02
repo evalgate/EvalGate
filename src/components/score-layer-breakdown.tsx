@@ -136,7 +136,7 @@ export function ScoreLayerBreakdown({
 									className="h-1.5 bg-zinc-800"
 									aria-label={`${label} score ${pct}%`}
 								/>
-								<p className="text-[11px] text-zinc-500">{description}</p>
+								<p className="text-[11px] text-zinc-500">{_description}</p>
 							</div>
 						);
 					},
