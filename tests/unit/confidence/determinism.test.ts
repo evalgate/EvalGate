@@ -18,6 +18,7 @@ import {
 } from "@/lib/ai-quality-score";
 import { computeExportHash } from "@/lib/shared-exports/hash";
 import { stableStringify } from "@/lib/shared-exports/stable-stringify";
+import { computeEvalCaseId } from "@/lib/testcases/spec";
 import { normalizeInput, sha256Input } from "@/lib/utils/input-hash";
 
 // ── Export Hash Determinism ──
@@ -109,6 +110,39 @@ describe("Input normalization determinism", () => {
 	it("is idempotent — normalizing twice yields same result", () => {
 		const input = '  {"z": 1, "a": 2}  ';
 		expect(normalizeInput(normalizeInput(input))).toBe(normalizeInput(input));
+	});
+});
+
+// ── EvalCase ID Determinism ──
+
+describe("EvalCase ID determinism", () => {
+	it("same inputs always produce the same ID", () => {
+		const id1 = computeEvalCaseId({
+			title: "refund partial payment",
+			tags: ["billing"],
+		});
+		const id2 = computeEvalCaseId({
+			title: "refund partial payment",
+			tags: ["billing"],
+		});
+		expect(id1).toBe(id2);
+	});
+
+	it("IDs are in the expected format (ec_ + 16 hex chars)", () => {
+		const id = computeEvalCaseId({ title: "test case" });
+		expect(id).toMatch(/^ec_[0-9a-f]{16}$/);
+	});
+
+	it("tag order does not affect ID", () => {
+		const a = computeEvalCaseId({ title: "t", tags: ["z", "a"] });
+		const b = computeEvalCaseId({ title: "t", tags: ["a", "z"] });
+		expect(a).toBe(b);
+	});
+
+	it("different titles produce different IDs", () => {
+		const a = computeEvalCaseId({ title: "case A" });
+		const b = computeEvalCaseId({ title: "case B" });
+		expect(a).not.toBe(b);
 	});
 });
 

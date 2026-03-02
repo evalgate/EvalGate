@@ -30,6 +30,8 @@ git push
 
 That's it. `evalgate init` detects your Node project, runs your tests to create a baseline, installs a GitHub Actions workflow, and prints what to commit. Open a PR and CI blocks regressions automatically.
 
+**Prove it:** [examples/init-demo](examples/init-demo/README.md) shows the exact files generated, sample baseline artifact, and step summary — falsifiable in under 2 minutes.
+
 ### Python
 
 ```bash
@@ -100,12 +102,24 @@ npx evalgate explain             # what failed, why, and how to fix it
 
 Works offline. No API calls needed for `explain`.
 
+### Offline vs Online
+
+| Command | Network | Notes |
+|---------|---------|-------|
+| `gate` | **Offline** | Runs tests locally, compares to `evals/baseline.json` |
+| `check` | **Online** | Requires API key + evaluationId; fetches quality, posts annotations |
+| `import` | **Online** | Sends run data to platform (e.g. `--onFail import`) |
+| `traces` | **Online** | Sends spans to platform |
+| `explain` | **Offline** | Reads `.evalgate/last-report.json` or `evals/regression-report.json` |
+
+Buyers can trust: `gate` and `explain` never phone home.
+
 <details>
 <summary><strong>See it in action</strong> (click to expand)</summary>
 
 **GitHub Actions step summary** — gate result at a glance:
 
-![GitHub Actions step summary](docs/images/evalgate-gate-step-summary.svg)
+![GitHub Actions step summary](docs/images/evalai-gate-step-summary.svg)
 
 **`evalgate explain` terminal output** — root causes + fix commands:
 
@@ -170,7 +184,7 @@ jobs:
 - ✅ Posts rich summary in PR with regressions
 - ✅ Exits with proper codes (0=clean, 1=regressions, 2=config)
 
-**Docs:** [Features](FEATURES.md) · [CI Quickstart](docs/CI_QUICKSTART.md) · [Quickstart](docs/quickstart.md) · [Architecture](docs/ARCHITECTURE.md) · [Regression Gate](docs/REGRESSION_GATE.md) · [CI Artifacts](docs/CI_ARTIFACTS.md) · [AI Assistant Integration](docs/AI_ASSISTANT_INTEGRATION.md) · [Contributor Map](docs/CONTRIBUTOR_MAP.md) · [Releasing](docs/RELEASING.md) · [All Docs](docs/INDEX.md)
+**Docs:** [Features](FEATURES.md) · [CI Quickstart](docs/CI_QUICKSTART.md) · [Quickstart](docs/quickstart.md) · [Architecture](docs/ARCHITECTURE.md) · [Regression Gate](docs/REGRESSION_GATE.md) · [Baseline Contract](docs/BASELINE_CONTRACT.md) · [CI Artifacts](docs/CI_ARTIFACTS.md) · [AI Assistant Integration](docs/AI_ASSISTANT_INTEGRATION.md) · [Contributor Map](docs/CONTRIBUTOR_MAP.md) · [Releasing](docs/RELEASING.md) · [All Docs](docs/INDEX.md)
 
 ---
 
@@ -184,7 +198,7 @@ jobs:
 - **Built-in gate** — works with any `npm test` / `pnpm test` / `yarn test`
 - **Advanced gate** — golden eval scores, confidence tests, p95 latency, cost tracking
 - **GitHub Step Summary** — delta tables, pass/fail icons, artifact upload
-- **Baseline governance** — CODEOWNERS, label gates, anti-cheat guards
+- **Baseline governance** — CODEOWNERS, label gates, anti-cheat guards ([Baseline Contract](docs/BASELINE_CONTRACT.md))
 
 ### Evaluation
 

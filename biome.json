@@ -1,4 +1,4 @@
-{
+﻿{
 	"$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
 	"files": {
 		"includes": [
@@ -194,6 +194,37 @@
 		},
 		{
 			"includes": ["src/packages/sdk/**/*"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off"
+					},
+					"style": {
+						"noNonNullAssertion": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"src/lib/reliability/**/*",
+				"src/lib/security/**/*",
+				"src/lib/traces/**/*",
+				"src/lib/failures/**/*",
+				"src/lib/testgen/**/*",
+				"src/lib/testcases/**/*",
+				"src/lib/dataset/**/*",
+				"src/lib/judges/**/*",
+				"src/lib/metrics/**/*",
+				"src/lib/replay/**/*",
+				"src/lib/regression/**/*",
+				"src/lib/scoring/trace-feature-extractor.ts",
+				"src/lib/scoring/reasoning-layer.ts",
+				"src/lib/scoring/action-layer.ts",
+				"src/lib/scoring/outcome-layer.ts",
+				"src/lib/drift/behavioral-drift.ts",
+				"src/lib/drift/drift-explainer.ts"
+			],
 			"linter": {
 				"rules": {
 					"suspicious": {

@@ -16,6 +16,7 @@ Canonical paths for all project documentation. If you're linking to a doc, use t
 | Doc | Path | Audience |
 |-----|------|----------|
 | **Regression Gate** | [`docs/REGRESSION_GATE.md`](REGRESSION_GATE.md) | SDK users + CI |
+| **Baseline Contract** | [`docs/BASELINE_CONTRACT.md`](BASELINE_CONTRACT.md) | SDK users + buyers |
 | **GitHub Actions** | [`docs/ci/github-actions.md`](ci/github-actions.md) | CI/CD engineers |
 
 ## API & SDK
@@ -94,6 +95,7 @@ Canonical paths for all project documentation. If you're linking to a doc, use t
 | **RAG Eval** | [`examples/rag-eval/`](../examples/rag-eval/) | RAG regression with retrieval + generation scoring |
 | **Codegen Eval** | [`examples/codegen-eval/`](../examples/codegen-eval/) | Code generation eval with syntax + correctness |
 | **Agent Tool-Use** | [`examples/agent-tool-use/`](../examples/agent-tool-use/) | Agent workflow gate with tool selection |
+| **Init Demo** | [`examples/init-demo/`](../examples/init-demo/) | Falsifiable happy path — files generated, baseline, step summary |
 | **Quickstart CI** | [`examples/quickstart-ci/`](../examples/quickstart-ci/) | Minimal GitHub Actions gate |
 | **Node SDK** | [`examples/node/`](../examples/node/) | Node.js SDK usage |
 | **Python** | [`examples/python/`](../examples/python/) | Python usage |

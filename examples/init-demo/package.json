@@ -1,0 +1,9 @@
+{
+	"name": "evalgate-init-demo",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Falsifiable happy path — proves init creates baseline, workflow, and blocks regressions",
+	"scripts": {
+		"test": "node test.js"
+	}
+}

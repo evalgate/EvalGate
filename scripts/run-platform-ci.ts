@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 const SKIP_E2E = process.argv.includes("--skip-e2e");
 const SKIP_AUDITS = process.argv.includes("--skip-audits");
 const SKIP_REGRESSION = process.argv.includes("--skip-regression");
+const SKIP_DB = process.argv.includes("--skip-db"); // skip DB confidence + DB coverage + regression gate (use when no local PostgreSQL)
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -58,21 +59,27 @@ step("Unit confidence tests", () => {
 });
 
 // ─── 2b. DB confidence ─────────────────────────────────────────────
-step("DB confidence tests", () => {
-	run(
-		"pnpm vitest run tests/integration/golden-flow.test.ts tests/integration/failure-modes.test.ts tests/integration/concurrency.test.ts --config vitest.db.config.ts",
-		{ DATABASE_URL: "postgresql://test:test@localhost:5432/test" },
-	);
-});
+if (!SKIP_DB) {
+	step("DB confidence tests", () => {
+		run(
+			"pnpm vitest run tests/integration/golden-flow.test.ts tests/integration/failure-modes.test.ts tests/integration/concurrency.test.ts --config vitest.db.config.ts",
+			{ DATABASE_URL: "postgresql://test:test@localhost:5432/test" },
+		);
+	});
+} else {
+	console.log("\n⏭ Skipping DB confidence tests (--skip-db)");
+}
 
 // ─── 2c. Regression gate ───────────────────────────────────────────
-if (!SKIP_REGRESSION) {
+if (!SKIP_REGRESSION && !SKIP_DB) {
 	step("Regression gate", () => {
 		run("pnpm sdk:build");
 		run("pnpm eval:regression-gate", {
 			DATABASE_URL: "postgresql://test:test@localhost:5432/test",
 		});
 	});
+} else if (SKIP_DB) {
+	console.log("\n⏭ Skipping regression gate (--skip-db)");
 }
 
 // ─── 3. Test + Coverage ─────────────────────────────────────────────
@@ -81,17 +88,27 @@ step("Unit coverage", () => {
 		DATABASE_URL: "postgresql://test:test@localhost:5432/test",
 	});
 });
-step("DB coverage", () => {
-	run("pnpm test:db:coverage", {
-		DATABASE_URL: "postgresql://test:test@localhost:5432/test",
+if (!SKIP_DB) {
+	step("DB coverage", () => {
+		run("pnpm test:db:coverage", {
+			DATABASE_URL: "postgresql://test:test@localhost:5432/test",
+		});
 	});
-});
+} else {
+	console.log("\n⏭ Skipping DB coverage (--skip-db)");
+}
 step("DOM coverage", () => {
 	run("pnpm test:dom:coverage", {
 		DATABASE_URL: "postgresql://test:test@localhost:5432/test",
 	});
 });
-step("Coverage audit", () => run("pnpm run audit:coverage"));
+if (!SKIP_DB) {
+	step("Coverage audit", () => run("pnpm run audit:coverage"));
+} else {
+	console.log(
+		"\n⏭ Skipping coverage audit (--skip-db: thresholds require DB-lane data)",
+	);
+}
 
 // ─── 4. Build + E2E ────────────────────────────────────────────────
 if (!SKIP_E2E) {

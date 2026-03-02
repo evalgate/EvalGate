@@ -20,6 +20,7 @@ export default defineConfig({
 			"tests/audits/**/*.test.ts",
 			"src/lib/jobs/__tests__/**/*.test.ts",
 			"tests/sdk/**/*.test.ts",
+			"tests/contract/**/*.test.ts",
 		],
 		exclude: [
 			"**/node_modules/**",
