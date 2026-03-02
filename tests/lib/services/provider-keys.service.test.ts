@@ -176,7 +176,7 @@ describe("ProviderKeysService", () => {
 
 			expect(result).toBeDefined();
 			const inserted = state.insertCalls[0] as any;
-			expect(inserted.metadata).toBe("{}");
+			expect(inserted.metadata).toEqual({});
 		});
 
 		it("throws error without encryption key", async () => {
@@ -306,7 +306,7 @@ describe("ProviderKeysService", () => {
 					encryptedKey: "encrypted_test",
 					iv: "test_iv",
 					tag: "test_tag",
-					metadata: '{"version": "1.0"}',
+					metadata: { version: "1.0" },
 					isActive: true,
 					lastUsedAt: null,
 					createdAt: "2024-01-01",
@@ -433,14 +433,14 @@ describe("ProviderKeysService", () => {
 					id: 1,
 					organizationId: 1,
 					keyName: "Old Name",
-					metadata: '{"old": "data"}',
+					metadata: { old: "data" },
 					isActive: true,
 					updatedAt: "2024-01-01",
 				},
 				{
 					id: 1,
 					keyName: "New Name",
-					metadata: '{"new": "data"}',
+					metadata: { new: "data" },
 					isActive: true,
 					updatedAt: "2024-01-02",
 				},
@@ -458,7 +458,7 @@ describe("ProviderKeysService", () => {
 
 			expect(state.updateCalls).toHaveLength(1);
 			expect(state.updateCalls[0].keyName).toBe("New Name");
-			expect(state.updateCalls[0].metadata).toBe('{"new":"data"}');
+			expect(state.updateCalls[0].metadata).toEqual({ new: "data" });
 		});
 
 		it("updates active status", async () => {

@@ -29,7 +29,7 @@ export type QualityLatestResult =
 			evidenceLevel: string | null;
 			scoringVersion: string;
 			model: string | null;
-			createdAt: string;
+			createdAt: Date;
 			baselineScore: number | null;
 			regressionDelta: number | null;
 			regressionDetected: boolean;
@@ -51,7 +51,7 @@ export type QualityTrendResult = {
 		evidenceLevel: string | null;
 		scoringVersion: string;
 		model: string | null;
-		createdAt: string;
+		createdAt: Date;
 	}>;
 	count: number;
 };

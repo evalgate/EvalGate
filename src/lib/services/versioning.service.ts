@@ -97,7 +97,8 @@ export class VersioningService {
 				customMetrics: evaluation.customMetrics,
 				executorType: evaluation.executorType,
 				executorConfig: evaluation.executorConfig,
-				policyPack: (evaluation as { policyPack?: unknown }).policyPack ?? null,
+				policyPack:
+					(evaluation as { policyPack?: string | null }).policyPack ?? null,
 			},
 			testCases: cases.map((tc) => ({
 				id: tc.id,
@@ -123,7 +124,7 @@ export class VersioningService {
 		let diffSummary: string | null = null;
 		if (latestVersion) {
 			diffSummary = this.computeDiffSummary(
-				latestVersion.snapshotJson as VersionSnapshot,
+				latestVersion.snapshotJson as unknown as VersionSnapshot,
 				snapshot,
 				latestVersion.version,
 			);
@@ -133,7 +134,8 @@ export class VersioningService {
 		await db.insert(evaluationVersions).values({
 			evaluationId,
 			version: newVersion,
-			snapshotJson: stableStringify(snapshot),
+			snapshotJson:
+				snapshot as unknown as import("@/db/types").VersionSnapshotJson,
 			diffSummary,
 			createdBy,
 			createdAt: new Date(),

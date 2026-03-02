@@ -109,19 +109,20 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 		const inserted = await db
 			.insert(evaluations)
 			.values({
-				name,
-				description,
-				type,
+				name: name ?? "",
+				description: description ?? null,
+				type: type ?? "",
 				organizationId,
 				status: "draft",
 				createdBy: ctx.userId,
 				createdAt: now,
 				updatedAt: now,
-				executionSettings: executionSettings
-					? JSON.stringify(executionSettings)
-					: null,
-				modelSettings: modelSettings ? JSON.stringify(modelSettings) : null,
-				customMetrics: customMetrics ? JSON.stringify(customMetrics) : null,
+				executionSettings:
+					(executionSettings as import("@/db/types").ExecutionSettings) ?? null,
+				modelSettings:
+					(modelSettings as import("@/db/types").ModelSettings) ?? null,
+				customMetrics:
+					(customMetrics as import("@/db/types").CustomMetrics) ?? null,
 			})
 			.returning();
 
@@ -129,10 +130,11 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 
 		if (newEvaluation) {
 			try {
-				const allTemplates =
-					(body.config as Record<string, unknown> | undefined)?.templates ||
+				const allTemplates: unknown[] = ((
+					body.config as Record<string, unknown> | undefined
+				)?.templates ||
 					(body as Record<string, unknown>).templates ||
-					[];
+					[]) as unknown[];
 				const allTestCases: Array<{
 					name: string;
 					input: string;
@@ -141,10 +143,13 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 				}> = [];
 
 				for (const template of allTemplates) {
-					const tcs = template.testCases || template.template?.testCases || [];
+					const t = template as Record<string, unknown>;
+					const tcs = (t.testCases ||
+						(t.template as Record<string, unknown> | undefined)?.testCases ||
+						[]) as Array<Record<string, unknown>>;
 					for (const tc of tcs) {
 						allTestCases.push({
-							name: tc.name || tc.label || "Test Case",
+							name: (tc.name || tc.label || "Test Case") as string,
 							input:
 								typeof tc.input === "string"
 									? tc.input
@@ -153,15 +158,17 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 								typeof tc.expectedOutput === "string"
 									? tc.expectedOutput
 									: JSON.stringify(tc.expectedOutput || ""),
-							metadata: tc.metadata ? JSON.stringify(tc.metadata) : null,
+							metadata: tc.metadata ?? null,
 						});
 					}
 				}
 
-				const topLevelCases = body.testCases || [];
+				const topLevelCases = (body.testCases || []) as Array<
+					Record<string, unknown>
+				>;
 				for (const tc of topLevelCases) {
 					allTestCases.push({
-						name: tc.name || "Test Case",
+						name: (tc.name as string) || "Test Case",
 						input:
 							typeof tc.input === "string"
 								? tc.input
@@ -170,7 +177,7 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 							typeof tc.expectedOutput === "string"
 								? tc.expectedOutput
 								: JSON.stringify(tc.expectedOutput || ""),
-						metadata: tc.metadata ? JSON.stringify(tc.metadata) : null,
+						metadata: tc.metadata ?? null,
 					});
 				}
 
@@ -181,7 +188,8 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 							name: tc.name,
 							input: tc.input,
 							expectedOutput: tc.expectedOutput || null,
-							metadata: tc.metadata || null,
+							metadata:
+								(tc.metadata as import("@/db/types").TestCaseMetadata) ?? null,
 							createdAt: now,
 						})),
 					);

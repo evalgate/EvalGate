@@ -171,7 +171,7 @@ export const POST = secureRoute(
 				startedAt: nowDate,
 				completedAt: nowDate,
 				environment,
-				traceLog,
+				traceLog: JSON.parse(traceLog) as import("@/db/types").TraceLog,
 				createdAt: nowDate,
 			})
 			.returning();
@@ -189,7 +189,9 @@ export const POST = secureRoute(
 				status: r.status,
 				output: r.output,
 				durationMs: r.latencyMs ?? null,
-				assertionsJson: r.assertionsJson ?? undefined,
+				assertionsJson:
+					(r.assertionsJson as import("@/db/types").AssertionsJson) ??
+					undefined,
 				createdAt: nowDate,
 			});
 		}

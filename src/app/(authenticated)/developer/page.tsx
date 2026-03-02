@@ -112,7 +112,11 @@ const Tooltip = dynamic(
 ) as DynComp;
 const ResponsiveContainer = dynamic(
 	() =>
-		import("recharts").then((mod) => ({ default: mod.ResponsiveContainer })),
+		import("recharts").then((mod) => ({
+			default: mod.ResponsiveContainer as unknown as ComponentType<
+				Record<string, unknown>
+			>,
+		})),
 	{ ssr: false },
 ) as DynComp;
 

@@ -175,8 +175,8 @@ describe("ArenaMatchesService", () => {
 			const mockMatch = {
 				id: 1,
 				prompt: "test",
-				results: '[{"modelId":"m1","score":90}]',
-				scores: '{"m1":90}',
+				results: [{ modelId: "m1", score: 90 }],
+				scores: { m1: 90 },
 			};
 			state.selectRows = [mockMatch];
 
@@ -212,8 +212,8 @@ describe("ArenaMatchesService", () => {
 
 		it("returns parsed matches", async () => {
 			state.selectRows = [
-				{ id: 1, results: "[]", scores: "{}" },
-				{ id: 2, results: "[]", scores: "{}" },
+				{ id: 1, results: [], scores: {} },
+				{ id: 2, results: [], scores: {} },
 			];
 
 			const result = await arenaMatchesService.getArenaMatches(1, {

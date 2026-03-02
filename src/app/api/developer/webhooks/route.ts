@@ -35,7 +35,7 @@ export const POST = secureRoute(
 				.values({
 					organizationId: ctx.organizationId,
 					url: trimmedUrl,
-					events: JSON.stringify(events),
+					events: events as import("@/db/types").WebhookEvents,
 					secret: encryptedSecret.secretPlaceholder,
 					encryptedSecret: encryptedSecret.encryptedSecret,
 					secretIv: encryptedSecret.secretIv,

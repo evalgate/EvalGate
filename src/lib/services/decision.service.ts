@@ -59,10 +59,13 @@ class DecisionService {
 				agentName: params.agentName,
 				decisionType: params.decisionType,
 				chosen: params.chosen,
-				alternatives: params.alternatives as unknown,
+				alternatives:
+					params.alternatives as unknown as import("@/db/types").DecisionAlternative[],
 				reasoning: params.reasoning || null,
 				confidence: params.confidence || null,
-				inputContext: (params.inputContext as unknown) || null,
+				inputContext:
+					(params.inputContext as import("@/db/types").DecisionInputContext) ||
+					null,
 				createdAt: now,
 			})
 			.returning();
@@ -202,7 +205,8 @@ class DecisionService {
 		const decision = await this.getById(decisionId);
 		if (!decision) return null;
 
-		const alternatives = (decision.alternatives as DecisionAlternative[]) || [];
+		const alternatives =
+			(decision.alternatives as unknown as DecisionAlternative[]) || [];
 
 		// Calculate what-if scenarios
 		const comparison = {

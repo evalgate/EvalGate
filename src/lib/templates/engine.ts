@@ -271,7 +271,7 @@ export class TemplateValidator {
 		path: string,
 	): unknown {
 		const parts = path.split(".");
-		let value = context;
+		let value: unknown = context;
 
 		for (const part of parts) {
 			if (value === null || value === undefined) {

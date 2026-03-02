@@ -145,9 +145,13 @@ export class EvaluationService {
 				name: data.name,
 				description: data.description || "",
 				type: data.type || "standard",
-				executionSettings: data.executionSettings ?? null,
-				modelSettings: data.modelSettings ?? null,
-				customMetrics: data.customMetrics ?? null,
+				executionSettings:
+					(data.executionSettings as import("@/db/types").ExecutionSettings) ??
+					null,
+				modelSettings:
+					(data.modelSettings as import("@/db/types").ModelSettings) ?? null,
+				customMetrics:
+					(data.customMetrics as import("@/db/types").CustomMetrics) ?? null,
 				status: "draft",
 				createdAt: new Date(),
 				updatedAt: new Date(),
@@ -168,7 +172,8 @@ export class EvaluationService {
 							: tc.expectedOutput != null
 								? JSON.stringify(tc.expectedOutput)
 								: "",
-					metadata: tc.metadata || {},
+					metadata:
+						(tc.metadata as import("@/db/types").TestCaseMetadata) || null,
 					createdAt: new Date(),
 				})),
 			);
@@ -339,7 +344,13 @@ export class EvaluationService {
 
 					if (execType && execConfig) {
 						const runContext = run.startedAt
-							? { evaluationRunId: run.id, runStartedAt: run.startedAt }
+							? {
+									evaluationRunId: run.id,
+									runStartedAt:
+										run.startedAt instanceof Date
+											? run.startedAt.toISOString()
+											: (run.startedAt ?? undefined),
+								}
 							: undefined;
 						const executor = createExecutor(
 							execType,
@@ -500,7 +511,8 @@ export class EvaluationService {
 				error,
 				traceLinkedMatched: traceLinkedMatched ?? null,
 				...(hasProvenance != null && { hasProvenance }),
-				assertionsJson: assertionsJson ?? undefined,
+				assertionsJson:
+					(assertionsJson as import("@/db/types").AssertionsJson) ?? undefined,
 				durationMs,
 				createdAt: new Date(),
 			});

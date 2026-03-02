@@ -3,11 +3,13 @@
 import {
 	AlertTriangle,
 	Bot,
+	Brain,
 	Check,
 	ChevronDown,
 	ChevronRight,
 	Clock,
 	GitBranch,
+	Info,
 	Lightbulb,
 	Target,
 	X,
@@ -275,10 +277,10 @@ function DecisionNode({
 								<Brain className="h-4 w-4" />
 							</div>
 							<div className="flex-1">
-								<h4 className="font-medium">{decision.action}</h4>
-								{decision.outcome && (
+								<h4 className="font-medium">{decision.chosen}</h4>
+								{decision.reasoning && (
 									<p className="text-sm text-muted-foreground mt-1">
-										{decision.outcome}
+										{decision.reasoning}
 									</p>
 								)}
 							</div>

@@ -19,7 +19,7 @@ export function scopedDb(organizationId: number) {
 		selectFrom<T extends PgTable & { organizationId: PgColumn }>(table: T) {
 			return db
 				.select()
-				.from(table)
+				.from(table as unknown as PgTable)
 				.where(eq(table.organizationId, organizationId));
 		},
 		/** Scoped delete: prevents cross-tenant deletion */

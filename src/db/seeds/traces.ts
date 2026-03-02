@@ -13,11 +13,11 @@ async function main() {
 			organizationId: 1,
 			status: "success",
 			durationMs: 1250,
-			metadata: JSON.stringify({
+			metadata: {
 				model: "gpt-4",
 				tokens: 1500,
 				temperature: 0.7,
-			}),
+			},
 			createdAt: hoursAgo(2),
 		},
 		{
@@ -26,11 +26,11 @@ async function main() {
 			organizationId: 1,
 			status: "success",
 			durationMs: 3400,
-			metadata: JSON.stringify({
+			metadata: {
 				model: "gpt-4",
 				tokens: 3200,
 				documentLength: 5000,
-			}),
+			},
 			createdAt: hoursAgo(5),
 		},
 		{
@@ -39,11 +39,11 @@ async function main() {
 			organizationId: 1,
 			status: "success",
 			durationMs: 2100,
-			metadata: JSON.stringify({
+			metadata: {
 				model: "gpt-4",
 				tokens: 2400,
 				language: "typescript",
-			}),
+			},
 			createdAt: hoursAgo(8),
 		},
 		{
@@ -52,11 +52,11 @@ async function main() {
 			organizationId: 2,
 			status: "success",
 			durationMs: 850,
-			metadata: JSON.stringify({
+			metadata: {
 				model: "gpt-3.5-turbo",
 				tokens: 800,
 				sentiment: "positive",
-			}),
+			},
 			createdAt: hoursAgo(10),
 		},
 		{
@@ -65,12 +65,12 @@ async function main() {
 			organizationId: 2,
 			status: "success",
 			durationMs: 1900,
-			metadata: JSON.stringify({
+			metadata: {
 				model: "gpt-4",
 				tokens: 1800,
 				sourceLang: "en",
 				targetLang: "es",
-			}),
+			},
 			createdAt: hoursAgo(12),
 		},
 		{
@@ -79,10 +79,10 @@ async function main() {
 			organizationId: 1,
 			status: "error",
 			durationMs: 500,
-			metadata: JSON.stringify({
+			metadata: {
 				error: "Rate limit exceeded",
 				retryAfter: 60,
-			}),
+			},
 			createdAt: hoursAgo(15),
 		},
 		{
@@ -91,12 +91,12 @@ async function main() {
 			organizationId: 1,
 			status: "success",
 			durationMs: 15000,
-			metadata: JSON.stringify({
+			metadata: {
 				model: "gpt-4",
 				totalItems: 50,
 				processedItems: 50,
 				tokensUsed: 12000,
-			}),
+			},
 			createdAt: hoursAgo(18),
 		},
 		{
@@ -105,11 +105,11 @@ async function main() {
 			organizationId: 2,
 			status: "success",
 			durationMs: 750,
-			metadata: JSON.stringify({
+			metadata: {
 				model: "gpt-3.5-turbo",
 				tokens: 600,
 				cacheHit: true,
-			}),
+			},
 			createdAt: hoursAgo(20),
 		},
 	];

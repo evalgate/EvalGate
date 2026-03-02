@@ -363,7 +363,7 @@ async function reclaimExpiredJobs(nowMs: number): Promise<number> {
 		if (reclaimed.length > 0) {
 			logger.info("Reclaimed expired running jobs", {
 				count: reclaimed.length,
-				jobIds: reclaimed.map((r: { id: string }) => r.id),
+				jobIds: reclaimed.map((r: { id: number }) => r.id),
 				errorCode: JobErrorCodes.LOCK_TIMEOUT_RECLAIMED,
 			});
 		}

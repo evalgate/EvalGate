@@ -95,7 +95,7 @@ export const POST = secureRoute(
 		const insertData: {
 			taskId: number;
 			content: string;
-			annotation?: unknown;
+			annotation?: import("@/db/types").Annotation;
 			annotatedBy?: string;
 			annotatedAt?: Date;
 			createdAt: Date;
@@ -106,7 +106,7 @@ export const POST = secureRoute(
 		};
 
 		if (annotation !== undefined) {
-			insertData.annotation = annotation;
+			insertData.annotation = annotation as import("@/db/types").Annotation;
 		}
 
 		if (annotatedBy !== undefined && annotatedBy !== null) {
@@ -152,7 +152,7 @@ export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 	const { annotation, annotatedBy, annotatedAt } = body;
 
 	const updateData: {
-		annotation?: unknown;
+		annotation?: import("@/db/types").Annotation;
 		annotatedBy?: string;
 		annotatedAt: Date;
 	} = {
@@ -160,7 +160,7 @@ export const PUT = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 	};
 
 	if (annotation !== undefined) {
-		updateData.annotation = annotation;
+		updateData.annotation = annotation as import("@/db/types").Annotation;
 	}
 
 	if (annotatedBy !== undefined && annotatedBy !== null) {

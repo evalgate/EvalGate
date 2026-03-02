@@ -151,7 +151,8 @@ class WorkflowService {
 				name: params.name.trim(),
 				description: params.description?.trim() || null,
 				organizationId: params.organizationId,
-				definition: params.definition as unknown,
+				definition:
+					params.definition as unknown as import("@/db/types").WorkflowDefinition,
 				status: params.status || "draft",
 				createdBy: params.createdBy,
 				createdAt: now,
@@ -182,7 +183,10 @@ class WorkflowService {
 				...(params.description !== undefined && {
 					description: params.description?.trim() || null,
 				}),
-				...(params.definition && { definition: params.definition as unknown }),
+				...(params.definition && {
+					definition:
+						params.definition as unknown as import("@/db/types").WorkflowDefinition,
+				}),
 				...(params.status && { status: params.status }),
 				updatedAt: now,
 			})
@@ -304,8 +308,9 @@ class WorkflowService {
 				traceId: params.traceId,
 				organizationId: params.organizationId,
 				status: "running",
-				input: (params.input as unknown) || null,
-				metadata: (params.metadata as unknown) || null,
+				input: (params.input as Record<string, unknown>) || null,
+				metadata:
+					(params.metadata as import("@/db/types").WorkflowRunMetadata) || null,
 				startedAt: now,
 			})
 			.returning();
@@ -326,7 +331,9 @@ class WorkflowService {
 			.update(workflowRuns)
 			.set({
 				...(params.status && { status: params.status }),
-				...(params.output && { output: params.output as unknown }),
+				...(params.output && {
+					output: params.output as Record<string, unknown>,
+				}),
 				...(params.totalCost !== undefined && { totalCost: params.totalCost }),
 				...(params.totalDurationMs !== undefined && {
 					totalDurationMs: params.totalDurationMs,
@@ -343,7 +350,9 @@ class WorkflowService {
 				...(params.errorMessage !== undefined && {
 					errorMessage: params.errorMessage,
 				}),
-				...(params.metadata && { metadata: params.metadata as unknown }),
+				...(params.metadata && {
+					metadata: params.metadata as import("@/db/types").WorkflowRunMetadata,
+				}),
 				...(params.status === "completed" || params.status === "failed"
 					? { completedAt: now }
 					: {}),
@@ -415,7 +424,8 @@ class WorkflowService {
 				fromAgent: params.fromAgent || null,
 				toAgent: params.toAgent,
 				handoffType: params.handoffType,
-				context: (params.context as unknown) || null,
+				context:
+					(params.context as import("@/db/types").HandoffContext) || null,
 				timestamp: now,
 			})
 			.returning();

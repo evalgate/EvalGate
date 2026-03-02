@@ -31,7 +31,7 @@ export class AuditService {
 				action: entry.action,
 				resourceType: entry.resourceType ?? null,
 				resourceId: entry.resourceId ?? null,
-				metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
+				metadata: entry.metadata ?? null,
 				ipAddress: entry.ipAddress ?? null,
 				userAgent: entry.userAgent ?? null,
 				createdAt: new Date(),
@@ -92,10 +92,10 @@ export class AuditService {
 			conditions.push(eq(auditLogs.resourceId, options.resourceId));
 		}
 		if (options?.since) {
-			conditions.push(gte(auditLogs.createdAt, options.since));
+			conditions.push(gte(auditLogs.createdAt, new Date(options.since)));
 		}
 		if (options?.until) {
-			conditions.push(lte(auditLogs.createdAt, options.until));
+			conditions.push(lte(auditLogs.createdAt, new Date(options.until)));
 		}
 
 		const results = await db

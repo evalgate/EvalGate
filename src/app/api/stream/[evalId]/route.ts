@@ -7,7 +7,11 @@ import {
 } from "@/lib/streaming/sse-server";
 
 export const GET = secureRoute(
-	async (_request: NextRequest, ctx: AuthContext, params) => {
+	async (
+		_request: NextRequest,
+		ctx: AuthContext,
+		params,
+	): Promise<import("next/server").NextResponse> => {
 		const { evalId } = params;
 		const channel = `eval:${evalId}`;
 		const clientId = `${evalId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -42,6 +46,6 @@ export const GET = secureRoute(
 				"Cache-Control": "no-cache",
 				Connection: "keep-alive",
 			},
-		});
+		}) as unknown as import("next/server").NextResponse;
 	},
 );

@@ -50,7 +50,7 @@ export const traceService = {
 				organizationId,
 				status: data.status || "pending",
 				durationMs: data.durationMs ?? null,
-				metadata: data.metadata ?? null,
+				metadata: (data.metadata as import("@/db/types").TraceMetadata) ?? null,
 				createdAt: now,
 			})
 			.returning();

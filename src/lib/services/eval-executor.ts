@@ -240,7 +240,7 @@ export class TraceLinkedExecutor implements EvalExecutor {
 			conditions.push(eq(spans.evaluationRunId, this.evaluationRunId));
 		}
 		if (this.runStartedAt) {
-			conditions.push(gte(spans.createdAt, this.runStartedAt));
+			conditions.push(gte(spans.createdAt, new Date(this.runStartedAt)));
 		}
 
 		// Subquery: aggregate cost/provenance per span (avoids row explosion from retries)

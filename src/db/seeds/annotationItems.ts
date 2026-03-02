@@ -16,10 +16,10 @@ async function main() {
 			taskId: 1,
 			content:
 				"The new AI assistant helps automate customer support responses effectively.",
-			annotation: JSON.stringify({
+			annotation: {
 				rating: 5,
 				feedback: "Excellent response quality",
-			}),
+			},
 			annotatedBy: userId,
 			annotatedAt: new Date("2024-01-15T10:30:00"),
 			createdAt: new Date("2024-01-15T09:00:00"),
@@ -28,7 +28,7 @@ async function main() {
 			taskId: 1,
 			content:
 				"Product delivery was delayed by three days without proper notification.",
-			annotation: JSON.stringify({ rating: 2, feedback: "Poor communication" }),
+			annotation: { rating: 2, feedback: "Poor communication" },
 			annotatedBy: userId,
 			annotatedAt: new Date("2024-01-16T11:15:00"),
 			createdAt: new Date("2024-01-16T09:30:00"),
@@ -37,10 +37,10 @@ async function main() {
 			taskId: 1,
 			content:
 				"The documentation is comprehensive and easy to follow for beginners.",
-			annotation: JSON.stringify({
+			annotation: {
 				rating: 4,
 				feedback: "Very helpful content",
-			}),
+			},
 			annotatedBy: userId,
 			annotatedAt: new Date("2024-01-17T14:20:00"),
 			createdAt: new Date("2024-01-17T10:00:00"),
@@ -48,7 +48,7 @@ async function main() {
 		{
 			taskId: 1,
 			content: "Website interface is confusing and lacks intuitive navigation.",
-			annotation: JSON.stringify({ rating: 3, feedback: "Needs improvement" }),
+			annotation: { rating: 3, feedback: "Needs improvement" },
 			annotatedBy: userId,
 			annotatedAt: new Date("2024-01-18T09:45:00"),
 			createdAt: new Date("2024-01-18T08:15:00"),
@@ -74,11 +74,11 @@ async function main() {
 			taskId: 2,
 			content:
 				"This email appears to be a phishing attempt requesting sensitive banking information.",
-			annotation: JSON.stringify({
+			annotation: {
 				classification: "spam",
 				confidence: 0.95,
 				tags: ["phishing", "financial"],
-			}),
+			},
 			annotatedBy: userId,
 			annotatedAt: new Date("2024-01-21T10:00:00"),
 			createdAt: new Date("2024-01-21T09:00:00"),
@@ -87,11 +87,11 @@ async function main() {
 			taskId: 2,
 			content:
 				"Monthly newsletter with product updates and compunknown news for subscribers.",
-			annotation: JSON.stringify({
+			annotation: {
 				classification: "legitimate",
 				confidence: 0.98,
 				tags: ["newsletter", "marketing"],
-			}),
+			},
 			annotatedBy: userId,
 			annotatedAt: new Date("2024-01-22T11:30:00"),
 			createdAt: new Date("2024-01-22T09:15:00"),
@@ -100,11 +100,11 @@ async function main() {
 			taskId: 2,
 			content:
 				"Urgent account verification required - click here to confirm your identity immediately.",
-			annotation: JSON.stringify({
+			annotation: {
 				classification: "spam",
 				confidence: 0.89,
 				tags: ["phishing", "urgent"],
-			}),
+			},
 			annotatedBy: userId,
 			annotatedAt: new Date("2024-01-23T14:15:00"),
 			createdAt: new Date("2024-01-23T10:30:00"),
@@ -113,11 +113,11 @@ async function main() {
 			taskId: 2,
 			content:
 				"Invoice for your recent purchase of office supplies with payment details attached.",
-			annotation: JSON.stringify({
+			annotation: {
 				classification: "legitimate",
 				confidence: 0.92,
 				tags: ["invoice", "business"],
-			}),
+			},
 			annotatedBy: userId,
 			annotatedAt: new Date("2024-01-24T09:30:00"),
 			createdAt: new Date("2024-01-24T08:00:00"),
@@ -144,13 +144,13 @@ async function main() {
 			taskId: 3,
 			content:
 				"Compare responses from GPT-4 and Claude for summarizing technical documentation.",
-			annotation: JSON.stringify({
+			annotation: {
 				modelA: "gpt-4",
 				modelB: "claude-3",
 				winner: "modelA",
 				reasoning: "More concise and technically accurate summary",
 				criteria: ["accuracy", "clarity", "conciseness"],
-			}),
+			},
 			annotatedBy: userId,
 			annotatedAt: new Date("2024-01-27T10:30:00"),
 			createdAt: new Date("2024-01-27T09:00:00"),
@@ -159,13 +159,13 @@ async function main() {
 			taskId: 3,
 			content:
 				"Evaluate different AI models for generating creative marketing copy.",
-			annotation: JSON.stringify({
+			annotation: {
 				modelA: "gpt-4",
 				modelB: "claude-3",
 				winner: "modelB",
 				reasoning: "More engaging tone and better call-to-action",
 				criteria: ["creativity", "engagement", "persuasiveness"],
-			}),
+			},
 			annotatedBy: userId,
 			annotatedAt: new Date("2024-01-28T13:15:00"),
 			createdAt: new Date("2024-01-28T11:00:00"),
@@ -174,14 +174,14 @@ async function main() {
 			taskId: 3,
 			content:
 				"Compare code generation capabilities for building REST API endpoints.",
-			annotation: JSON.stringify({
+			annotation: {
 				modelA: "gpt-4",
 				modelB: "claude-3",
 				winner: "tie",
 				reasoning:
 					"Both models provided equally valid and functional implementations",
 				criteria: ["correctness", "efficiency", "best practices"],
-			}),
+			},
 			annotatedBy: userId,
 			annotatedAt: new Date("2024-01-29T16:00:00"),
 			createdAt: new Date("2024-01-29T14:30:00"),

@@ -2,6 +2,14 @@
 
 Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANGELOG.md](src/packages/sdk/CHANGELOG.md).
 
+## [2.1.2] - 2026-03-02
+
+### Fixed
+
+- **Type safety** — resolved 150+ type errors across API routes, services, and components; codebase now compiles with zero TypeScript errors
+- **Test suite** — all three test lanes green (unit, DB, DOM); updated fixtures to align with corrected data handling
+- **CI gate** — lint, build, regression gate, and all audits passing locally
+
 ## [2.1.1] - 2026-03-02
 
 ### Fixed

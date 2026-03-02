@@ -226,7 +226,7 @@ describe("ShadowEvalService", () => {
 					evaluationId: 2,
 					status: "completed",
 					totalCases: 10,
-					traceLog: '{"originalEvaluationId": 5}',
+					traceLog: { originalEvaluationId: 5 },
 					startedAt: "2024-01-01",
 					completedAt: "2024-01-02",
 				},
@@ -291,15 +291,15 @@ describe("ShadowEvalService", () => {
 					id: 1,
 					evaluationId: 2,
 					status: "completed",
-					traceLog: '{"scoreImprovement": 15}',
+					traceLog: { scoreImprovement: 15 },
 				},
 				{
 					id: 2,
 					evaluationId: 2,
 					status: "completed_with_failures",
-					traceLog: '{"scoreImprovement": 5}',
+					traceLog: { scoreImprovement: 5 },
 				},
-				{ id: 3, evaluationId: 3, status: "pending", traceLog: "{}" }, // No improvement data
+				{ id: 3, evaluationId: 3, status: "pending", traceLog: {} }, // No improvement data
 			];
 
 			state.selectRows = mockRuns;

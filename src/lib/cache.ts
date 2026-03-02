@@ -106,7 +106,7 @@ export async function invalidateTag(
 ): Promise<void> {
 	try {
 		const { revalidateTag } = await import("next/cache");
-		revalidateTag(tag);
+		(revalidateTag as (tag: string) => void)(tag);
 	} catch {
 		logger.debug("revalidateTag unavailable (non-Next.js context)", { tag });
 	}
@@ -125,7 +125,7 @@ export async function invalidateOrganization(
 ): Promise<void> {
 	try {
 		const { revalidateTag } = await import("next/cache");
-		revalidateTag(`org:${organizationId}`);
+		(revalidateTag as (tag: string) => void)(`org:${organizationId}`);
 	} catch {
 		logger.debug("revalidateTag unavailable", { organizationId });
 	}

@@ -50,8 +50,8 @@ export interface ShadowEvalResult {
 	failedTraces: number;
 	averageScore: number;
 	averageDuration: number;
-	startedAt: string;
-	completedAt: string | null;
+	startedAt: Date;
+	completedAt: Date | null;
 	results: Array<{
 		traceId: string;
 		originalScore: number | null;
@@ -143,7 +143,7 @@ export class ShadowEvalService {
 				failedCases: 0,
 				environment: "dev",
 				startedAt: now,
-				traceLog: JSON.stringify({
+				traceLog: {
 					type: "shadow_eval",
 					originalEvaluationId: input.evaluationId,
 					traceIds: input.traceIds,
@@ -151,7 +151,7 @@ export class ShadowEvalService {
 					filters: input.filters,
 					createdBy,
 					startedAt: now,
-				}),
+				},
 				createdAt: now,
 			})
 			.returning({
@@ -228,15 +228,7 @@ export class ShadowEvalService {
 				: 0;
 
 		// Parse trace log for metadata
-		let traceLog = {};
-		try {
-			traceLog =
-				typeof run.evaluation_runs.traceLog === "string"
-					? JSON.parse(run.evaluation_runs.traceLog)
-					: run.evaluation_runs.traceLog;
-		} catch (_error) {
-			logger.warn("Failed to parse trace log", { shadowRunId });
-		}
+		const traceLog = run.evaluation_runs.traceLog || {};
 
 		const parsedTraceLog = traceLog as import("@/db/types").TraceLog;
 		return {
@@ -250,7 +242,7 @@ export class ShadowEvalService {
 			failedTraces,
 			averageScore: Math.round(averageScore * 100) / 100,
 			averageDuration: Math.round(averageDuration),
-			startedAt: run.evaluation_runs.startedAt || "",
+			startedAt: run.evaluation_runs.startedAt ?? new Date(0),
 			completedAt: run.evaluation_runs.completedAt,
 			results: results.map((result) => ({
 				traceId: "",
@@ -400,8 +392,10 @@ export class ShadowEvalService {
 					score: result.score,
 					error: result.error,
 					durationMs: result.duration,
-					messages: result.messages || [],
-					toolCalls: result.toolCalls || [],
+					messages: (result.messages ||
+						[]) as import("@/db/types").TestResultMessage[],
+					toolCalls: (result.toolCalls ||
+						[]) as import("@/db/types").ToolCall[],
 					createdAt: new Date(),
 				});
 
@@ -503,7 +497,7 @@ export class ShadowEvalService {
 			// Determine provider and get API key
 			const provider = this.getProviderFromModel(model);
 			const providerKey = await providerKeysService.getActiveProviderKey(
-				organizationId,
+				organizationId as number,
 				provider,
 			);
 
@@ -661,7 +655,7 @@ export class ShadowEvalService {
 			evaluationId: number;
 			status: string;
 			averageScore: number;
-			completedAt: string;
+			completedAt: Date | null;
 		}>;
 	}> {
 		const runs = await db
@@ -694,17 +688,13 @@ export class ShadowEvalService {
 		let scoreDiffCount = 0;
 
 		for (const run of runs) {
-			try {
-				const traceLog =
-					typeof run.traceLog === "string"
-						? JSON.parse(run.traceLog)
-						: run.traceLog;
-				if (traceLog.scoreImprovement !== undefined) {
-					totalScoreDiff += traceLog.scoreImprovement;
-					scoreDiffCount++;
-				}
-			} catch (_error) {
-				// Skip malformed trace logs
+			const traceLog = run.traceLog as import("@/db/types").TraceLog | null;
+			if (
+				traceLog?.scoreImprovement !== undefined &&
+				traceLog.scoreImprovement !== null
+			) {
+				totalScoreDiff += traceLog.scoreImprovement as number;
+				scoreDiffCount++;
 			}
 		}
 
@@ -720,7 +710,7 @@ export class ShadowEvalService {
 				evaluationId: run.evaluationId,
 				status: run.status,
 				averageScore: 0, // Would need to calculate from test results
-				completedAt: run.completedAt || "",
+				completedAt: run.completedAt ?? null,
 			})),
 		};
 	}

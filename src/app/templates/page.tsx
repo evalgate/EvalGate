@@ -193,7 +193,9 @@ export default function TemplatesPage() {
 							{COMPREHENSIVE_TEMPLATES.map((template) => (
 								<CatalogTemplateCard
 									key={template.id}
-									template={toSerializable(template as Record<string, unknown>)}
+									template={toSerializable(
+										template as unknown as Record<string, unknown>,
+									)}
 								/>
 							))}
 						</div>
@@ -212,9 +214,11 @@ export default function TemplatesPage() {
 								{getCatalogTemplatesByCategory(cat.id).map((template) => (
 									<CatalogTemplateCard
 										key={template.id}
-										template={toSerializable(
-											template as Record<string, unknown>,
-										)}
+										template={
+											toSerializable(
+												template as unknown as Record<string, unknown>,
+											) as unknown as CatalogTemplateData
+										}
 									/>
 								))}
 							</div>

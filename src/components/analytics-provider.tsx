@@ -16,7 +16,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 
 		if (
 			navigator.doNotTrack === "1" ||
-			(navigator as Record<string, unknown>).globalPrivacyControl
+			(navigator as unknown as Record<string, unknown>).globalPrivacyControl
 		) {
 			return;
 		}

@@ -131,7 +131,10 @@ class RegressionService {
 		if (existing.length > 0) {
 			await db
 				.update(goldenSets)
-				.set({ testCaseIds: JSON.stringify(testCaseIds), updatedAt: now })
+				.set({
+					testCaseIds: testCaseIds as import("@/db/types").GoldenSetTestCaseIds,
+					updatedAt: now,
+				})
 				.where(eq(goldenSets.id, existing[0].id));
 			return existing[0].id;
 		}
@@ -141,7 +144,7 @@ class RegressionService {
 			.values({
 				evaluationId,
 				organizationId,
-				testCaseIds: JSON.stringify(testCaseIds),
+				testCaseIds: testCaseIds as import("@/db/types").GoldenSetTestCaseIds,
 				createdAt: now,
 				updatedAt: now,
 			})

@@ -44,7 +44,11 @@ export const PATCH = secureRoute(
 				return notFound("API key not found");
 			}
 
-			const updateData: { name?: string; scopes?: string; updatedAt: Date } = {
+			const updateData: {
+				name?: string;
+				scopes?: import("@/db/types").ApiKeyScopes;
+				updatedAt: Date;
+			} = {
 				updatedAt: new Date(),
 			};
 
@@ -53,7 +57,7 @@ export const PATCH = secureRoute(
 			}
 
 			if (scopes !== undefined) {
-				updateData.scopes = JSON.stringify(scopes);
+				updateData.scopes = scopes as import("@/db/types").ApiKeyScopes;
 			}
 
 			const updated = await db

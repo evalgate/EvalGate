@@ -120,7 +120,7 @@ describe("ReportCardsService", () => {
 						score: 90,
 						status: "passed",
 						durationMs: 100,
-						metadata: '{"cost": 0.05}',
+						metadata: { cost: 0.05 },
 					},
 					{
 						id: 2,
@@ -128,7 +128,7 @@ describe("ReportCardsService", () => {
 						score: 80,
 						status: "passed",
 						durationMs: 150,
-						metadata: '{"cost": 0.05}',
+						metadata: { cost: 0.05 },
 					},
 					{
 						id: 3,
@@ -136,7 +136,7 @@ describe("ReportCardsService", () => {
 						score: 40,
 						status: "failed",
 						durationMs: 200,
-						metadata: '{"cost": 0.10}',
+						metadata: { cost: 0.1 },
 					},
 				],
 				[
@@ -145,13 +145,13 @@ describe("ReportCardsService", () => {
 						id: 1,
 						evaluationRunId: 101,
 						score: 85,
-						metadata: '{"passed": true}',
+						metadata: { passed: true },
 					},
 					{
 						id: 2,
 						evaluationRunId: 102,
 						score: 45,
-						metadata: '{"passed": false}',
+						metadata: { passed: false },
 					},
 				],
 			];

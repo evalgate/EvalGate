@@ -17,8 +17,7 @@ interface TestResult {
 	score: number | null;
 	status: string;
 	durationMs: number | null;
-	metadata: unknown;
-	createdAt: string;
+	createdAt: Date;
 	evaluationRunId: number;
 	testCaseId: number;
 	organizationId: number;
@@ -27,7 +26,8 @@ interface TestResult {
 	assertionsJson: unknown;
 	traceLinkedMatched: boolean | null;
 	evaluationId: number;
-	updatedAt: string;
+	updatedAt: Date;
+	metadata?: unknown;
 }
 
 interface JudgeResult {
@@ -40,16 +40,16 @@ interface JudgeResult {
 	score: number | null;
 	reasoning: string | null;
 	metadata: unknown;
-	createdAt: string;
+	createdAt: Date;
 }
 
 interface EvaluationRun {
 	id: number;
 	status: string;
-	createdAt: string;
+	createdAt: Date;
 	evaluationRunId?: number;
-	startedAt?: string;
-	completedAt?: string | undefined;
+	startedAt?: Date;
+	completedAt?: Date | undefined;
 }
 
 export interface ReportCardData {
@@ -170,8 +170,8 @@ export class ReportCardsService {
 		// Map database results to EvaluationRun interface
 		const mappedRuns: EvaluationRun[] = runs.map((r) => ({
 			...r,
-			startedAt: r.startedAt || undefined,
-			completedAt: r.completedAt || undefined,
+			startedAt: r.startedAt ?? undefined,
+			completedAt: r.completedAt ?? undefined,
 		}));
 
 		// Get test results for all runs
@@ -187,7 +187,6 @@ export class ReportCardsService {
 		// Map database results to TestResult interface
 		const mappedTestResults: TestResult[] = testResultsData.map((tr) => ({
 			...tr,
-			metadata: (tr.metadata as Record<string, unknown>) ?? {},
 			evaluationId: tr.evaluationRunId,
 			updatedAt: tr.createdAt,
 		}));
@@ -227,7 +226,12 @@ export class ReportCardsService {
 			passRate: stats.passRate,
 			averageDuration: stats.averageDuration,
 			totalCost: stats.totalCost,
-			lastRunAt: mappedRuns.length > 0 ? mappedRuns[0].createdAt : "",
+			lastRunAt:
+				mappedRuns.length > 0
+					? mappedRuns[0].createdAt instanceof Date
+						? mappedRuns[0].createdAt.toISOString()
+						: String(mappedRuns[0].createdAt)
+					: "",
 			createdAt:
 				evaluation.createdAt instanceof Date
 					? evaluation.createdAt.toISOString()
@@ -497,10 +501,14 @@ export class ReportCardsService {
 						runResults.length
 					: 0;
 
+			const completedAtDate = run.completedAt || run.createdAt;
 			return {
 				runId: run.id,
 				score: avgScore,
-				completedAt: run.completedAt || run.createdAt,
+				completedAt:
+					completedAtDate instanceof Date
+						? completedAtDate.toISOString()
+						: String(completedAtDate),
 			};
 		});
 
@@ -587,11 +595,12 @@ export class ReportCardsService {
 	 */
 	private extractCost(testResult: TestResult): number {
 		try {
-			const metadata =
+			const meta =
 				typeof testResult.metadata === "string"
 					? JSON.parse(testResult.metadata)
 					: testResult.metadata;
-			return metadata?.cost || 0;
+			const cost = (meta as Record<string, unknown>)?.cost;
+			return typeof cost === "number" ? cost : 0;
 		} catch {
 			return 0;
 		}

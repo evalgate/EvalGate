@@ -39,9 +39,13 @@ export function transformTestResultToDB(
 		score: sdkResult.score,
 		error: sdkResult.error,
 		durationMs: sdkResult.durationMs,
-		messages: JSON.stringify(sdkResult.messages || []),
-		toolCalls: JSON.stringify(sdkResult.toolCalls || []),
-		...(assertionsJson && { assertionsJson }),
+		messages: (sdkResult.messages ||
+			[]) as import("@/db/types").TestResultMessage[],
+		toolCalls: (sdkResult.toolCalls || []) as import("@/db/types").ToolCall[],
+		...(assertionsJson && {
+			assertionsJson:
+				assertionsJson as unknown as import("@/db/types").AssertionsJson,
+		}),
 	};
 }
 
@@ -68,9 +72,9 @@ export function transformEvaluationResultToDB(
 		processedCount: sdkResult.processedCases,
 		passedCases: sdkResult.passedCases,
 		failedCases: sdkResult.failedCases,
-		startedAt: sdkResult.startedAt,
-		completedAt: sdkResult.completedAt,
-		traceLog: JSON.stringify({
+		startedAt: sdkResult.startedAt ? new Date(sdkResult.startedAt) : undefined,
+		completedAt: sdkResult.completedAt ? new Date(sdkResult.completedAt) : null,
+		traceLog: {
 			sdkRunId: sdkResult.runId,
 			organizationId,
 			userId,
@@ -78,7 +82,7 @@ export function transformEvaluationResultToDB(
 			completedAt: sdkResult.completedAt,
 			durationMs: sdkResult.durationMs,
 			metadata: sdkResult.metadata,
-		}),
+		} as import("@/db/types").TraceLog,
 	};
 
 	// Transform all test results
@@ -97,11 +101,11 @@ export function transformTraceToDB(
 	sdkTrace: SDKTrace,
 	organizationId: number,
 ): {
-	traceLog: string;
+	traceLog: import("@/db/types").TraceLog;
 	metadata: Record<string, unknown>;
 } {
 	return {
-		traceLog: JSON.stringify({
+		traceLog: {
 			traceId: sdkTrace.traceId,
 			evaluationId: sdkTrace.evaluationId,
 			runId: sdkTrace.runId,
@@ -125,7 +129,7 @@ export function transformTraceToDB(
 				metadata: span.metadata || {},
 			})),
 			metadata: sdkTrace.metadata,
-		}),
+		} as import("@/db/types").TraceLog,
 		metadata: {
 			organizationId,
 			sdkTraceId: sdkTrace.traceId,

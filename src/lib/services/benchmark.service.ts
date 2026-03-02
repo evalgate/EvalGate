@@ -124,8 +124,11 @@ class BenchmarkService {
 				description: params.description?.trim() || null,
 				organizationId: params.organizationId,
 				taskType: params.taskType,
-				dataset: (params.dataset as unknown) || null,
-				metrics: params.metrics as unknown,
+				dataset:
+					(params.dataset as unknown as import("@/db/types").BenchmarkDataset) ||
+					null,
+				metrics:
+					params.metrics as unknown as import("@/db/types").BenchmarkMetrics,
 				isPublic: params.isPublic || false,
 				createdBy: params.createdBy,
 				createdAt: now,
@@ -192,7 +195,7 @@ class BenchmarkService {
 				organizationId: params.organizationId,
 				architecture: params.architecture,
 				model: params.model,
-				config: (params.config as unknown) || null,
+				config: (params.config as import("@/db/types").AgentConfig) || null,
 				description: params.description?.trim() || null,
 				createdBy: params.createdBy,
 				createdAt: now,
@@ -287,7 +290,8 @@ class BenchmarkService {
 								)
 							: existingResult.toolUseEfficiency,
 					customMetrics:
-						(params.customMetrics as unknown) || existingResult.customMetrics,
+						(params.customMetrics as import("@/db/types").BenchmarkCustomMetrics) ||
+						existingResult.customMetrics,
 					runCount: newRunCount,
 					workflowRunId: params.workflowRunId || existingResult.workflowRunId,
 				})
@@ -310,7 +314,9 @@ class BenchmarkService {
 				totalCost: params.totalCost || null,
 				successRate: params.successRate || null,
 				toolUseEfficiency: params.toolUseEfficiency || null,
-				customMetrics: (params.customMetrics as unknown) || null,
+				customMetrics:
+					(params.customMetrics as import("@/db/types").BenchmarkCustomMetrics) ||
+					null,
 				runCount: 1,
 				createdAt: now,
 			})

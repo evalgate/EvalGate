@@ -253,7 +253,7 @@ jobs:
           name: evalgate-results
           path: .evalgate/`}</code>
 								</pre>
-								<CopyButton text={ciCode} className="absolute top-2 right-2" />
+								<CopyButton code={ciCode} className="absolute top-2 right-2" />
 							</div>
 							<p className="text-sm text-muted-foreground">
 								That&apos;s it! Your CI now automatically discovers specs, runs

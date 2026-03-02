@@ -204,7 +204,9 @@ export const POST = secureRoute(
 				? {
 						policy: body.policyName,
 						compliant: qs
-							? !(qs.flags as string[] | null)?.includes("SAFETY_RISK")
+							? !(qs.flags as unknown as string[] | null)?.includes(
+									"SAFETY_RISK",
+								)
 							: null,
 					}
 				: null,

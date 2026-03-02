@@ -65,7 +65,8 @@ export function CatalogTemplateCard({
 	template: CatalogTemplateData;
 }) {
 	const [copied, setCopied] = useState(false);
-	const typeInfo = typeConfig[template.type] || typeConfig.unit_test;
+	const typeInfo =
+		typeConfig[template.type ?? "unit_test"] || typeConfig.unit_test;
 	const complexityInfo =
 		complexityConfig[template.complexity] || complexityConfig.beginner;
 

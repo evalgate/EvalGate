@@ -33,7 +33,9 @@ export const GET = secureRoute(
 
 		if (run.evaluation_runs.traceLog) {
 			try {
-				const traceLog = JSON.parse(run.evaluation_runs.traceLog as string);
+				const traceLog = JSON.parse(
+					run.evaluation_runs.traceLog as unknown as string,
+				);
 				heartbeatData = traceLog.heartbeat || [];
 				lastMessage =
 					(heartbeatData[heartbeatData.length - 1] as { message?: string })

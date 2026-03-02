@@ -39,7 +39,7 @@ export function EvaluationCanvas({ onDeploy }: EvaluationBuilderProps) {
 		onDeploy({
 			name: evaluationName,
 			description: evaluationDescription,
-			type: types[0],
+			type: types[0] ?? "",
 			templates: selectedTemplates,
 		});
 	};
@@ -126,7 +126,7 @@ export function EvaluationCanvas({ onDeploy }: EvaluationBuilderProps) {
 					) : (
 						<div className="space-y-3">
 							{selectedTemplates.map((selected) => {
-								const Icon = selected.template.icon;
+								const Icon = selected.template.icon as React.ElementType;
 								const isActive = activeTemplate === selected.id;
 								return (
 									<Card
@@ -154,7 +154,7 @@ export function EvaluationCanvas({ onDeploy }: EvaluationBuilderProps) {
 																		selected.template.name}
 																</h4>
 																<Badge variant="secondary" className="text-xs">
-																	{selected.template.type.replace("_", " ")}
+																	{selected.template.type?.replace("_", " ")}
 																</Badge>
 															</div>
 															<p className="text-xs text-muted-foreground mt-1">

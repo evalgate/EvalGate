@@ -32,7 +32,7 @@ export const POST = secureRoute(
 		}
 
 		try {
-			const requestedScopes = scopes;
+			const requestedScopes = scopes ?? [];
 			if (requestedScopes.includes("*")) {
 				return validationError("Wildcard scope '*' is not allowed");
 			}
@@ -74,9 +74,9 @@ export const POST = secureRoute(
 					keyHash,
 					keyPrefix,
 					name: name.trim(),
-					scopes: scopes,
-					expiresAt: expiresAt || null,
-					lastUsedAt: null,
+					scopes: scopes as import("@/db/types").ApiKeyScopes,
+					expiresAt: expiresAt ? new Date(expiresAt) : null,
+					lastUsedAt: null as unknown as Date,
 					revokedAt: null,
 					createdAt: new Date(),
 				})

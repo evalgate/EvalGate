@@ -165,7 +165,11 @@ export default function PricingTable({
 													"*",
 												);
 											} else {
-												window.open(url, "_blank", "noopener,noreferrer");
+												window.open(
+													url as string,
+													"_blank",
+													"noopener,noreferrer",
+												);
 											}
 										}
 									} else if (product.display?.button_url) {

@@ -319,13 +319,15 @@ export async function computeAndStoreQualityScore(
 			metrics.provenanceCoverageRate != null
 				? String(metrics.provenanceCoverageRate)
 				: null,
-		breakdown: result.breakdown,
-		flags: result.flags,
+		breakdown:
+			result.breakdown as unknown as import("@/db/types").QualityBreakdown,
+		flags: result.flags as unknown as import("@/db/types").QualityFlags,
 		evidenceLevel: result.evidenceLevel,
 		scoringVersion: SCORING_SPEC_VERSION,
 		model: model ?? null,
-		inputsJson: inputs,
-		scoringSpecJson: SCORING_SPEC_V1,
+		inputsJson: inputs as unknown as import("@/db/types").QualityInputsJson,
+		scoringSpecJson:
+			SCORING_SPEC_V1 as unknown as import("@/db/types").QualityScoringSpecJson,
 		inputsHash,
 		scoringSpecHash,
 		scoringCommit,

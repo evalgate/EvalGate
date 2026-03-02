@@ -22,9 +22,7 @@ function getDashboardStats(organizationId: number) {
 	return cachedDbQuery(
 		["dashboard-stats", String(organizationId)],
 		async () => {
-			const sevenDaysAgo = new Date(
-				Date.now() - 7 * 24 * 60 * 60 * 1000,
-			).toISOString();
+			const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
 			const [evalCount, traceCount, recentRuns] = await Promise.all([
 				db
@@ -88,9 +86,9 @@ export default async function DashboardPage() {
 		redirect("/auth/login?redirect=/dashboard");
 	}
 
-	const organizationId =
-		(session.user as Record<string, unknown>).organizationId ||
-		parseInt(process.env.DEFAULT_ORGANIZATION_ID || "1", 10);
+	const organizationId = ((session.user as Record<string, unknown>)
+		.organizationId ||
+		parseInt(process.env.DEFAULT_ORGANIZATION_ID || "1", 10)) as number;
 	const stats = await getDashboardStats(organizationId);
 	const recentRuns = await getRecentEvaluationRuns(organizationId);
 	return (

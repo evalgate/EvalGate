@@ -87,7 +87,7 @@ export class WebhookService {
 			.values({
 				organizationId,
 				url: data.url,
-				events: data.events as unknown,
+				events: data.events as import("@/db/types").WebhookEvents,
 				secret: encryptedSecret.secretPlaceholder,
 				encryptedSecret: encryptedSecret.encryptedSecret,
 				secretIv: encryptedSecret.secretIv,
@@ -283,7 +283,7 @@ export class WebhookService {
 			.values({
 				webhookId,
 				eventType: payload.event,
-				payload: payload as unknown,
+				payload: payload as unknown as import("@/db/types").WebhookPayload,
 				status,
 				responseStatus: responseCode || null,
 				responseBody: error ? `Error: ${error}` : responseBody,

@@ -19,8 +19,8 @@ interface RunStatus {
 	processedCount: number;
 	passedCases: number;
 	failedCases: number;
-	startedAt?: string;
-	completedAt?: string;
+	startedAt?: Date;
+	completedAt?: Date;
 	traceLog?: unknown;
 }
 
@@ -126,14 +126,14 @@ class EvalGateway {
 				failedCases: 0,
 				environment: "dev",
 				startedAt: now,
-				traceLog: JSON.stringify({
+				traceLog: {
 					startedAt: now,
 					evaluationId,
 					organizationId,
 					userId,
 					settings: options.settings,
 					testCases: testCaseIds.length,
-				}),
+				},
 				createdAt: now,
 			})
 			.returning();
@@ -162,11 +162,11 @@ class EvalGateway {
 				.set({
 					status: "failed",
 					completedAt: new Date(),
-					traceLog: JSON.stringify({
-						...(run.traceLog ? JSON.parse(run.traceLog as string) : {}),
+					traceLog: {
+						...((run.traceLog as Record<string, unknown>) ?? {}),
 						error: "Failed to start background worker",
-						failedAt: new Date().toISOString(),
-					}),
+						failedAt: new Date(),
+					},
 				})
 				.where(eq(evaluationRuns.id, run.id));
 		});
@@ -179,6 +179,7 @@ class EvalGateway {
 			passedCases: run.passedCases || 0,
 			failedCases: run.failedCases || 0,
 			startedAt: run.startedAt || undefined,
+			completedAt: run.completedAt || undefined,
 		};
 	}
 
@@ -248,12 +249,10 @@ class EvalGateway {
 			.set({
 				status: "cancelled",
 				completedAt: new Date(),
-				traceLog: JSON.stringify({
-					...(run.evaluation_runs.traceLog
-						? JSON.parse(run.evaluation_runs.traceLog as string)
-						: {}),
-					cancelledAt: new Date().toISOString(),
-				}),
+				traceLog: {
+					...((run.evaluation_runs.traceLog as Record<string, unknown>) ?? {}),
+					cancelledAt: new Date(),
+				},
 			})
 			.where(eq(evaluationRuns.id, runId));
 

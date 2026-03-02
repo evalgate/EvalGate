@@ -107,25 +107,28 @@ describe("transformTestResultToDB", () => {
 		expect(row.durationMs).toBe(1200);
 	});
 
-	it("JSON-serializes messages array", () => {
+	it("stores messages array as raw array", () => {
 		const messages = [{ role: "user", content: "Hi" }];
 		const row = transformTestResultToDB(makeTestResult({ messages }), 1, 1);
-		const parsed = JSON.parse(row.messages as string);
-		expect(parsed).toHaveLength(1);
-		expect(parsed[0].role).toBe("user");
+		const arr = row.messages as unknown as Array<{
+			role: string;
+			content: string;
+		}>;
+		expect(arr).toHaveLength(1);
+		expect(arr[0].role).toBe("user");
 	});
 
-	it("JSON-serializes tool calls array", () => {
+	it("stores tool calls array as raw array", () => {
 		const toolCalls = [{ id: "tc1", name: "search" }];
 		const row = transformTestResultToDB(makeTestResult({ toolCalls }), 1, 1);
-		const parsed = JSON.parse(row.toolCalls as string);
-		expect(parsed).toHaveLength(1);
+		const arr = row.toolCalls as unknown as unknown[];
+		expect(arr).toHaveLength(1);
 	});
 
-	it("serializes empty arrays for missing messages/toolCalls", () => {
+	it("stores empty arrays for missing messages/toolCalls", () => {
 		const row = transformTestResultToDB(makeTestResult(), 1, 1);
-		expect(JSON.parse(row.messages as string)).toEqual([]);
-		expect(JSON.parse(row.toolCalls as string)).toEqual([]);
+		expect(row.messages as unknown as unknown[]).toEqual([]);
+		expect(row.toolCalls as unknown as unknown[]).toEqual([]);
 	});
 
 	it("converts assertions to AssertionsEnvelope", () => {
@@ -170,17 +173,18 @@ describe("transformTestResultToDB", () => {
 // ── transformTraceToDB ────────────────────────────────────────────────────────
 
 describe("transformTraceToDB", () => {
-	it("returns traceLog as valid JSON string", () => {
+	it("returns traceLog as a plain object", () => {
 		const { traceLog } = transformTraceToDB(makeTrace(), 42);
-		expect(() => JSON.parse(traceLog)).not.toThrow();
+		expect(typeof traceLog).toBe("object");
+		expect(traceLog).not.toBeNull();
 	});
 
 	it("includes traceId and spans in traceLog", () => {
 		const { traceLog } = transformTraceToDB(makeTrace(), 42);
-		const parsed = JSON.parse(traceLog);
-		expect(parsed.traceId).toBe("trace-abc");
-		expect(Array.isArray(parsed.spans)).toBe(true);
-		expect(parsed.spans).toHaveLength(1);
+		const log = traceLog as Record<string, unknown>;
+		expect(log.traceId).toBe("trace-abc");
+		expect(Array.isArray(log.spans)).toBe(true);
+		expect((log.spans as unknown[]).length).toBe(1);
 	});
 
 	it("returns metadata with span and message counts", () => {

@@ -36,7 +36,7 @@ export interface ArenaMatchResult {
 	metadata: Record<string, unknown>;
 	organizationId: number;
 	createdBy: string;
-	createdAt: string;
+	createdAt: Date;
 }
 
 export interface LeaderboardEntry {
@@ -116,8 +116,8 @@ export class ArenaMatchesService {
 				winnerId: winner.modelId,
 				winnerLabel: winner.modelLabel,
 				judgeReasoning: winner.reasoning,
-				results: JSON.stringify(results),
-				scores: JSON.stringify(scores),
+				results: results,
+				scores: scores,
 				createdBy,
 				createdAt: now,
 			})
@@ -145,14 +145,8 @@ export class ArenaMatchesService {
 			...match,
 			winnerScore: winner.score,
 			judgeReasoning: match.judgeReasoning || "",
-			results:
-				typeof match.results === "string"
-					? JSON.parse(match.results as string)
-					: match.results || [],
-			scores:
-				typeof match.scores === "string"
-					? JSON.parse(match.scores as string)
-					: match.scores || {},
+			results: (match.results as ArenaMatchResult["results"]) || [],
+			scores: (match.scores as Record<string, number>) || {},
 			metadata: {},
 		} as ArenaMatchResult;
 	}
@@ -184,14 +178,8 @@ export class ArenaMatchesService {
 			winnerLabel: match.winnerLabel,
 			winnerScore: 0,
 			judgeReasoning: match.judgeReasoning || "",
-			results:
-				typeof match.results === "string"
-					? JSON.parse(match.results)
-					: match.results,
-			scores:
-				typeof match.scores === "string"
-					? JSON.parse(match.scores)
-					: match.scores || {},
+			results: (match.results as ArenaMatchResult["results"]) || [],
+			scores: (match.scores as Record<string, number>) || {},
 			metadata: {},
 			organizationId: match.organizationId,
 			createdBy: match.createdBy,
@@ -217,8 +205,12 @@ export class ArenaMatchesService {
 			conditions.push(eq(arenaMatches.winnerId, options.winnerId));
 		}
 		if (options?.dateRange) {
-			conditions.push(gte(arenaMatches.createdAt, options.dateRange.start));
-			conditions.push(lte(arenaMatches.createdAt, options.dateRange.end));
+			conditions.push(
+				gte(arenaMatches.createdAt, new Date(options.dateRange.start)),
+			);
+			conditions.push(
+				lte(arenaMatches.createdAt, new Date(options.dateRange.end)),
+			);
 		}
 
 		const matches = await db
@@ -238,14 +230,8 @@ export class ArenaMatchesService {
 					winnerLabel: match.winnerLabel,
 					winnerScore: 0,
 					judgeReasoning: match.judgeReasoning || "",
-					results:
-						typeof match.results === "string"
-							? JSON.parse(match.results as string)
-							: match.results || [],
-					scores:
-						typeof match.scores === "string"
-							? JSON.parse(match.scores as string)
-							: match.scores || {},
+					results: (match.results as ArenaMatchResult["results"]) || [],
+					scores: (match.scores as Record<string, number>) || {},
 					metadata: {},
 					organizationId: match.organizationId,
 					createdBy: match.createdBy,
@@ -297,7 +283,10 @@ export class ArenaMatchesService {
 						averageScore: 0,
 						averageResponseTime: 0,
 						totalCost: 0,
-						lastMatchAt: match.createdAt,
+						lastMatchAt:
+							match.createdAt instanceof Date
+								? match.createdAt.toISOString()
+								: (match.createdAt as string),
 						streak: 0,
 					});
 				}
@@ -306,7 +295,10 @@ export class ArenaMatchesService {
 				if (!entry) continue;
 
 				entry.totalMatches++;
-				entry.lastMatchAt = match.createdAt;
+				entry.lastMatchAt =
+					match.createdAt instanceof Date
+						? match.createdAt.toISOString()
+						: (match.createdAt as string);
 
 				// Update win/loss/draw counts
 				if (result.modelId === match.winnerId) {
@@ -537,16 +529,16 @@ Consider:
 
 Provide a clear explanation for your choice.`,
 				criteria: {
-					relevance: 0.3,
-					clarity: 0.2,
-					completeness: 0.2,
-					helpfulness: 0.2,
-					safety: 0.1,
-				},
+					relevance: { weight: 0.3 },
+					clarity: { weight: 0.2 },
+					completeness: { weight: 0.2 },
+					helpfulness: { weight: 0.2 },
+					safety: { weight: 0.1 },
+				} as import("@/db/types").JudgeCriteria,
 				settings: {
 					temperature: 0.1,
 					maxTokens: 500,
-				},
+				} as import("@/db/types").JudgeSettings,
 				createdBy,
 				createdAt: new Date(),
 				updatedAt: new Date(),
@@ -643,11 +635,9 @@ Provide a clear explanation for your choice.`,
 		const averageScore =
 			matches.length > 0
 				? matches.reduce((sum, match) => {
-						const scores =
-							typeof match.scores === "string"
-								? JSON.parse(match.scores)
-								: match.scores;
-						const scoreValues = Object.values(scores) as number[];
+						const scoreValues = Object.values(
+							(match.scores as Record<string, number>) || {},
+						) as number[];
 						return (
 							sum +
 							(scoreValues.length > 0
@@ -660,10 +650,7 @@ Provide a clear explanation for your choice.`,
 		// Find most active model
 		const modelCounts = new Map<string, number>();
 		for (const match of matches) {
-			const results =
-				typeof match.results === "string"
-					? JSON.parse(match.results)
-					: match.results;
+			const results = (match.results as ArenaMatchResult["results"]) || [];
 			for (const result of results) {
 				modelCounts.set(
 					result.modelId,
@@ -680,7 +667,10 @@ Provide a clear explanation for your choice.`,
 		const topPerformer = leaderboard[0]?.modelLabel || "";
 
 		const recentActivity = matches.filter((match) => {
-			const matchDate = new Date(match.createdAt);
+			const matchDate =
+				match.createdAt instanceof Date
+					? match.createdAt
+					: new Date(match.createdAt as string);
 			const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 			return matchDate > weekAgo;
 		}).length;

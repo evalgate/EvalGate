@@ -30,7 +30,7 @@ import { HomeHeader } from "@/components/home-header";
 describe("HomeHeader", () => {
 	it("should render the brand name", () => {
 		render(<HomeHeader />);
-		expect(screen.getByText("EvalAI")).toBeDefined();
+		expect(screen.getByText("EvalGate")).toBeDefined();
 	});
 
 	it("should show sign-in and get-started when logged out", () => {

@@ -44,7 +44,7 @@ export const POST = secureRoute(
 					description:
 						body.description || `Report card for ${reportData.evaluationName}`,
 					slug,
-					reportData: JSON.stringify(reportData),
+					reportData: reportData as unknown as import("@/db/types").ReportData,
 					isPublic: body.isPublic ?? false,
 					createdBy: ctx.userId,
 					createdAt: now,

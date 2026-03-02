@@ -232,9 +232,12 @@ function TestCasesEditor({
 					size="sm"
 					variant="outline"
 					onClick={() => {
-						const currentCases =
-							activeTemplateData.config.customTestCases ||
-							activeTemplateData.template.testCases;
+						const currentCases = (activeTemplateData.config.customTestCases ||
+							activeTemplateData.template.testCases) as Array<{
+							input: string;
+							expectedOutput: string;
+							rubric: string;
+						}>;
 						onUpdate(activeTemplateData.id, {
 							customTestCases: [
 								...currentCases,
@@ -266,9 +269,13 @@ function TestCasesEditor({
 									size="sm"
 									variant="ghost"
 									onClick={() => {
-										const currentCases =
-											activeTemplateData.config.customTestCases ||
-											activeTemplateData.template.testCases;
+										const currentCases = (activeTemplateData.config
+											.customTestCases ||
+											activeTemplateData.template.testCases) as Array<{
+											input: string;
+											expectedOutput: string;
+											rubric: string;
+										}>;
 										onUpdate(activeTemplateData.id, {
 											customTestCases: currentCases.filter(
 												(_, idx) => idx !== i,
@@ -287,10 +294,14 @@ function TestCasesEditor({
 										placeholder="What should this test validate?"
 										value={testCase.rubric}
 										onChange={(e) => {
-											const currentCases = activeTemplateData.config
+											const currentCases = (activeTemplateData.config
 												.customTestCases || [
 												...activeTemplateData.template.testCases,
-											];
+											]) as Array<{
+												input: string;
+												expectedOutput: string;
+												rubric: string;
+											}>;
 											currentCases[i] = {
 												...currentCases[i],
 												rubric: e.target.value,
@@ -308,10 +319,14 @@ function TestCasesEditor({
 										placeholder="Input to test..."
 										value={testCase.input}
 										onChange={(e) => {
-											const currentCases = activeTemplateData.config
+											const currentCases = (activeTemplateData.config
 												.customTestCases || [
 												...activeTemplateData.template.testCases,
-											];
+											]) as Array<{
+												input: string;
+												expectedOutput: string;
+												rubric: string;
+											}>;
 											currentCases[i] = {
 												...currentCases[i],
 												input: e.target.value,
@@ -330,10 +345,14 @@ function TestCasesEditor({
 										placeholder="Expected result..."
 										value={testCase.expectedOutput}
 										onChange={(e) => {
-											const currentCases = activeTemplateData.config
+											const currentCases = (activeTemplateData.config
 												.customTestCases || [
 												...activeTemplateData.template.testCases,
-											];
+											]) as Array<{
+												input: string;
+												expectedOutput: string;
+												rubric: string;
+											}>;
 											currentCases[i] = {
 												...currentCases[i],
 												expectedOutput: e.target.value,

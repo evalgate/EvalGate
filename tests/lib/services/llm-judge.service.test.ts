@@ -127,7 +127,7 @@ describe("LLMJudgeService", () => {
 	});
 
 	describe("createConfig", () => {
-		it("creates config and stringifies objects", async () => {
+		it("creates config with raw objects for JSONB fields", async () => {
 			const input = {
 				name: "New Config",
 				model: "gpt-4",
@@ -143,8 +143,8 @@ describe("LLMJudgeService", () => {
 			const inserted = state.insertCalls[0] as any;
 			expect(inserted.name).toBe("New Config");
 			expect(inserted.model).toBe("gpt-4");
-			expect(inserted.criteria).toBe('{"accuracy":"High"}');
-			expect(inserted.settings).toBe('{"temperature":0}');
+			expect(inserted.criteria).toEqual({ accuracy: "High" });
+			expect(inserted.settings).toEqual({ temperature: 0 });
 		});
 
 		it("handles null criteria/settings", async () => {
@@ -171,7 +171,7 @@ describe("LLMJudgeService", () => {
 			expect(result).toBeNull();
 		});
 
-		it("updates config and stringifies objects", async () => {
+		it("updates config with raw objects for JSONB fields", async () => {
 			const mockConfig = { id: 1, name: "Old Config" };
 			// First call for getConfigById, second for update returning
 			state.updateQueue = [[mockConfig], [{ id: 1, name: "Updated" }]];
@@ -185,7 +185,7 @@ describe("LLMJudgeService", () => {
 			expect(state.setCalls).toHaveLength(1);
 			const updated = state.setCalls[0] as any;
 			expect(updated.name).toBe("Updated");
-			expect(updated.criteria).toBe('{"accuracy":"Medium"}');
+			expect(updated.criteria).toEqual({ accuracy: "Medium" });
 		});
 	});
 

@@ -20,13 +20,16 @@ export interface FailureConfidenceBadgeProps {
 const CATEGORY_LABELS: Record<FailureCategory, string> = {
 	hallucination: "Hallucination",
 	refusal: "Refusal",
-	format_error: "Format Error",
-	reasoning_failure: "Reasoning Failure",
-	tool_misuse: "Tool Misuse",
+	off_topic: "Off Topic",
+	formatting: "Format Error",
+	incomplete: "Incomplete",
+	other: "Other",
+	reasoning_error: "Reasoning Failure",
+	tool_selection_error: "Tool Misuse",
 	compliance_violation: "Compliance",
-	latency_spike: "Latency Spike",
-	cost_overrun: "Cost Overrun",
-	unknown: "Unknown",
+	retrieval_failure: "Retrieval Failure",
+	latency_regression: "Latency Spike",
+	cost_regression: "Cost Overrun",
 };
 
 function confidenceColor(confidence: number): string {

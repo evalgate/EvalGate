@@ -148,7 +148,7 @@ export async function handleWebhookDelivery(
 		await db.insert(webhookDeliveries).values({
 			webhookId,
 			eventType: event,
-			payload: webhookPayload as unknown,
+			payload: webhookPayload as import("@/db/types").WebhookPayload,
 			payloadHash,
 			status: deliveryStatus,
 			responseStatus: responseCode,

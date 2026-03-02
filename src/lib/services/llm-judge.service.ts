@@ -125,8 +125,8 @@ export class LLMJudgeService {
 				name: data.name,
 				model: data.model,
 				promptTemplate: data.promptTemplate,
-				criteria: data.criteria ? JSON.stringify(data.criteria) : null,
-				settings: data.settings ? JSON.stringify(data.settings) : null,
+				criteria: (data.criteria as import("@/db/types").JudgeCriteria) ?? null,
+				settings: (data.settings as import("@/db/types").JudgeSettings) ?? null,
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			})
@@ -161,8 +161,10 @@ export class LLMJudgeService {
 			.update(llmJudgeConfigs)
 			.set({
 				...data,
-				criteria: data.criteria ? JSON.stringify(data.criteria) : undefined,
-				settings: data.settings ? JSON.stringify(data.settings) : undefined,
+				criteria:
+					(data.criteria as import("@/db/types").JudgeCriteria) ?? undefined,
+				settings:
+					(data.settings as import("@/db/types").JudgeSettings) ?? undefined,
 				updatedAt: new Date(),
 			})
 			.where(
@@ -245,14 +247,14 @@ export class LLMJudgeService {
 				output: data.output,
 				score: judgement.score,
 				reasoning: judgement.reasoning,
-				metadata: JSON.stringify({
+				metadata: {
 					...data.metadata,
 					organizationId,
 					expectedOutput: data.expectedOutput,
 					passed: judgement.passed,
 					context: data.context,
 					details: judgement.details,
-				}),
+				},
 				createdAt: new Date(),
 			})
 			.returning();
@@ -715,12 +717,12 @@ export class LLMJudgeService {
 					output: testResult.output,
 					score: evaluation.score,
 					reasoning: evaluation.reasoning,
-					metadata: JSON.stringify({
+					metadata: {
 						originalScore: testResult.score,
 						originalStatus: testResult.status,
 						passed: evaluation.passed,
 						evaluationRunId,
-					}),
+					},
 					createdAt: new Date(),
 				});
 
@@ -746,13 +748,13 @@ export class LLMJudgeService {
 					output: testResult.output,
 					score: 0,
 					reasoning: `Judge evaluation failed: ${errorMsg}`,
-					metadata: JSON.stringify({
+					metadata: {
 						originalScore: testResult.score,
 						originalStatus: testResult.status,
 						passed: false,
 						evaluationRunId,
 						error: errorMsg,
-					}),
+					},
 					createdAt: new Date(),
 				});
 

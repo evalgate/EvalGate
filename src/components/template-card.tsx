@@ -31,7 +31,7 @@ export function TemplateCard({ template }: { template: EvaluationTemplate }) {
 	const [copied, setCopied] = useState(false);
 
 	const handleCopy = async () => {
-		await navigator.clipboard.writeText(template.code);
+		await navigator.clipboard.writeText(template.code ?? "");
 		setCopied(true);
 		toast.success("Code copied to clipboard!");
 		setTimeout(() => setCopied(false), 2000);

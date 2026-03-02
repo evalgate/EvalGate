@@ -401,7 +401,7 @@ export async function runDueJobs(
 					deadLetter(
 						job,
 						JobErrorCodes.PAYLOAD_INVALID,
-						`Invalid payload for job type ${job.type}: ${parsed.error.message}`,
+						`Invalid payload for job type ${job.type}: ${parsed.error?.message ?? "Unknown error"}`,
 						jobStartedMs,
 					);
 					continue;

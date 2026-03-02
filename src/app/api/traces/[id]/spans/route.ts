@@ -61,7 +61,7 @@ export const POST = secureRoute(
 		const result = await spanService.create(ctx.organizationId, traceId, {
 			spanId,
 			name,
-			type,
+			type: type ?? "default",
 			parentSpanId,
 			input: input as string | object | null | undefined,
 			output: output as string | null | undefined,

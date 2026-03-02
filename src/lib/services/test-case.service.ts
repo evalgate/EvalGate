@@ -78,7 +78,8 @@ export const testCaseService = {
 				name: data.name || `Test Case ${Date.now()}`,
 				input: data.input.trim(),
 				expectedOutput: data.expectedOutput?.trim() ?? null,
-				metadata: data.metadata ?? null,
+				metadata:
+					(data.metadata as import("@/db/types").TestCaseMetadata) ?? null,
 				createdAt: now,
 			})
 			.returning();

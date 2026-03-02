@@ -23,7 +23,10 @@ export async function GET(req: NextRequest) {
 
 	try {
 		const result = await runDueJobs();
-		logger.info("Job runner completed", result as Record<string, unknown>);
+		logger.info(
+			"Job runner completed",
+			result as unknown as Record<string, unknown>,
+		);
 		return NextResponse.json({ ok: true, ...result });
 	} catch (err: unknown) {
 		const message = err instanceof Error ? err.message : "Job runner failed";

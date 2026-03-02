@@ -19,7 +19,7 @@ export const GET = secureRoute(
 			searchParams.get("clientId") || `client_${Date.now()}_${Math.random()}`;
 		const channels = searchParams.get("channels")?.split(",") || [];
 
-		let resolveResponse: (r: Response) => void;
+		let resolveResponse!: (r: Response) => void;
 		const responseReady = new Promise<Response>((r) => {
 			resolveResponse = r;
 		});
@@ -76,7 +76,7 @@ export const GET = secureRoute(
 		});
 
 		resolveResponse?.(response);
-		return response;
+		return response as unknown as import("next/server").NextResponse;
 	},
 );
 

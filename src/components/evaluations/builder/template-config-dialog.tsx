@@ -38,7 +38,8 @@ export function TemplateConfigDialog() {
 							<CardContent className="p-4 space-y-3">
 								<div className="flex items-start gap-3">
 									{(() => {
-										const Icon = activeTemplateData.template.icon;
+										const Icon = activeTemplateData.template
+											.icon as React.ElementType;
 										return (
 											<Icon className="h-6 w-6 text-primary mt-0.5 flex-shrink-0" />
 										);
@@ -54,7 +55,7 @@ export function TemplateConfigDialog() {
 								</div>
 								<div className="flex items-center gap-2 flex-wrap">
 									<Badge variant="outline" className="text-xs">
-										{activeTemplateData.template.type.replace("_", " ")}
+										{activeTemplateData.template.type?.replace("_", " ")}
 									</Badge>
 									<Badge variant="outline" className="text-xs">
 										{activeTemplateData.template.complexity}

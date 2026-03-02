@@ -157,8 +157,10 @@ class EvalWorker {
 						score: result.score,
 						error: result.error,
 						durationMs: turnData.duration,
-						messages: JSON.stringify(result.messages || []),
-						toolCalls: JSON.stringify(result.toolCalls || []),
+						messages: (result.messages ||
+							[]) as import("@/db/types").TestResultMessage[],
+						toolCalls: (result.toolCalls ||
+							[]) as import("@/db/types").ToolCall[],
 						createdAt: new Date(),
 					});
 
@@ -207,8 +209,8 @@ class EvalWorker {
 						score: 0,
 						error: errorMessage,
 						durationMs: Date.now() - turnStart,
-						messages: JSON.stringify([]),
-						toolCalls: JSON.stringify([]),
+						messages: [],
+						toolCalls: [],
 						createdAt: new Date(),
 					});
 
@@ -255,7 +257,7 @@ class EvalWorker {
 					passedCases: passedCount,
 					failedCases: failedCount,
 					completedAt: completedAtDate,
-					traceLog: JSON.stringify({
+					traceLog: {
 						...traceLog,
 						completedAt: completedAtISO,
 						summary: {
@@ -263,9 +265,10 @@ class EvalWorker {
 							processedCount,
 							passedCount,
 							failedCount,
-							duration: Date.now() - new Date(traceLog.startedAt).getTime(),
+							duration:
+								Date.now() - new Date(traceLog.startedAt as string).getTime(),
 						},
-					}),
+					},
 				})
 				.where(eq(evaluationRuns.id, runId));
 
@@ -327,10 +330,10 @@ class EvalWorker {
 				.set({
 					status: "failed",
 					completedAt: new Date(),
-					traceLog: JSON.stringify({
+					traceLog: {
 						error: errorMessage,
 						failedAt: new Date().toISOString(),
-					}),
+					},
 				})
 				.where(eq(evaluationRuns.id, runId));
 
@@ -362,9 +365,9 @@ class EvalWorker {
 
 		if (currentRun.length > 0 && currentRun[0].traceLog) {
 			try {
-				const traceLog = JSON.parse(currentRun[0].traceLog as string);
-				traceLog.heartbeat = traceLog.heartbeat || [];
-				traceLog.heartbeat.push({
+				const traceLog = currentRun[0].traceLog as Record<string, unknown>;
+				const heartbeat = (traceLog.heartbeat as unknown[] | undefined) || [];
+				heartbeat.push({
 					timestamp: new Date().toISOString(),
 					processedCount,
 					message,
@@ -374,7 +377,7 @@ class EvalWorker {
 					.update(evaluationRuns)
 					.set({
 						processedCount,
-						traceLog: JSON.stringify(traceLog),
+						traceLog: { ...traceLog, heartbeat },
 					})
 					.where(eq(evaluationRuns.id, runId));
 			} catch (error) {
@@ -413,7 +416,9 @@ class EvalWorker {
 			// Prepare test results for Meta-Judge
 			const testResultsForJudge = results.map((result) => ({
 				testCaseId: result.testCaseId,
-				input: this.extractInputFromMessages(result.messages as string),
+				input: this.extractInputFromMessages(
+					result.messages as Array<{ role?: string; content?: string }> | null,
+				),
 				output: result.output || "",
 				expectedOutput:
 					this.getExpectedOutput(testCases, result.testCaseId) || undefined,
@@ -432,13 +437,13 @@ class EvalWorker {
 			await db
 				.update(evaluationRuns)
 				.set({
-					traceLog: JSON.stringify({
+					traceLog: {
 						metaJudge: {
 							triggeredAt: new Date().toISOString(),
 							completedAt: new Date().toISOString(),
 							results: judgeResults,
 						},
-					}),
+					},
 				})
 				.where(eq(evaluationRuns.id, runId));
 
@@ -460,13 +465,13 @@ class EvalWorker {
 			await db
 				.update(evaluationRuns)
 				.set({
-					traceLog: JSON.stringify({
+					traceLog: {
 						metaJudge: {
 							triggeredAt: new Date().toISOString(),
 							error: metaJudgeError,
 							failedAt: new Date().toISOString(),
 						},
-					}),
+					},
 				})
 				.where(eq(evaluationRuns.id, runId));
 		}
@@ -475,18 +480,12 @@ class EvalWorker {
 	/**
 	 * Extract input from messages array.
 	 */
-	private extractInputFromMessages(messages: string | null): string {
-		if (!messages) return "";
-
-		try {
-			const parsed = JSON.parse(messages);
-			const userMessage = parsed.find(
-				(msg: { role?: string; content?: string }) => msg.role === "user",
-			);
-			return userMessage?.content || "";
-		} catch {
-			return "";
-		}
+	private extractInputFromMessages(
+		messages: Array<{ role?: string; content?: string }> | null,
+	): string {
+		if (!messages || !Array.isArray(messages)) return "";
+		const userMessage = messages.find((msg) => msg.role === "user");
+		return userMessage?.content || "";
 	}
 
 	/**
@@ -521,10 +520,7 @@ class EvalWorker {
 		toolCalls?: unknown[];
 	}> {
 		const modelSettings = evaluation.modelSettings
-			? (JSON.parse(evaluation.modelSettings as string) as {
-					systemPrompt?: string;
-					model?: string;
-				})
+			? (evaluation.modelSettings as { systemPrompt?: string; model?: string })
 			: {};
 		const systemPrompt =
 			modelSettings.systemPrompt ||

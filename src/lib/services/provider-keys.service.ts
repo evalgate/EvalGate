@@ -34,11 +34,11 @@ export interface DecryptedProviderKey {
 	decryptedKey: string;
 	metadata: Record<string, unknown>;
 	isActive: boolean;
-	lastUsedAt: string | null;
-	expiresAt: string | null;
+	lastUsedAt: Date | null;
+	expiresAt: Date | null;
 	createdBy: string;
-	createdAt: string;
-	updatedAt: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 /**
@@ -107,7 +107,8 @@ export class ProviderKeysService {
 				keyPrefix,
 				iv: encrypted.iv,
 				tag: encrypted.tag,
-				metadata: JSON.stringify(input.metadata || {}),
+				metadata: (input.metadata ||
+					{}) as import("@/db/types").ProviderKeyMetadata,
 				isActive: true,
 				createdBy,
 				createdAt: new Date(),
@@ -147,10 +148,10 @@ export class ProviderKeysService {
 			keyType: string;
 			keyPrefix: string;
 			isActive: boolean | null;
-			lastUsedAt: string | null;
-			expiresAt: string | null;
-			createdAt: string;
-			updatedAt: string;
+			lastUsedAt: Date | null;
+			expiresAt: Date | null;
+			createdAt: Date;
+			updatedAt: Date;
 		}>
 	> {
 		const { provider, includeInactive = false } = options || {};
@@ -237,10 +238,7 @@ export class ProviderKeysService {
 			keyType: key.keyType,
 			keyPrefix: key.keyPrefix,
 			decryptedKey: decrypted.decrypted,
-			metadata:
-				typeof key.metadata === "string"
-					? JSON.parse(key.metadata)
-					: key.metadata || {},
+			metadata: key.metadata as import("@/db/types").ProviderKeyMetadata,
 			isActive: key.isActive ?? true,
 			lastUsedAt: key.lastUsedAt,
 			expiresAt: key.expiresAt,
@@ -289,7 +287,7 @@ export class ProviderKeysService {
 		keyName: string;
 		metadata: Record<string, unknown>;
 		isActive: boolean;
-		updatedAt: string;
+		updatedAt: Date;
 	}> {
 		const [existing] = await db
 			.select()
@@ -309,7 +307,7 @@ export class ProviderKeysService {
 		const updateData: {
 			updatedAt: Date;
 			keyName?: string;
-			metadata?: string;
+			metadata?: import("@/db/types").ProviderKeyMetadata;
 			isActive?: boolean;
 		} = {
 			updatedAt: new Date(),
@@ -320,7 +318,8 @@ export class ProviderKeysService {
 		}
 
 		if (input.metadata !== undefined) {
-			updateData.metadata = JSON.stringify(input.metadata);
+			updateData.metadata =
+				input.metadata as import("@/db/types").ProviderKeyMetadata;
 		}
 
 		if (input.isActive !== undefined) {
@@ -350,9 +349,7 @@ export class ProviderKeysService {
 			id: result.id,
 			keyName: result.keyName,
 			metadata:
-				typeof result.metadata === "string"
-					? JSON.parse(result.metadata)
-					: result.metadata || {},
+				(result.metadata as import("@/db/types").ProviderKeyMetadata) || {},
 			isActive: result.isActive ?? true,
 			updatedAt: result.updatedAt,
 		};

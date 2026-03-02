@@ -25,12 +25,12 @@ const LOW_CONF_HALLUCINATION: AggregatedConfidence = {
 };
 
 const TOOL_MISUSE: AggregatedConfidence = {
-	category: "tool_misuse",
+	category: "tool_selection_error",
 	confidence: 0.7,
 	agreementCount: 2,
 	totalDetectors: 3,
 	agreementRatio: 0.67,
-	scores: { tool_misuse: 0.7 },
+	scores: { tool_selection_error: 0.7 },
 };
 
 describe("FailureConfidenceBadge", () => {
@@ -44,7 +44,7 @@ describe("FailureConfidenceBadge", () => {
 		expect(screen.getByText("Hallucination")).toBeDefined();
 	});
 
-	it("renders category label for tool_misuse", () => {
+	it("renders category label for tool_selection_error", () => {
 		render(<FailureConfidenceBadge result={TOOL_MISUSE} />);
 		expect(screen.getByText("Tool Misuse")).toBeDefined();
 	});

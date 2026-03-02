@@ -642,9 +642,7 @@ ${(results.qualityScore?.recommendations || []).map((r: string) => `- ${r}`).joi
 										<Textarea
 											id="keywords"
 											value={customKeywords}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-												setCustomKeywords(e.target.value)
-											}
+											onChange={(e) => setCustomKeywords(e.target.value)}
 											placeholder="refund, policy, 30 days"
 											rows={1}
 										/>

@@ -114,8 +114,9 @@ export const POST = secureRoute(async (req: NextRequest, ctx: AuthContext) => {
 			organizationId: ctx.organizationId,
 			model: model.trim(),
 			promptTemplate: promptTemplate.trim(),
-			criteria: criteria ? JSON.stringify(criteria) : null,
-			settings: settings ? JSON.stringify(settings) : null,
+			criteria:
+				(criteria as unknown as import("@/db/types").JudgeCriteria) ?? null,
+			settings: (settings as import("@/db/types").JudgeSettings) ?? null,
 			createdBy: ctx.userId,
 			createdAt: now,
 			updatedAt: now,

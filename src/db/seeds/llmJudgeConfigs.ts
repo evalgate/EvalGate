@@ -33,7 +33,7 @@ async function main() {
 					description:
 						"Can the user take concrete action based on this response",
 				},
-			},
+			} as unknown as import("@/db/types").JudgeCriteria,
 			createdBy: userId,
 			createdAt: new Date("2024-01-15"),
 			updatedAt: new Date("2024-01-15"),
@@ -59,7 +59,7 @@ async function main() {
 					description:
 						"Are claims supported by reliable reasoning or known facts",
 				},
-			},
+			} as unknown as import("@/db/types").JudgeCriteria,
 			createdBy: userId,
 			createdAt: new Date("2024-01-20"),
 			updatedAt: new Date("2024-01-20"),

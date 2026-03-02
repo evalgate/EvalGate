@@ -128,7 +128,7 @@ export async function validateSession(
 		db.update(apiKeys)
 			.set({ lastUsedAt: new Date() })
 			.where(eq(apiKeys.id, apiKey.id))
-			.run();
+			.execute();
 
 		return {
 			valid: true,

@@ -69,7 +69,7 @@ export function TemplateLibraryPanel() {
 					<ScrollArea className="flex-1 mt-3">
 						<div className="space-y-2 pr-4">
 							{filteredTemplates.map((template) => {
-								const Icon = template.icon;
+								const Icon = template.icon as React.ElementType;
 								return (
 									<Card
 										key={template.id}

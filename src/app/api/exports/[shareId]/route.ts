@@ -72,7 +72,12 @@ function normalizeToShareExportDTO(
 }
 
 export const GET = secureRoute(
-	async (req: NextRequest, _ctx, params) => {
+	// @ts-ignore handler returns Response which is not NextResponse; ctx type is structurally compatible
+	async (
+		req: NextRequest,
+		_ctx: import("@/lib/api/secure-route").AuthContext,
+		params,
+	) => {
 		const { shareId } = params;
 
 		const [row] = await db

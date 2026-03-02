@@ -7,7 +7,10 @@ async function main() {
 		{
 			organizationId: 1,
 			url: "https://api.example.com/webhooks/traces",
-			events: JSON.stringify(["trace.created", "trace.completed"]),
+			events: [
+				"trace.created",
+				"trace.completed",
+			] as import("@/db/types").WebhookEvents,
 			secret: crypto.randomBytes(32).toString("hex"),
 			status: "active",
 			lastDeliveredAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
@@ -17,7 +20,10 @@ async function main() {
 		{
 			organizationId: 1,
 			url: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXX",
-			events: JSON.stringify(["evaluation.completed", "evaluation.failed"]),
+			events: [
+				"evaluation.completed",
+				"evaluation.failed",
+			] as import("@/db/types").WebhookEvents,
 			secret: crypto.randomBytes(32).toString("hex"),
 			status: "active",
 			lastDeliveredAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
@@ -27,7 +33,11 @@ async function main() {
 		{
 			organizationId: 2,
 			url: "https://webhook.site/unique-id-1234",
-			events: JSON.stringify(["trace.created", "trace.failed", "span.created"]),
+			events: [
+				"trace.created",
+				"trace.failed",
+				"span.created",
+			] as import("@/db/types").WebhookEvents,
 			secret: crypto.randomBytes(32).toString("hex"),
 			status: "inactive",
 			lastDeliveredAt: null,
@@ -37,7 +47,10 @@ async function main() {
 		{
 			organizationId: 2,
 			url: "https://app.compunknown.com/api/webhooks/evaluations",
-			events: JSON.stringify(["evaluation.started", "evaluation.completed"]),
+			events: [
+				"evaluation.started",
+				"evaluation.completed",
+			] as import("@/db/types").WebhookEvents,
 			secret: crypto.randomBytes(32).toString("hex"),
 			status: "active",
 			lastDeliveredAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),

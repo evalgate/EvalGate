@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 							.set({
 								status: "active",
 								source, // Update source
-								context: JSON.stringify(context),
+								context: context as import("@/db/types").SubscriberContext,
 								subscribedAt: new Date(),
 								unsubscribedAt: null,
 								updatedAt: new Date(),
@@ -90,9 +90,9 @@ export async function POST(request: NextRequest) {
 					.values({
 						email,
 						source,
-						context: JSON.stringify(context),
+						context: context as import("@/db/types").SubscriberContext,
 						status: "active",
-						tags: JSON.stringify(tags),
+						tags: tags as import("@/db/types").SubscriberTags,
 						subscribedAt: now,
 						unsubscribedAt: null,
 						lastEmailSentAt: null,
