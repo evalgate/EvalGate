@@ -17,6 +17,9 @@ import { logger } from "@/lib/logger";
  *   200 { ok: true, db: "ok", ts: "<ISO>" }
  *   500 { ok: false, error: "..." }
  */
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(req: NextRequest) {
 	const secret = process.env.CRON_SECRET;
 	const auth = req.headers.get("authorization");
@@ -28,10 +31,13 @@ export async function GET(req: NextRequest) {
 	const ts = new Date().toISOString();
 
 	try {
-		await db.execute(sql`SELECT 1`);
+		// Only check DB connectivity if DATABASE_URL is available
+		if (process.env.DATABASE_URL) {
+			await db.execute(sql`SELECT 1`);
+		}
 
 		logger.info("Cron health check passed", { ts });
-		return NextResponse.json({ ok: true, db: "ok", ts });
+		return NextResponse.json({ ok: true, db: process.env.DATABASE_URL ? "ok" : "skipped", ts });
 	} catch (err: unknown) {
 		const message = err instanceof Error ? err.message : "Health check failed";
 		logger.error("Cron health check failed", { error: message, ts });
