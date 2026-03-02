@@ -144,12 +144,20 @@ Open source. Production-ready. **1.4k+ npm downloads/month** · Used by develope
 | Capability                                                                                      | Status              |
 | ----------------------------------------------------------------------------------------------- | ------------------- |
 | CI regression gate (`evalgate ci`, `evalgate gate`)                                                 | Production          |
-| TypeScript SDK ([`@evalgate/sdk`](https://www.npmjs.com/package/@evalgate/sdk)) | Production (v2.0.0) |
+| TypeScript SDK ([`@evalgate/sdk`](https://www.npmjs.com/package/@evalgate/sdk)) | Production (v2.1.0) |
 | Python SDK ([`pauly4010-evalgate-sdk`](https://pypi.org/project/pauly4010-evalgate-sdk/))           | Production          |
 | Multi-tenant auth & RBAC                                                                        | Production          |
 | Evaluation engine (50+ templates, 4 types)                                                      | Production          |
 | Audit logging & governance presets                                                              | Production          |
 | Observability (traces, spans, cost tracking)                                                    | Production          |
+| Three-layer scoring (reasoning / action / outcome)                                              | Beta (v2.1.0)       |
+| Multi-judge aggregation (6 strategies, transparency audit)                                      | Beta (v2.1.0)       |
+| Behavioral drift detection (6 signal types)                                                     | Beta (v2.1.0)       |
+| Dataset coverage model (gap detection, configurable seed phrases)                               | Beta (v2.1.0)       |
+| EvalCase generation from traces (deduplication, quality scoring)                                | Beta (v2.1.0)       |
+| Failure detection + classification (8 categories, confidence)                                   | Beta (v2.1.0)       |
+| Metric DAG safety validator                                                                     | Beta (v2.1.0)       |
+| Regression attribution engine                                                                   | Beta (v2.1.0)       |
 | Self-hosted Docker                                                                              | Beta                |
 | Advanced product analytics                                                                      | Planned             |
 | Additional SDKs (Go, Rust)                                                                      | Roadmap             |

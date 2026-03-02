@@ -1,6 +1,6 @@
 # Stability Matrix
 
-> Last updated: 2026-02-25
+> Last updated: 2026-03-02
 
 This document classifies every major feature by maturity level and provides API compatibility guarantees for each tier.
 
@@ -105,7 +105,7 @@ This document classifies every major feature by maturity level and provides API 
 | Cost Records | **Stable** | v1.0 | Per-call token + cost tracking |
 | LLM Judge | **Beta** | v1.0 | Meta-judge post-eval hook |
 
-### SDK (`@evalgate/sdk`) — v2.0.0
+### SDK (`@evalgate/sdk`) — v2.1.0
 
 | Feature | Tier | Since | Notes |
 |---------|------|-------|-------|
@@ -115,6 +115,40 @@ This document classifies every major feature by maturity level and provides API 
 | Assertions library | **Stable** | v1.0 | 15+ assertion types |
 | Framework integrations | **Beta** | v1.0 | Jest, Vitest adapters |
 | Regression gate exports | **Stable** | v1.6 | `@evalgate/sdk/regression` |
+
+### EvalGate Intelligence Layer — v2.1.0
+
+| Feature | Tier | Since | Notes |
+|---------|------|-------|-------|
+| **Trace Schema + Validator** | **Beta** | v2.1 | Zod v1, versioned, `TRACE_MIN_SUPPORTED_VERSION` compat check |
+| **Trace Freezer** | **Beta** | v2.1 | `Object.freeze` deep structural immutability |
+| **Failure Taxonomy** | **Stable** | v2.1 | 8 categories: hallucination, refusal, format_error, reasoning_failure, tool_misuse, compliance_violation, latency_spike, cost_overrun |
+| **Failure Confidence** | **Beta** | v2.1 | Weighted multi-detector aggregation, agreement ratio, `agreementRatio` field |
+| **Rule-Based Detector** | **Beta** | v2.1 | Pattern matching for each failure category |
+| **EvalCase spec (v1)** | **Beta** | v2.1 | Canonical test case format; 64-bit FNV-1a stable content-hash ID (`ec_<16 hex>`) |
+| **Test Generator** | **Beta** | v2.1 | EvalCase generation from behavioral traces; refusal/format/precision constraints |
+| **Deduplicator** | **Beta** | v2.1 | Jaccard similarity clustering; `MAX_PAIRWISE_N=500` O(n²) guard |
+| **Test Quality Evaluator** | **Beta** | v2.1 | Coverage, uniqueness, and signal-strength scores per EvalCase |
+| **Trace Minimizer** | **Beta** | v2.1 | Removes non-essential spans while preserving failure signal |
+| **Dataset Coverage Model** | **Beta** | v2.1 | Cluster-based gap detection; configurable `seedPhrases`; exports `DEFAULT_GAP_SEED_PHRASES` |
+| **Three-Layer Scoring** | **Beta** | v2.1 | Reasoning layer, Action layer, Outcome layer; each with `evidenceAvailable` flag |
+| **Multi-Judge Aggregation** | **Beta** | v2.1 | 6 strategies; `majority_vote` tie → 0.5; `agreementStats` with stdDev + outlierJudgeIds |
+| **Judge Transparency** | **Beta** | v2.1 | Per-judge audit trail with rationale and timing |
+| **Metric DAG Safety** | **Beta** | v2.1 | Cycle detection, missing `finalScore` node, undefined inputs, max depth (10), reachability |
+| **Behavioral Drift** | **Beta** | v2.1 | 6 signal types (cot_usage_drop/spike, confidence_drop, tool_call_drop, retrieval_drop, error_spike) |
+| **Drift Explainer** | **Alpha** | v2.1 | Human-readable drift narrative from signals |
+| **Replay Determinism** | **Beta** | v2.1 | SHA-256 input canonicalization for reproducible replay |
+| **Regression Attribution** | **Beta** | v2.1 | Scores diff signals (git, model, prompt, tool schema, dataset, judge) to rank regression causes |
+
+### EvalGate UX Components — v2.1.0
+
+| Component | Tier | Since | Notes |
+|-----------|------|-------|-------|
+| `ScoreLayerBreakdown` | **Beta** | v2.1 | Reasoning/action/outcome progress bars; composite score; estimated badge |
+| `JudgeVotePanel` | **Beta** | v2.1 | Per-judge pass/partial/fail icons; agreement %; strategy label; confidence badge |
+| `DriftSeverityBadge` | **Beta** | v2.1 | none → low → medium → high → critical; optional signal list |
+| `CoverageGapList` | **Beta** | v2.1 | Gap importance bars; coverage ratio; maxVisible prop; overflow count |
+| `FailureConfidenceBadge` | **Beta** | v2.1 | Category label; confidence %; optional detector agreement count |
 
 ### Database
 

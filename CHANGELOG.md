@@ -2,6 +2,43 @@
 
 Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANGELOG.md](src/packages/sdk/CHANGELOG.md).
 
+## [2.1.0] - 2026-03-02
+
+### Added — EvalGate Intelligence Layer
+
+**Backend modules** (505 unit tests, 32 new source files):
+- **Phase 0 — Foundation:** `reliability-object`, `lineage`, `version-resolver`, `compat`; `redaction`, `secret-scanner`
+- **Phase 1.1 — Trace Intelligence:** `trace-schema` (Zod v1 + version compatibility), `trace-validator`, `trace-freezer` (structural immutability)
+- **Phase 1.2 — Failure Detection:** `taxonomy` (8 failure categories), `confidence` (weighted multi-detector aggregation), `detectors/rule-based`
+- **Phase 1.3 — Test Generation:** `trace-minimizer`, `generator` (EvalCase generation from traces), `deduplicator` (Jaccard similarity clustering), `test-quality-evaluator`; `testcases/spec` (EvalCase v1 canonical format)
+- **Phase 2A — Dataset Coverage:** `coverage-model` with configurable `seedPhrases`, gap detection, cluster coverage ratio
+- **Phase 3 — Three-Layer Scoring:** `trace-feature-extractor`, `reasoning-layer`, `action-layer`, `outcome-layer`
+- **Phase 4 — Multi-Judge:** `aggregation` (median/mean/weighted/majority/min/max strategies), `transparency` (per-judge audit trail)
+- **Phase 5B — Metric DAG Safety:** `dag-safety` (cycle detection, missing finalScore, max depth, reachability)
+- **Phase 7 — Drift Intelligence:** `behavioral-drift` (6 signal types), `drift-explainer`
+- **Phase 8B/8C — Replay + Attribution:** `replay/determinism`, `regression/attribution`
+
+**UX components** (40 DOM tests, 5 new React components):
+- `score-layer-breakdown` — reasoning/action/outcome score bars with evidence flags
+- `judge-vote-panel` — per-judge votes, agreement %, strategy label, confidence badge
+- `drift-severity-badge` — color-coded severity (none → critical) with signal list
+- `coverage-gap-list` — gap list with importance progress bars and coverage ratio
+- `failure-confidence-badge` — failure category + confidence % + detector agreement
+
+### Changed
+
+- **EvalCase ID** upgraded from 32-bit FNV-1a (8 hex chars) to 64-bit FNV-1a (16 hex chars) — format: `ec_<16 hex>`. Negligible collision probability at any realistic test registry size.
+- **`sdk/package.json`**: `test` script changed from `vitest` (watch) to `vitest run` (CI-safe); `test:watch` added for developer use.
+- **`run-platform-ci.ts`**: Added `--skip-db` flag for local runs without PostgreSQL; coverage audit now skipped automatically when `--skip-db` is active.
+
+### Fixed
+
+- Refusal constraint regex: replaced PCRE-only `(?i)` inline flag with `[Ii]`/`[Aa]` character classes — was throwing `SyntaxError` in any JS runtime calling `new RegExp(value)`
+- `majority_vote` aggregation tie: pass == fail now returns `finalScore: 0.5` instead of silently returning 1.0
+- `secret-scanner.ts`: extracted assignment from `while` condition to satisfy `noAssignInExpressions` (was valid JS but lint error)
+- `drift-severity-badge.tsx`: replaced array index key with `${type}-${description}` composite key
+- Biome `organizeImports`: auto-fixed 61 test files with unsorted import blocks
+
 ## [2.0.0] - 2026-03-01
 
 ### Breaking — EvalGate Rebrand
