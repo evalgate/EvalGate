@@ -45,11 +45,11 @@ export default function QuickStartPage() {
 						</CardHeader>
 						<CardContent>
 							<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
-								<pre>{`# Add this to .github/workflows/evalai.yml
+								<pre>{`# Add this to .github/workflows/evalgate.yml
 name: EvalGate CI
 on: [push, pull_request]
 jobs:
-  evalai:
+  evalgate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -59,8 +59,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: evalai-results
-          path: .evalai/`}</pre>
+          name: evalgate-results
+          path: .evalgate/`}</pre>
 							</div>
 							<p className="text-sm text-muted-foreground">
 								That&apos;s it! Your CI now automatically discovers specs, runs
@@ -84,14 +84,14 @@ jobs:
 						<CardContent>
 							<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
 								<pre>{`npx @evalgate/sdk init    # detects repo, creates baseline, installs CI workflow
-git add evals/ .github/workflows/evalai-gate.yml evalai.config.json
+git add evals/ .github/workflows/evalgate.yml evalgate.config.json
 git commit -m "chore: add EvalGate regression gate"
 git push                           # open a PR → CI blocks regressions`}</pre>
 							</div>
 							<p className="text-sm text-muted-foreground">
 								That&apos;s it.{" "}
 								<code className="bg-muted px-1.5 py-0.5 rounded">
-									evalai init
+									evalgate init
 								</code>{" "}
 								detects your package manager, runs your tests to capture a
 								baseline, and scaffolds everything. No account required for
@@ -307,8 +307,8 @@ print(result.passed)  # True`}</pre>
 									in your project root:
 								</p>
 								<div className="bg-muted p-4 rounded-lg font-mono text-sm mb-4">
-									<pre>{`EVALAI_API_KEY=sk_test_your_api_key_here
-EVALAI_ORGANIZATION_ID=your_org_id_here`}</pre>
+									<pre>{`EVALGATE_API_KEY=sk_test_your_api_key_here
+EVALGATE_ORGANIZATION_ID=your_org_id_here`}</pre>
 								</div>
 								<div className="space-y-3 text-sm text-muted-foreground">
 									<p>
@@ -317,13 +317,13 @@ EVALAI_ORGANIZATION_ID=your_org_id_here`}</pre>
 									<ul className="list-disc list-inside space-y-1 ml-4">
 										<li>
 											<code className="bg-muted px-1 rounded">
-												EVALAI_API_KEY
+												EVALGATE_API_KEY
 											</code>{" "}
 											- From the API key creation dialog
 										</li>
 										<li>
 											<code className="bg-muted px-1 rounded">
-												EVALAI_ORGANIZATION_ID
+												EVALGATE_ORGANIZATION_ID
 											</code>{" "}
 											- Shown in the API key creation dialog
 										</li>
@@ -365,8 +365,8 @@ const client = AIEvalClient.init()
 
 // Or with explicit configuration
 const client = new AIEvalClient({
-  apiKey: process.env.EVALAI_API_KEY,
-  organizationId: parseInt(process.env.EVALAI_ORGANIZATION_ID!),
+  apiKey: process.env.EVALGATE_API_KEY,
+  organizationId: parseInt(process.env.EVALGATE_ORGANIZATION_ID!),
   debug: true // Enable debug logging
 })`}</pre>
 								</div>
@@ -381,8 +381,8 @@ client = AIEvalClient.init()
 
 # Or with explicit configuration
 client = AIEvalClient(
-    api_key=os.environ["EVALAI_API_KEY"],
-    organization_id=int(os.environ["EVALAI_ORGANIZATION_ID"]),
+    api_key=os.environ["EVALGATE_API_KEY"],
+    organization_id=int(os.environ["EVALGATE_ORGANIZATION_ID"]),
     debug=True
 )`}</pre>
 								</div>

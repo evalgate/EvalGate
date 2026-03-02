@@ -63,8 +63,8 @@ export default function TracingSetupPage() {
 							Create a <code>.env</code> file in your project root:
 						</p>
 						<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
-							{`EVALAI_API_KEY=sk_test_your_api_key_here
-EVALAI_ORGANIZATION_ID=your_org_id_here`}
+							{`EVALGATE_API_KEY=sk_test_your_api_key_here
+EVALGATE_ORGANIZATION_ID=your_org_id_here`}
 						</div>
 						<p className="text-sm text-muted-foreground">
 							Get your API key from the{" "}
@@ -82,7 +82,7 @@ EVALAI_ORGANIZATION_ID=your_org_id_here`}
 						<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
 							{`import { AIEvalClient, WorkflowTracer } from '@evalgate/sdk'
 
-const client = new AIEvalClient({ apiKey: process.env.EVALAI_API_KEY })
+const client = new AIEvalClient({ apiKey: process.env.EVALGATE_API_KEY })
 const tracer = new WorkflowTracer(client)`}
 						</div>
 						<p className="text-xs font-semibold text-muted-foreground mb-1">
@@ -91,7 +91,7 @@ const tracer = new WorkflowTracer(client)`}
 						<div className="bg-muted p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto">
 							{`from evalgate_sdk import AIEvalClient, WorkflowTracer
 
-client = AIEvalClient(api_key=os.environ["EVALAI_API_KEY"])
+client = AIEvalClient(api_key=os.environ["EVALGATE_API_KEY"])
 tracer = WorkflowTracer(client)`}
 						</div>
 

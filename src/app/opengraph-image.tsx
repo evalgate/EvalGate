@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "EvalAI — Stop LLM regressions in CI";
+export const alt = "EvalGate — Stop LLM regressions in CI";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -22,7 +22,7 @@ export default async function Image() {
 			}}
 		>
 			<div style={{ fontSize: 80, fontWeight: "bold", marginBottom: 20 }}>
-				EvalAI
+				EvalGate
 			</div>
 			<div style={{ fontSize: 36, opacity: 0.8 }}>
 				Stop LLM regressions in CI in 2 minutes

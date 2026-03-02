@@ -16,7 +16,7 @@ export default function PlaygroundPage() {
 				<div className="container mx-auto px-4 py-4">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-2">
-							<span className="text-2xl font-bold">EvalAI</span>
+							<span className="text-2xl font-bold">EvalGate</span>
 							<span className="text-sm text-muted-foreground">
 								/ Playground
 							</span>
@@ -49,7 +49,7 @@ export default function PlaygroundPage() {
 			<footer className="border-t mt-24">
 				<div className="container mx-auto px-4 py-8">
 					<div className="flex items-center justify-between text-sm text-muted-foreground">
-						<div>© 2024 EvalAI. All rights reserved.</div>
+						<div>© 2024 EvalGate. All rights reserved.</div>
 						<div className="flex gap-6">
 							<a href="/documentation" className="hover:underline">
 								Documentation

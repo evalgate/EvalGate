@@ -55,7 +55,7 @@ export default function OpenAIIntegrationGuide() {
 						{`import OpenAI from 'openai'
 import { AIEvalClient, WorkflowTracer, traceOpenAI, traceWorkflowStep } from '@evalgate/sdk'
 
-const client = new AIEvalClient({ apiKey: process.env.EVALAI_API_KEY })
+const client = new AIEvalClient({ apiKey: process.env.EVALGATE_API_KEY })
 const tracer = new WorkflowTracer(client)
 
 // Wrap OpenAI client for automatic tracing
@@ -69,7 +69,7 @@ const openai = traceOpenAI(new OpenAI(), client)`}
 from evalgate_sdk import AIEvalClient, WorkflowTracer
 from evalgate_sdk.integrations.openai import trace_openai
 
-client = AIEvalClient(api_key=os.environ["EVALAI_API_KEY"])
+client = AIEvalClient(api_key=os.environ["EVALGATE_API_KEY"])
 tracer = WorkflowTracer(client)
 
 # Wrap OpenAI client for automatic tracing
@@ -78,9 +78,9 @@ openai = trace_openai(OpenAI(), client)`}
 
 					<p className="text-sm text-muted-foreground my-4">
 						<strong>Environment variables:</strong> Make sure you have{" "}
-						<code className="bg-muted px-1 rounded">EVALAI_API_KEY</code> and{" "}
+						<code className="bg-muted px-1 rounded">EVALGATE_API_KEY</code> and{" "}
 						<code className="bg-muted px-1 rounded">
-							EVALAI_ORGANIZATION_ID
+							EVALGATE_ORGANIZATION_ID
 						</code>{" "}
 						in your .env file.
 					</p>
@@ -104,7 +104,7 @@ const response = await openai.chat.completions.create({
 
 console.log(response.choices[0].message.content)
 
-// Automatically tracked in EvalAI dashboard:
+// Automatically tracked in EvalGate dashboard:
 // ✓ Full prompt and response
 // ✓ Token usage (input/output)
 // ✓ Latency

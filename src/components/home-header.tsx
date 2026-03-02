@@ -45,7 +45,7 @@ export function HomeHeader() {
 			<div className="mx-auto max-w-7xl">
 				<div className="flex h-14 items-center justify-between px-4 sm:px-6">
 					<Link href="/" className="flex items-center gap-2">
-						<span className="font-semibold text-sm sm:text-base">EvalAI</span>
+						<span className="font-semibold text-sm sm:text-base">EvalGate</span>
 					</Link>
 
 					<div className="flex items-center gap-2 sm:gap-4">

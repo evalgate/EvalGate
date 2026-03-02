@@ -44,7 +44,7 @@ export function WebMCPProvider() {
 			{
 				name: "list_evaluation_templates",
 				description:
-					"EvalAI: List evaluation templates for testing AI models. Returns templates from the quick-start library (6) and full catalog (50+ across 17 categories: unit_tests, adversarial, human_eval, llm_judge, chatbot, rag, code-gen, etc.) with configurations and test cases.",
+					"EvalGate: List evaluation templates for testing AI models. Returns templates from the quick-start library (6) and full catalog (50+ across 17 categories: unit_tests, adversarial, human_eval, llm_judge, chatbot, rag, code-gen, etc.) with configurations and test cases.",
 				inputSchema: {
 					type: "object",
 					properties: {
@@ -77,7 +77,7 @@ export function WebMCPProvider() {
 			{
 				name: "get_evaluation_test_cases",
 				description:
-					"EvalAI: Get test cases for an evaluation. Returns test cases for the specified evaluation ID.",
+					"EvalGate: Get test cases for an evaluation. Returns test cases for the specified evaluation ID.",
 				inputSchema: {
 					type: "object",
 					properties: {
@@ -111,7 +111,7 @@ export function WebMCPProvider() {
 			{
 				name: "create_evaluation",
 				description:
-					"EvalAI: Create an evaluation for testing an AI model. Types: unit_test (assertions), human_eval (expert annotation), model_eval (LLM-as-judge), ab_test. Provide name, type, optional description and test cases. Requires user to be signed in.",
+					"EvalGate: Create an evaluation for testing an AI model. Types: unit_test (assertions), human_eval (expert annotation), model_eval (LLM-as-judge), ab_test. Provide name, type, optional description and test cases. Requires user to be signed in.",
 				inputSchema: {
 					type: "object",
 					properties: {
@@ -151,7 +151,7 @@ export function WebMCPProvider() {
 			{
 				name: "run_evaluation",
 				description:
-					"EvalAI: Execute an evaluation run. Fetches test cases, runs them (unit assertions, LLM judge, or marks for human review), and computes pass/fail and scores. Requires user to be signed in.",
+					"EvalGate: Execute an evaluation run. Fetches test cases, runs them (unit assertions, LLM judge, or marks for human review), and computes pass/fail and scores. Requires user to be signed in.",
 				inputSchema: {
 					type: "object",
 					properties: {
@@ -170,7 +170,7 @@ export function WebMCPProvider() {
 			{
 				name: "get_evaluation_results",
 				description:
-					"EvalAI: Get evaluation run results—pass/fail counts, per-test-case results, scores, and run status. Requires user to be signed in.",
+					"EvalGate: Get evaluation run results—pass/fail counts, per-test-case results, scores, and run status. Requires user to be signed in.",
 				inputSchema: {
 					type: "object",
 					properties: {
@@ -199,7 +199,7 @@ export function WebMCPProvider() {
 			{
 				name: "get_quality_score",
 				description:
-					"EvalAI: Get quality score from the latest evaluation run—evaluation name, run status, total/passed/failed counts, pass rate. Returns a message to run the evaluation first if no runs exist. Requires user to be signed in.",
+					"EvalGate: Get quality score from the latest evaluation run—evaluation name, run status, total/passed/failed counts, pass rate. Returns a message to run the evaluation first if no runs exist. Requires user to be signed in.",
 				inputSchema: {
 					type: "object",
 					properties: {

@@ -134,7 +134,7 @@ export default async function ReportPage({
 				{/* Footer */}
 				<div className="text-center text-xs text-zinc-600 mt-12">
 					<p>
-						Verified by <span className="text-blue-400">EvalAI Platform</span>
+						Verified by <span className="text-blue-400">EvalGate Platform</span>
 					</p>
 					<p className="mt-1">
 						{data.evaluationType ?? "evaluation"} · {report.viewCount || 0}{" "}

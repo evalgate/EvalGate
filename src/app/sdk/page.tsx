@@ -90,12 +90,12 @@ export default function SDKPage() {
 	const initCode = `import { AIEvalClient } from '@evalgate/sdk';
 
 const client = AIEvalClient.init({ 
-  apiKey: process.env.EVALAI_API_KEY 
+  apiKey: process.env.EVALGATE_API_KEY 
 });`;
 
 	const initCodePython = `from evalgate_sdk import AIEvalClient
 
-client = AIEvalClient.init()  # reads EVALAI_API_KEY env var`;
+client = AIEvalClient.init()  # reads EVALGATE_API_KEY env var`;
 
 	const testSuiteCode = `import { createTestSuite, expect } from '@evalgate/sdk';
 
@@ -236,11 +236,11 @@ npx evalgate check --format github --onFail import`;
 							</p>
 							<div className="bg-muted p-4 rounded-lg font-mono text-sm overflow-x-auto relative group">
 								<pre>
-									<code>{`# Add this to .github/workflows/evalai.yml
+									<code>{`# Add this to .github/workflows/evalgate.yml
 name: EvalGate CI
 on: [push, pull_request]
 jobs:
-  evalai:
+  evalgate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -250,8 +250,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: evalai-results
-          path: .evalai/`}</code>
+          name: evalgate-results
+          path: .evalgate/`}</code>
 								</pre>
 								<CopyButton text={ciCode} className="absolute top-2 right-2" />
 							</div>

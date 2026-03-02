@@ -46,7 +46,7 @@ export default async function AuditLinkPage({
 				<div className="flex items-center justify-center gap-2 mb-6">
 					<Shield className="h-6 w-6 text-blue-500" />
 					<span className="text-sm font-mono text-zinc-400 uppercase tracking-wider">
-						EvalAI Audit Link
+						EvalGate Audit Link
 					</span>
 				</div>
 
@@ -181,7 +181,7 @@ export default async function AuditLinkPage({
 				</Card>
 
 				<p className="text-center text-xs text-zinc-600 mt-8">
-					Verified by EvalAI ·{" "}
+					Verified by EvalGate ·{" "}
 					{report.generatedAt
 						? new Date(report.generatedAt).toLocaleString()
 						: ""}

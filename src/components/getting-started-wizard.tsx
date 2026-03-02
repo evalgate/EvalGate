@@ -26,8 +26,8 @@ export function GettingStartedWizard({ apiKey, onComplete }: WizardProps) {
 			title: "Set Environment Variables",
 			description: "Configure your API credentials",
 			icon: Code,
-			code: `EVALAI_API_KEY=${apiKey || "your-api-key"}
-EVALAI_PROJECT_ID=your-project-id`,
+			code: `EVALGATE_API_KEY=${apiKey || "your-api-key"}
+EVALGATE_PROJECT_ID=your-project-id`,
 		},
 		{
 			title: "Create Your First Trace",
