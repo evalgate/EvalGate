@@ -36,6 +36,7 @@ def load_fixture(name: str) -> dict:
 
 # ── trace_v1.json ─────────────────────────────────────────────────────────────
 
+
 class TestTraceV1Fixture:
     @pytest.fixture(autouse=True)
     def fixture(self):
@@ -82,6 +83,7 @@ class TestTraceV1Fixture:
 
 
 # ── span_v1.json ──────────────────────────────────────────────────────────────
+
 
 class TestSpanV1Fixture:
     @pytest.fixture(autouse=True)
@@ -155,6 +157,7 @@ class TestSpanV1Fixture:
 
 # ── Cross-fixture consistency ─────────────────────────────────────────────────
 
+
 class TestCrossFixtureConsistency:
     def test_all_fixtures_use_same_spec_version(self):
         trace = load_fixture("trace_v1.json")
@@ -178,6 +181,7 @@ class TestCrossFixtureConsistency:
 
 
 # ── SDK payload emission (structural contract) ────────────────────────────────
+
 
 class TestSDKPayloadEmission:
     """

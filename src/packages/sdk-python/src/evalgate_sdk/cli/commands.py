@@ -172,6 +172,7 @@ def run(
                 console.print(f"[red]Error loading {spec_file.name}:[/red] {exc}")
                 if verbose:
                     import traceback
+
                     console.print(f"[dim]{traceback.format_exc()}[/dim]")
 
         specs = handle.runtime.list()
@@ -207,14 +208,16 @@ def run(
                 results.append(entry)
             except Exception as exc:
                 console.print(f"  [red]✗ ERROR[/red] {spec.name}: {exc}")
-                results.append({
-                    "spec": spec.name,
-                    "passed": False,
-                    "score": 0.0,
-                    "duration_ms": 0.0,
-                    "error": str(exc),
-                    "status": "error",
-                })
+                results.append(
+                    {
+                        "spec": spec.name,
+                        "passed": False,
+                        "score": 0.0,
+                        "duration_ms": 0.0,
+                        "error": str(exc),
+                        "status": "error",
+                    }
+                )
 
         passed = sum(1 for r in results if r["passed"])
         total = len(results)
@@ -357,15 +360,8 @@ def check(
                 table.add_row("Flags", ", ".join(quality.flags))
             console.print(table)
 
-        if (
-            max_drop is not None
-            and quality.regression_delta is not None
-            and quality.regression_delta <= -max_drop
-        ):
-            console.print(
-                f"[red]✗ FAIL — regression {quality.regression_delta:+.1f} "
-                f"exceeds max drop {max_drop}[/red]"
-            )
+        if max_drop is not None and quality.regression_delta is not None and quality.regression_delta <= -max_drop:
+            console.print(f"[red]✗ FAIL — regression {quality.regression_delta:+.1f} exceeds max drop {max_drop}[/red]")
             return EXIT_REGRESSION
 
         if score < min_score:

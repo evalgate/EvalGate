@@ -67,8 +67,8 @@ Same CI gate, same quality checks. Python SDK has full parity with TypeScript: a
 
 ```bash
 npx @evalgate/sdk init    # scaffold everything
-npx evalgate gate                    # run gate locally
-npx evalgate baseline update         # update baseline after intentional changes
+npx evalai gate                    # run gate locally
+npx evalai baseline update         # update baseline after intentional changes
 ```
 
 Works for any Node.js project with a `test` script.
@@ -76,9 +76,9 @@ Works for any Node.js project with a `test` script.
 ### Path B: Platform gate (dashboard, history, LLM judge)
 
 ```bash
-npx evalgate init                    # creates evalgate.config.json
+npx evalai init                    # creates evalai.config.json
 # paste evaluationId from dashboard
-npx evalgate check --format github --onFail import
+npx evalai check --format github --onFail import
 ```
 
 Adds quality score tracking, baseline comparisons, trace coverage, and PR annotations.
@@ -88,9 +88,9 @@ Adds quality score tracking, baseline comparisons, trace coverage, and PR annota
 When CI fails, don't guess — follow the guided flow:
 
 ```bash
-npx evalgate doctor              # preflight: is everything wired correctly?
-npx evalgate check               # run the gate (writes .evalgate/last-report.json)
-npx evalgate explain             # what failed, why, and how to fix it
+npx evalai doctor              # preflight: is everything wired correctly?
+npx evalai check               # run the gate (writes .evalai/last-report.json)
+npx evalai explain             # what failed, why, and how to fix it
 ```
 
 `check` automatically saves a report artifact. `explain` reads it with zero flags and prints:
@@ -110,7 +110,7 @@ Works offline. No API calls needed for `explain`.
 | `check` | **Online** | Requires API key + evaluationId; fetches quality, posts annotations |
 | `import` | **Online** | Sends run data to platform (e.g. `--onFail import`) |
 | `traces` | **Online** | Sends spans to platform |
-| `explain` | **Offline** | Reads `.evalgate/last-report.json` or `evals/regression-report.json` |
+| `explain` | **Offline** | Reads `.evalai/last-report.json` or `evals/regression-report.json` |
 
 Buyers can trust: `gate` and `explain` never phone home.
 
@@ -121,16 +121,16 @@ Buyers can trust: `gate` and `explain` never phone home.
 
 ![GitHub Actions step summary](docs/images/evalai-gate-step-summary.svg)
 
-**`evalgate explain` terminal output** — root causes + fix commands:
+**`evalai explain` terminal output** — root causes + fix commands:
 
-![evalgate explain terminal output](docs/images/evalai-explain-terminal.svg)
+![evalai explain terminal output](docs/images/evalai-explain-terminal.svg)
 
 </details>
 
 ## Remove anytime
 
 ```bash
-rm evalgate.config.json evals/ .github/workflows/evalgate-gate.yml
+rm evalai.config.json evals/ .github/workflows/evalai-gate.yml
 ```
 
 No account cancellation. No data export. Your tests keep working.
@@ -143,7 +143,7 @@ Open source. Production-ready. **1.4k+ npm downloads/month** · Used by develope
 
 | Capability                                                                                      | Status              |
 | ----------------------------------------------------------------------------------------------- | ------------------- |
-| CI regression gate (`evalgate ci`, `evalgate gate`)                                                 | Production          |
+| CI regression gate (`evalai ci`, `evalai gate`)                                                 | Production          |
 | TypeScript SDK ([`@evalgate/sdk`](https://www.npmjs.com/package/@evalgate/sdk)) | Production (v2.1.0) |
 | Python SDK ([`pauly4010-evalgate-sdk`](https://pypi.org/project/pauly4010-evalgate-sdk/))           | Production          |
 | Multi-tenant auth & RBAC                                                                        | Production          |
@@ -164,7 +164,7 @@ Open source. Production-ready. **1.4k+ npm downloads/month** · Used by develope
 
 ## CI in One Command
 
-Add to your `.github/workflows/evalgate.yml`:
+Add to your `.github/workflows/evalai.yml`:
 
 ```yaml
 name: EvalGate CI
@@ -176,19 +176,19 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - run: npm ci
-      - run: npx evalgate ci --format github --write-results --base main
+      - run: npx @evalgate/sdk ci --format github --write-results --base main
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: evalgate-results
-          path: .evalgate/
+          name: evalai-results
+          path: .evalai/
 ```
 
 **That's it!** Your CI now:
 
-- ✅ Discovers evaluation specs automatically
+- ✅ Discovers evaluation specs automatically with `evalai discover`
 - ✅ Runs only impacted specs (smart caching)
-- ✅ Compares results against base branch
+- ✅ Compares results against base branch with `evalai impact-analysis`
 - ✅ Posts rich summary in PR with regressions
 - ✅ Exits with proper codes (0=clean, 1=regressions, 2=config)
 
@@ -200,9 +200,31 @@ jobs:
 
 > **EvalGate is CI for AI behavior.** Same gates, same quality checks — whether you use Node, Python, or the REST API.
 
+### EvalAI Discovery: Intelligent Spec Compiler
+
+**`evalai discover`** is the spec compiler frontend that finds evaluation specs, normalizes identities, and produces metadata that powers manifest generation, impact analysis, and intelligent execution.
+
+```bash
+npx evalai discover                # Find all eval specs in project
+npx evalai discover --manifest     # Generate .evalai/manifest.json
+npx evalai impact-analysis --base main  # Show what changed vs base branch
+```
+
+**Key Features:**
+- **File Discovery**: Recursive search with cross-platform pattern matching
+- **Identity Normalization**: Stable spec IDs and canonical file paths  
+- **Metadata Generation**: Project metadata, execution mode, categorization
+- **Incremental Caching**: File hashes for smart re-execution
+- **Impact Analysis**: Modal-like perceived speed via incremental intelligence
+
+**Architecture:**
+```
+evalai discover → manifest.json → impact-analysis → run → diff
+```
+
 ### Regression Gate
 
-- **Zero-config scaffolder** — `npx evalgate init` detects repo, creates baseline, installs CI workflow
+- **Zero-config scaffolder** — `npx evalai init` detects repo, creates baseline, installs CI workflow
 - **Built-in gate** — works with any `npm test` / `pnpm test` / `yarn test`
 - **Advanced gate** — golden eval scores, confidence tests, p95 latency, cost tracking
 - **GitHub Step Summary** — delta tables, pass/fail icons, artifact upload
@@ -219,7 +241,7 @@ jobs:
 
 - **Full TypeScript SDK** — [`@evalgate/sdk`](https://www.npmjs.com/package/@evalgate/sdk) with CLI, regression gate, traces, evaluations, LLM judge
 - **Python SDK** — [`pauly4010-evalgate-sdk`](https://pypi.org/project/pauly4010-evalgate-sdk/) with assertions, test workflows, OpenAI/Anthropic/LangChain/CrewAI/AutoGen integrations, and CLI (`evalgate run`, `evalgate gate`, `evalgate ci`)
-- **CLI commands** — `evalgate init`, `evalgate gate`, `evalgate baseline`, `evalgate upgrade`, `evalgate check`, `evalgate doctor`, `evalgate explain`, `evalgate print-config`, `evalgate share`
+- **CLI commands** — `evalai init`, `evalai gate`, `evalai baseline`, `evalai discover`, `evalai impact-analysis`, `evalai check`, `evalai doctor`, `evalai explain`, `evalai print-config`, `evalai share`
 - **Programmatic exports** — gate exit codes, categories, report types via `@evalgate/sdk/regression`
 - **API keys** — scoped keys for CI/CD and production
 

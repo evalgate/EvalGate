@@ -2,6 +2,37 @@
 
 Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANGELOG.md](src/packages/sdk/CHANGELOG.md).
 
+## [2.1.1] - 2026-03-02
+
+### Fixed
+
+- **Variable name mismatch** in trace processing pipeline
+- **CI contract payload validation** - Fixed ruff errors in Python SDK test suite
+- **SDK-Server integration** - Fixed 3 critical validation mismatches between SDK and server
+- **Test database regression** - Resolved DB test failures after recent schema changes
+
+### Added
+
+- **Comprehensive test coverage** across core modules:
+  - Evaluation templates: 15 unit tests
+  - Export templates: 18 unit tests  
+  - Scoring algorithms: 35 unit tests
+  - Run assertions: 15 unit tests
+  - HMAC signing: 13 unit tests
+  - SDK mapper/transformer: 55 unit tests
+
+- **Golden path demo** - Single-command script demonstrating end-to-end evaluation workflow
+- **Feature extraction caching** - Performance optimization for embedding-based coverage models
+- **Contract payload suite** - Cross-language test matrix (TypeScript + Python SDK)
+- **Version resolution APIs** - `resolveAtVersion`, `resolveAtTime`, `buildVersionHistory`
+- **Test case lifecycle** - Quarantine → promote workflow for generated test cases
+- **Redaction pipeline** - PII redaction integrated into trace freezing
+
+### Changed
+
+- **Implementation Summary** updated with accurate test counts and gap resolutions
+- **Documentation** added for golden path workflow and architecture decisions
+
 ## [2.1.0] - 2026-03-02
 
 ### Added — EvalGate Intelligence Layer

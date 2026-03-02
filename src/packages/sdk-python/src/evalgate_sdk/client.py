@@ -414,7 +414,12 @@ class AIEvalClient:
     ) -> None:
         file_cfg = _load_config_file()
         self._api_key = api_key or _env("EVALGATE_API_KEY", "EVALAI_API_KEY") or file_cfg.get("api_key", "")
-        self._base_url = (base_url or _env("EVALGATE_BASE_URL", "EVALAI_BASE_URL") or file_cfg.get("base_url") or "http://localhost:3000").rstrip("/")
+        self._base_url = (
+            base_url
+            or _env("EVALGATE_BASE_URL", "EVALAI_BASE_URL")
+            or file_cfg.get("base_url")
+            or "http://localhost:3000"
+        ).rstrip("/")
         _org_env = _env("EVALGATE_ORGANIZATION_ID", "EVALAI_ORGANIZATION_ID")
         self._organization_id = organization_id or (int(_org_env) if _org_env else None)
         self._timeout = timeout / 1000

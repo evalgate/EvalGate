@@ -50,11 +50,11 @@ This document classifies every major feature by maturity level and provides API 
 
 | Feature | Tier | Since | Notes |
 |---------|------|-------|-------|
-| `evalai check` CLI | **Stable** | v1.1 | `--minScore`, `--maxDrop`, `--format github|json|human`, `--onFail import`, `--explain` |
-| `evalai init` CLI | **Stable** | v1.4 | Full project scaffolder (detects PM, creates baseline, installs GH workflow) |
-| `evalai doctor` CLI | **Stable** | v1.5 | Verify CI setup (config, API key, quality endpoint) |
-| `evalai gate` CLI | **Stable** | v1.6 | Local regression gate with exit code taxonomy (0–4) |
-| `evalai baseline init\|update` | **Stable** | v1.6 | Create/update `evals/baseline.json` from real test runs |
+| `evalgate check` CLI | **Stable** | v1.1 | `--minScore`, `--maxDrop`, `--format github|json|human`, `--onFail import`, `--explain` |
+| `evalgate init` CLI | **Stable** | v1.4 | Full project scaffolder (detects PM, creates baseline, installs GH workflow) |
+| `evalgate doctor` CLI | **Stable** | v1.5 | Verify CI setup (config, API key, quality endpoint) |
+| `evalgate gate` CLI | **Stable** | v1.6 | Local regression gate with exit code taxonomy (0–4) |
+| `evalgate baseline init\|update` | **Stable** | v1.6 | Create/update `evals/baseline.json` from real test runs |
 | `--policy` flag | **Beta** | v1.2 | HIPAA, SOC2, GDPR, PCI_DSS, FINRA_4511 |
 | `--baseline` flag | **Stable** | v1.4 | `published`, `previous`, or `production` |
 | Standardized exit codes | **Stable** | v1.2 | 0-7 range, documented |

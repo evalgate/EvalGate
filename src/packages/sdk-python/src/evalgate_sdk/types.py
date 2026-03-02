@@ -25,6 +25,7 @@ class CamelModel(BaseModel):
         populate_by_name=True,
     )
 
+
 # ── Client config ────────────────────────────────────────────────────
 
 
