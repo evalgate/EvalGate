@@ -17,8 +17,8 @@ import { logger } from "@/lib/logger";
  *   200 { ok: true, db: "ok", ts: "<ISO>" }
  *   500 { ok: false, error: "..." }
  */
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
 	const secret = process.env.CRON_SECRET;
@@ -37,7 +37,11 @@ export async function GET(req: NextRequest) {
 		}
 
 		logger.info("Cron health check passed", { ts });
-		return NextResponse.json({ ok: true, db: process.env.DATABASE_URL ? "ok" : "skipped", ts });
+		return NextResponse.json({
+			ok: true,
+			db: process.env.DATABASE_URL ? "ok" : "skipped",
+			ts,
+		});
 	} catch (err: unknown) {
 		const message = err instanceof Error ? err.message : "Health check failed";
 		logger.error("Cron health check failed", { error: message, ts });

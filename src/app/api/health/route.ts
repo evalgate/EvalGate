@@ -6,8 +6,8 @@ import { db } from "@/db";
  * Health check endpoint
  * Returns the health status of the application and its dependencies
  */
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function GET(_request: NextRequest) {
 	const _startTime = Date.now();

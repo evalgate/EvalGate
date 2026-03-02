@@ -8,8 +8,8 @@ import { secureRoute } from "@/lib/api/secure-route";
  * Deep health check endpoint with timeout, version info, and admin-only access
  * Returns comprehensive health status with request tracking
  */
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export const GET = secureRoute(
 	async (req: NextRequest, _ctx) => {
