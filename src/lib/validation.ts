@@ -91,7 +91,7 @@ const testCaseItemSchema = z.object({
 export const createEvaluationBodySchema = z.object({
 	name: z.string().min(1).max(255),
 	description: z.string().optional(),
-	type: z.string().min(1),
+	type: z.string().min(1).optional().default("custom"),
 	executionSettings: executionSettingsSchema,
 	modelSettings: modelSettingsSchema,
 	customMetrics: z.array(z.unknown()).optional(),
@@ -242,7 +242,7 @@ export const createAPIKeySchema = z.object({
 export const createAPIKeyBodySchema = z
 	.object({
 		name: z.string().min(1).max(255),
-		scopes: z.array(z.string()).min(1),
+		scopes: z.array(z.string()).min(1).optional().default(["read"]),
 		expiresAt: z.string().optional(),
 	})
 	.strict(); // rejects userId, user_id
