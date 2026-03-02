@@ -14,10 +14,10 @@
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export type QuarantineStatus =
-	| "generated"   // just created by auto-generation, not yet reviewed
+	| "generated" // just created by auto-generation, not yet reviewed
 	| "quarantined" // reviewed but pending approval
-	| "promoted"    // human approved — gates merges
-	| "rejected";   // permanently excluded
+	| "promoted" // human approved — gates merges
+	| "rejected"; // permanently excluded
 
 export interface QuarantineAuditEvent {
 	action: "quarantined" | "promoted" | "rejected";
@@ -198,15 +198,21 @@ export function rejectTestCase(
  * Return only test cases that are eligible to gate merges.
  * Quarantined and generated cases are silently excluded.
  */
-export function getGatingCases(cases: QuarantinedTestCase[]): QuarantinedTestCase[] {
+export function getGatingCases(
+	cases: QuarantinedTestCase[],
+): QuarantinedTestCase[] {
 	return cases.filter((tc) => tc.status === "promoted");
 }
 
 /**
  * Return only cases pending human review.
  */
-export function getPendingReviewCases(cases: QuarantinedTestCase[]): QuarantinedTestCase[] {
-	return cases.filter((tc) => tc.status === "quarantined" || tc.status === "generated");
+export function getPendingReviewCases(
+	cases: QuarantinedTestCase[],
+): QuarantinedTestCase[] {
+	return cases.filter(
+		(tc) => tc.status === "quarantined" || tc.status === "generated",
+	);
 }
 
 // ── Factory ───────────────────────────────────────────────────────────────────
@@ -245,9 +251,14 @@ export interface QuarantineStats {
 /**
  * Summarise the quarantine status of a collection of test cases.
  */
-export function summarizeQuarantineStatus(cases: QuarantinedTestCase[]): QuarantineStats {
+export function summarizeQuarantineStatus(
+	cases: QuarantinedTestCase[],
+): QuarantineStats {
 	const byStatus: Record<QuarantineStatus, number> = {
-		generated: 0, quarantined: 0, promoted: 0, rejected: 0,
+		generated: 0,
+		quarantined: 0,
+		promoted: 0,
+		rejected: 0,
 	};
 	const promotedBy: Record<string, number> = {};
 	const rejectedBy: Record<string, number> = {};

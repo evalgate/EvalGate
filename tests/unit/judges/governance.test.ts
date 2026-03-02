@@ -20,7 +20,14 @@ function reg(
 	tier: JudgeRegistration["trustTier"] = "trusted",
 	enabled = true,
 ): JudgeRegistration {
-	return { judgeId, name: judgeId, trustTier: tier, enabled, updatedAt: new Date().toISOString(), note: null };
+	return {
+		judgeId,
+		name: judgeId,
+		trustTier: tier,
+		enabled,
+		updatedAt: new Date().toISOString(),
+		note: null,
+	};
 }
 
 const TRUSTED = reg("gpt-4o", "trusted");
@@ -31,32 +38,62 @@ const DISABLED = reg("offline-judge", "trusted", false);
 // ── isTierSufficient ──────────────────────────────────────────────────────────
 
 describe("isTierSufficient", () => {
-	it("trusted >= trusted", () => expect(isTierSufficient("trusted", "trusted")).toBe(true));
-	it("trusted >= probationary", () => expect(isTierSufficient("trusted", "probationary")).toBe(true));
-	it("probationary < trusted", () => expect(isTierSufficient("probationary", "trusted")).toBe(false));
-	it("suspended < probationary", () => expect(isTierSufficient("suspended", "probationary")).toBe(false));
-	it("suspended < suspended is false", () => expect(isTierSufficient("suspended", "trusted")).toBe(false));
+	it("trusted >= trusted", () =>
+		expect(isTierSufficient("trusted", "trusted")).toBe(true));
+	it("trusted >= probationary", () =>
+		expect(isTierSufficient("trusted", "probationary")).toBe(true));
+	it("probationary < trusted", () =>
+		expect(isTierSufficient("probationary", "trusted")).toBe(false));
+	it("suspended < probationary", () =>
+		expect(isTierSufficient("suspended", "probationary")).toBe(false));
+	it("suspended < suspended is false", () =>
+		expect(isTierSufficient("suspended", "trusted")).toBe(false));
 });
 
 // ── recommendTrustTier ────────────────────────────────────────────────────────
 
 describe("recommendTrustTier", () => {
-	function metrics(tier: JudgeReliabilityMetrics["tier"], flagged = false): JudgeReliabilityMetrics {
-		return { judgeId: "x", observationCount: 10, mae: null, bias: null, calibration: null, recentStdDev: 0.05, tier, flagged, flagReason: null };
+	function metrics(
+		tier: JudgeReliabilityMetrics["tier"],
+		flagged = false,
+	): JudgeReliabilityMetrics {
+		return {
+			judgeId: "x",
+			observationCount: 10,
+			mae: null,
+			bias: null,
+			calibration: null,
+			recentStdDev: 0.05,
+			tier,
+			flagged,
+			flagReason: null,
+		};
 	}
 
-	it("excellent → trusted", () => expect(recommendTrustTier(metrics("excellent"))).toBe("trusted"));
-	it("good → trusted", () => expect(recommendTrustTier(metrics("good"))).toBe("trusted"));
-	it("fair → probationary", () => expect(recommendTrustTier(metrics("fair"))).toBe("probationary"));
-	it("poor → probationary", () => expect(recommendTrustTier(metrics("poor"))).toBe("probationary"));
-	it("flagged excellent → probationary", () => expect(recommendTrustTier(metrics("excellent", true))).toBe("probationary"));
+	it("excellent → trusted", () =>
+		expect(recommendTrustTier(metrics("excellent"))).toBe("trusted"));
+	it("good → trusted", () =>
+		expect(recommendTrustTier(metrics("good"))).toBe("trusted"));
+	it("fair → probationary", () =>
+		expect(recommendTrustTier(metrics("fair"))).toBe("probationary"));
+	it("poor → probationary", () =>
+		expect(recommendTrustTier(metrics("poor"))).toBe("probationary"));
+	it("flagged excellent → probationary", () =>
+		expect(recommendTrustTier(metrics("excellent", true))).toBe(
+			"probationary",
+		));
 });
 
 // ── setJudgeEnabled ────────────────────────────────────────────────────────────
 
 describe("setJudgeEnabled", () => {
 	it("disables a judge and creates audit entry", () => {
-		const { updated, auditEntry } = setJudgeEnabled(TRUSTED, false, "admin-1", "Going offline");
+		const { updated, auditEntry } = setJudgeEnabled(
+			TRUSTED,
+			false,
+			"admin-1",
+			"Going offline",
+		);
 		expect(updated.enabled).toBe(false);
 		expect(auditEntry.action).toBe("disabled");
 		expect(auditEntry.actorId).toBe("admin-1");
@@ -95,7 +132,12 @@ describe("setJudgeTrustTier", () => {
 	});
 
 	it("creates audit entry with tier_changed action", () => {
-		const { auditEntry } = setJudgeTrustTier(TRUSTED, "probationary", "admin-2", "Downgraded: poor metrics");
+		const { auditEntry } = setJudgeTrustTier(
+			TRUSTED,
+			"probationary",
+			"admin-2",
+			"Downgraded: poor metrics",
+		);
 		expect(auditEntry.action).toBe("tier_changed");
 		expect(auditEntry.note).toBe("Downgraded: poor metrics");
 	});
@@ -124,20 +166,31 @@ describe("filterAllowedJudges", () => {
 	});
 
 	it("excludes prohibited judges", () => {
-		const policy: JudgePolicy = { ...DEFAULT_JUDGE_POLICY, prohibitedJudgeIds: ["gpt-4o"] };
+		const policy: JudgePolicy = {
+			...DEFAULT_JUDGE_POLICY,
+			prohibitedJudgeIds: ["gpt-4o"],
+		};
 		const { allowed, violations } = filterAllowedJudges(candidates, policy);
 		expect(allowed.map((r) => r.judgeId)).not.toContain("gpt-4o");
 		expect(violations.some((v) => v.type === "judge_prohibited")).toBe(true);
 	});
 
 	it("excludes probationary when minTrustTier=trusted and no fallback", () => {
-		const policy: JudgePolicy = { ...DEFAULT_JUDGE_POLICY, minTrustTier: "trusted", allowProbationaryFallback: false };
+		const policy: JudgePolicy = {
+			...DEFAULT_JUDGE_POLICY,
+			minTrustTier: "trusted",
+			allowProbationaryFallback: false,
+		};
 		const { allowed } = filterAllowedJudges(candidates, policy);
 		expect(allowed.map((r) => r.judgeId)).not.toContain("gpt-3.5");
 	});
 
 	it("allows probationary as fallback when minTrustTier=trusted and fallback=true", () => {
-		const policy: JudgePolicy = { ...DEFAULT_JUDGE_POLICY, minTrustTier: "trusted", allowProbationaryFallback: true };
+		const policy: JudgePolicy = {
+			...DEFAULT_JUDGE_POLICY,
+			minTrustTier: "trusted",
+			allowProbationaryFallback: true,
+		};
 		const { allowed } = filterAllowedJudges(candidates, policy);
 		expect(allowed.map((r) => r.judgeId)).toContain("gpt-3.5");
 	});
@@ -158,9 +211,18 @@ describe("validateJudgeSet", () => {
 	});
 
 	it("missing_required_judge violation when required judge absent", () => {
-		const policy: JudgePolicy = { ...DEFAULT_JUDGE_POLICY, requiredJudgeIds: ["mandatory-judge"] };
+		const policy: JudgePolicy = {
+			...DEFAULT_JUDGE_POLICY,
+			requiredJudgeIds: ["mandatory-judge"],
+		};
 		const violations = validateJudgeSet([TRUSTED, PROBATIONARY], policy);
-		expect(violations.some((v) => v.type === "missing_required_judge" && v.judgeId === "mandatory-judge")).toBe(true);
+		expect(
+			violations.some(
+				(v) =>
+					v.type === "missing_required_judge" &&
+					v.judgeId === "mandatory-judge",
+			),
+		).toBe(true);
 	});
 });
 
@@ -180,10 +242,15 @@ describe("governanceGate", () => {
 	});
 
 	it("blocks run when required judge missing after filtering", () => {
-		const policy: JudgePolicy = { ...DEFAULT_JUDGE_POLICY, requiredJudgeIds: ["never-registered"] };
+		const policy: JudgePolicy = {
+			...DEFAULT_JUDGE_POLICY,
+			requiredJudgeIds: ["never-registered"],
+		};
 		const { allowed, violations } = governanceGate([TRUSTED], policy);
 		expect(allowed).toBe(false);
-		expect(violations.some((v) => v.type === "missing_required_judge")).toBe(true);
+		expect(violations.some((v) => v.type === "missing_required_judge")).toBe(
+			true,
+		);
 	});
 
 	it("accumulates filter + validation violations", () => {

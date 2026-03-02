@@ -86,7 +86,10 @@ const TIER_RANK: Record<TrustTier, number> = {
 	trusted: 2,
 };
 
-export function isTierSufficient(tier: TrustTier, minRequired: TrustTier): boolean {
+export function isTierSufficient(
+	tier: TrustTier,
+	minRequired: TrustTier,
+): boolean {
 	return TIER_RANK[tier] >= TIER_RANK[minRequired];
 }
 
@@ -94,7 +97,9 @@ export function isTierSufficient(tier: TrustTier, minRequired: TrustTier): boole
  * Derive a recommended trust tier from reliability metrics.
  * Allows the governance layer to auto-promote/demote based on observed quality.
  */
-export function recommendTrustTier(metrics: JudgeReliabilityMetrics): TrustTier {
+export function recommendTrustTier(
+	metrics: JudgeReliabilityMetrics,
+): TrustTier {
 	if (metrics.flagged) return "probationary";
 	const tierMap: Record<ReliabilityTier, TrustTier> = {
 		excellent: "trusted",
@@ -201,7 +206,9 @@ export function filterAllowedJudges(
 		}
 
 		if (!isTierSufficient(reg.trustTier, policy.minTrustTier)) {
-			if (!(policy.allowProbationaryFallback && reg.trustTier === "probationary")) {
+			if (
+				!(policy.allowProbationaryFallback && reg.trustTier === "probationary")
+			) {
 				violations.push({
 					type: "below_trust_tier",
 					judgeId: reg.judgeId,
@@ -260,10 +267,8 @@ export function governanceGate(
 	approvedJudges: JudgeRegistration[];
 	violations: GovernanceViolation[];
 } {
-	const { allowed: approvedJudges, violations: filterViolations } = filterAllowedJudges(
-		candidates,
-		policy,
-	);
+	const { allowed: approvedJudges, violations: filterViolations } =
+		filterAllowedJudges(candidates, policy);
 	const validationViolations = validateJudgeSet(approvedJudges, policy);
 	const violations = [...filterViolations, ...validationViolations];
 	const blockingViolations = validationViolations.filter(

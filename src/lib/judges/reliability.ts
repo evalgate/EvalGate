@@ -40,7 +40,12 @@ export interface JudgeReliabilityMetrics {
 	flagReason: string | null;
 }
 
-export type ReliabilityTier = "excellent" | "good" | "fair" | "poor" | "unrated";
+export type ReliabilityTier =
+	| "excellent"
+	| "good"
+	| "fair"
+	| "poor"
+	| "unrated";
 
 /** Config knobs for the reliability tracker */
 export interface ReliabilityConfig {
@@ -68,7 +73,9 @@ function mean(values: number[]): number {
 function stdDev(values: number[]): number {
 	if (values.length < 2) return 0;
 	const avg = mean(values);
-	return Math.sqrt(values.reduce((s, v) => s + (v - avg) ** 2, 0) / values.length);
+	return Math.sqrt(
+		values.reduce((s, v) => s + (v - avg) ** 2, 0) / values.length,
+	);
 }
 
 function pearsonR(xs: number[], ys: number[]): number | null {
@@ -78,12 +85,16 @@ function pearsonR(xs: number[], ys: number[]): number | null {
 	const num = xs.reduce((s, x, i) => s + (x - mx) * ((ys[i] ?? 0) - my), 0);
 	const den = Math.sqrt(
 		xs.reduce((s, x) => s + (x - mx) ** 2, 0) *
-		ys.reduce((s, y) => s + (y - my) ** 2, 0),
+			ys.reduce((s, y) => s + (y - my) ** 2, 0),
 	);
 	return den === 0 ? null : num / den;
 }
 
-function classifyTier(mae: number | null, minObs: number, obsCount: number): ReliabilityTier {
+function classifyTier(
+	mae: number | null,
+	minObs: number,
+	obsCount: number,
+): ReliabilityTier {
 	if (obsCount < minObs) return "unrated";
 	if (mae === null) return "unrated";
 	if (mae <= 0.08) return "excellent";
@@ -195,7 +206,9 @@ export function computeAllJudgeReliability(
  * Poor judges are downweighted to 0.1 so they still participate but with low influence.
  * Flagged judges are penalised by 50%.
  */
-export function judgeReliabilityWeight(metrics: JudgeReliabilityMetrics): number {
+export function judgeReliabilityWeight(
+	metrics: JudgeReliabilityMetrics,
+): number {
 	const tierWeights: Record<ReliabilityTier, number> = {
 		excellent: 1.0,
 		good: 0.8,

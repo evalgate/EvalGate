@@ -47,7 +47,10 @@ export interface PrimitiveResult {
 }
 
 /** A named primitive metric function */
-export type PrimitiveFn = (context: MetricContext, options?: Record<string, unknown>) => PrimitiveResult;
+export type PrimitiveFn = (
+	context: MetricContext,
+	options?: Record<string, unknown>,
+) => PrimitiveResult;
 
 // ── String matching ───────────────────────────────────────────────────────────
 
@@ -56,43 +59,63 @@ export type PrimitiveFn = (context: MetricContext, options?: Record<string, unkn
  * Case-insensitive by default.
  */
 export const exactMatch: PrimitiveFn = (ctx, opts = {}): PrimitiveResult => {
-	const caseSensitive = Boolean(opts["caseSensitive"]);
+	const caseSensitive = Boolean(opts.caseSensitive);
 	if (!ctx.expectedOutput) {
 		return { score: 0, passed: false, label: "No expected output provided" };
 	}
 	const a = caseSensitive ? ctx.response : ctx.response.toLowerCase();
-	const b = caseSensitive ? ctx.expectedOutput : ctx.expectedOutput.toLowerCase();
+	const b = caseSensitive
+		? ctx.expectedOutput
+		: ctx.expectedOutput.toLowerCase();
 	const passed = a.trim() === b.trim();
-	return { score: passed ? 1 : 0, passed, label: passed ? "Exact match" : "Mismatch" };
+	return {
+		score: passed ? 1 : 0,
+		passed,
+		label: passed ? "Exact match" : "Mismatch",
+	};
 };
 
 /**
  * Contains: 1 if response contains expected string (or all expected tokens).
  */
 export const containsMatch: PrimitiveFn = (ctx, opts = {}): PrimitiveResult => {
-	const caseSensitive = Boolean(opts["caseSensitive"]);
+	const caseSensitive = Boolean(opts.caseSensitive);
 	if (!ctx.expectedOutput) {
 		return { score: 0, passed: false, label: "No expected output provided" };
 	}
 	const text = caseSensitive ? ctx.response : ctx.response.toLowerCase();
-	const needle = caseSensitive ? ctx.expectedOutput : ctx.expectedOutput.toLowerCase();
+	const needle = caseSensitive
+		? ctx.expectedOutput
+		: ctx.expectedOutput.toLowerCase();
 	const passed = text.includes(needle);
-	return { score: passed ? 1 : 0, passed, label: passed ? "Contains expected" : "Does not contain expected" };
+	return {
+		score: passed ? 1 : 0,
+		passed,
+		label: passed ? "Contains expected" : "Does not contain expected",
+	};
 };
 
 /**
  * Regex match: 1 if response matches the pattern provided in options.pattern.
  */
 export const regexMatch: PrimitiveFn = (ctx, opts = {}): PrimitiveResult => {
-	const pattern = opts["pattern"];
+	const pattern = opts.pattern;
 	if (!pattern || typeof pattern !== "string") {
-		return { score: 0, passed: false, label: "No regex pattern provided in options.pattern" };
+		return {
+			score: 0,
+			passed: false,
+			label: "No regex pattern provided in options.pattern",
+		};
 	}
-	const flags = typeof opts["flags"] === "string" ? opts["flags"] : "i";
+	const flags = typeof opts.flags === "string" ? opts.flags : "i";
 	try {
 		const re = new RegExp(pattern, flags);
 		const passed = re.test(ctx.response);
-		return { score: passed ? 1 : 0, passed, label: passed ? `Matches /${pattern}/` : `No match for /${pattern}/` };
+		return {
+			score: passed ? 1 : 0,
+			passed,
+			label: passed ? `Matches /${pattern}/` : `No match for /${pattern}/`,
+		};
 	} catch {
 		return { score: 0, passed: false, label: `Invalid regex: ${pattern}` };
 	}
@@ -101,7 +124,11 @@ export const regexMatch: PrimitiveFn = (ctx, opts = {}): PrimitiveResult => {
 // ── Token-level ───────────────────────────────────────────────────────────────
 
 function tokenize(text: string): string[] {
-	return text.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/).filter(Boolean);
+	return text
+		.toLowerCase()
+		.replace(/[^\w\s]/g, " ")
+		.split(/\s+/)
+		.filter(Boolean);
 }
 
 /**
@@ -139,7 +166,13 @@ export const tokenF1: PrimitiveFn = (ctx): PrimitiveResult => {
 		score: f1,
 		passed: f1 >= 0.5,
 		label: `Token F1: ${(f1 * 100).toFixed(0)}%`,
-		raw: { precision, recall, overlap, predTokens: predTokens.length, goldTokens: goldTokens.length },
+		raw: {
+			precision,
+			recall,
+			overlap,
+			predTokens: predTokens.length,
+			goldTokens: goldTokens.length,
+		},
 	};
 };
 
@@ -152,8 +185,10 @@ export const jaccardSimilarity: PrimitiveFn = (ctx): PrimitiveResult => {
 	}
 	const a = new Set(tokenize(ctx.response));
 	const b = new Set(tokenize(ctx.expectedOutput));
-	if (a.size === 0 && b.size === 0) return { score: 1, passed: true, label: "Both empty" };
-	if (a.size === 0 || b.size === 0) return { score: 0, passed: false, label: "One empty" };
+	if (a.size === 0 && b.size === 0)
+		return { score: 1, passed: true, label: "Both empty" };
+	if (a.size === 0 || b.size === 0)
+		return { score: 0, passed: false, label: "One empty" };
 
 	let intersection = 0;
 	for (const t of a) {
@@ -175,14 +210,19 @@ export const jaccardSimilarity: PrimitiveFn = (ctx): PrimitiveResult => {
  * Score is 1 when lengths are equal, degrades linearly with deviation.
  */
 export const lengthRatio: PrimitiveFn = (ctx, opts = {}): PrimitiveResult => {
-	const minRatio = typeof opts["minRatio"] === "number" ? opts["minRatio"] : 0.5;
-	const maxRatio = typeof opts["maxRatio"] === "number" ? opts["maxRatio"] : 2.0;
+	const minRatio = typeof opts.minRatio === "number" ? opts.minRatio : 0.5;
+	const maxRatio = typeof opts.maxRatio === "number" ? opts.maxRatio : 2.0;
 	const expectedLen = ctx.expectedOutput?.length ?? 0;
 	const actualLen = ctx.response.length;
 
 	if (expectedLen === 0) {
-		const withinMax = actualLen <= (typeof opts["maxChars"] === "number" ? opts["maxChars"] : 2000);
-		return { score: withinMax ? 1 : 0.5, passed: withinMax, label: `Length: ${actualLen} chars` };
+		const withinMax =
+			actualLen <= (typeof opts.maxChars === "number" ? opts.maxChars : 2000);
+		return {
+			score: withinMax ? 1 : 0.5,
+			passed: withinMax,
+			label: `Length: ${actualLen} chars`,
+		};
 	}
 
 	const ratio = actualLen / expectedLen;
@@ -201,7 +241,7 @@ export const lengthRatio: PrimitiveFn = (ctx, opts = {}): PrimitiveResult => {
  * Max length: 1 if response is within maxChars, 0 otherwise.
  */
 export const maxLength: PrimitiveFn = (ctx, opts = {}): PrimitiveResult => {
-	const limit = typeof opts["maxChars"] === "number" ? opts["maxChars"] : 500;
+	const limit = typeof opts.maxChars === "number" ? opts.maxChars : 500;
 	const len = ctx.response.length;
 	const passed = len <= limit;
 	return {
@@ -218,14 +258,15 @@ export const maxLength: PrimitiveFn = (ctx, opts = {}): PrimitiveResult => {
  * Latency score: 1 at or below target, degrades linearly, 0 at 2× target.
  */
 export const latencyScore: PrimitiveFn = (ctx, opts = {}): PrimitiveResult => {
-	const targetMs = typeof opts["targetMs"] === "number" ? opts["targetMs"] : 2000;
+	const targetMs = typeof opts.targetMs === "number" ? opts.targetMs : 2000;
 	const latency = ctx.latencyMs;
 
 	if (latency === undefined) {
 		return { score: 0.5, passed: true, label: "Latency not recorded" };
 	}
 
-	const score = latency <= targetMs ? 1 : Math.max(0, 1 - (latency - targetMs) / targetMs);
+	const score =
+		latency <= targetMs ? 1 : Math.max(0, 1 - (latency - targetMs) / targetMs);
 	const passed = latency <= targetMs * 1.5;
 
 	return {
@@ -240,14 +281,15 @@ export const latencyScore: PrimitiveFn = (ctx, opts = {}): PrimitiveResult => {
  * Cost score: 1 at or below budget, degrades linearly, 0 at 2× budget.
  */
 export const costScore: PrimitiveFn = (ctx, opts = {}): PrimitiveResult => {
-	const budgetUsd = typeof opts["budgetUsd"] === "number" ? opts["budgetUsd"] : 0.01;
+	const budgetUsd = typeof opts.budgetUsd === "number" ? opts.budgetUsd : 0.01;
 	const cost = ctx.costUsd;
 
 	if (cost === undefined) {
 		return { score: 0.5, passed: true, label: "Cost not recorded" };
 	}
 
-	const score = cost <= budgetUsd ? 1 : Math.max(0, 1 - (cost - budgetUsd) / budgetUsd);
+	const score =
+		cost <= budgetUsd ? 1 : Math.max(0, 1 - (cost - budgetUsd) / budgetUsd);
 	const passed = cost <= budgetUsd * 1.5;
 
 	return {
@@ -281,8 +323,11 @@ export const toolSuccessRate: PrimitiveFn = (ctx): PrimitiveResult => {
 /**
  * Required tool used: 1 if a specific tool was called, 0 otherwise.
  */
-export const requiredToolUsed: PrimitiveFn = (ctx, opts = {}): PrimitiveResult => {
-	const toolName = opts["toolName"];
+export const requiredToolUsed: PrimitiveFn = (
+	ctx,
+	opts = {},
+): PrimitiveResult => {
+	const toolName = opts.toolName;
 	if (typeof toolName !== "string") {
 		return { score: 0, passed: false, label: "options.toolName is required" };
 	}

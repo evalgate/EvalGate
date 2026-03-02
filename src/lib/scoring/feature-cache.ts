@@ -24,7 +24,10 @@ export { FEATURE_VERSION };
  * Compute a deterministic cache key for a (traceId, featureVersion) pair.
  * Format: `feat:<featureVersion>:<traceId>`
  */
-export function featureCacheKey(traceId: string, featureVersion = FEATURE_VERSION): string {
+export function featureCacheKey(
+	traceId: string,
+	featureVersion = FEATURE_VERSION,
+): string {
 	return `feat:${featureVersion}:${traceId}`;
 }
 

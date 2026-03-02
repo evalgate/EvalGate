@@ -228,7 +228,13 @@ describe("buildVersionHistory", () => {
 
 	it("returns valid=false when objects have mixed ids", () => {
 		const h1 = buildHistory(1);
-		const h2 = [createReliabilityObject({ id: "other-id", type: ReliabilityObjectType.METRIC, source: "test" })];
+		const h2 = [
+			createReliabilityObject({
+				id: "other-id",
+				type: ReliabilityObjectType.METRIC,
+				source: "test",
+			}),
+		];
 		const result = buildVersionHistory([...h1, ...h2]);
 		expect(result.valid).toBe(false);
 		expect(result.error).toMatch(/Mixed ids/i);
@@ -244,8 +250,15 @@ describe("buildVersionHistory", () => {
 	});
 
 	it("returns valid=false for mixed types", () => {
-		const v1 = createReliabilityObject({ id: "e1", type: ReliabilityObjectType.TRACE, source: "s" });
-		const v2bumped = { ...bumpReliabilityVersion(v1, { source: "s" }), type: ReliabilityObjectType.DATASET } as typeof v1;
+		const v1 = createReliabilityObject({
+			id: "e1",
+			type: ReliabilityObjectType.TRACE,
+			source: "s",
+		});
+		const v2bumped = {
+			...bumpReliabilityVersion(v1, { source: "s" }),
+			type: ReliabilityObjectType.DATASET,
+		} as typeof v1;
 		const result = buildVersionHistory([v1, v2bumped]);
 		expect(result.valid).toBe(false);
 		expect(result.error).toMatch(/Mixed types/i);

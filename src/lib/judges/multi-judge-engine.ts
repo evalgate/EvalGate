@@ -5,7 +5,12 @@
  * Each judge is identified by an ID and produces a JudgeVote.
  */
 
-import { type AggregatedJudgeResult, type AggregationStrategy, type JudgeVote, aggregateJudges } from "./aggregation";
+import {
+	type AggregatedJudgeResult,
+	type AggregationStrategy,
+	aggregateJudges,
+	type JudgeVote,
+} from "./aggregation";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,7 +36,10 @@ export interface JudgeInput {
 	context?: Record<string, unknown>;
 }
 
-export type JudgeFn = (config: JudgeConfig, input: JudgeInput) => Promise<JudgeVote>;
+export type JudgeFn = (
+	config: JudgeConfig,
+	input: JudgeInput,
+) => Promise<JudgeVote>;
 
 export interface MultiJudgeRunConfig {
 	judges: JudgeConfig[];
@@ -58,10 +66,17 @@ export interface MultiJudgeRunResult {
 
 // ── Timeout helper ────────────────────────────────────────────────────────────
 
-async function withTimeout<T>(promise: Promise<T>, ms: number, judgeId: string): Promise<T> {
+async function withTimeout<T>(
+	promise: Promise<T>,
+	ms: number,
+	judgeId: string,
+): Promise<T> {
 	let timer: ReturnType<typeof setTimeout>;
 	const timeout = new Promise<never>((_, reject) => {
-		timer = setTimeout(() => reject(new Error(`Judge ${judgeId} timed out after ${ms}ms`)), ms);
+		timer = setTimeout(
+			() => reject(new Error(`Judge ${judgeId} timed out after ${ms}ms`)),
+			ms,
+		);
 	});
 	try {
 		const result = await Promise.race([promise, timeout]);
@@ -106,7 +121,11 @@ async function runSequential(
 	judgeFn: JudgeFn,
 	timeoutMs: number,
 	escalationThreshold?: number,
-): Promise<{ votes: JudgeVote[]; skipped: number; escalationStopped: boolean }> {
+): Promise<{
+	votes: JudgeVote[];
+	skipped: number;
+	escalationStopped: boolean;
+}> {
 	const votes: JudgeVote[] = [];
 	let skipped = 0;
 	let escalationStopped = false;
@@ -119,7 +138,8 @@ async function runSequential(
 			if (escalationThreshold !== undefined && votes.length >= 2) {
 				const scores = votes.map((v) => v.score);
 				const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
-				const variance = scores.reduce((a, b) => a + (b - mean) ** 2, 0) / scores.length;
+				const variance =
+					scores.reduce((a, b) => a + (b - mean) ** 2, 0) / scores.length;
 				const stdDev = Math.sqrt(variance);
 				if (stdDev <= 1 - escalationThreshold) {
 					escalationStopped = true;
@@ -144,8 +164,16 @@ async function runEscalation(
 	judgeFn: JudgeFn,
 	timeoutMs: number,
 	escalationThreshold: number,
-): Promise<{ votes: JudgeVote[]; skipped: number; escalationStopped: boolean }> {
-	const tierOrder: JudgeConfig["costTier"][] = ["cheap", "standard", "expensive"];
+): Promise<{
+	votes: JudgeVote[];
+	skipped: number;
+	escalationStopped: boolean;
+}> {
+	const tierOrder: JudgeConfig["costTier"][] = [
+		"cheap",
+		"standard",
+		"expensive",
+	];
 	const sorted = [...configs].sort(
 		(a, b) => tierOrder.indexOf(a.costTier) - tierOrder.indexOf(b.costTier),
 	);
@@ -175,19 +203,33 @@ export async function runMultiJudge(
 		skipped = res.skipped;
 		escalationStopped = false;
 	} else if (mode === "escalation") {
-		const res = await runEscalation(judges, input, judgeFn, timeoutMs, escalationThreshold);
+		const res = await runEscalation(
+			judges,
+			input,
+			judgeFn,
+			timeoutMs,
+			escalationThreshold,
+		);
 		votes = res.votes;
 		skipped = res.skipped;
 		escalationStopped = res.escalationStopped;
 	} else {
-		const res = await runSequential(judges, input, judgeFn, timeoutMs, runConfig.escalationThreshold);
+		const res = await runSequential(
+			judges,
+			input,
+			judgeFn,
+			timeoutMs,
+			runConfig.escalationThreshold,
+		);
 		votes = res.votes;
 		skipped = res.skipped;
 		escalationStopped = res.escalationStopped;
 	}
 
 	if (votes.length === 0) {
-		throw new Error("MultiJudgeEngine: all judges failed or timed out — no votes collected");
+		throw new Error(
+			"MultiJudgeEngine: all judges failed or timed out — no votes collected",
+		);
 	}
 
 	const aggregated = aggregateJudges(votes, strategy);

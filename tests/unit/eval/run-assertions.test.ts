@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { KNOWN_ASSERTION_KEYS, runAssertions } from "@/lib/eval/assertion-runners/run-assertions";
+import {
+	KNOWN_ASSERTION_KEYS,
+	runAssertions,
+} from "@/lib/eval/assertion-runners/run-assertions";
 
 // ── runAssertions ─────────────────────────────────────────────────────────────
 
@@ -71,7 +74,11 @@ describe("runAssertions", () => {
 	});
 
 	it("runs all three runners together", () => {
-		const result = runAssertions('{"msg":"hello"}', ["pii", "toxicity", "json_schema"]);
+		const result = runAssertions('{"msg":"hello"}', [
+			"pii",
+			"toxicity",
+			"json_schema",
+		]);
 		expect(result.assertions).toHaveLength(3);
 		const keys = result.assertions.map((a) => a.key);
 		expect(keys).toContain("pii");

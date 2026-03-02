@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+	type AnnotationRecord,
 	cohensKappa,
 	computeIAA,
 	fleissKappa,
-	type AnnotationRecord,
 } from "@/lib/iaa/index";
 
 // ── cohensKappa ───────────────────────────────────────────────────────────────
@@ -113,7 +113,11 @@ describe("fleissKappa", () => {
 
 // ── computeIAA ────────────────────────────────────────────────────────────────
 
-function ann(itemId: string, annotatorId: string, category: string): AnnotationRecord {
+function ann(
+	itemId: string,
+	annotatorId: string,
+	category: string,
+): AnnotationRecord {
 	return { itemId, annotatorId, category };
 }
 
@@ -155,23 +159,25 @@ describe("computeIAA — basic", () => {
 describe("computeIAA — agreement percentage", () => {
 	it("returns 1 (100%) for perfect agreement", () => {
 		const result = computeIAA([
-			ann("i1", "a", "yes"), ann("i1", "b", "yes"),
-			ann("i2", "a", "no"), ann("i2", "b", "no"),
+			ann("i1", "a", "yes"),
+			ann("i1", "b", "yes"),
+			ann("i2", "a", "no"),
+			ann("i2", "b", "no"),
 		]);
 		expect(result.agreementPercentage).toBe(1);
 	});
 
 	it("returns 0 for complete disagreement", () => {
-		const result = computeIAA([
-			ann("i1", "a", "yes"), ann("i1", "b", "no"),
-		]);
+		const result = computeIAA([ann("i1", "a", "yes"), ann("i1", "b", "no")]);
 		expect(result.agreementPercentage).toBe(0);
 	});
 
 	it("returns fractional agreement for partial matches", () => {
 		const result = computeIAA([
-			ann("i1", "a", "yes"), ann("i1", "b", "yes"), // agree
-			ann("i2", "a", "yes"), ann("i2", "b", "no"),  // disagree
+			ann("i1", "a", "yes"),
+			ann("i1", "b", "yes"), // agree
+			ann("i2", "a", "yes"),
+			ann("i2", "b", "no"), // disagree
 		]);
 		expect(result.agreementPercentage).toBe(0.5);
 	});
@@ -180,9 +186,12 @@ describe("computeIAA — agreement percentage", () => {
 describe("computeIAA — Cohen's Kappa for 2 annotators", () => {
 	it("computes cohensKappa for exactly 2 annotators", () => {
 		const result = computeIAA([
-			ann("i1", "alice", "yes"), ann("i1", "bob", "yes"),
-			ann("i2", "alice", "no"), ann("i2", "bob", "no"),
-			ann("i3", "alice", "yes"), ann("i3", "bob", "yes"),
+			ann("i1", "alice", "yes"),
+			ann("i1", "bob", "yes"),
+			ann("i2", "alice", "no"),
+			ann("i2", "bob", "no"),
+			ann("i3", "alice", "yes"),
+			ann("i3", "bob", "yes"),
 		]);
 		expect(result.cohensKappa).toBeDefined();
 		expect(result.cohensKappa).toBeCloseTo(1.0);
@@ -191,10 +200,14 @@ describe("computeIAA — Cohen's Kappa for 2 annotators", () => {
 
 	it("returns positive kappa for substantial 2-rater agreement", () => {
 		const result = computeIAA([
-			ann("i1", "a", "yes"), ann("i1", "b", "yes"),
-			ann("i2", "a", "no"), ann("i2", "b", "no"),
-			ann("i3", "a", "yes"), ann("i3", "b", "yes"),
-			ann("i4", "a", "no"), ann("i4", "b", "yes"), // one mismatch
+			ann("i1", "a", "yes"),
+			ann("i1", "b", "yes"),
+			ann("i2", "a", "no"),
+			ann("i2", "b", "no"),
+			ann("i3", "a", "yes"),
+			ann("i3", "b", "yes"),
+			ann("i4", "a", "no"),
+			ann("i4", "b", "yes"), // one mismatch
 		]);
 		expect(result.cohensKappa).toBeDefined();
 		expect(result.cohensKappa!).toBeGreaterThanOrEqual(0.5);
@@ -204,8 +217,12 @@ describe("computeIAA — Cohen's Kappa for 2 annotators", () => {
 describe("computeIAA — Fleiss's Kappa for 3+ annotators", () => {
 	it("computes fleissKappa for 3+ annotators", () => {
 		const result = computeIAA([
-			ann("i1", "alice", "yes"), ann("i1", "bob", "yes"), ann("i1", "carol", "yes"),
-			ann("i2", "alice", "no"), ann("i2", "bob", "no"), ann("i2", "carol", "no"),
+			ann("i1", "alice", "yes"),
+			ann("i1", "bob", "yes"),
+			ann("i1", "carol", "yes"),
+			ann("i2", "alice", "no"),
+			ann("i2", "bob", "no"),
+			ann("i2", "carol", "no"),
 		]);
 		expect(result.fleissKappa).toBeDefined();
 		expect(result.fleissKappa).toBeCloseTo(1.0);
@@ -214,9 +231,15 @@ describe("computeIAA — Fleiss's Kappa for 3+ annotators", () => {
 
 	it("returns positive fleissKappa for good 3-way agreement", () => {
 		const result = computeIAA([
-			ann("i1", "a", "yes"), ann("i1", "b", "yes"), ann("i1", "c", "yes"),
-			ann("i2", "a", "no"), ann("i2", "b", "no"), ann("i2", "c", "no"),
-			ann("i3", "a", "yes"), ann("i3", "b", "yes"), ann("i3", "c", "no"), // partial
+			ann("i1", "a", "yes"),
+			ann("i1", "b", "yes"),
+			ann("i1", "c", "yes"),
+			ann("i2", "a", "no"),
+			ann("i2", "b", "no"),
+			ann("i2", "c", "no"),
+			ann("i3", "a", "yes"),
+			ann("i3", "b", "yes"),
+			ann("i3", "c", "no"), // partial
 		]);
 		expect(result.fleissKappa).toBeDefined();
 		expect(result.fleissKappa!).toBeGreaterThan(0);

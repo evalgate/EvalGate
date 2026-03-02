@@ -11,7 +11,12 @@ import {
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
-function result(id: string, passed: boolean, score: number, overrides: Partial<EvalTestResult> = {}): EvalTestResult {
+function result(
+	id: string,
+	passed: boolean,
+	score: number,
+	overrides: Partial<EvalTestResult> = {},
+): EvalTestResult {
 	return {
 		testCaseId: id,
 		name: `Test ${id}`,
@@ -33,7 +38,11 @@ const PASSING_SUMMARY: EvalRunSummary = {
 	results: [
 		result("t1", true, 0.92),
 		result("t2", true, 0.85),
-		result("t3", false, 0.35, { failureReason: "Response too vague", filePath: "evals/support.ts", lineNumber: 42 }),
+		result("t3", false, 0.35, {
+			failureReason: "Response too vague",
+			filePath: "evals/support.ts",
+			lineNumber: 42,
+		}),
 	],
 	baselineScore: 0.85,
 	scoreDelta: 0.03,
@@ -66,24 +75,41 @@ describe("deriveConclusion", () => {
 	});
 
 	it("failure for significant regression even if score is ok", () => {
-		const regressed = { ...PASSING_SUMMARY, overallScore: 0.75, scoreDelta: -0.15 };
+		const regressed = {
+			...PASSING_SUMMARY,
+			overallScore: 0.75,
+			scoreDelta: -0.15,
+		};
 		expect(deriveConclusion(regressed)).toBe("failure");
 	});
 
 	it("neutral when some failures but overall score passes", () => {
-		const neutral = { ...PASSING_SUMMARY, overallScore: 0.72, failed: 2, scoreDelta: 0 };
+		const neutral = {
+			...PASSING_SUMMARY,
+			overallScore: 0.72,
+			failed: 2,
+			scoreDelta: 0,
+		};
 		expect(deriveConclusion(neutral)).toBe("neutral");
 	});
 
 	it("respects custom passThreshold", () => {
 		// Use zero failures so neutral branch doesn't fire, only score check
-		const noFailures = { ...PASSING_SUMMARY, overallScore: 0.55, failed: 0, scoreDelta: 0 };
+		const noFailures = {
+			...PASSING_SUMMARY,
+			overallScore: 0.55,
+			failed: 0,
+			scoreDelta: 0,
+		};
 		const result = deriveConclusion(noFailures, { passThreshold: 0.5 });
 		expect(result).toBe("success");
 	});
 
 	it("respects custom regressionThreshold", () => {
-		const result = deriveConclusion({ ...PASSING_SUMMARY, scoreDelta: -0.03 }, { regressionThreshold: -0.01 });
+		const result = deriveConclusion(
+			{ ...PASSING_SUMMARY, scoreDelta: -0.03 },
+			{ regressionThreshold: -0.01 },
+		);
 		expect(result).toBe("failure");
 	});
 });
@@ -104,13 +130,17 @@ describe("buildAnnotations", () => {
 	});
 
 	it("uses failure level for very low scores", () => {
-		const results = [result("a", false, 0.1, { filePath: "file.ts", lineNumber: 1 })];
+		const results = [
+			result("a", false, 0.1, { filePath: "file.ts", lineNumber: 1 }),
+		];
 		const annotations = buildAnnotations(results);
 		expect(annotations[0]!.annotationLevel).toBe("failure");
 	});
 
 	it("uses warning level for borderline scores", () => {
-		const results = [result("a", false, 0.45, { filePath: "file.ts", lineNumber: 1 })];
+		const results = [
+			result("a", false, 0.45, { filePath: "file.ts", lineNumber: 1 }),
+		];
 		const annotations = buildAnnotations(results);
 		expect(annotations[0]!.annotationLevel).toBe("warning");
 	});
@@ -168,13 +198,18 @@ describe("buildCheckRunPayload", () => {
 	});
 
 	it("no annotations when all tests pass", () => {
-		const allPass = { ...PASSING_SUMMARY, results: [result("a", true, 0.9), result("b", true, 0.85)] };
+		const allPass = {
+			...PASSING_SUMMARY,
+			results: [result("a", true, 0.9), result("b", true, 0.85)],
+		};
 		const payload = buildCheckRunPayload(allPass, SHA);
 		expect(payload.output.annotations).toBeUndefined();
 	});
 
 	it("uses custom checkName", () => {
-		const payload = buildCheckRunPayload(PASSING_SUMMARY, SHA, { checkName: "MyEvalCI" });
+		const payload = buildCheckRunPayload(PASSING_SUMMARY, SHA, {
+			checkName: "MyEvalCI",
+		});
 		expect(payload.name).toBe("MyEvalCI");
 	});
 });
@@ -184,7 +219,7 @@ describe("buildCheckRunPayload", () => {
 describe("buildPRCommentBody", () => {
 	it("starts with an emoji heading", () => {
 		const body = buildPRCommentBody(PASSING_SUMMARY);
-		expect(body).toMatch(/^##\s[✅⚠️❌]/);
+		expect(body).toMatch(/^##\s(✅|⚠️|❌)/);
 	});
 
 	it("includes evaluation name in heading", () => {
@@ -215,7 +250,9 @@ describe("buildPRCommentBody", () => {
 	});
 
 	it("omits test details when includeTestDetails=false", () => {
-		const body = buildPRCommentBody(PASSING_SUMMARY, { includeTestDetails: false });
+		const body = buildPRCommentBody(PASSING_SUMMARY, {
+			includeTestDetails: false,
+		});
 		expect(body).not.toContain("<details>");
 	});
 
@@ -242,7 +279,7 @@ describe("computeEvalDiff", () => {
 
 	const curr: EvalTestResult[] = [
 		result("t1", true, 0.97), // improved: 0.9→0.97 = +0.07 > threshold
-		result("t2", false, 0.4),  // newly_failing
+		result("t2", false, 0.4), // newly_failing
 		result("t3", true, 0.85), // newly_passing
 		result("t4", true, 0.74), // stable
 	];
@@ -286,7 +323,9 @@ describe("computeEvalDiff", () => {
 	it("sorts by scoreDelta ascending (worst regressions first)", () => {
 		const diff = computeEvalDiff(prev, curr);
 		for (let i = 1; i < diff.length; i++) {
-			expect(diff[i]!.scoreDelta).toBeGreaterThanOrEqual(diff[i - 1]!.scoreDelta);
+			expect(diff[i]!.scoreDelta).toBeGreaterThanOrEqual(
+				diff[i - 1]!.scoreDelta,
+			);
 		}
 	});
 });

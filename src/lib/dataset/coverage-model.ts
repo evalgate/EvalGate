@@ -234,7 +234,10 @@ export interface EmbeddingVersionInfo {
 }
 
 /** Compute a deterministic version hash from model + dimensions. */
-export function computeEmbeddingVersionHash(model: string, dimensions: number): string {
+export function computeEmbeddingVersionHash(
+	model: string,
+	dimensions: number,
+): string {
 	const raw = `${model}:${dimensions}`;
 	let h = 0;
 	for (let i = 0; i < raw.length; i++) {
@@ -245,7 +248,9 @@ export function computeEmbeddingVersionHash(model: string, dimensions: number): 
 
 function cosineSimilarity(a: number[], b: number[]): number {
 	if (a.length !== b.length || a.length === 0) return 0;
-	let dot = 0, magA = 0, magB = 0;
+	let dot = 0,
+		magA = 0,
+		magB = 0;
 	for (let i = 0; i < a.length; i++) {
 		dot += a[i]! * b[i]!;
 		magA += a[i]! * a[i]!;
@@ -276,7 +281,10 @@ function clusterByEmbeddings(
 		let bestSim = -Infinity;
 		for (let ci = 0; ci < centroids.length; ci++) {
 			const sim = cosineSimilarity(point.embedding, centroids[ci]!);
-			if (sim > bestSim) { bestSim = sim; bestCluster = ci; }
+			if (sim > bestSim) {
+				bestSim = sim;
+				bestCluster = ci;
+			}
 		}
 		assignments.get(bestCluster)!.push(point.id);
 	}
@@ -307,7 +315,8 @@ export function buildCoverageModel(
 		embeddingVersion?: EmbeddingVersionInfo;
 	} = {},
 ): CoverageModel {
-	const useEmbed = options.embeddingFn !== undefined && options.useEmbeddings !== false;
+	const useEmbed =
+		options.embeddingFn !== undefined && options.useEmbeddings !== false;
 	const seedPhrases = options.seedPhrases ?? DEFAULT_GAP_SEED_PHRASES;
 	if (points.length === 0) {
 		return {

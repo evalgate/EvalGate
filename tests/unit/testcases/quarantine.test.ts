@@ -4,15 +4,18 @@ import {
 	getGatingCases,
 	getPendingReviewCases,
 	promoteTestCase,
+	type QuarantinedTestCase,
 	quarantineTestCase,
 	rejectTestCase,
 	summarizeQuarantineStatus,
-	type QuarantinedTestCase,
 } from "@/lib/testcases/quarantine";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
-function generated(id = "tc-1", qualityScore: number | null = 0.85): QuarantinedTestCase {
+function generated(
+	id = "tc-1",
+	qualityScore: number | null = 0.85,
+): QuarantinedTestCase {
 	return createGeneratedTestCase({
 		id,
 		payload: { prompt: "What is 2+2?", expectedOutput: "4" },
@@ -29,7 +32,10 @@ function quarantined(id = "tc-1"): QuarantinedTestCase {
 }
 
 function promoted(id = "tc-1"): QuarantinedTestCase {
-	const result = promoteTestCase(quarantined(id), { actor: "alice", reason: "Looks good" });
+	const result = promoteTestCase(quarantined(id), {
+		actor: "alice",
+		reason: "Looks good",
+	});
 	if (!result.success) throw new Error("setup failed");
 	return result.testCase;
 }
@@ -51,7 +57,11 @@ describe("createGeneratedTestCase", () => {
 	});
 
 	it("defaults qualityScore to null when not provided", () => {
-		const tc = createGeneratedTestCase({ id: "t", payload: {}, generatedBy: "gen" });
+		const tc = createGeneratedTestCase({
+			id: "t",
+			payload: {},
+			generatedBy: "gen",
+		});
 		expect(tc.qualityScore).toBeNull();
 	});
 
@@ -70,7 +80,10 @@ describe("quarantineTestCase", () => {
 	});
 
 	it("appends audit event", () => {
-		const result = quarantineTestCase(generated(), { actor: "system", reason: "Auto-quarantine" });
+		const result = quarantineTestCase(generated(), {
+			actor: "system",
+			reason: "Auto-quarantine",
+		});
 		expect(result.success).toBe(true);
 		expect(result.testCase.auditTrail).toHaveLength(1);
 		expect(result.testCase.auditTrail[0]!.action).toBe("quarantined");
@@ -92,7 +105,10 @@ describe("quarantineTestCase", () => {
 
 	it("fails when status is rejected", () => {
 		const q = quarantined();
-		const rej = rejectTestCase(q, { actor: "bob", reason: "bad case" }).testCase;
+		const rej = rejectTestCase(q, {
+			actor: "bob",
+			reason: "bad case",
+		}).testCase;
 		const result = quarantineTestCase(rej);
 		expect(result.success).toBe(false);
 	});
@@ -108,7 +124,10 @@ describe("promoteTestCase", () => {
 	});
 
 	it("appends promote audit event with actor", () => {
-		const result = promoteTestCase(quarantined(), { actor: "alice", reason: "LGTM" });
+		const result = promoteTestCase(quarantined(), {
+			actor: "alice",
+			reason: "LGTM",
+		});
 		expect(result.success).toBe(true);
 		const last = result.testCase.auditTrail.at(-1)!;
 		expect(last.action).toBe("promoted");
@@ -138,8 +157,14 @@ describe("promoteTestCase", () => {
 
 	it("fails when quality score is below minimum", () => {
 		const lowQuality = quarantined();
-		const tcWithLowScore: QuarantinedTestCase = { ...lowQuality, qualityScore: 0.3 };
-		const result = promoteTestCase(tcWithLowScore, { actor: "alice", minQualityScore: 0.6 });
+		const tcWithLowScore: QuarantinedTestCase = {
+			...lowQuality,
+			qualityScore: 0.3,
+		};
+		const result = promoteTestCase(tcWithLowScore, {
+			actor: "alice",
+			minQualityScore: 0.6,
+		});
 		expect(result.success).toBe(false);
 		expect(result.reason).toMatch(/quality score/i);
 	});
@@ -147,14 +172,20 @@ describe("promoteTestCase", () => {
 	it("passes when quality score meets minimum", () => {
 		const q = quarantined();
 		const tcWithScore: QuarantinedTestCase = { ...q, qualityScore: 0.75 };
-		const result = promoteTestCase(tcWithScore, { actor: "alice", minQualityScore: 0.6 });
+		const result = promoteTestCase(tcWithScore, {
+			actor: "alice",
+			minQualityScore: 0.6,
+		});
 		expect(result.success).toBe(true);
 	});
 
 	it("ignores min quality score when qualityScore is null", () => {
 		const q = quarantined();
 		const noScore: QuarantinedTestCase = { ...q, qualityScore: null };
-		const result = promoteTestCase(noScore, { actor: "alice", minQualityScore: 0.8 });
+		const result = promoteTestCase(noScore, {
+			actor: "alice",
+			minQualityScore: 0.8,
+		});
 		expect(result.success).toBe(true);
 	});
 });
@@ -163,13 +194,19 @@ describe("promoteTestCase", () => {
 
 describe("rejectTestCase", () => {
 	it("transitions quarantined → rejected", () => {
-		const result = rejectTestCase(quarantined(), { actor: "bob", reason: "Flaky test" });
+		const result = rejectTestCase(quarantined(), {
+			actor: "bob",
+			reason: "Flaky test",
+		});
 		expect(result.success).toBe(true);
 		expect(result.testCase.status).toBe("rejected");
 	});
 
 	it("appends reject audit event", () => {
-		const result = rejectTestCase(quarantined(), { actor: "bob", reason: "Flaky test" });
+		const result = rejectTestCase(quarantined(), {
+			actor: "bob",
+			reason: "Flaky test",
+		});
 		const last = result.testCase.auditTrail.at(-1)!;
 		expect(last.action).toBe("rejected");
 		expect(last.actor).toBe("bob");
@@ -185,13 +222,19 @@ describe("rejectTestCase", () => {
 	});
 
 	it("fails when status is promoted", () => {
-		const result = rejectTestCase(promoted(), { actor: "bob", reason: "changed mind" });
+		const result = rejectTestCase(promoted(), {
+			actor: "bob",
+			reason: "changed mind",
+		});
 		expect(result.success).toBe(false);
 		expect(result.reason).toMatch(/demote/i);
 	});
 
 	it("can reject a generated case", () => {
-		const result = rejectTestCase(generated(), { actor: "bob", reason: "garbage" });
+		const result = rejectTestCase(generated(), {
+			actor: "bob",
+			reason: "garbage",
+		});
 		expect(result.success).toBe(true);
 	});
 });
@@ -250,13 +293,16 @@ describe("summarizeQuarantineStatus", () => {
 		const p1 = promoteTestCase(quarantined("tc1"), { actor: "alice" }).testCase;
 		const p2 = promoteTestCase(quarantined("tc2"), { actor: "alice" }).testCase;
 		const stats = summarizeQuarantineStatus([p1, p2]);
-		expect(stats.promotedBy["alice"]).toBe(2);
+		expect(stats.promotedBy.alice).toBe(2);
 	});
 
 	it("tracks rejectedBy actor", () => {
-		const r = rejectTestCase(quarantined(), { actor: "bob", reason: "bad" }).testCase;
+		const r = rejectTestCase(quarantined(), {
+			actor: "bob",
+			reason: "bad",
+		}).testCase;
 		const stats = summarizeQuarantineStatus([r]);
-		expect(stats.rejectedBy["bob"]).toBe(1);
+		expect(stats.rejectedBy.bob).toBe(1);
 	});
 
 	it("returns zeros for empty input", () => {

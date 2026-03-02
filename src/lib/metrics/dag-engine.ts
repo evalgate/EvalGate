@@ -8,10 +8,10 @@
  * Requires a valid DAG (run validateDAG from dag-safety.ts first).
  */
 
-import type { MetricContext, PrimitiveFn, PrimitiveResult } from "./primitives";
-import { PRIMITIVE_REGISTRY } from "./primitives";
 import type { MetricNode } from "./dag-safety";
 import { validateDAG } from "./dag-safety";
+import type { MetricContext, PrimitiveFn, PrimitiveResult } from "./primitives";
+import { PRIMITIVE_REGISTRY } from "./primitives";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -89,7 +89,8 @@ function aggregate(
 		case "product":
 			return scores.reduce((a, b) => a * b, 1);
 		case "weighted_mean": {
-			if (!weights || !inputIds) return scores.reduce((a, b) => a + b, 0) / scores.length;
+			if (!weights || !inputIds)
+				return scores.reduce((a, b) => a + b, 0) / scores.length;
 			let weightedSum = 0;
 			let totalWeight = 0;
 			for (let i = 0; i < inputIds.length; i++) {
@@ -99,7 +100,6 @@ function aggregate(
 			}
 			return totalWeight > 0 ? weightedSum / totalWeight : 0;
 		}
-		case "mean":
 		default:
 			return scores.reduce((a, b) => a + b, 0) / scores.length;
 	}
@@ -119,7 +119,10 @@ export function executeDAG(
 	config: DAGEngineConfig = {},
 ): DAGExecutionResult {
 	const { passThreshold = 0.6, customPrimitives = {} } = config;
-	const registry: Record<string, PrimitiveFn> = { ...PRIMITIVE_REGISTRY, ...customPrimitives };
+	const registry: Record<string, PrimitiveFn> = {
+		...PRIMITIVE_REGISTRY,
+		...customPrimitives,
+	};
 
 	// Validate first
 	const validation = validateDAG(dag);
@@ -177,7 +180,9 @@ export function executeDAG(
 					primitiveResult = {
 						score: 0,
 						passed: false,
-						label: primitiveName ? `Unknown primitive: ${primitiveName}` : "No primitive specified",
+						label: primitiveName
+							? `Unknown primitive: ${primitiveName}`
+							: "No primitive specified",
 					};
 				} else {
 					primitiveResult = fn(context, node.options ?? {});
@@ -189,7 +194,12 @@ export function executeDAG(
 
 			case "aggregator": {
 				const inputScores = node.inputs.map((id) => scores.get(id) ?? 0);
-				score = aggregate(inputScores, node.aggregation ?? "mean", node.weights, node.inputs);
+				score = aggregate(
+					inputScores,
+					node.aggregation ?? "mean",
+					node.weights,
+					node.inputs,
+				);
 				passed = score >= passThreshold;
 				break;
 			}
@@ -210,7 +220,12 @@ export function executeDAG(
 
 			case "output": {
 				const inputScores = node.inputs.map((id) => scores.get(id) ?? 0);
-				score = aggregate(inputScores, node.aggregation ?? "mean", node.weights, node.inputs);
+				score = aggregate(
+					inputScores,
+					node.aggregation ?? "mean",
+					node.weights,
+					node.inputs,
+				);
 				passed = score >= passThreshold;
 				break;
 			}

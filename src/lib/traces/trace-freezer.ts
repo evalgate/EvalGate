@@ -14,10 +14,10 @@
 import {
 	DEFAULT_REDACTION_PROFILE,
 	NO_REDACTION_PROFILE,
-	STRICT_REDACTION_PROFILE,
+	type RedactionProfile,
 	redactObject,
 	redactString,
-	type RedactionProfile,
+	STRICT_REDACTION_PROFILE,
 } from "@/lib/security/redaction";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -175,14 +175,20 @@ export interface TraceForFreezing {
 
 // ── Redaction profile lookup ─────────────────────────────────────────────────
 
-function resolveRedactionProfile(id: string | null | undefined): RedactionProfile {
+function resolveRedactionProfile(
+	id: string | null | undefined,
+): RedactionProfile {
 	if (id === "strict") return STRICT_REDACTION_PROFILE;
 	if (id === "none") return NO_REDACTION_PROFILE;
 	return DEFAULT_REDACTION_PROFILE;
 }
 
 /** Apply redaction to any value (string, object, or pass-through). */
-function redactValue(value: unknown, shouldRedact: boolean, profile: RedactionProfile): unknown {
+function redactValue(
+	value: unknown,
+	shouldRedact: boolean,
+	profile: RedactionProfile,
+): unknown {
 	if (!shouldRedact || value === null || value === undefined) return value;
 	if (typeof value === "string") return redactString(value, profile).result;
 	if (typeof value === "object" && !Array.isArray(value))
@@ -227,15 +233,18 @@ export function freezeTrace(
 				arguments: shouldRedact
 					? redactObject(tc.arguments, profile).result
 					: tc.arguments,
-				output: captureMode === "full"
-					? redactValue(tc.output ?? null, shouldRedact, profile)
-					: null,
+				output:
+					captureMode === "full"
+						? redactValue(tc.output ?? null, shouldRedact, profile)
+						: null,
 				success: tc.success ?? null,
 				captureMode,
 			})),
 			messages: (span.behavioral?.messages ?? []).map((m) => ({
 				role: m.role,
-				content: shouldRedact ? redactString(m.content, profile).result : m.content,
+				content: shouldRedact
+					? redactString(m.content, profile).result
+					: m.content,
 				timestamp: m.timestamp ?? null,
 			})),
 			retrievedDocuments: (span.behavioral?.retrievedDocuments ?? []).map(
@@ -284,7 +293,9 @@ export function freezeTrace(
 		externalDeps,
 		spans: frozenSpans,
 		redacted: shouldRedact,
-		redactionProfileId: shouldRedact ? (options.redactionProfileId ?? "default") : null,
+		redactionProfileId: shouldRedact
+			? (options.redactionProfileId ?? "default")
+			: null,
 		environment: {
 			runtime: trace.environment?.runtime ?? null,
 			sdkVersion: trace.environment?.sdkVersion ?? null,

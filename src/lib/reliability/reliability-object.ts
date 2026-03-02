@@ -143,7 +143,7 @@ export function resolveAtTime(
 	isoTimestamp: string,
 ): ReliabilityObject | null {
 	const cutoff = new Date(isoTimestamp).getTime();
-	if (isNaN(cutoff)) return null;
+	if (Number.isNaN(cutoff)) return null;
 
 	const eligible = history
 		.filter((obj) => new Date(obj.provenance.createdAt).getTime() <= cutoff)
@@ -157,9 +157,11 @@ export function resolveAtTime(
  * Validates that all objects share the same id + type.
  * Returns { history, valid, error }.
  */
-export function buildVersionHistory(
-	objects: ReliabilityObject[],
-): { history: ReliabilityObject[]; valid: boolean; error?: string } {
+export function buildVersionHistory(objects: ReliabilityObject[]): {
+	history: ReliabilityObject[];
+	valid: boolean;
+	error?: string;
+} {
 	if (objects.length === 0) return { history: [], valid: true };
 
 	const firstId = objects[0]!.id;
@@ -167,10 +169,18 @@ export function buildVersionHistory(
 
 	for (const obj of objects) {
 		if (obj.id !== firstId) {
-			return { history: [], valid: false, error: `Mixed ids: ${firstId} vs ${obj.id}` };
+			return {
+				history: [],
+				valid: false,
+				error: `Mixed ids: ${firstId} vs ${obj.id}`,
+			};
 		}
 		if (obj.type !== firstType) {
-			return { history: [], valid: false, error: `Mixed types: ${firstType} vs ${obj.type}` };
+			return {
+				history: [],
+				valid: false,
+				error: `Mixed types: ${firstType} vs ${obj.type}`,
+			};
 		}
 	}
 

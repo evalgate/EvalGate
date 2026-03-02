@@ -3,27 +3,59 @@ import {
 	analyzeDatasetHealth,
 	computeDatasetTrend,
 	computeScoreDistribution,
+	type DatasetEntry,
+	type DatasetHealthReport,
 	detectDuplicates,
 	detectOutliers,
 	detectSchemaDrift,
-	type DatasetEntry,
-	type DatasetHealthReport,
 } from "@/lib/dataset/health-analyzer";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
-function entry(id: string, input: string, overrides: Partial<DatasetEntry> = {}): DatasetEntry {
+function entry(
+	id: string,
+	input: string,
+	overrides: Partial<DatasetEntry> = {},
+): DatasetEntry {
 	return { id, input, ...overrides };
 }
 
 const HEALTHY_ENTRIES: DatasetEntry[] = [
-	entry("e1", "What is the refund policy for international orders?", { expectedOutput: "30 days", lastScore: 0.9, tags: ["refund"] }),
-	entry("e2", "How do I cancel my subscription?", { expectedOutput: "Go to settings", lastScore: 0.85, tags: ["cancel"] }),
-	entry("e3", "Can I change my shipping address after order?", { expectedOutput: "Yes within 1 hour", lastScore: 0.8, tags: ["shipping"] }),
-	entry("e4", "What payment methods do you accept?", { expectedOutput: "Visa, MC, PayPal", lastScore: 0.88, tags: ["payment"] }),
-	entry("e5", "How long does standard delivery take?", { expectedOutput: "3-5 business days", lastScore: 0.92, tags: ["delivery"] }),
-	entry("e6", "Is there a loyalty rewards program?", { expectedOutput: "Yes, earn points", lastScore: 0.75, tags: ["rewards"] }),
-	entry("e7", "How do I track my order?", { expectedOutput: "Use tracking number", lastScore: 0.87, tags: ["tracking"] }),
+	entry("e1", "What is the refund policy for international orders?", {
+		expectedOutput: "30 days",
+		lastScore: 0.9,
+		tags: ["refund"],
+	}),
+	entry("e2", "How do I cancel my subscription?", {
+		expectedOutput: "Go to settings",
+		lastScore: 0.85,
+		tags: ["cancel"],
+	}),
+	entry("e3", "Can I change my shipping address after order?", {
+		expectedOutput: "Yes within 1 hour",
+		lastScore: 0.8,
+		tags: ["shipping"],
+	}),
+	entry("e4", "What payment methods do you accept?", {
+		expectedOutput: "Visa, MC, PayPal",
+		lastScore: 0.88,
+		tags: ["payment"],
+	}),
+	entry("e5", "How long does standard delivery take?", {
+		expectedOutput: "3-5 business days",
+		lastScore: 0.92,
+		tags: ["delivery"],
+	}),
+	entry("e6", "Is there a loyalty rewards program?", {
+		expectedOutput: "Yes, earn points",
+		lastScore: 0.75,
+		tags: ["rewards"],
+	}),
+	entry("e7", "How do I track my order?", {
+		expectedOutput: "Use tracking number",
+		lastScore: 0.87,
+		tags: ["tracking"],
+	}),
 ];
 
 const DUPLICATE_ENTRIES: DatasetEntry[] = [
@@ -38,7 +70,9 @@ const DUPLICATE_ENTRIES: DatasetEntry[] = [
 
 describe("detectDuplicates", () => {
 	it("detects exact duplicates", () => {
-		const pairs = detectDuplicates(DUPLICATE_ENTRIES, { exactDuplicateThreshold: 0.99 });
+		const pairs = detectDuplicates(DUPLICATE_ENTRIES, {
+			exactDuplicateThreshold: 0.99,
+		});
 		const exactPairs = pairs.filter((p) => p.type === "exact");
 		expect(exactPairs.length).toBeGreaterThanOrEqual(1);
 		const ids = exactPairs.flatMap((p) => [p.idA, p.idB]);
@@ -47,17 +81,23 @@ describe("detectDuplicates", () => {
 	});
 
 	it("detects near-duplicates", () => {
-		const pairs = detectDuplicates(DUPLICATE_ENTRIES, { nearDuplicateThreshold: 0.6 });
+		const pairs = detectDuplicates(DUPLICATE_ENTRIES, {
+			nearDuplicateThreshold: 0.6,
+		});
 		expect(pairs.length).toBeGreaterThan(0);
 	});
 
 	it("returns no pairs for clearly distinct entries", () => {
-		const pairs = detectDuplicates(HEALTHY_ENTRIES, { nearDuplicateThreshold: 0.8 });
+		const pairs = detectDuplicates(HEALTHY_ENTRIES, {
+			nearDuplicateThreshold: 0.8,
+		});
 		expect(pairs).toHaveLength(0);
 	});
 
 	it("similarity values are between 0 and 1", () => {
-		const pairs = detectDuplicates(DUPLICATE_ENTRIES, { nearDuplicateThreshold: 0.5 });
+		const pairs = detectDuplicates(DUPLICATE_ENTRIES, {
+			nearDuplicateThreshold: 0.5,
+		});
 		for (const p of pairs) {
 			expect(p.similarity).toBeGreaterThanOrEqual(0);
 			expect(p.similarity).toBeLessThanOrEqual(1);
@@ -78,34 +118,46 @@ describe("detectOutliers", () => {
 	it("flags empty input entries", () => {
 		const entries = [...HEALTHY_ENTRIES, entry("empty", "  ")];
 		const outliers = detectOutliers(entries);
-		expect(outliers.some((o) => o.id === "empty" && o.reason === "empty_input")).toBe(true);
+		expect(
+			outliers.some((o) => o.id === "empty" && o.reason === "empty_input"),
+		).toBe(true);
 	});
 
 	it("flags entries with extreme length", () => {
 		const long = entry("long", "a ".repeat(5000).trim());
 		const entries = [...HEALTHY_ENTRIES, long];
 		const outliers = detectOutliers(entries, { extremeLengthZScore: 2.0 });
-		expect(outliers.some((o) => o.id === "long" && o.reason === "extreme_length")).toBe(true);
+		expect(
+			outliers.some((o) => o.id === "long" && o.reason === "extreme_length"),
+		).toBe(true);
 	});
 
 	it("flags missing expected output entries", () => {
 		const noExpected = entry("noe", "What is the price?"); // no expectedOutput
 		const entries = [...HEALTHY_ENTRIES, noExpected];
 		const outliers = detectOutliers(entries);
-		expect(outliers.some((o) => o.id === "noe" && o.reason === "missing_expected_output")).toBe(true);
+		expect(
+			outliers.some(
+				(o) => o.id === "noe" && o.reason === "missing_expected_output",
+			),
+		).toBe(true);
 	});
 
 	it("flags low score outliers", () => {
 		const lowScorer = entry("low", "Some question", { lastScore: 0.0 });
 		const entries = [...HEALTHY_ENTRIES, lowScorer];
 		const outliers = detectOutliers(entries, { scoreOutlierZScore: 1.5 });
-		expect(outliers.some((o) => o.id === "low" && o.reason === "low_score_outlier")).toBe(true);
+		expect(
+			outliers.some((o) => o.id === "low" && o.reason === "low_score_outlier"),
+		).toBe(true);
 	});
 
 	it("returns no outliers for healthy uniform dataset", () => {
 		const outliers = detectOutliers(HEALTHY_ENTRIES);
 		// Healthy entries have expectedOutput — only check for non-structural outliers
-		const structural = outliers.filter((o) => o.reason !== "missing_expected_output");
+		const structural = outliers.filter(
+			(o) => o.reason !== "missing_expected_output",
+		);
 		expect(structural).toHaveLength(0);
 	});
 });
@@ -151,12 +203,17 @@ describe("computeScoreDistribution", () => {
 	it("returns correct mean", () => {
 		const dist = computeScoreDistribution(HEALTHY_ENTRIES);
 		expect(dist).not.toBeNull();
-		const expected = HEALTHY_ENTRIES.map((e) => e.lastScore!).reduce((a, b) => a + b, 0) / HEALTHY_ENTRIES.length;
+		const expected =
+			HEALTHY_ENTRIES.map((e) => e.lastScore!).reduce((a, b) => a + b, 0) /
+			HEALTHY_ENTRIES.length;
 		expect(dist!.mean).toBeCloseTo(expected, 2);
 	});
 
 	it("returns null with fewer than 3 scored entries", () => {
-		const small = [entry("a", "x", { lastScore: 0.8 }), entry("b", "y", { lastScore: 0.9 })];
+		const small = [
+			entry("a", "x", { lastScore: 0.8 }),
+			entry("b", "y", { lastScore: 0.9 }),
+		];
 		expect(computeScoreDistribution(small)).toBeNull();
 	});
 
@@ -175,7 +232,10 @@ describe("computeScoreDistribution", () => {
 	});
 
 	it("returns null for entries with no scores", () => {
-		const unscored = HEALTHY_ENTRIES.map((e) => ({ ...e, lastScore: undefined }));
+		const unscored = HEALTHY_ENTRIES.map((e) => ({
+			...e,
+			lastScore: undefined,
+		}));
 		expect(computeScoreDistribution(unscored)).toBeNull();
 	});
 });
@@ -184,7 +244,9 @@ describe("computeScoreDistribution", () => {
 
 describe("analyzeDatasetHealth — small dataset", () => {
 	it("returns summary when dataset below minEntries", () => {
-		const report = analyzeDatasetHealth([entry("a", "input")], { minEntries: 5 });
+		const report = analyzeDatasetHealth([entry("a", "input")], {
+			minEntries: 5,
+		});
 		expect(report.totalEntries).toBe(1);
 		expect(report.summary).toMatch(/small|minimum/i);
 	});
@@ -235,15 +297,33 @@ describe("analyzeDatasetHealth — unhealthy dataset", () => {
 // ── computeDatasetTrend ───────────────────────────────────────────────────────
 
 describe("computeDatasetTrend", () => {
-	const makeReport = (totalEntries: number, meanScore: number, dups: number): DatasetHealthReport => ({
+	const makeReport = (
+		totalEntries: number,
+		meanScore: number,
+		dups: number,
+	): DatasetHealthReport => ({
 		totalEntries,
-		duplicates: Array.from({ length: dups }, (_, i) => ({ idA: `a${i}`, idB: `b${i}`, similarity: 0.99, type: "exact" as const })),
+		duplicates: Array.from({ length: dups }, (_, i) => ({
+			idA: `a${i}`,
+			idB: `b${i}`,
+			similarity: 0.99,
+			type: "exact" as const,
+		})),
 		outliers: [],
-		schemaDrift: { driftDetected: false, inconsistentFields: [], anomalousEntryIds: [], driftRatio: 0 },
+		schemaDrift: {
+			driftDetected: false,
+			inconsistentFields: [],
+			anomalousEntryIds: [],
+			driftRatio: 0,
+		},
 		scoreDistribution: {
-			mean: meanScore, median: meanScore, stdDev: 0.05,
-			p10: meanScore - 0.1, p90: meanScore + 0.1,
-			lowScoreRatio: 0.05, highScoreRatio: 0.85,
+			mean: meanScore,
+			median: meanScore,
+			stdDev: 0.05,
+			p10: meanScore - 0.1,
+			p90: meanScore + 0.1,
+			lowScoreRatio: 0.05,
+			highScoreRatio: 0.85,
 		},
 		healthScore: 0.9,
 		summary: "test",
@@ -251,29 +331,44 @@ describe("computeDatasetTrend", () => {
 	});
 
 	it("detects improving score trend", () => {
-		const trend = computeDatasetTrend(makeReport(10, 0.7, 0), makeReport(10, 0.85, 0));
+		const trend = computeDatasetTrend(
+			makeReport(10, 0.7, 0),
+			makeReport(10, 0.85, 0),
+		);
 		expect(trend.scoreTrend).toBe("improving");
 		expect(trend.meanScoreDelta).toBeCloseTo(0.15);
 	});
 
 	it("detects degrading score trend", () => {
-		const trend = computeDatasetTrend(makeReport(10, 0.85, 0), makeReport(10, 0.6, 0));
+		const trend = computeDatasetTrend(
+			makeReport(10, 0.85, 0),
+			makeReport(10, 0.6, 0),
+		);
 		expect(trend.scoreTrend).toBe("degrading");
 	});
 
 	it("detects stable score trend for small delta", () => {
-		const trend = computeDatasetTrend(makeReport(10, 0.8, 0), makeReport(10, 0.81, 0));
+		const trend = computeDatasetTrend(
+			makeReport(10, 0.8, 0),
+			makeReport(10, 0.81, 0),
+		);
 		expect(trend.scoreTrend).toBe("stable");
 	});
 
 	it("detects growing dataset", () => {
-		const trend = computeDatasetTrend(makeReport(10, 0.8, 0), makeReport(20, 0.8, 0));
+		const trend = computeDatasetTrend(
+			makeReport(10, 0.8, 0),
+			makeReport(20, 0.8, 0),
+		);
 		expect(trend.sizeTrend).toBe("growing");
 		expect(trend.sizeDelta).toBe(10);
 	});
 
 	it("tracks duplicate delta", () => {
-		const trend = computeDatasetTrend(makeReport(10, 0.8, 2), makeReport(10, 0.8, 5));
+		const trend = computeDatasetTrend(
+			makeReport(10, 0.8, 2),
+			makeReport(10, 0.8, 5),
+		);
 		expect(trend.duplicateDelta).toBe(3);
 	});
 });

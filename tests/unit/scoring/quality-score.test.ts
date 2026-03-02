@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { computeQualityScore, type ScoreInputs } from "@/lib/scoring/quality-score";
+import {
+	computeQualityScore,
+	type ScoreInputs,
+} from "@/lib/scoring/quality-score";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -32,16 +35,24 @@ describe("computeQualityScore — score range", () => {
 	});
 
 	it("returns high score for excellent inputs", () => {
-		const r = computeQualityScore(inputs({ passed: 20, safetyPassRate: 1.0, judgeAvg: 1.0 }));
+		const r = computeQualityScore(
+			inputs({ passed: 20, safetyPassRate: 1.0, judgeAvg: 1.0 }),
+		);
 		expect(r.score).toBeGreaterThanOrEqual(90);
 	});
 
 	it("returns low score for poor inputs", () => {
-		const r = computeQualityScore(inputs({
-			total: 10, passed: 2,
-			safetyPassRate: 0.5, judgeAvg: 0.3,
-			avgLatencyMs: 9000, avgCostUsd: 0.1, budgetUsd: 0.01,
-		}));
+		const r = computeQualityScore(
+			inputs({
+				total: 10,
+				passed: 2,
+				safetyPassRate: 0.5,
+				judgeAvg: 0.3,
+				avgLatencyMs: 9000,
+				avgCostUsd: 0.1,
+				budgetUsd: 0.01,
+			}),
+		);
 		expect(r.score).toBeLessThan(60);
 	});
 
@@ -65,7 +76,9 @@ describe("computeQualityScore — breakdown", () => {
 	});
 
 	it("safety falls back to passRate when not provided", () => {
-		const r = computeQualityScore(inputs({ safetyPassRate: undefined, total: 10, passed: 7 }));
+		const r = computeQualityScore(
+			inputs({ safetyPassRate: undefined, total: 10, passed: 7 }),
+		);
 		expect(r.breakdown.safety).toBeCloseTo(0.7);
 	});
 
@@ -95,17 +108,23 @@ describe("computeQualityScore — breakdown", () => {
 	});
 
 	it("cost is 1 when within budget", () => {
-		const r = computeQualityScore(inputs({ avgCostUsd: 0.005, budgetUsd: 0.01 }));
+		const r = computeQualityScore(
+			inputs({ avgCostUsd: 0.005, budgetUsd: 0.01 }),
+		);
 		expect(r.breakdown.cost).toBe(1);
 	});
 
 	it("cost is 1 when budget not specified", () => {
-		const r = computeQualityScore(inputs({ avgCostUsd: undefined, budgetUsd: undefined }));
+		const r = computeQualityScore(
+			inputs({ avgCostUsd: undefined, budgetUsd: undefined }),
+		);
 		expect(r.breakdown.cost).toBe(1);
 	});
 
 	it("cost degrades when over budget", () => {
-		const r = computeQualityScore(inputs({ avgCostUsd: 0.02, budgetUsd: 0.01 }));
+		const r = computeQualityScore(
+			inputs({ avgCostUsd: 0.02, budgetUsd: 0.01 }),
+		);
 		expect(r.breakdown.cost).toBeLessThan(1);
 	});
 
@@ -132,7 +151,7 @@ describe("computeQualityScore — flags", () => {
 	});
 
 	it("includes SAFETY_RISK when safety < 0.95", () => {
-		const r = computeQualityScore(inputs({ safetyPassRate: 0.90 }));
+		const r = computeQualityScore(inputs({ safetyPassRate: 0.9 }));
 		expect(r.flags).toContain("SAFETY_RISK");
 	});
 
@@ -142,7 +161,9 @@ describe("computeQualityScore — flags", () => {
 	});
 
 	it("includes COST_RISK when cost breakdown < 0.5", () => {
-		const r = computeQualityScore(inputs({ avgCostUsd: 0.025, budgetUsd: 0.01 }));
+		const r = computeQualityScore(
+			inputs({ avgCostUsd: 0.025, budgetUsd: 0.01 }),
+		);
 		expect(r.flags).toContain("COST_RISK");
 	});
 
@@ -172,15 +193,22 @@ describe("computeQualityScore — flags", () => {
 	});
 
 	it("includes MISSING_PROVENANCE when trace-linked but no provenance", () => {
-		const r = computeQualityScore(inputs({ traceCoverageRate: 0.9, hasProvenance: false }));
+		const r = computeQualityScore(
+			inputs({ traceCoverageRate: 0.9, hasProvenance: false }),
+		);
 		expect(r.flags).toContain("MISSING_PROVENANCE");
 	});
 
 	it("has no flags for a perfect run", () => {
 		const r = computeQualityScore({
-			total: 20, passed: 20,
-			safetyPassRate: 1.0, judgeAvg: 1.0, schemaPassRate: 1.0,
-			avgLatencyMs: 500, avgCostUsd: 0.001, budgetUsd: 0.01,
+			total: 20,
+			passed: 20,
+			safetyPassRate: 1.0,
+			judgeAvg: 1.0,
+			schemaPassRate: 1.0,
+			avgLatencyMs: 500,
+			avgCostUsd: 0.001,
+			budgetUsd: 0.01,
 		});
 		expect(r.flags).toHaveLength(0);
 	});
@@ -195,15 +223,21 @@ describe("computeQualityScore — evidenceLevel", () => {
 	});
 
 	it("medium when only judge provided and N>=5", () => {
-		const r = computeQualityScore(inputs({ total: 7, passed: 6, safetyPassRate: undefined }));
+		const r = computeQualityScore(
+			inputs({ total: 7, passed: 6, safetyPassRate: undefined }),
+		);
 		expect(r.evidenceLevel).toBe("medium");
 	});
 
 	it("weak when N < 5 and no judge/safety", () => {
-		const r = computeQualityScore(inputs({
-			total: 3, passed: 2,
-			judgeAvg: undefined, safetyPassRate: undefined,
-		}));
+		const r = computeQualityScore(
+			inputs({
+				total: 3,
+				passed: 2,
+				judgeAvg: undefined,
+				safetyPassRate: undefined,
+			}),
+		);
 		expect(r.evidenceLevel).toBe("weak");
 	});
 

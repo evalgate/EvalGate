@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import {
 	buildReplayPlan,
+	type EvaluatorFn,
 	executeReplayJob,
+	type FrozenTraceSnapshot,
 	formatReplayPlan,
 	formatReplayResult,
-	type EvaluatorFn,
-	type FrozenTraceSnapshot,
 	type ReplayJob,
 } from "@/lib/replay/replay-runner";
 
@@ -32,7 +32,10 @@ function snapshot(
 	};
 }
 
-function job(snapshots: FrozenTraceSnapshot[], overrides: Partial<ReplayJob> = {}): ReplayJob {
+function job(
+	snapshots: FrozenTraceSnapshot[],
+	overrides: Partial<ReplayJob> = {},
+): ReplayJob {
 	return {
 		jobId: "job-001",
 		snapshots,
@@ -71,7 +74,9 @@ describe("buildReplayPlan — basic planning", () => {
 	});
 
 	it("classifies Tier C for snapshots with uncaptured external deps", () => {
-		const s = snapshot("t1", { externalDeps: [{ captured: false, type: "external-api" }] });
+		const s = snapshot("t1", {
+			externalDeps: [{ captured: false, type: "external-api" }],
+		});
 		const plan = buildReplayPlan(job([s]));
 		expect(plan.plannedReplays[0]!.tier).toBe("C");
 	});
@@ -93,14 +98,18 @@ describe("buildReplayPlan — filtering", () => {
 	it("filters by tags", () => {
 		const tagged = snapshot("t1", { tags: ["safety"] });
 		const untagged = snapshot("t2", { tags: ["geography"] });
-		const plan = buildReplayPlan(job([tagged, untagged], { filterTags: ["safety"] }));
+		const plan = buildReplayPlan(
+			job([tagged, untagged], { filterTags: ["safety"] }),
+		);
 		expect(plan.plannedReplays).toHaveLength(1);
 		expect(plan.plannedReplays[0]!.traceId).toBe("t1");
 		expect(plan.skippedCount).toBe(1);
 	});
 
 	it("filters by minTier — skips Tier C when minTier=B", () => {
-		const tierC = snapshot("tc", { externalDeps: [{ captured: false, type: "api" }] });
+		const tierC = snapshot("tc", {
+			externalDeps: [{ captured: false, type: "api" }],
+		});
 		const tierA = snapshot("ta");
 		const plan = buildReplayPlan(job([tierC, tierA], { minTier: "B" }));
 		expect(plan.plannedReplays.map((p) => p.traceId)).not.toContain("tc");
@@ -108,7 +117,9 @@ describe("buildReplayPlan — filtering", () => {
 	});
 
 	it("includes all tiers when minTier=C", () => {
-		const tierC = snapshot("tc", { externalDeps: [{ captured: false, type: "api" }] });
+		const tierC = snapshot("tc", {
+			externalDeps: [{ captured: false, type: "api" }],
+		});
 		const plan = buildReplayPlan(job([tierC], { minTier: "C" }));
 		expect(plan.plannedReplays).toHaveLength(1);
 	});
@@ -126,32 +137,47 @@ describe("buildReplayPlan — filtering", () => {
 
 describe("executeReplayJob — passing eval", () => {
 	it("returns passed=true when all evals pass", async () => {
-		const result = await executeReplayJob(job([snapshot("t1"), snapshot("t2")]), PASSING_EVALUATOR);
+		const result = await executeReplayJob(
+			job([snapshot("t1"), snapshot("t2")]),
+			PASSING_EVALUATOR,
+		);
 		expect(result.passed).toBe(true);
 		expect(result.passedCount).toBe(2);
 		expect(result.failedCount).toBe(0);
 	});
 
 	it("all results have status=passed", async () => {
-		const result = await executeReplayJob(job([snapshot("t1")]), PASSING_EVALUATOR);
+		const result = await executeReplayJob(
+			job([snapshot("t1")]),
+			PASSING_EVALUATOR,
+		);
 		expect(result.results[0]!.status).toBe("passed");
 	});
 
 	it("delta is 0 when replay score matches original", async () => {
-		const result = await executeReplayJob(job([snapshot("t1", { originalScore: 0.8 })]), PASSING_EVALUATOR);
+		const result = await executeReplayJob(
+			job([snapshot("t1", { originalScore: 0.8 })]),
+			PASSING_EVALUATOR,
+		);
 		expect(result.results[0]!.delta).toBeCloseTo(0);
 	});
 });
 
 describe("executeReplayJob — failing eval", () => {
 	it("returns passed=false when eval fails", async () => {
-		const result = await executeReplayJob(job([snapshot("t1")]), FAILING_EVALUATOR);
+		const result = await executeReplayJob(
+			job([snapshot("t1")]),
+			FAILING_EVALUATOR,
+		);
 		expect(result.passed).toBe(false);
 		expect(result.failedCount).toBeGreaterThan(0);
 	});
 
 	it("status is failed_eval when evaluator returns passed=false", async () => {
-		const result = await executeReplayJob(job([snapshot("t1")]), FAILING_EVALUATOR);
+		const result = await executeReplayJob(
+			job([snapshot("t1")]),
+			FAILING_EVALUATOR,
+		);
 		expect(result.results[0]!.status).toBe("failed_eval");
 	});
 });
@@ -199,7 +225,9 @@ describe("executeReplayJob — error handling", () => {
 			partialEval,
 		);
 		expect(result.results).toHaveLength(2);
-		expect(result.results.find((r) => r.traceId === "t2")!.status).toBe("passed");
+		expect(result.results.find((r) => r.traceId === "t2")!.status).toBe(
+			"passed",
+		);
 	});
 });
 
@@ -220,13 +248,19 @@ describe("executeReplayJob — blocked snapshots", () => {
 
 describe("executeReplayJob — summary", () => {
 	it("summary is a non-empty string", async () => {
-		const result = await executeReplayJob(job([snapshot("t1")]), PASSING_EVALUATOR);
+		const result = await executeReplayJob(
+			job([snapshot("t1")]),
+			PASSING_EVALUATOR,
+		);
 		expect(typeof result.summary).toBe("string");
 		expect(result.summary.length).toBeGreaterThan(10);
 	});
 
 	it("totalDurationMs is a non-negative number", async () => {
-		const result = await executeReplayJob(job([snapshot("t1")]), PASSING_EVALUATOR);
+		const result = await executeReplayJob(
+			job([snapshot("t1")]),
+			PASSING_EVALUATOR,
+		);
 		expect(result.totalDurationMs).toBeGreaterThanOrEqual(0);
 	});
 });
@@ -257,22 +291,34 @@ describe("formatReplayPlan", () => {
 
 describe("formatReplayResult", () => {
 	it("returns non-empty string", async () => {
-		const result = await executeReplayJob(job([snapshot("t1")]), PASSING_EVALUATOR);
+		const result = await executeReplayJob(
+			job([snapshot("t1")]),
+			PASSING_EVALUATOR,
+		);
 		expect(formatReplayResult(result).length).toBeGreaterThan(10);
 	});
 
 	it("shows PASSED for passing result", async () => {
-		const result = await executeReplayJob(job([snapshot("t1")]), PASSING_EVALUATOR);
+		const result = await executeReplayJob(
+			job([snapshot("t1")]),
+			PASSING_EVALUATOR,
+		);
 		expect(formatReplayResult(result)).toContain("PASSED");
 	});
 
 	it("shows FAILED for failing result", async () => {
-		const result = await executeReplayJob(job([snapshot("t1")]), FAILING_EVALUATOR);
+		const result = await executeReplayJob(
+			job([snapshot("t1")]),
+			FAILING_EVALUATOR,
+		);
 		expect(formatReplayResult(result)).toContain("FAILED");
 	});
 
 	it("includes trace ID in output", async () => {
-		const result = await executeReplayJob(job([snapshot("my-trace-xyz")]), PASSING_EVALUATOR);
+		const result = await executeReplayJob(
+			job([snapshot("my-trace-xyz")]),
+			PASSING_EVALUATOR,
+		);
 		expect(formatReplayResult(result)).toContain("my-trace-xyz");
 	});
 });

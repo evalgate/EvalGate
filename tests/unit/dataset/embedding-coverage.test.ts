@@ -1,9 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+	type BehaviorPoint,
 	buildCoverageModel,
 	computeEmbeddingVersionHash,
-	type BehaviorPoint,
-	type EmbeddingFn,
 } from "@/lib/dataset/coverage-model";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -19,7 +18,8 @@ function point(id: string, text: string): BehaviorPoint {
 function mockEmbeddingFn(text: string): number[] {
 	const lower = text.toLowerCase();
 	const mathScore = lower.includes("math") || lower.includes("calcul") ? 1 : 0;
-	const refundScore = lower.includes("refund") || lower.includes("return") ? 1 : 0;
+	const refundScore =
+		lower.includes("refund") || lower.includes("return") ? 1 : 0;
 	const authScore = lower.includes("login") || lower.includes("auth") ? 1 : 0;
 	return [mathScore, refundScore, authScore];
 }
@@ -107,7 +107,9 @@ describe("buildCoverageModel — embedding mode (useEmbeddings=true)", () => {
 		);
 		expect(clusterWithMath).toBeDefined();
 		// All math IDs should be in that cluster
-		const mathInCluster = clusterWithMath!.memberIds.filter((id) => mathIds.has(id));
+		const mathInCluster = clusterWithMath!.memberIds.filter((id) =>
+			mathIds.has(id),
+		);
 		expect(mathInCluster.length).toBe(mathPoints.length);
 	});
 

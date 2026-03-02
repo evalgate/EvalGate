@@ -12,9 +12,9 @@
 
 /** How a single rubric dimension is scored */
 export type DimensionScoringMode =
-	| "binary"   // 0 or 1 only
-	| "scalar"   // any value in [0, 1]
-	| "tiered";  // maps a label to a predefined score
+	| "binary" // 0 or 1 only
+	| "scalar" // any value in [0, 1]
+	| "tiered"; // maps a label to a predefined score
 
 /** A single rubric dimension definition */
 export interface RubricDimension {
@@ -98,27 +98,37 @@ export function resolveDimensionScore(
 	switch (mode) {
 		case "binary": {
 			if (typeof value !== "number") {
-				throw new TypeError(`Dimension "${dimension.id}" (binary) expects a number, got ${typeof value}`);
+				throw new TypeError(
+					`Dimension "${dimension.id}" (binary) expects a number, got ${typeof value}`,
+				);
 			}
 			if (value !== 0 && value !== 1) {
-				throw new RangeError(`Dimension "${dimension.id}" (binary) value must be 0 or 1, got ${value}`);
+				throw new RangeError(
+					`Dimension "${dimension.id}" (binary) value must be 0 or 1, got ${value}`,
+				);
 			}
 			return value;
 		}
 
 		case "scalar": {
 			if (typeof value !== "number") {
-				throw new TypeError(`Dimension "${dimension.id}" (scalar) expects a number, got ${typeof value}`);
+				throw new TypeError(
+					`Dimension "${dimension.id}" (scalar) expects a number, got ${typeof value}`,
+				);
 			}
 			if (value < 0 || value > 1) {
-				throw new RangeError(`Dimension "${dimension.id}" (scalar) value must be in [0, 1], got ${value}`);
+				throw new RangeError(
+					`Dimension "${dimension.id}" (scalar) value must be in [0, 1], got ${value}`,
+				);
 			}
 			return value;
 		}
 
 		case "tiered": {
 			if (typeof value !== "string") {
-				throw new TypeError(`Dimension "${dimension.id}" (tiered) expects a tier label string, got ${typeof value}`);
+				throw new TypeError(
+					`Dimension "${dimension.id}" (tiered) expects a tier label string, got ${typeof value}`,
+				);
 			}
 			const tier = (tiers ?? []).find((t) => t.label === value);
 			if (!tier) {
@@ -220,7 +230,11 @@ export function scoreWithPartialCredit(
  * Build a simple binary rubric from a list of criteria labels.
  * All criteria are equally weighted.
  */
-export function buildBinaryRubric(id: string, name: string, criteria: string[]): Rubric {
+export function buildBinaryRubric(
+	id: string,
+	name: string,
+	criteria: string[],
+): Rubric {
 	return {
 		id,
 		name,
@@ -237,9 +251,10 @@ export function buildBinaryRubric(id: string, name: string, criteria: string[]):
  * Validate that all rubric dimensions have corresponding score entries.
  * Returns IDs of dimensions with missing scores.
  */
-export function findMissingDimensions(rubric: Rubric, scores: DimensionScore[]): string[] {
+export function findMissingDimensions(
+	rubric: Rubric,
+	scores: DimensionScore[],
+): string[] {
 	const scoredIds = new Set(scores.map((s) => s.dimensionId));
-	return rubric.dimensions
-		.filter((d) => !scoredIds.has(d.id))
-		.map((d) => d.id);
+	return rubric.dimensions.filter((d) => !scoredIds.has(d.id)).map((d) => d.id);
 }

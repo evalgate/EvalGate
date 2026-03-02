@@ -3,8 +3,8 @@ import {
 	computeCacheStats,
 	extractBatch,
 	extractOrGetCached,
-	featureCacheKey,
 	FEATURE_VERSION,
+	featureCacheKey,
 	InMemoryFeatureCache,
 } from "@/lib/scoring/feature-cache";
 import type { TraceSpanForExtraction } from "@/lib/scoring/trace-feature-extractor";
@@ -29,7 +29,9 @@ function span(id = "s1"): TraceSpanForExtraction {
 
 describe("featureCacheKey", () => {
 	it("produces expected format", () => {
-		expect(featureCacheKey("trace-abc")).toBe(`feat:${FEATURE_VERSION_IMPORT}:trace-abc`);
+		expect(featureCacheKey("trace-abc")).toBe(
+			`feat:${FEATURE_VERSION_IMPORT}:trace-abc`,
+		);
 	});
 
 	it("accepts custom featureVersion", () => {
@@ -188,27 +190,47 @@ describe("extractBatch", () => {
 
 describe("computeCacheStats", () => {
 	it("computes 100% hit rate", () => {
-		const stats = computeCacheStats({ results: [], cacheHits: 5, cacheMisses: 0 });
+		const stats = computeCacheStats({
+			results: [],
+			cacheHits: 5,
+			cacheMisses: 0,
+		});
 		expect(stats.hitRate).toBe(1);
 	});
 
 	it("computes 0% hit rate", () => {
-		const stats = computeCacheStats({ results: [], cacheHits: 0, cacheMisses: 4 });
+		const stats = computeCacheStats({
+			results: [],
+			cacheHits: 0,
+			cacheMisses: 4,
+		});
 		expect(stats.hitRate).toBe(0);
 	});
 
 	it("computes 50% hit rate", () => {
-		const stats = computeCacheStats({ results: [], cacheHits: 2, cacheMisses: 2 });
+		const stats = computeCacheStats({
+			results: [],
+			cacheHits: 2,
+			cacheMisses: 2,
+		});
 		expect(stats.hitRate).toBe(0.5);
 	});
 
 	it("returns null hit rate for empty batch", () => {
-		const stats = computeCacheStats({ results: [], cacheHits: 0, cacheMisses: 0 });
+		const stats = computeCacheStats({
+			results: [],
+			cacheHits: 0,
+			cacheMisses: 0,
+		});
 		expect(stats.hitRate).toBeNull();
 	});
 
 	it("includes featureVersion in stats", () => {
-		const stats = computeCacheStats({ results: [], cacheHits: 1, cacheMisses: 0 });
+		const stats = computeCacheStats({
+			results: [],
+			cacheHits: 1,
+			cacheMisses: 0,
+		});
 		expect(stats.featureVersion).toBe(FEATURE_VERSION_IMPORT);
 	});
 });

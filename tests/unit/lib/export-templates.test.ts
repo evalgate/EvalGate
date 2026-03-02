@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
+import type { UnitTestExportData } from "@/lib/export-templates";
 import {
 	generateExportFilename,
 	getExportDescription,
 	getRecommendedExportFormat,
 	validateExportData,
 } from "@/lib/export-templates";
-import type { UnitTestExportData } from "@/lib/export-templates";
 
 // ── generateExportFilename ────────────────────────────────────────────────────
 
@@ -16,7 +16,10 @@ describe("generateExportFilename", () => {
 	});
 
 	it("lowercases and hyphenates spaces", () => {
-		const filename = generateExportFilename("Customer Support Suite", "model_eval");
+		const filename = generateExportFilename(
+			"Customer Support Suite",
+			"model_eval",
+		);
 		expect(filename).toContain("customer-support-suite");
 	});
 
@@ -68,7 +71,12 @@ describe("getExportDescription", () => {
 	});
 
 	it("returns a non-empty string for all types", () => {
-		for (const type of ["unit_test", "human_eval", "model_eval", "ab_test"] as const) {
+		for (const type of [
+			"unit_test",
+			"human_eval",
+			"model_eval",
+			"ab_test",
+		] as const) {
 			expect(getExportDescription(type).length).toBeGreaterThan(0);
 		}
 	});
@@ -78,7 +86,12 @@ describe("getExportDescription", () => {
 
 describe("getRecommendedExportFormat", () => {
 	it("returns 'json' for all evaluation types", () => {
-		for (const type of ["unit_test", "human_eval", "model_eval", "ab_test"] as const) {
+		for (const type of [
+			"unit_test",
+			"human_eval",
+			"model_eval",
+			"ab_test",
+		] as const) {
 			expect(getRecommendedExportFormat(type)).toBe("json");
 		}
 	});
@@ -103,14 +116,23 @@ function baseData() {
 		},
 		qualityScore: {
 			score: 85,
-			breakdown: { passRate: 90, safety: 80, judge: 85, schema: 90, latency: 95, cost: 80 },
+			breakdown: {
+				passRate: 90,
+				safety: 80,
+				judge: 85,
+				schema: 90,
+				latency: 95,
+				cost: 80,
+			},
 			flags: [],
 			evidenceLevel: "strong" as const,
 		},
 	};
 }
 
-function makeUnitTestData(overrides: Partial<UnitTestExportData> = {}): UnitTestExportData {
+function makeUnitTestData(
+	overrides: Partial<UnitTestExportData> = {},
+): UnitTestExportData {
 	return {
 		...baseData(),
 		type: "unit_test",

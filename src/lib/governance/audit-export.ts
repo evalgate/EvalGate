@@ -115,7 +115,8 @@ export function filterAuditEvents(
 
 	// Sort
 	filtered.sort((a, b) => {
-		const diff = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+		const diff =
+			new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
 		return options.sortOrder === "desc" ? -diff : diff;
 	});
 
@@ -146,7 +147,16 @@ function csvEscape(value: unknown): string {
 	return str;
 }
 
-const CSV_HEADERS = ["id", "timestamp", "type", "subjectId", "subjectType", "actorId", "severity", "description"];
+const CSV_HEADERS = [
+	"id",
+	"timestamp",
+	"type",
+	"subjectId",
+	"subjectType",
+	"actorId",
+	"severity",
+	"description",
+];
 
 function toCSV(events: AuditEvent[]): string {
 	const header = CSV_HEADERS.join(",");
@@ -198,7 +208,9 @@ function toMarkdown(events: AuditEvent[], exportedAt: string): string {
 		lines.push(`|-------|-------|`);
 		lines.push(`| **Timestamp** | ${event.timestamp} |`);
 		lines.push(`| **Actor** | \`${event.actorId}\` |`);
-		lines.push(`| **Subject** | \`${event.subjectId}\` (${event.subjectType}) |`);
+		lines.push(
+			`| **Subject** | \`${event.subjectId}\` (${event.subjectType}) |`,
+		);
 		lines.push(`| **Severity** | ${event.severity} |`);
 		lines.push(`| **Event ID** | \`${event.id}\` |`);
 		lines.push("");
@@ -309,8 +321,8 @@ export function summarizeAuditLog(events: AuditEvent[]): AuditSummary {
 		eventTypeCounts,
 		actorCounts,
 		dateRange: {
-			from: timestamps[0]!,
-			to: timestamps[timestamps.length - 1]!,
+			from: timestamps[0] ?? "",
+			to: timestamps[timestamps.length - 1] ?? "",
 		},
 	};
 }

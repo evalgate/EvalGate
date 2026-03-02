@@ -120,7 +120,10 @@ export function deriveConclusion(
 ): CheckRunConclusion {
 	const { passThreshold = 0.6, regressionThreshold = -0.05 } = options;
 
-	if (summary.scoreDelta !== null && summary.scoreDelta <= regressionThreshold) {
+	if (
+		summary.scoreDelta !== null &&
+		summary.scoreDelta <= regressionThreshold
+	) {
 		return "failure";
 	}
 
@@ -148,16 +151,18 @@ export function buildAnnotations(
 
 	const failed = results.filter((r) => !r.passed && r.filePath);
 
-	return failed.slice(0, maxAnnotations).map((result): CheckAnnotation => ({
-		path: result.filePath!,
-		startLine: result.lineNumber ?? 1,
-		endLine: result.lineNumber ?? 1,
-		annotationLevel: result.score < 0.3 ? "failure" : "warning",
-		title: `Eval failed: ${result.name}`,
-		message: result.failureReason
-			? `Score: ${(result.score * 100).toFixed(0)}% — ${result.failureReason}`
-			: `Score: ${(result.score * 100).toFixed(0)}% (below pass threshold)`,
-	}));
+	return failed.slice(0, maxAnnotations).map(
+		(result): CheckAnnotation => ({
+			path: result.filePath as string,
+			startLine: result.lineNumber ?? 1,
+			endLine: result.lineNumber ?? 1,
+			annotationLevel: result.score < 0.3 ? "failure" : "warning",
+			title: `Eval failed: ${result.name}`,
+			message: result.failureReason
+				? `Score: ${(result.score * 100).toFixed(0)}% — ${result.failureReason}`
+				: `Score: ${(result.score * 100).toFixed(0)}% (below pass threshold)`,
+		}),
+	);
 }
 
 // ── Check Run payload ─────────────────────────────────────────────────────────
@@ -172,14 +177,16 @@ export function buildCheckRunPayload(
 ): CheckRunPayload {
 	const { checkName = "EvalAI" } = options;
 	const conclusion = deriveConclusion(summary, options);
-	const passRate = summary.totalTests > 0
-		? ((summary.passed / summary.totalTests) * 100).toFixed(0)
-		: "0";
+	const passRate =
+		summary.totalTests > 0
+			? ((summary.passed / summary.totalTests) * 100).toFixed(0)
+			: "0";
 	const scoreDisplay = `${(summary.overallScore * 100).toFixed(0)}%`;
 
-	const deltaLine = summary.scoreDelta !== null
-		? ` | Δ ${summary.scoreDelta >= 0 ? "+" : ""}${(summary.scoreDelta * 100).toFixed(1)}% vs baseline`
-		: "";
+	const deltaLine =
+		summary.scoreDelta !== null
+			? ` | Δ ${summary.scoreDelta >= 0 ? "+" : ""}${(summary.scoreDelta * 100).toFixed(1)}% vs baseline`
+			: "";
 
 	const summaryText = [
 		`**${summary.evaluationName}** · ${summary.passed}/${summary.totalTests} passed (${passRate}%) · Score: ${scoreDisplay}${deltaLine}`,
@@ -201,7 +208,9 @@ export function buildCheckRunPayload(
 
 	if (summary.scoreDelta !== null) {
 		const trend = summary.scoreDelta >= 0 ? "📈" : "📉";
-		textLines.push(`| **vs Baseline** | ${trend} ${summary.scoreDelta >= 0 ? "+" : ""}${(summary.scoreDelta * 100).toFixed(1)}% |`);
+		textLines.push(
+			`| **vs Baseline** | ${trend} ${summary.scoreDelta >= 0 ? "+" : ""}${(summary.scoreDelta * 100).toFixed(1)}% |`,
+		);
 	}
 
 	return {
@@ -232,7 +241,8 @@ export function buildPRCommentBody(
 ): string {
 	const { passThreshold = 0.6, includeTestDetails = true } = options;
 	const conclusion = deriveConclusion(summary, options);
-	const statusEmoji = conclusion === "success" ? "✅" : conclusion === "neutral" ? "⚠️" : "❌";
+	const statusEmoji =
+		conclusion === "success" ? "✅" : conclusion === "neutral" ? "⚠️" : "❌";
 	const scoreDisplay = `${(summary.overallScore * 100).toFixed(0)}%`;
 
 	const lines: string[] = [
@@ -247,8 +257,12 @@ export function buildPRCommentBody(
 
 	if (summary.scoreDelta !== null && summary.baselineScore !== null) {
 		const trendEmoji = summary.scoreDelta >= 0 ? "📈" : "📉";
-		lines.push(`| **Baseline** | ${(summary.baselineScore * 100).toFixed(0)}% |`);
-		lines.push(`| **Change** | ${trendEmoji} ${summary.scoreDelta >= 0 ? "+" : ""}${(summary.scoreDelta * 100).toFixed(1)}% |`);
+		lines.push(
+			`| **Baseline** | ${(summary.baselineScore * 100).toFixed(0)}% |`,
+		);
+		lines.push(
+			`| **Change** | ${trendEmoji} ${summary.scoreDelta >= 0 ? "+" : ""}${(summary.scoreDelta * 100).toFixed(1)}% |`,
+		);
 	}
 
 	lines.push("", `> Run ID: \`${summary.runId}\` · ${summary.completedAt}`, "");
@@ -256,12 +270,20 @@ export function buildPRCommentBody(
 	if (includeTestDetails && summary.results.length > 0) {
 		const failed = summary.results.filter((r) => !r.passed);
 		if (failed.length > 0) {
-			lines.push("<details>", `<summary>❌ ${failed.length} failed test(s)</summary>`, "");
+			lines.push(
+				"<details>",
+				`<summary>❌ ${failed.length} failed test(s)</summary>`,
+				"",
+			);
 			lines.push("| Test | Score | Reason |");
 			lines.push("|------|-------|--------|");
 			for (const r of failed.slice(0, 20)) {
-				const reason = r.failureReason ? r.failureReason.slice(0, 80) : "Below threshold";
-				lines.push(`| \`${r.name}\` | ${(r.score * 100).toFixed(0)}% | ${reason} |`);
+				const reason = r.failureReason
+					? r.failureReason.slice(0, 80)
+					: "Below threshold";
+				lines.push(
+					`| \`${r.name}\` | ${(r.score * 100).toFixed(0)}% | ${reason} |`,
+				);
 			}
 			if (failed.length > 20) {
 				lines.push(`| … | | _${failed.length - 20} more_ |`);
@@ -270,7 +292,10 @@ export function buildPRCommentBody(
 		}
 	}
 
-	lines.push("---", "_Posted by [EvalAI](https://github.com/pauly7610/ai-evaluation-platform)_");
+	lines.push(
+		"---",
+		"_Posted by [EvalAI](https://github.com/pauly7610/ai-evaluation-platform)_",
+	);
 
 	return lines.join("\n");
 }
@@ -286,7 +311,12 @@ export interface EvalDiffEntry {
 	previousPassed: boolean;
 	currentPassed: boolean;
 	/** "regressed" | "improved" | "stable" | "newly_failing" | "newly_passing" */
-	status: "regressed" | "improved" | "stable" | "newly_failing" | "newly_passing";
+	status:
+		| "regressed"
+		| "improved"
+		| "stable"
+		| "newly_failing"
+		| "newly_passing";
 }
 
 /**

@@ -1,17 +1,37 @@
-import { describe, expect, it, vi } from "vitest";
-import type { JudgeConfig, JudgeFn, JudgeInput } from "@/lib/judges/multi-judge-engine";
+import { describe, expect, it } from "vitest";
+import type {
+	JudgeConfig,
+	JudgeFn,
+	JudgeInput,
+} from "@/lib/judges/multi-judge-engine";
 import { runMultiJudge } from "@/lib/judges/multi-judge-engine";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
 const INPUT: JudgeInput = { prompt: "What is 2+2?", response: "4" };
 
-const CHEAP: JudgeConfig = { id: "cheap-judge", name: "Cheap", costTier: "cheap" };
-const STANDARD: JudgeConfig = { id: "standard-judge", name: "Standard", costTier: "standard" };
-const EXPENSIVE: JudgeConfig = { id: "expensive-judge", name: "Expensive", costTier: "expensive" };
+const CHEAP: JudgeConfig = {
+	id: "cheap-judge",
+	name: "Cheap",
+	costTier: "cheap",
+};
+const STANDARD: JudgeConfig = {
+	id: "standard-judge",
+	name: "Standard",
+	costTier: "standard",
+};
+const EXPENSIVE: JudgeConfig = {
+	id: "expensive-judge",
+	name: "Expensive",
+	costTier: "expensive",
+};
 
 function makeFn(scores: Record<string, number>): JudgeFn {
-	return async (cfg: JudgeConfig) => ({ judgeId: cfg.id, score: scores[cfg.id] ?? 0.5, weight: cfg.weight });
+	return async (cfg: JudgeConfig) => ({
+		judgeId: cfg.id,
+		score: scores[cfg.id] ?? 0.5,
+		weight: cfg.weight,
+	});
 }
 
 // ── Parallel mode ──────────────────────────────────────────────────────────────
@@ -20,7 +40,12 @@ describe("runMultiJudge — parallel mode", () => {
 	it("runs all judges and aggregates", async () => {
 		const fn = makeFn({ "cheap-judge": 0.8, "standard-judge": 0.9 });
 		const result = await runMultiJudge(
-			{ judges: [CHEAP, STANDARD], strategy: "mean", mode: "parallel", timeoutMs: 1000 },
+			{
+				judges: [CHEAP, STANDARD],
+				strategy: "mean",
+				mode: "parallel",
+				timeoutMs: 1000,
+			},
 			INPUT,
 			fn,
 		);
@@ -38,7 +63,12 @@ describe("runMultiJudge — parallel mode", () => {
 			return { judgeId: cfg.id, score: 0.8 };
 		};
 		const result = await runMultiJudge(
-			{ judges: [CHEAP, STANDARD], strategy: "mean", mode: "parallel", timeoutMs: 50 },
+			{
+				judges: [CHEAP, STANDARD],
+				strategy: "mean",
+				mode: "parallel",
+				timeoutMs: 50,
+			},
 			INPUT,
 			fn,
 		);
@@ -81,7 +111,11 @@ describe("runMultiJudge — sequential mode", () => {
 			return { judgeId: cfg.id, score: 0.75 };
 		};
 		const result = await runMultiJudge(
-			{ judges: [CHEAP, STANDARD, EXPENSIVE], strategy: "mean", mode: "sequential" },
+			{
+				judges: [CHEAP, STANDARD, EXPENSIVE],
+				strategy: "mean",
+				mode: "sequential",
+			},
 			INPUT,
 			fn,
 		);
@@ -112,7 +146,12 @@ describe("runMultiJudge — sequential mode", () => {
 			return { judgeId: cfg.id, score: 0.8 };
 		};
 		const result = await runMultiJudge(
-			{ judges: [CHEAP, STANDARD, EXPENSIVE], strategy: "mean", mode: "sequential", timeoutMs: 500 },
+			{
+				judges: [CHEAP, STANDARD, EXPENSIVE],
+				strategy: "mean",
+				mode: "sequential",
+				timeoutMs: 500,
+			},
 			INPUT,
 			fn,
 		);
@@ -188,7 +227,11 @@ describe("runMultiJudge — aggregation strategies", () => {
 		const WEIGHTED_CHEAP: JudgeConfig = { ...CHEAP, weight: 3 };
 		const fn = makeFn({ "cheap-judge": 0.9, "standard-judge": 0.3 });
 		const result = await runMultiJudge(
-			{ judges: [WEIGHTED_CHEAP, STANDARD], strategy: "weighted_mean", mode: "parallel" },
+			{
+				judges: [WEIGHTED_CHEAP, STANDARD],
+				strategy: "weighted_mean",
+				mode: "parallel",
+			},
 			INPUT,
 			fn,
 		);
@@ -197,9 +240,17 @@ describe("runMultiJudge — aggregation strategies", () => {
 	});
 
 	it("majority_vote returns 1.0 on clear pass majority", async () => {
-		const fn = makeFn({ "cheap-judge": 0.9, "standard-judge": 0.85, "expensive-judge": 0.1 });
+		const fn = makeFn({
+			"cheap-judge": 0.9,
+			"standard-judge": 0.85,
+			"expensive-judge": 0.1,
+		});
 		const result = await runMultiJudge(
-			{ judges: [CHEAP, STANDARD, EXPENSIVE], strategy: "majority_vote", mode: "parallel" },
+			{
+				judges: [CHEAP, STANDARD, EXPENSIVE],
+				strategy: "majority_vote",
+				mode: "parallel",
+			},
 			INPUT,
 			fn,
 		);

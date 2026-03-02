@@ -143,7 +143,9 @@ function mean(values: number[]): number {
 function stdDev(values: number[]): number {
 	if (values.length < 2) return 0;
 	const avg = mean(values);
-	return Math.sqrt(values.reduce((s, v) => s + (v - avg) ** 2, 0) / values.length);
+	return Math.sqrt(
+		values.reduce((s, v) => s + (v - avg) ** 2, 0) / values.length,
+	);
 }
 
 function percentile(sorted: number[], p: number): number {
@@ -161,7 +163,8 @@ function median(values: number[]): number {
 
 function tokenize(text: string): Set<string> {
 	return new Set(
-		text.toLowerCase()
+		text
+			.toLowerCase()
 			.replace(/[^\w\s]/g, " ")
 			.split(/\s+/)
 			.filter((t) => t.length > 1),
@@ -190,7 +193,8 @@ export function detectDuplicates(
 	entries: DatasetEntry[],
 	config: HealthAnalyzerConfig = {},
 ): DuplicatePair[] {
-	const { nearDuplicateThreshold = 0.8, exactDuplicateThreshold = 0.99 } = config;
+	const { nearDuplicateThreshold = 0.8, exactDuplicateThreshold = 0.99 } =
+		config;
 	const pairs: DuplicatePair[] = [];
 
 	for (let i = 0; i < entries.length; i++) {
@@ -250,7 +254,11 @@ export function detectOutliers(
 			}
 		}
 
-		if (entry.expectedOutput === undefined || entry.expectedOutput === null || entry.expectedOutput === "") {
+		if (
+			entry.expectedOutput === undefined ||
+			entry.expectedOutput === null ||
+			entry.expectedOutput === ""
+		) {
 			outliers.push({
 				id: entry.id,
 				reason: "missing_expected_output",
@@ -274,7 +282,8 @@ export function detectOutliers(
 					outliers.push({
 						id: entry.id,
 						reason: "low_score_outlier",
-						severity: Math.abs(z) >= scoreOutlierZScore * 1.5 ? "high" : "medium",
+						severity:
+							Math.abs(z) >= scoreOutlierZScore * 1.5 ? "high" : "medium",
 						evidence: `Score ${entry.lastScore!.toFixed(2)} (z=${z.toFixed(1)}, mean=${scoreMean.toFixed(2)})`,
 					});
 				} else if (z >= scoreOutlierZScore) {
@@ -299,16 +308,28 @@ export function detectOutliers(
  */
 export function detectSchemaDrift(entries: DatasetEntry[]): SchemaDriftReport {
 	if (entries.length === 0) {
-		return { driftDetected: false, inconsistentFields: [], anomalousEntryIds: [], driftRatio: 0 };
+		return {
+			driftDetected: false,
+			inconsistentFields: [],
+			anomalousEntryIds: [],
+			driftRatio: 0,
+		};
 	}
 
 	// Track which optional fields are present per entry
-	const optionalFields: Array<keyof DatasetEntry> = ["expectedOutput", "tags", "lastScore", "schemaVersion"];
+	const optionalFields: Array<keyof DatasetEntry> = [
+		"expectedOutput",
+		"tags",
+		"lastScore",
+		"schemaVersion",
+	];
 
 	// Count how many entries have each field
 	const fieldCounts = new Map<string, number>();
 	for (const field of optionalFields) {
-		const count = entries.filter((e) => e[field] !== undefined && e[field] !== null && e[field] !== "").length;
+		const count = entries.filter(
+			(e) => e[field] !== undefined && e[field] !== null && e[field] !== "",
+		).length;
 		fieldCounts.set(field, count);
 	}
 
@@ -360,8 +381,12 @@ export function detectSchemaDrift(entries: DatasetEntry[]): SchemaDriftReport {
 /**
  * Compute score distribution statistics for entries with scores.
  */
-export function computeScoreDistribution(entries: DatasetEntry[]): ScoreDistribution | null {
-	const scored = entries.filter((e) => e.lastScore !== undefined).map((e) => e.lastScore as number);
+export function computeScoreDistribution(
+	entries: DatasetEntry[],
+): ScoreDistribution | null {
+	const scored = entries
+		.filter((e) => e.lastScore !== undefined)
+		.map((e) => e.lastScore as number);
 	if (scored.length < 3) return null;
 
 	const sorted = [...scored].sort((a, b) => a - b);
@@ -390,18 +415,23 @@ export function computeDatasetTrend(
 ): DatasetTrend {
 	const prevMean = previous.scoreDistribution?.mean ?? null;
 	const currMean = current.scoreDistribution?.mean ?? null;
-	const meanScoreDelta = prevMean !== null && currMean !== null ? currMean - prevMean : 0;
+	const meanScoreDelta =
+		prevMean !== null && currMean !== null ? currMean - prevMean : 0;
 
 	const scoreTrend: DatasetTrend["scoreTrend"] =
-		Math.abs(meanScoreDelta) < 0.02 ? "stable"
-		: meanScoreDelta > 0 ? "improving"
-		: "degrading";
+		Math.abs(meanScoreDelta) < 0.02
+			? "stable"
+			: meanScoreDelta > 0
+				? "improving"
+				: "degrading";
 
 	const sizeDelta = current.totalEntries - previous.totalEntries;
 	const sizeTrend: DatasetTrend["sizeTrend"] =
-		Math.abs(sizeDelta) < 2 ? "stable"
-		: sizeDelta > 0 ? "growing"
-		: "shrinking";
+		Math.abs(sizeDelta) < 2
+			? "stable"
+			: sizeDelta > 0
+				? "growing"
+				: "shrinking";
 
 	return {
 		meanScoreDelta,
@@ -429,12 +459,12 @@ function computeHealthScore(
 
 	// Penalise duplicates
 	const duplicateRatio = (duplicates.length * 2) / entries.length;
-	score -= Math.min(0.3, duplicateRatio / maxDuplicateRatio * 0.3);
+	score -= Math.min(0.3, (duplicateRatio / maxDuplicateRatio) * 0.3);
 
 	// Penalise high-severity outliers
 	const highOutliers = outliers.filter((o) => o.severity === "high").length;
 	const medOutliers = outliers.filter((o) => o.severity === "medium").length;
-	score -= Math.min(0.2, (highOutliers * 0.04 + medOutliers * 0.01));
+	score -= Math.min(0.2, highOutliers * 0.04 + medOutliers * 0.01);
 
 	// Penalise schema drift
 	score -= Math.min(0.2, schemaDrift.driftRatio * 0.5);
@@ -454,25 +484,43 @@ function buildRecommendations(
 
 	const exactDups = duplicates.filter((d) => d.type === "exact").length;
 	const nearDups = duplicates.filter((d) => d.type === "near_duplicate").length;
-	if (exactDups > 0) recs.push(`Remove ${exactDups} exact duplicate entry(s) to reduce noise`);
-	if (nearDups > 5) recs.push(`Review ${nearDups} near-duplicate pairs — consider merging similar test cases`);
+	if (exactDups > 0)
+		recs.push(`Remove ${exactDups} exact duplicate entry(s) to reduce noise`);
+	if (nearDups > 5)
+		recs.push(
+			`Review ${nearDups} near-duplicate pairs — consider merging similar test cases`,
+		);
 
 	const emptyInputs = outliers.filter((o) => o.reason === "empty_input").length;
-	if (emptyInputs > 0) recs.push(`Fix ${emptyInputs} entry(s) with empty or whitespace-only input`);
+	if (emptyInputs > 0)
+		recs.push(
+			`Fix ${emptyInputs} entry(s) with empty or whitespace-only input`,
+		);
 
-	const missingExpected = outliers.filter((o) => o.reason === "missing_expected_output").length;
-	if (missingExpected > 0) recs.push(`Add expected outputs to ${missingExpected} entry(s) to enable automated scoring`);
+	const missingExpected = outliers.filter(
+		(o) => o.reason === "missing_expected_output",
+	).length;
+	if (missingExpected > 0)
+		recs.push(
+			`Add expected outputs to ${missingExpected} entry(s) to enable automated scoring`,
+		);
 
 	if (schemaDrift.driftDetected && schemaDrift.driftRatio > 0.1) {
-		recs.push(`Normalise schema across ${schemaDrift.anomalousEntryIds.length} anomalous entries (fields: ${schemaDrift.inconsistentFields.join(", ")})`);
+		recs.push(
+			`Normalise schema across ${schemaDrift.anomalousEntryIds.length} anomalous entries (fields: ${schemaDrift.inconsistentFields.join(", ")})`,
+		);
 	}
 
 	if (scoreDistribution) {
 		if (scoreDistribution.lowScoreRatio > 0.3) {
-			recs.push(`${Math.round(scoreDistribution.lowScoreRatio * 100)}% of entries have low scores (<0.4) — review test case quality or prompt templates`);
+			recs.push(
+				`${Math.round(scoreDistribution.lowScoreRatio * 100)}% of entries have low scores (<0.4) — review test case quality or prompt templates`,
+			);
 		}
 		if (scoreDistribution.stdDev < 0.05) {
-			recs.push("Score distribution is very narrow — consider adding more diverse test cases");
+			recs.push(
+				"Score distribution is very narrow — consider adding more diverse test cases",
+			);
 		}
 	}
 
@@ -495,7 +543,12 @@ export function analyzeDatasetHealth(
 			totalEntries: entries.length,
 			duplicates: [],
 			outliers: [],
-			schemaDrift: { driftDetected: false, inconsistentFields: [], anomalousEntryIds: [], driftRatio: 0 },
+			schemaDrift: {
+				driftDetected: false,
+				inconsistentFields: [],
+				anomalousEntryIds: [],
+				driftRatio: 0,
+			},
 			scoreDistribution: null,
 			healthScore: entries.length === 0 ? 0 : 0.5,
 			summary: `Dataset too small for reliable analysis (${entries.length}/${minEntries} minimum)`,
@@ -507,10 +560,26 @@ export function analyzeDatasetHealth(
 	const outliers = detectOutliers(entries, config);
 	const schemaDrift = detectSchemaDrift(entries);
 	const scoreDistribution = computeScoreDistribution(entries);
-	const healthScore = computeHealthScore(entries, duplicates, outliers, schemaDrift, config);
-	const recommendations = buildRecommendations(duplicates, outliers, schemaDrift, scoreDistribution);
+	const healthScore = computeHealthScore(
+		entries,
+		duplicates,
+		outliers,
+		schemaDrift,
+		config,
+	);
+	const recommendations = buildRecommendations(
+		duplicates,
+		outliers,
+		schemaDrift,
+		scoreDistribution,
+	);
 
-	const healthLabel = healthScore >= 0.8 ? "healthy" : healthScore >= 0.6 ? "needs attention" : "unhealthy";
+	const healthLabel =
+		healthScore >= 0.8
+			? "healthy"
+			: healthScore >= 0.6
+				? "needs attention"
+				: "unhealthy";
 	const summary = `Dataset ${healthLabel} (score ${(healthScore * 100).toFixed(0)}%): ${entries.length} entries, ${duplicates.length} duplicate pair(s), ${outliers.filter((o) => o.severity === "high").length} high-severity outlier(s)`;
 
 	return {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { runJsonSchemaAssertion } from "@/lib/eval/assertion-runners/json-schema";
 import { runPiiAssertion } from "@/lib/eval/assertion-runners/pii";
 import { runToxicityAssertion } from "@/lib/eval/assertion-runners/toxicity";
-import { runJsonSchemaAssertion } from "@/lib/eval/assertion-runners/json-schema";
 
 // ── runPiiAssertion ───────────────────────────────────────────────────────────
 
@@ -61,7 +61,9 @@ describe("runPiiAssertion", () => {
 
 describe("runToxicityAssertion", () => {
 	it("passes for clean, helpful text", () => {
-		const r = runToxicityAssertion("Here is a step-by-step solution to your problem.");
+		const r = runToxicityAssertion(
+			"Here is a step-by-step solution to your problem.",
+		);
 		expect(r.passed).toBe(true);
 		expect(r.key).toBe("toxicity");
 		expect(r.category).toBe("safety");

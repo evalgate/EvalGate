@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { executeDAG, type ExecutableDAG, type ExecutableMetricNode } from "@/lib/metrics/dag-engine";
+import {
+	type ExecutableDAG,
+	type ExecutableMetricNode,
+	executeDAG,
+} from "@/lib/metrics/dag-engine";
 import type { MetricContext } from "@/lib/metrics/primitives";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -16,19 +20,44 @@ function inputNode(id: string, value = 1.0): ExecutableMetricNode {
 	return { id, type: "input", label: id, inputs: [], value };
 }
 
-function metricNode(id: string, primitive: string, inputs: string[] = [], options?: Record<string, unknown>): ExecutableMetricNode {
+function metricNode(
+	id: string,
+	primitive: string,
+	inputs: string[] = [],
+	options?: Record<string, unknown>,
+): ExecutableMetricNode {
 	return { id, type: "metric", label: id, inputs, primitive, options };
 }
 
-function aggregatorNode(id: string, inputs: string[], aggregation: ExecutableMetricNode["aggregation"] = "mean"): ExecutableMetricNode {
+function aggregatorNode(
+	id: string,
+	inputs: string[],
+	aggregation: ExecutableMetricNode["aggregation"] = "mean",
+): ExecutableMetricNode {
 	return { id, type: "aggregator", label: id, inputs, aggregation };
 }
 
-function gateNode(id: string, inputs: string[], threshold = 0.5, isHardGate = true): ExecutableMetricNode {
-	return { id, type: "gate", label: id, inputs, isHardGate, gateThreshold: threshold };
+function gateNode(
+	id: string,
+	inputs: string[],
+	threshold = 0.5,
+	isHardGate = true,
+): ExecutableMetricNode {
+	return {
+		id,
+		type: "gate",
+		label: id,
+		inputs,
+		isHardGate,
+		gateThreshold: threshold,
+	};
 }
 
-function outputNode(id: string, inputs: string[], aggregation: ExecutableMetricNode["aggregation"] = "mean"): ExecutableMetricNode {
+function outputNode(
+	id: string,
+	inputs: string[],
+	aggregation: ExecutableMetricNode["aggregation"] = "mean",
+): ExecutableMetricNode {
 	return { id, type: "output", label: id, inputs, aggregation };
 }
 
@@ -81,8 +110,12 @@ describe("executeDAG — mean aggregation", () => {
 
 	it("aggregator node score is mean of inputs", () => {
 		const result = executeDAG(dag, CTX);
-		const containsScore = result.nodes.find((n) => n.nodeId === "contains")!.score;
-		const latencyScore = result.nodes.find((n) => n.nodeId === "latency")!.score;
+		const containsScore = result.nodes.find(
+			(n) => n.nodeId === "contains",
+		)!.score;
+		const latencyScore = result.nodes.find(
+			(n) => n.nodeId === "latency",
+		)!.score;
 		const aggScore = result.nodes.find((n) => n.nodeId === "agg")!.score;
 		expect(aggScore).toBeCloseTo((containsScore + latencyScore) / 2);
 	});
@@ -90,7 +123,7 @@ describe("executeDAG — mean aggregation", () => {
 
 describe("executeDAG — min aggregation", () => {
 	const dag: ExecutableDAG = [
-		metricNode("m1", "exact_match"),   // "Paris" != "The capital..." → 0
+		metricNode("m1", "exact_match"), // "Paris" != "The capital..." → 0
 		metricNode("m2", "contains_match"), // passes → 1
 		aggregatorNode("agg", ["m1", "m2"], "min"),
 		outputNode("out", ["agg"]),
@@ -118,7 +151,9 @@ describe("executeDAG — weighted_mean aggregation", () => {
 
 	it("weighted aggregation applies weights", () => {
 		const result = executeDAG(dag, CTX);
-		const qualityScore = result.nodes.find((n) => n.nodeId === "quality")!.score;
+		const qualityScore = result.nodes.find(
+			(n) => n.nodeId === "quality",
+		)!.score;
 		const perfScore = result.nodes.find((n) => n.nodeId === "perf")!.score;
 		const expected = (qualityScore * 3 + perfScore * 1) / 4;
 		const aggScore = result.nodes.find((n) => n.nodeId === "agg")!.score;
@@ -242,9 +277,7 @@ describe("executeDAG — pass/fail", () => {
 
 describe("executeDAG — invalid DAG", () => {
 	it("throws for DAG with no output node", () => {
-		const dag: ExecutableDAG = [
-			metricNode("m1", "exact_match"),
-		];
+		const dag: ExecutableDAG = [metricNode("m1", "exact_match")];
 		expect(() => executeDAG(dag, CTX)).toThrow();
 	});
 

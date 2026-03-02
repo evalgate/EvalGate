@@ -1,26 +1,26 @@
 {
-  "_comment": "Canonical trace_v1 fixture. Used by TS contract tests and Python SDK contract tests.",
-  "_schemaVersion": 1,
-  "specVersion": 1,
-  "traceId": "fixture-trace-v1-001",
-  "name": "Contract fixture: LLM trace with tool call",
-  "status": "success",
-  "durationMs": 1240,
-  "environment": {
-    "runtime": "node",
-    "runtimeVersion": "20.x",
-    "sdkName": "evalgate-ts",
-    "sdkVersion": "1.0.0",
-    "deployEnvironment": "test",
-    "commitSha": "abc1234",
-    "branch": "main",
-    "serviceName": "evalgate-test",
-    "region": "us-east-1"
-  },
-  "metadata": {
-    "model": "gpt-4o",
-    "provider": "openai",
-    "temperature": 0.7,
-    "userId": "user-fixture-001"
-  }
+	"_comment": "Canonical trace_v1 fixture. Used by TS contract tests and Python SDK contract tests.",
+	"_schemaVersion": 1,
+	"specVersion": 1,
+	"traceId": "fixture-trace-v1-001",
+	"name": "Contract fixture: LLM trace with tool call",
+	"status": "success",
+	"durationMs": 1240,
+	"environment": {
+		"runtime": "node",
+		"runtimeVersion": "20.x",
+		"sdkName": "evalgate-ts",
+		"sdkVersion": "1.0.0",
+		"deployEnvironment": "test",
+		"commitSha": "abc1234",
+		"branch": "main",
+		"serviceName": "evalgate-test",
+		"region": "us-east-1"
+	},
+	"metadata": {
+		"model": "gpt-4o",
+		"provider": "openai",
+		"temperature": 0.7,
+		"userId": "user-fixture-001"
+	}
 }

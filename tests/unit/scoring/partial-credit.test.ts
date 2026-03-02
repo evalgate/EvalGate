@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
 	buildBinaryRubric,
+	type DimensionScore,
 	findMissingDimensions,
+	type Rubric,
 	resolveDimensionScore,
 	scoreWithPartialCredit,
-	type DimensionScore,
-	type Rubric,
 	type TierDefinition,
 } from "@/lib/scoring/partial-credit";
 
@@ -45,11 +45,15 @@ describe("resolveDimensionScore — binary", () => {
 	const dim = QUALITY_RUBRIC.dimensions.find((d) => d.id === "format")!;
 
 	it("returns 1 for binary 1", () => {
-		expect(resolveDimensionScore(dim, { dimensionId: "format", value: 1 })).toBe(1);
+		expect(
+			resolveDimensionScore(dim, { dimensionId: "format", value: 1 }),
+		).toBe(1);
 	});
 
 	it("returns 0 for binary 0", () => {
-		expect(resolveDimensionScore(dim, { dimensionId: "format", value: 0 })).toBe(0);
+		expect(
+			resolveDimensionScore(dim, { dimensionId: "format", value: 0 }),
+		).toBe(0);
 	});
 
 	it("throws RangeError for non-0/1 binary", () => {
@@ -69,15 +73,21 @@ describe("resolveDimensionScore — scalar", () => {
 	const dim = QUALITY_RUBRIC.dimensions.find((d) => d.id === "correctness")!;
 
 	it("returns exact value for valid scalar", () => {
-		expect(resolveDimensionScore(dim, { dimensionId: "correctness", value: 0.75 })).toBe(0.75);
+		expect(
+			resolveDimensionScore(dim, { dimensionId: "correctness", value: 0.75 }),
+		).toBe(0.75);
 	});
 
 	it("returns 0 for scalar 0", () => {
-		expect(resolveDimensionScore(dim, { dimensionId: "correctness", value: 0 })).toBe(0);
+		expect(
+			resolveDimensionScore(dim, { dimensionId: "correctness", value: 0 }),
+		).toBe(0);
 	});
 
 	it("returns 1 for scalar 1", () => {
-		expect(resolveDimensionScore(dim, { dimensionId: "correctness", value: 1 })).toBe(1);
+		expect(
+			resolveDimensionScore(dim, { dimensionId: "correctness", value: 1 }),
+		).toBe(1);
 	});
 
 	it("throws RangeError for > 1", () => {
@@ -95,26 +105,47 @@ describe("resolveDimensionScore — scalar", () => {
 
 describe("resolveDimensionScore — tiered", () => {
 	it("resolves 'full' tier to 1.0", () => {
-		expect(resolveDimensionScore(TIER_DIM, { dimensionId: "completeness", value: "full" })).toBe(1.0);
+		expect(
+			resolveDimensionScore(TIER_DIM, {
+				dimensionId: "completeness",
+				value: "full",
+			}),
+		).toBe(1.0);
 	});
 
 	it("resolves 'partial' tier to 0.5", () => {
-		expect(resolveDimensionScore(TIER_DIM, { dimensionId: "completeness", value: "partial" })).toBe(0.5);
+		expect(
+			resolveDimensionScore(TIER_DIM, {
+				dimensionId: "completeness",
+				value: "partial",
+			}),
+		).toBe(0.5);
 	});
 
 	it("resolves 'none' tier to 0", () => {
-		expect(resolveDimensionScore(TIER_DIM, { dimensionId: "completeness", value: "none" })).toBe(0);
+		expect(
+			resolveDimensionScore(TIER_DIM, {
+				dimensionId: "completeness",
+				value: "none",
+			}),
+		).toBe(0);
 	});
 
 	it("throws RangeError for unknown tier", () => {
 		expect(() =>
-			resolveDimensionScore(TIER_DIM, { dimensionId: "completeness", value: "excellent" }),
+			resolveDimensionScore(TIER_DIM, {
+				dimensionId: "completeness",
+				value: "excellent",
+			}),
 		).toThrow(RangeError);
 	});
 
 	it("throws TypeError for numeric value in tiered mode", () => {
 		expect(() =>
-			resolveDimensionScore(TIER_DIM, { dimensionId: "completeness", value: 0.5 }),
+			resolveDimensionScore(TIER_DIM, {
+				dimensionId: "completeness",
+				value: 0.5,
+			}),
 		).toThrow(TypeError);
 	});
 });
@@ -202,9 +233,9 @@ describe("scoreWithPartialCredit — weights", () => {
 describe("scoreWithPartialCredit — credit counts", () => {
 	it("correctly tallies full, partial, zero credits", () => {
 		const scores: DimensionScore[] = [
-			{ dimensionId: "correctness", value: 1.0 },  // full
-			{ dimensionId: "relevance", value: 0.5 },    // partial
-			{ dimensionId: "format", value: 0 },          // zero
+			{ dimensionId: "correctness", value: 1.0 }, // full
+			{ dimensionId: "relevance", value: 0.5 }, // partial
+			{ dimensionId: "format", value: 0 }, // zero
 		];
 		const result = scoreWithPartialCredit(QUALITY_RUBRIC, scores);
 		expect(result.fullCreditCount).toBe(1);
@@ -226,23 +257,30 @@ describe("scoreWithPartialCredit — missing dimensions", () => {
 
 describe("scoreWithPartialCredit — tiered rubric", () => {
 	it("partial tier gives 0.5 total score", () => {
-		const result = scoreWithPartialCredit(TIERED_RUBRIC, [{ dimensionId: "completeness", value: "partial" }]);
+		const result = scoreWithPartialCredit(TIERED_RUBRIC, [
+			{ dimensionId: "completeness", value: "partial" },
+		]);
 		expect(result.totalScore).toBe(0.5);
 	});
 
 	it("preserves dimension reasoning", () => {
-		const result = scoreWithPartialCredit(TIERED_RUBRIC, [{
-			dimensionId: "completeness",
-			value: "full",
-			reasoning: "All required fields present",
-		}]);
+		const result = scoreWithPartialCredit(TIERED_RUBRIC, [
+			{
+				dimensionId: "completeness",
+				value: "full",
+				reasoning: "All required fields present",
+			},
+		]);
 		expect(result.dimensions[0]!.reasoning).toBe("All required fields present");
 	});
 });
 
 describe("scoreWithPartialCredit — empty rubric", () => {
 	it("returns score 0 and no dimensions", () => {
-		const result = scoreWithPartialCredit({ id: "empty", name: "Empty", dimensions: [] }, []);
+		const result = scoreWithPartialCredit(
+			{ id: "empty", name: "Empty", dimensions: [] },
+			[],
+		);
 		expect(result.totalScore).toBe(0);
 		expect(result.dimensions).toHaveLength(0);
 	});
@@ -266,7 +304,10 @@ describe("buildBinaryRubric", () => {
 
 	it("passes fully when all criteria met", () => {
 		const rubric = buildBinaryRubric("rb", "RB", ["A", "B", "C"]);
-		const scores = rubric.dimensions.map((d) => ({ dimensionId: d.id, value: 1 }));
+		const scores = rubric.dimensions.map((d) => ({
+			dimensionId: d.id,
+			value: 1,
+		}));
 		const result = scoreWithPartialCredit(rubric, scores);
 		expect(result.totalScore).toBe(1);
 		expect(result.passed).toBe(true);
@@ -277,7 +318,9 @@ describe("buildBinaryRubric", () => {
 
 describe("findMissingDimensions", () => {
 	it("returns IDs of dimensions with no score entry", () => {
-		const scores: DimensionScore[] = [{ dimensionId: "correctness", value: 0.8 }];
+		const scores: DimensionScore[] = [
+			{ dimensionId: "correctness", value: 0.8 },
+		];
 		const missing = findMissingDimensions(QUALITY_RUBRIC, scores);
 		expect(missing).toContain("relevance");
 		expect(missing).toContain("format");

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+	type AuditEvent,
+	type AuditExportOptions,
 	exportAuditLog,
 	filterAuditEvents,
 	summarizeAuditLog,
-	type AuditEvent,
-	type AuditExportOptions,
 } from "@/lib/governance/audit-export";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -32,10 +32,15 @@ function event(
 const EVENTS: AuditEvent[] = [
 	event("1", "judge_enabled", "info"),
 	event("2", "tier_changed", "warning", { actorId: "admin-2" }),
-	event("3", "run_blocked", "critical", { subjectId: "run-abc", subjectType: "run" }),
+	event("3", "run_blocked", "critical", {
+		subjectId: "run-abc",
+		subjectType: "run",
+	}),
 	event("4", "policy_updated", "info", { actorId: "admin-2" }),
 	event("5", "judge_disabled", "warning"),
-	event("6", "violation_recorded", "critical", { timestamp: "2025-01-06T10:00:00.000Z" }),
+	event("6", "violation_recorded", "critical", {
+		timestamp: "2025-01-06T10:00:00.000Z",
+	}),
 ];
 
 // ── filterAuditEvents ─────────────────────────────────────────────────────────
@@ -47,36 +52,56 @@ describe("filterAuditEvents", () => {
 	});
 
 	it("filters by event type", () => {
-		const result = filterAuditEvents(EVENTS, { format: "json", eventTypes: ["judge_enabled", "judge_disabled"] });
+		const result = filterAuditEvents(EVENTS, {
+			format: "json",
+			eventTypes: ["judge_enabled", "judge_disabled"],
+		});
 		expect(result).toHaveLength(2);
-		expect(result.every((e) => ["judge_enabled", "judge_disabled"].includes(e.type))).toBe(true);
+		expect(
+			result.every((e) => ["judge_enabled", "judge_disabled"].includes(e.type)),
+		).toBe(true);
 	});
 
 	it("filters by actorId", () => {
-		const result = filterAuditEvents(EVENTS, { format: "json", actorIds: ["admin-2"] });
+		const result = filterAuditEvents(EVENTS, {
+			format: "json",
+			actorIds: ["admin-2"],
+		});
 		expect(result).toHaveLength(2);
 		expect(result.every((e) => e.actorId === "admin-2")).toBe(true);
 	});
 
 	it("filters by subjectId", () => {
-		const result = filterAuditEvents(EVENTS, { format: "json", subjectIds: ["run-abc"] });
+		const result = filterAuditEvents(EVENTS, {
+			format: "json",
+			subjectIds: ["run-abc"],
+		});
 		expect(result).toHaveLength(1);
 		expect(result[0]!.subjectId).toBe("run-abc");
 	});
 
 	it("filters by severity", () => {
-		const result = filterAuditEvents(EVENTS, { format: "json", severities: ["critical"] });
+		const result = filterAuditEvents(EVENTS, {
+			format: "json",
+			severities: ["critical"],
+		});
 		expect(result).toHaveLength(2);
 		expect(result.every((e) => e.severity === "critical")).toBe(true);
 	});
 
 	it("filters by fromTimestamp (inclusive)", () => {
-		const result = filterAuditEvents(EVENTS, { format: "json", fromTimestamp: "2025-01-04T00:00:00.000Z" });
+		const result = filterAuditEvents(EVENTS, {
+			format: "json",
+			fromTimestamp: "2025-01-04T00:00:00.000Z",
+		});
 		expect(result.length).toBeGreaterThanOrEqual(3);
 	});
 
 	it("filters by toTimestamp (inclusive)", () => {
-		const result = filterAuditEvents(EVENTS, { format: "json", toTimestamp: "2025-01-02T23:59:59.000Z" });
+		const result = filterAuditEvents(EVENTS, {
+			format: "json",
+			toTimestamp: "2025-01-02T23:59:59.000Z",
+		});
 		expect(result.length).toBeLessThanOrEqual(2);
 	});
 
@@ -95,7 +120,10 @@ describe("filterAuditEvents", () => {
 	});
 
 	it("sorts descending when sortOrder=desc", () => {
-		const result = filterAuditEvents(EVENTS, { format: "json", sortOrder: "desc" });
+		const result = filterAuditEvents(EVENTS, {
+			format: "json",
+			sortOrder: "desc",
+		});
 		for (let i = 1; i < result.length; i++) {
 			expect(new Date(result[i]!.timestamp).getTime()).toBeLessThanOrEqual(
 				new Date(result[i - 1]!.timestamp).getTime(),
@@ -122,7 +150,10 @@ describe("exportAuditLog — JSON", () => {
 	});
 
 	it("filtered export has correct eventCount vs totalEvents", () => {
-		const result = exportAuditLog(EVENTS, { format: "json", severities: ["critical"] });
+		const result = exportAuditLog(EVENTS, {
+			format: "json",
+			severities: ["critical"],
+		});
 		expect(result.eventCount).toBe(2);
 		expect(result.totalEvents).toBe(EVENTS.length);
 	});
@@ -184,12 +215,19 @@ describe("exportAuditLog — Markdown", () => {
 	});
 
 	it("includes critical indicator for critical events", () => {
-		const result = exportAuditLog(EVENTS, { format: "markdown", severities: ["critical"] });
+		const result = exportAuditLog(EVENTS, {
+			format: "markdown",
+			severities: ["critical"],
+		});
 		expect(result.content).toContain("🔴");
 	});
 
 	it("renders empty state for no events", () => {
-		const result = exportAuditLog(EVENTS, { format: "markdown", severities: ["info"], eventTypes: ["run_blocked"] });
+		const result = exportAuditLog(EVENTS, {
+			format: "markdown",
+			severities: ["info"],
+			eventTypes: ["run_blocked"],
+		});
 		expect(result.content).toMatch(/no events/i);
 	});
 
@@ -216,8 +254,8 @@ describe("summarizeAuditLog", () => {
 
 	it("counts by event type", () => {
 		const summary = summarizeAuditLog(EVENTS);
-		expect(summary.eventTypeCounts["judge_enabled"]).toBe(1);
-		expect(summary.eventTypeCounts["tier_changed"]).toBe(1);
+		expect(summary.eventTypeCounts.judge_enabled).toBe(1);
+		expect(summary.eventTypeCounts.tier_changed).toBe(1);
 	});
 
 	it("counts by actor", () => {

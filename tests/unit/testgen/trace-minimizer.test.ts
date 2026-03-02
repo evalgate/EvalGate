@@ -7,8 +7,18 @@ import {
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
-function llmSpan(id: string, messages: TraceSpanInput["messages"] = [], overrides: Partial<TraceSpanInput> = {}): TraceSpanInput {
-	return { spanId: id, name: `span-${id}`, type: "llm", messages, ...overrides };
+function llmSpan(
+	id: string,
+	messages: TraceSpanInput["messages"] = [],
+	overrides: Partial<TraceSpanInput> = {},
+): TraceSpanInput {
+	return {
+		spanId: id,
+		name: `span-${id}`,
+		type: "llm",
+		messages,
+		...overrides,
+	};
 }
 
 function toolSpan(id: string, tools: string[]): TraceSpanInput {
@@ -42,7 +52,9 @@ describe("minimizeTrace — userPrompt", () => {
 	it("extracts prompt from span.input string", () => {
 		const trace: TraceForMinimization = {
 			traceId: "t",
-			spans: [{ spanId: "s1", name: "n", type: "llm", input: "Tell me a joke" }],
+			spans: [
+				{ spanId: "s1", name: "n", type: "llm", input: "Tell me a joke" },
+			],
 		};
 		const result = minimizeTrace(trace);
 		expect(result.userPrompt).toBe("Tell me a joke");
@@ -51,7 +63,14 @@ describe("minimizeTrace — userPrompt", () => {
 	it("extracts prompt from span.input object with prompt key", () => {
 		const trace: TraceForMinimization = {
 			traceId: "t",
-			spans: [{ spanId: "s1", name: "n", type: "llm", input: { prompt: "What is 2+2?" } }],
+			spans: [
+				{
+					spanId: "s1",
+					name: "n",
+					type: "llm",
+					input: { prompt: "What is 2+2?" },
+				},
+			],
 		};
 		const result = minimizeTrace(trace);
 		expect(result.userPrompt).toBe("What is 2+2?");
@@ -190,7 +209,9 @@ describe("minimizeTrace — activeTools", () => {
 describe("minimizeTrace — conversationContext", () => {
 	it("excludes system messages from context", () => {
 		const result = minimizeTrace(BASIC_TRACE);
-		const hasSystem = result.conversationContext.some((m) => m.role === "system");
+		const hasSystem = result.conversationContext.some(
+			(m) => m.role === "system",
+		);
 		expect(hasSystem).toBe(false);
 	});
 
@@ -214,9 +235,16 @@ describe("minimizeTrace — metadata", () => {
 	it("extracts known metadata fields", () => {
 		const trace: TraceForMinimization = {
 			traceId: "t",
-			spans: [llmSpan("s1", [], {
-				metadata: { model: "gpt-4o", provider: "openai", temperature: 0.7, cost: 0.01 },
-			})],
+			spans: [
+				llmSpan("s1", [], {
+					metadata: {
+						model: "gpt-4o",
+						provider: "openai",
+						temperature: 0.7,
+						cost: 0.01,
+					},
+				}),
+			],
 		};
 		const result = minimizeTrace(trace);
 		expect(result.metadata.model).toBe("gpt-4o");

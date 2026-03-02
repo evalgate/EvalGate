@@ -60,14 +60,23 @@ describe("SDKAssertionResultSchema", () => {
 
 describe("SDKMessageSchema", () => {
 	it("accepts all valid roles", () => {
-		for (const role of ["system", "user", "assistant", "tool", "function_call", "function_result"]) {
+		for (const role of [
+			"system",
+			"user",
+			"assistant",
+			"tool",
+			"function_call",
+			"function_result",
+		]) {
 			const result = SDKMessageSchema.safeParse({ role, content: "hello" });
 			expect(result.success, `role ${role} should be valid`).toBe(true);
 		}
 	});
 
 	it("rejects unknown role", () => {
-		expect(SDKMessageSchema.safeParse({ role: "admin", content: "x" }).success).toBe(false);
+		expect(
+			SDKMessageSchema.safeParse({ role: "admin", content: "x" }).success,
+		).toBe(false);
 	});
 
 	it("accepts optional timestamp", () => {
@@ -130,7 +139,11 @@ describe("SDKTestResultSchema", () => {
 	});
 
 	it("accepts null output and score", () => {
-		const result = SDKTestResultSchema.safeParse({ ...minimal, output: null, score: null });
+		const result = SDKTestResultSchema.safeParse({
+			...minimal,
+			output: null,
+			score: null,
+		});
 		expect(result.success).toBe(true);
 	});
 
@@ -145,7 +158,10 @@ describe("SDKTestResultSchema", () => {
 	});
 
 	it("rejects invalid status", () => {
-		const result = SDKTestResultSchema.safeParse({ ...minimal, status: "cancelled" });
+		const result = SDKTestResultSchema.safeParse({
+			...minimal,
+			status: "cancelled",
+		});
 		expect(result.success).toBe(false);
 	});
 
@@ -158,7 +174,10 @@ describe("SDKTestResultSchema", () => {
 	});
 
 	it("rejects durationMs < 0", () => {
-		const result = SDKTestResultSchema.safeParse({ ...minimal, durationMs: -1 });
+		const result = SDKTestResultSchema.safeParse({
+			...minimal,
+			durationMs: -1,
+		});
 		expect(result.success).toBe(false);
 	});
 });
@@ -186,7 +205,9 @@ describe("SDKTraceSpanSchema", () => {
 		const result = SDKTraceSpanSchema.safeParse({
 			...minimal,
 			messages: [{ role: "user", content: "hello" }],
-			toolCalls: [{ id: "c1", type: "function", function: { name: "fn", arguments: {} } }],
+			toolCalls: [
+				{ id: "c1", type: "function", function: { name: "fn", arguments: {} } },
+			],
 		});
 		expect(result.success).toBe(true);
 	});
@@ -223,7 +244,10 @@ describe("SDKTraceSchema", () => {
 	});
 
 	it("rejects invalid status", () => {
-		const result = SDKTraceSchema.safeParse({ ...minimalTrace, status: "archived" });
+		const result = SDKTraceSchema.safeParse({
+			...minimalTrace,
+			status: "archived",
+		});
 		expect(result.success).toBe(false);
 	});
 
@@ -264,7 +288,10 @@ describe("SDKEvaluationResultSchema", () => {
 	});
 
 	it("rejects invalid status", () => {
-		const result = SDKEvaluationResultSchema.safeParse({ ...minimalEval, status: "archived" });
+		const result = SDKEvaluationResultSchema.safeParse({
+			...minimalEval,
+			status: "archived",
+		});
 		expect(result.success).toBe(false);
 	});
 });
@@ -286,7 +313,9 @@ describe("validateSDKTestResult", () => {
 	});
 
 	it("throws for invalid input", () => {
-		expect(() => validateSDKTestResult({ testCaseId: "not-a-number" })).toThrow();
+		expect(() =>
+			validateSDKTestResult({ testCaseId: "not-a-number" }),
+		).toThrow();
 	});
 });
 

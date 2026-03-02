@@ -162,7 +162,11 @@ export function createTransparencyArtifact(
 		score: v.score,
 		scoreDisplay: formatScore(v.score),
 		reasoning: v.reasoning ?? "No reasoning provided",
-		isOutlier: isOutlier(v.score, result.finalScore, result.agreementStats.stdDev),
+		isOutlier: isOutlier(
+			v.score,
+			result.finalScore,
+			result.agreementStats.stdDev,
+		),
 	}));
 
 	const level = agreementLevel(result.agreementStats.stdDev);

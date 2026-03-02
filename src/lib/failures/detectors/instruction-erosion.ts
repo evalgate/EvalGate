@@ -108,8 +108,14 @@ export function scoreAdherence(
 	instruction: Instruction,
 	responseText: string,
 ): InstructionAdherence {
-	const violationEvidence = matchSignals(responseText, instruction.violationSignals);
-	const adherenceEvidence = matchSignals(responseText, instruction.adherenceSignals);
+	const violationEvidence = matchSignals(
+		responseText,
+		instruction.violationSignals,
+	);
+	const adherenceEvidence = matchSignals(
+		responseText,
+		instruction.adherenceSignals,
+	);
 
 	let score: number;
 	const violated = violationEvidence.length > 0;
@@ -119,7 +125,11 @@ export function scoreAdherence(
 		score = Math.max(0, 0.5 - violationEvidence.length * 0.2);
 	} else if (adherenceEvidence.length > 0) {
 		// Adherence signals present: score scales with coverage
-		const coverage = Math.min(1, adherenceEvidence.length / Math.max(1, instruction.adherenceSignals.length));
+		const coverage = Math.min(
+			1,
+			adherenceEvidence.length /
+				Math.max(1, instruction.adherenceSignals.length),
+		);
 		score = 0.5 + coverage * 0.5;
 	} else {
 		// No signals either way — neutral score
@@ -194,11 +204,11 @@ export function detectInstructionErosion(
 		return scoreAdherence(instruction, o.responseText).violated;
 	}).length;
 
-	const meanAdherence = scores.length > 0
-		? scores.reduce((a, b) => a + b, 0) / scores.length
-		: 1.0;
+	const meanAdherence =
+		scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 1.0;
 
-	const slope = scores.length >= minObservationsForSlope ? computeSlope(scores) : 0;
+	const slope =
+		scores.length >= minObservationsForSlope ? computeSlope(scores) : 0;
 
 	const isEroding =
 		slope <= erosionSlopeThreshold || meanAdherence < lowAdherenceThreshold;
@@ -235,17 +245,24 @@ export function generateErosionReport(
 	const erodingInstructions = results
 		.filter((r) => r.isEroding)
 		.sort((a, b) => {
-			const sev: Record<ErosionSeverity, number> = { severe: 3, moderate: 2, mild: 1, none: 0 };
+			const sev: Record<ErosionSeverity, number> = {
+				severe: 3,
+				moderate: 2,
+				mild: 1,
+				none: 0,
+			};
 			return sev[b.severity] - sev[a.severity];
 		});
 
 	// Weighted erosion index: per-instruction erosion contribution weighted by importance
 	const totalImportance = instructions.reduce((s, i) => s + i.importance, 0);
-	const overallErosionIndex = totalImportance === 0 ? 0 :
-		results.reduce((s, r) => {
-			const erosionMagnitude = r.isEroding ? (1 - r.meanAdherence) : 0;
-			return s + erosionMagnitude * (r.importance / totalImportance);
-		}, 0);
+	const overallErosionIndex =
+		totalImportance === 0
+			? 0
+			: results.reduce((s, r) => {
+					const erosionMagnitude = r.isEroding ? 1 - r.meanAdherence : 0;
+					return s + erosionMagnitude * (r.importance / totalImportance);
+				}, 0);
 
 	return {
 		overallErosionIndex: Math.min(1, Math.max(0, overallErosionIndex)),

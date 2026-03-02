@@ -2,26 +2,35 @@ import { describe, expect, it } from "vitest";
 import {
 	compareTexts,
 	getScoringRecommendation,
-	scoreText,
 	ScoringAlgorithms,
+	scoreText,
 } from "@/lib/scoring/algorithms";
 
 // ── cosineSimilarity ──────────────────────────────────────────────────────────
 
 describe("ScoringAlgorithms.cosineSimilarity", () => {
 	it("returns score=100 for identical texts", () => {
-		const result = ScoringAlgorithms.cosineSimilarity("hello world", "hello world");
+		const result = ScoringAlgorithms.cosineSimilarity(
+			"hello world",
+			"hello world",
+		);
 		expect(result.score).toBe(100);
 		expect(result.details.algorithm).toBe("cosine");
 	});
 
 	it("returns score=0 for completely disjoint texts", () => {
-		const result = ScoringAlgorithms.cosineSimilarity("apple banana", "cat dog");
+		const result = ScoringAlgorithms.cosineSimilarity(
+			"apple banana",
+			"cat dog",
+		);
 		expect(result.score).toBe(0);
 	});
 
 	it("returns score in 0-100 range for partial overlap", () => {
-		const result = ScoringAlgorithms.cosineSimilarity("hello world foo", "hello world bar");
+		const result = ScoringAlgorithms.cosineSimilarity(
+			"hello world foo",
+			"hello world bar",
+		);
 		expect(result.score).toBeGreaterThan(0);
 		expect(result.score).toBeLessThan(100);
 	});
@@ -44,7 +53,10 @@ describe("ScoringAlgorithms.cosineSimilarity", () => {
 	});
 
 	it("includes token counts in metrics", () => {
-		const result = ScoringAlgorithms.cosineSimilarity("one two three", "one two");
+		const result = ScoringAlgorithms.cosineSimilarity(
+			"one two three",
+			"one two",
+		);
 		expect(result.details.metrics.tokens1).toBe(3);
 		expect(result.details.metrics.tokens2).toBe(2);
 	});
@@ -86,13 +98,19 @@ describe("ScoringAlgorithms.levenshteinDistance", () => {
 
 describe("ScoringAlgorithms.jaccardSimilarity", () => {
 	it("returns score=100 for identical texts", () => {
-		const result = ScoringAlgorithms.jaccardSimilarity("hello world", "hello world");
+		const result = ScoringAlgorithms.jaccardSimilarity(
+			"hello world",
+			"hello world",
+		);
 		expect(result.score).toBe(100);
 		expect(result.details.algorithm).toBe("jaccard");
 	});
 
 	it("returns score=0 for completely disjoint token sets", () => {
-		const result = ScoringAlgorithms.jaccardSimilarity("alpha beta", "gamma delta");
+		const result = ScoringAlgorithms.jaccardSimilarity(
+			"alpha beta",
+			"gamma delta",
+		);
 		expect(result.score).toBe(0);
 	});
 
@@ -118,7 +136,10 @@ describe("ScoringAlgorithms.jaccardSimilarity", () => {
 
 describe("ScoringAlgorithms.bleuScore", () => {
 	it("returns high score for identical text", () => {
-		const result = ScoringAlgorithms.bleuScore("the cat sat on the mat", "the cat sat on the mat");
+		const result = ScoringAlgorithms.bleuScore(
+			"the cat sat on the mat",
+			"the cat sat on the mat",
+		);
 		expect(result.score).toBeGreaterThan(80);
 		expect(result.details.algorithm).toBe("bleu");
 	});
@@ -155,21 +176,31 @@ describe("ScoringAlgorithms.bleuScore", () => {
 
 describe("ScoringAlgorithms.combinedScore", () => {
 	it("returns high score for identical text", () => {
-		const result = ScoringAlgorithms.combinedScore("hello world", "hello world");
+		const result = ScoringAlgorithms.combinedScore(
+			"hello world",
+			"hello world",
+		);
 		expect(result.score).toBeGreaterThan(80);
 		expect(result.details.algorithm).toBe("combined");
 	});
 
 	it("score is in 0-100 range", () => {
-		const result = ScoringAlgorithms.combinedScore("foo bar baz", "different text entirely");
+		const result = ScoringAlgorithms.combinedScore(
+			"foo bar baz",
+			"different text entirely",
+		);
 		expect(result.score).toBeGreaterThanOrEqual(0);
 		expect(result.score).toBeLessThanOrEqual(100);
 	});
 
 	it("accepts custom weights", () => {
-		const result = ScoringAlgorithms.combinedScore("hello world", "hello world", {
-			weights: { semantic: 1, syntactic: 0, length: 0 },
-		});
+		const result = ScoringAlgorithms.combinedScore(
+			"hello world",
+			"hello world",
+			{
+				weights: { semantic: 1, syntactic: 0, length: 0 },
+			},
+		);
 		expect(result.score).toBeGreaterThan(0);
 		expect(result.details.metrics.weight_semantic).toBe(1);
 	});
@@ -213,7 +244,10 @@ describe("ScoringAlgorithms.batchScore", () => {
 
 describe("ScoringAlgorithms.getRecommendation", () => {
 	it("returns a recommendation object", () => {
-		const rec = ScoringAlgorithms.getRecommendation("hello world", "hello world");
+		const rec = ScoringAlgorithms.getRecommendation(
+			"hello world",
+			"hello world",
+		);
 		expect(rec).toBeDefined();
 		expect(typeof rec).toBe("object");
 	});

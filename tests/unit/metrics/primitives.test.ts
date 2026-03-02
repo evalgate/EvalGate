@@ -7,13 +7,13 @@ import {
 	jaccardSimilarity,
 	latencyScore,
 	lengthRatio,
+	type MetricContext,
 	maxLength,
 	PRIMITIVE_REGISTRY,
 	regexMatch,
 	requiredToolUsed,
 	tokenF1,
 	toolSuccessRate,
-	type MetricContext,
 } from "@/lib/metrics/primitives";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -43,12 +43,16 @@ describe("exactMatch", () => {
 	});
 
 	it("respects caseSensitive option", () => {
-		const r = exactMatch(ctx({ response: "paris", expectedOutput: "Paris" }), { caseSensitive: true });
+		const r = exactMatch(ctx({ response: "paris", expectedOutput: "Paris" }), {
+			caseSensitive: true,
+		});
 		expect(r.score).toBe(0);
 	});
 
 	it("trims whitespace", () => {
-		const r = exactMatch(ctx({ response: "  Paris  ", expectedOutput: "Paris" }));
+		const r = exactMatch(
+			ctx({ response: "  Paris  ", expectedOutput: "Paris" }),
+		);
 		expect(r.score).toBe(1);
 	});
 
@@ -62,22 +66,31 @@ describe("exactMatch", () => {
 
 describe("containsMatch", () => {
 	it("returns 1 when response contains expected", () => {
-		const r = containsMatch(ctx({ response: "The capital is Paris.", expectedOutput: "Paris" }));
+		const r = containsMatch(
+			ctx({ response: "The capital is Paris.", expectedOutput: "Paris" }),
+		);
 		expect(r.score).toBe(1);
 	});
 
 	it("returns 0 when response does not contain expected", () => {
-		const r = containsMatch(ctx({ response: "Berlin is great.", expectedOutput: "Paris" }));
+		const r = containsMatch(
+			ctx({ response: "Berlin is great.", expectedOutput: "Paris" }),
+		);
 		expect(r.score).toBe(0);
 	});
 
 	it("is case-insensitive by default", () => {
-		const r = containsMatch(ctx({ response: "the answer is PARIS", expectedOutput: "paris" }));
+		const r = containsMatch(
+			ctx({ response: "the answer is PARIS", expectedOutput: "paris" }),
+		);
 		expect(r.score).toBe(1);
 	});
 
 	it("respects caseSensitive option", () => {
-		const r = containsMatch(ctx({ response: "paris", expectedOutput: "Paris" }), { caseSensitive: true });
+		const r = containsMatch(
+			ctx({ response: "paris", expectedOutput: "Paris" }),
+			{ caseSensitive: true },
+		);
 		expect(r.score).toBe(0);
 	});
 });
@@ -86,12 +99,16 @@ describe("containsMatch", () => {
 
 describe("regexMatch", () => {
 	it("returns 1 for matching pattern", () => {
-		const r = regexMatch(ctx({ response: "The answer is 42" }), { pattern: "\\d+" });
+		const r = regexMatch(ctx({ response: "The answer is 42" }), {
+			pattern: "\\d+",
+		});
 		expect(r.score).toBe(1);
 	});
 
 	it("returns 0 for non-matching pattern", () => {
-		const r = regexMatch(ctx({ response: "No numbers here" }), { pattern: "\\d+" });
+		const r = regexMatch(ctx({ response: "No numbers here" }), {
+			pattern: "\\d+",
+		});
 		expect(r.score).toBe(0);
 	});
 
@@ -117,18 +134,27 @@ describe("regexMatch", () => {
 
 describe("tokenF1", () => {
 	it("returns 1 for identical response and expected", () => {
-		const r = tokenF1(ctx({ response: "Paris is beautiful", expectedOutput: "Paris is beautiful" }));
+		const r = tokenF1(
+			ctx({
+				response: "Paris is beautiful",
+				expectedOutput: "Paris is beautiful",
+			}),
+		);
 		expect(r.score).toBeCloseTo(1.0);
 	});
 
 	it("returns > 0 for partial match", () => {
-		const r = tokenF1(ctx({ response: "Paris is great", expectedOutput: "Paris is beautiful" }));
+		const r = tokenF1(
+			ctx({ response: "Paris is great", expectedOutput: "Paris is beautiful" }),
+		);
 		expect(r.score).toBeGreaterThan(0);
 		expect(r.score).toBeLessThan(1);
 	});
 
 	it("returns 0 for completely different tokens", () => {
-		const r = tokenF1(ctx({ response: "London rain", expectedOutput: "Paris sunshine" }));
+		const r = tokenF1(
+			ctx({ response: "London rain", expectedOutput: "Paris sunshine" }),
+		);
 		expect(r.score).toBe(0);
 	});
 
@@ -142,17 +168,23 @@ describe("tokenF1", () => {
 
 describe("jaccardSimilarity", () => {
 	it("returns 1 for identical texts", () => {
-		const r = jaccardSimilarity(ctx({ response: "hello world", expectedOutput: "hello world" }));
+		const r = jaccardSimilarity(
+			ctx({ response: "hello world", expectedOutput: "hello world" }),
+		);
 		expect(r.score).toBeCloseTo(1.0);
 	});
 
 	it("returns 0 for completely different texts", () => {
-		const r = jaccardSimilarity(ctx({ response: "apple orange", expectedOutput: "cat dog" }));
+		const r = jaccardSimilarity(
+			ctx({ response: "apple orange", expectedOutput: "cat dog" }),
+		);
 		expect(r.score).toBe(0);
 	});
 
 	it("returns intermediate score for partial overlap", () => {
-		const r = jaccardSimilarity(ctx({ response: "hello world", expectedOutput: "hello there" }));
+		const r = jaccardSimilarity(
+			ctx({ response: "hello world", expectedOutput: "hello there" }),
+		);
 		expect(r.score).toBeGreaterThan(0);
 		expect(r.score).toBeLessThan(1);
 	});
@@ -168,12 +200,16 @@ describe("lengthRatio", () => {
 	});
 
 	it("penalises very long responses", () => {
-		const r = lengthRatio(ctx({ response: "a".repeat(500), expectedOutput: "a".repeat(10) }));
+		const r = lengthRatio(
+			ctx({ response: "a".repeat(500), expectedOutput: "a".repeat(10) }),
+		);
 		expect(r.passed).toBe(false);
 	});
 
 	it("penalises very short responses", () => {
-		const r = lengthRatio(ctx({ response: "a", expectedOutput: "a".repeat(100) }));
+		const r = lengthRatio(
+			ctx({ response: "a", expectedOutput: "a".repeat(100) }),
+		);
 		expect(r.passed).toBe(false);
 	});
 });
@@ -248,16 +284,26 @@ describe("costScore", () => {
 
 describe("toolSuccessRate", () => {
 	it("returns 1 for all successful tool calls", () => {
-		const r = toolSuccessRate(ctx({
-			toolCalls: [{ name: "search", success: true }, { name: "calc", success: true }],
-		}));
+		const r = toolSuccessRate(
+			ctx({
+				toolCalls: [
+					{ name: "search", success: true },
+					{ name: "calc", success: true },
+				],
+			}),
+		);
 		expect(r.score).toBe(1);
 	});
 
 	it("returns 0.5 for half successful", () => {
-		const r = toolSuccessRate(ctx({
-			toolCalls: [{ name: "a", success: true }, { name: "b", success: false }],
-		}));
+		const r = toolSuccessRate(
+			ctx({
+				toolCalls: [
+					{ name: "a", success: true },
+					{ name: "b", success: false },
+				],
+			}),
+		);
 		expect(r.score).toBe(0.5);
 	});
 
@@ -297,12 +343,23 @@ describe("requiredToolUsed", () => {
 describe("PRIMITIVE_REGISTRY", () => {
 	it("contains all expected primitives", () => {
 		const expected = [
-			"exact_match", "contains_match", "regex_match", "token_f1",
-			"jaccard_similarity", "length_ratio", "max_length",
-			"latency_score", "cost_score", "tool_success_rate", "required_tool_used",
+			"exact_match",
+			"contains_match",
+			"regex_match",
+			"token_f1",
+			"jaccard_similarity",
+			"length_ratio",
+			"max_length",
+			"latency_score",
+			"cost_score",
+			"tool_success_rate",
+			"required_tool_used",
 		];
 		for (const name of expected) {
-			expect(PRIMITIVE_REGISTRY[name], `missing primitive: ${name}`).toBeDefined();
+			expect(
+				PRIMITIVE_REGISTRY[name],
+				`missing primitive: ${name}`,
+			).toBeDefined();
 		}
 	});
 

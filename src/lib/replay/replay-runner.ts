@@ -9,11 +9,11 @@
 
 import {
 	classifyDeterminism,
-	formatTierSummary,
-	validateReplayResult,
 	type DeterminismClassification,
 	type DeterminismOptions,
+	formatTierSummary,
 	type SnapshotForClassification,
+	validateReplayResult,
 } from "./determinism";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -133,7 +133,9 @@ export interface ReplayJobResult {
 
 const TIER_RANK: Record<ReplayTier, number> = { A: 3, B: 2, C: 1 };
 
-function toSnapshotForClassification(s: FrozenTraceSnapshot): SnapshotForClassification {
+function toSnapshotForClassification(
+	s: FrozenTraceSnapshot,
+): SnapshotForClassification {
 	return {
 		commitSha: s.commitSha,
 		toolOutputCaptureMode: s.toolOutputCaptureMode,
@@ -189,7 +191,13 @@ export function buildReplayPlan(job: ReplayJob): ReplayPlan {
 			}
 		}
 
-		plannedReplays.push({ traceId: snapshot.traceId, tier, classification, blocked, blockReason });
+		plannedReplays.push({
+			traceId: snapshot.traceId,
+			tier,
+			classification,
+			blocked,
+			blockReason,
+		});
 	}
 
 	return {
@@ -301,9 +309,12 @@ export async function executeReplayJob(
 	}
 
 	const passedCount = results.filter((r) => r.status === "passed").length;
-	const failedCount = results.filter((r) => r.status === "failed_tolerance" || r.status === "failed_eval").length;
+	const failedCount = results.filter(
+		(r) => r.status === "failed_tolerance" || r.status === "failed_eval",
+	).length;
 	const errorCount = results.filter((r) => r.status === "error").length;
-	const skippedCount = results.filter((r) => r.status === "skipped").length + plan.skippedCount;
+	const skippedCount =
+		results.filter((r) => r.status === "skipped").length + plan.skippedCount;
 	const totalDurationMs = Date.now() - startMs;
 	const overallPassed = failedCount === 0 && errorCount === 0;
 
@@ -348,7 +359,9 @@ export function formatReplayPlan(plan: ReplayPlan): string {
 		lines.push("Planned:");
 		for (const p of plan.plannedReplays) {
 			const tierLabel = p.classification.label;
-			const status = p.blocked ? "🚫 BLOCKED" : `✅ Tier ${p.tier} (${tierLabel})`;
+			const status = p.blocked
+				? "🚫 BLOCKED"
+				: `✅ Tier ${p.tier} (${tierLabel})`;
 			lines.push(`  ${p.traceId}: ${status}`);
 			if (p.blockReason) lines.push(`    ↳ ${p.blockReason}`);
 		}

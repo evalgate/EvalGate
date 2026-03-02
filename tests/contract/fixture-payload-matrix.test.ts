@@ -11,7 +11,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { validateSpanUpload, validateTraceUpload } from "@/lib/traces/trace-validator";
+import {
+	validateSpanUpload,
+	validateTraceUpload,
+} from "@/lib/traces/trace-validator";
 
 // ── Fixture loader ────────────────────────────────────────────────────────────
 
@@ -51,7 +54,10 @@ describe("Fixture file: trace_v1.json", () => {
 	});
 
 	it("serializes and re-parses without data loss", () => {
-		const roundtripped = JSON.parse(JSON.stringify(fixture)) as Record<string, unknown>;
+		const roundtripped = JSON.parse(JSON.stringify(fixture)) as Record<
+			string,
+			unknown
+		>;
 		expect(roundtripped.traceId).toBe(fixture.traceId);
 		expect(roundtripped.specVersion).toBe(fixture.specVersion);
 	});
@@ -94,7 +100,10 @@ describe("Fixture file: span_v1.json", () => {
 	});
 
 	it("toolCalls have name, arguments, success", () => {
-		const b = fixture.behavioral as Record<string, Array<Record<string, unknown>>>;
+		const b = fixture.behavioral as Record<
+			string,
+			Array<Record<string, unknown>>
+		>;
 		const tc = b.toolCalls[0]!;
 		expect(typeof tc.name).toBe("string");
 		expect(typeof tc.arguments).toBe("object");
@@ -102,7 +111,10 @@ describe("Fixture file: span_v1.json", () => {
 	});
 
 	it("serializes and re-parses without data loss", () => {
-		const roundtripped = JSON.parse(JSON.stringify(fixture)) as Record<string, unknown>;
+		const roundtripped = JSON.parse(JSON.stringify(fixture)) as Record<
+			string,
+			unknown
+		>;
 		expect(roundtripped.spanId).toBe(fixture.spanId);
 	});
 });

@@ -1,51 +1,51 @@
 {
-  "_comment": "Canonical span_v1 fixture. Used by TS contract tests and Python SDK contract tests.",
-  "_schemaVersion": 1,
-  "specVersion": 1,
-  "spanId": "fixture-span-v1-001",
-  "name": "llm-call",
-  "type": "llm",
-  "durationMs": 980,
-  "startTime": "2024-01-01T00:00:00.000Z",
-  "endTime": "2024-01-01T00:00:00.980Z",
-  "input": { "prompt": "What is the capital of France?" },
-  "output": { "content": "The capital of France is Paris." },
-  "metadata": {
-    "model": "gpt-4o",
-    "provider": "openai",
-    "temperature": 0.7,
-    "tokenCount": 42
-  },
-  "behavioral": {
-    "messages": [
-      { "role": "system", "content": "You are a helpful assistant." },
-      { "role": "user", "content": "What is the capital of France?" },
-      { "role": "assistant", "content": "The capital of France is Paris." }
-    ],
-    "toolCalls": [
-      {
-        "name": "search",
-        "arguments": { "query": "capital of France" },
-        "output": { "result": "Paris" },
-        "success": true,
-        "durationMs": 120
-      }
-    ],
-    "reasoningSegments": [
-      {
-        "stepIndex": 0,
-        "type": "chain_of_thought",
-        "content": "The user is asking a geography question.",
-        "confidence": 0.99
-      }
-    ],
-    "retrievedDocuments": [
-      {
-        "documentId": "doc-france-001",
-        "score": 0.97,
-        "source": "geography-kb",
-        "content": "Paris is the capital and most populous city of France."
-      }
-    ]
-  }
+	"_comment": "Canonical span_v1 fixture. Used by TS contract tests and Python SDK contract tests.",
+	"_schemaVersion": 1,
+	"specVersion": 1,
+	"spanId": "fixture-span-v1-001",
+	"name": "llm-call",
+	"type": "llm",
+	"durationMs": 980,
+	"startTime": "2024-01-01T00:00:00.000Z",
+	"endTime": "2024-01-01T00:00:00.980Z",
+	"input": { "prompt": "What is the capital of France?" },
+	"output": { "content": "The capital of France is Paris." },
+	"metadata": {
+		"model": "gpt-4o",
+		"provider": "openai",
+		"temperature": 0.7,
+		"tokenCount": 42
+	},
+	"behavioral": {
+		"messages": [
+			{ "role": "system", "content": "You are a helpful assistant." },
+			{ "role": "user", "content": "What is the capital of France?" },
+			{ "role": "assistant", "content": "The capital of France is Paris." }
+		],
+		"toolCalls": [
+			{
+				"name": "search",
+				"arguments": { "query": "capital of France" },
+				"output": { "result": "Paris" },
+				"success": true,
+				"durationMs": 120
+			}
+		],
+		"reasoningSegments": [
+			{
+				"stepIndex": 0,
+				"type": "chain_of_thought",
+				"content": "The user is asking a geography question.",
+				"confidence": 0.99
+			}
+		],
+		"retrievedDocuments": [
+			{
+				"documentId": "doc-france-001",
+				"score": 0.97,
+				"source": "geography-kb",
+				"content": "Paris is the capital and most populous city of France."
+			}
+		]
+	}
 }

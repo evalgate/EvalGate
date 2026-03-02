@@ -89,7 +89,14 @@ export function computeAgreementStats(
 	finalScore?: number,
 ): AgreementStats {
 	if (scores.length === 0) {
-		return { stdDev: 0, range: 0, consensusRatio: 1, agreementRatio: 1, isHighAgreement: true, outlierJudgeIds: [] };
+		return {
+			stdDev: 0,
+			range: 0,
+			consensusRatio: 1,
+			agreementRatio: 1,
+			isHighAgreement: true,
+			outlierJudgeIds: [],
+		};
 	}
 
 	const med = median(scores);
@@ -110,7 +117,14 @@ export function computeAgreementStats(
 		}
 	}
 
-	return { stdDev: sd, range, consensusRatio, agreementRatio: consensusRatio, isHighAgreement, outlierJudgeIds };
+	return {
+		stdDev: sd,
+		range,
+		consensusRatio,
+		agreementRatio: consensusRatio,
+		isHighAgreement,
+		outlierJudgeIds,
+	};
 }
 
 // ── Aggregation strategies ────────────────────────────────────────────────────

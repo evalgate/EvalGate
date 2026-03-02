@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-	cosineSimilarity,
 	combinedScore,
+	cosineSimilarity,
 	keywordMatchRate,
 	levenshteinSimilarity,
 } from "@/lib/scoring/similarity";
@@ -99,14 +99,23 @@ describe("combinedScore", () => {
 	});
 
 	it("returns higher score for more similar strings", () => {
-		const highSim = combinedScore("Paris is the capital", "Paris is the capital of France");
+		const highSim = combinedScore(
+			"Paris is the capital",
+			"Paris is the capital of France",
+		);
 		const lowSim = combinedScore("Paris is the capital", "Tokyo is in Japan");
 		expect(highSim).toBeGreaterThan(lowSim);
 	});
 
 	it("respects custom weights", () => {
-		const s1 = combinedScore("hello world", "hello earth", { cosine: 1, levenshtein: 0 });
-		const s2 = combinedScore("hello world", "hello earth", { cosine: 0, levenshtein: 1 });
+		const s1 = combinedScore("hello world", "hello earth", {
+			cosine: 1,
+			levenshtein: 0,
+		});
+		const s2 = combinedScore("hello world", "hello earth", {
+			cosine: 0,
+			levenshtein: 1,
+		});
 		// Different weights should produce different (or equal) scores
 		expect(typeof s1).toBe("number");
 		expect(typeof s2).toBe("number");
@@ -122,7 +131,12 @@ describe("combinedScore", () => {
 
 describe("keywordMatchRate", () => {
 	it("returns 100 when all keywords match", () => {
-		expect(keywordMatchRate("capital france paris", "paris is the capital of france")).toBe(100);
+		expect(
+			keywordMatchRate(
+				"capital france paris",
+				"paris is the capital of france",
+			),
+		).toBe(100);
 	});
 
 	it("returns 0 when no keywords match", () => {

@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * EvalGate Golden Path Demo
  *
@@ -18,13 +19,25 @@
  *   7. Dataset health snapshot
  */
 
+import {
+	buildCheckRunPayload,
+	buildPRCommentBody,
+} from "../src/lib/ci/github-pr-annotations";
+import {
+	analyzeDatasetHealth,
+	computeDatasetTrend,
+	type DatasetEntry,
+} from "../src/lib/dataset/health-analyzer";
+import { detectRuleBased } from "../src/lib/failures/detectors/rule-based";
+import { buildReplayPlan } from "../src/lib/replay/replay-runner";
+import {
+	createGeneratedTestCase,
+	getGatingCases,
+	promoteTestCase,
+	quarantineTestCase,
+} from "../src/lib/testcases/quarantine";
 import { freezeTrace } from "../src/lib/traces/trace-freezer";
 import { validateTraceUpload } from "../src/lib/traces/trace-validator";
-import { detectRuleBased } from "../src/lib/failures/detectors/rule-based";
-import { createGeneratedTestCase, quarantineTestCase, promoteTestCase, getGatingCases } from "../src/lib/testcases/quarantine";
-import { buildCheckRunPayload, buildPRCommentBody } from "../src/lib/ci/github-pr-annotations";
-import { buildReplayPlan } from "../src/lib/replay/replay-runner";
-import { analyzeDatasetHealth, computeDatasetTrend, type DatasetEntry } from "../src/lib/dataset/health-analyzer";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -39,8 +52,12 @@ function ok(msg: string) {
 }
 
 function info(label: string, value: unknown) {
-	const str = typeof value === "string" ? value : JSON.stringify(value, null, 2);
-	const indented = str.split("\n").map((l) => `     ${l}`).join("\n");
+	const str =
+		typeof value === "string" ? value : JSON.stringify(value, null, 2);
+	const indented = str
+		.split("\n")
+		.map((l) => `     ${l}`)
+		.join("\n");
 	console.log(`  ↳  ${label}:\n${indented}`);
 }
 
@@ -87,7 +104,10 @@ const traceForFreezing = {
 				messages: [
 					{ role: "system" as const, content: "You are a helpful assistant." },
 					{ role: "user" as const, content: "Summarize this complaint." },
-					{ role: "assistant" as const, content: "I cannot determine the root cause." },
+					{
+						role: "assistant" as const,
+						content: "I cannot determine the root cause.",
+					},
 				],
 				toolCalls: [
 					{
@@ -107,7 +127,10 @@ const traceForFreezing = {
 			metadata: { model: "gpt-4o", provider: "openai", temperature: 0.7 },
 			behavioral: {
 				messages: [
-					{ role: "assistant" as const, content: "I'm sorry, I cannot help with that." },
+					{
+						role: "assistant" as const,
+						content: "I'm sorry, I cannot help with that.",
+					},
 				],
 			},
 		},
@@ -121,7 +144,9 @@ const snapshot = freezeTrace(traceForFreezing, {
 });
 
 ok(`Frozen at: ${snapshot.frozenAt}`);
-ok(`Redacted: ${snapshot.redacted} (profile: ${snapshot.redactionProfileId ?? "none"})`);
+ok(
+	`Redacted: ${snapshot.redacted} (profile: ${snapshot.redactionProfileId ?? "none"})`,
+);
 ok(`Replay tier: ${snapshot.replayTier}`);
 ok(`Spans captured: ${snapshot.spans.length}`);
 
@@ -137,7 +162,9 @@ const failures = detectRuleBased({ output: allOutput });
 
 if (failures.length > 0) {
 	for (const f of failures) {
-		ok(`Detected: ${f.category} (rawConfidence: ${f.rawConfidence.toFixed(2)})`);
+		ok(
+			`Detected: ${f.category} (rawConfidence: ${f.rawConfidence.toFixed(2)})`,
+		);
 		if (f.evidence) info("evidence", f.evidence);
 	}
 } else {
@@ -164,14 +191,20 @@ const generated = createGeneratedTestCase({
 });
 ok(`Generated test case: ${generated.id} (status: ${generated.status})`);
 
-const quarantined = quarantineTestCase(generated, { actor: "system", reason: "Auto-quarantine after failure" });
+const quarantined = quarantineTestCase(generated, {
+	actor: "system",
+	reason: "Auto-quarantine after failure",
+});
 if (quarantined.success) ok(`Quarantined: ${quarantined.testCase.status}`);
 
-const promoted = promoteTestCase(quarantined.success ? quarantined.testCase : generated, {
-	actor: "engineer@example.com",
-	reason: "Confirmed regression — add to gating suite",
-	minQualityScore: 0.7,
-});
+const promoted = promoteTestCase(
+	quarantined.success ? quarantined.testCase : generated,
+	{
+		actor: "engineer@example.com",
+		reason: "Confirmed regression — add to gating suite",
+		minQualityScore: 0.7,
+	},
+);
 if (promoted.success) {
 	ok(`Promoted by: ${promoted.testCase.auditTrail.at(-1)?.actor}`);
 	ok(`Gating cases: ${getGatingCases([promoted.testCase]).length}`);
@@ -191,7 +224,7 @@ const evalSummary = {
 	overallScore: 0.74,
 	completedAt: new Date().toISOString(),
 	results: [],
-	baselineScore: 0.80,
+	baselineScore: 0.8,
 	scoreDelta: -0.06,
 };
 
@@ -205,7 +238,9 @@ ok(`Check run conclusion: ${checkRun.conclusion}`);
 ok(`Title: ${checkRun.output.title}`);
 
 const prComment = buildPRCommentBody(evalSummary, { passThreshold: 0.9 });
-ok(`PR comment preview (first 120 chars): ${prComment.slice(0, 120).replace(/\n/g, " ")}...`);
+ok(
+	`PR comment preview (first 120 chars): ${prComment.slice(0, 120).replace(/\n/g, " ")}...`,
+);
 
 // ── Step 6: Replay plan ───────────────────────────────────────────────────────
 
@@ -219,9 +254,17 @@ const replayJob = {
 			traceId: snapshot.traceId,
 			commitSha: snapshot.commitSha,
 			toolOutputCaptureMode: snapshot.toolOutputCaptureMode,
-			externalDeps: snapshot.externalDeps.map((d) => ({ captured: d.captured, type: d.type })),
-			modelConfig: { model: snapshot.modelConfig.model, temperature: snapshot.modelConfig.temperature },
-			spans: snapshot.spans.map((s) => ({ toolCalls: s.toolCalls.map((tc) => ({ captureMode: tc.captureMode })) })),
+			externalDeps: snapshot.externalDeps.map((d) => ({
+				captured: d.captured,
+				type: d.type,
+			})),
+			modelConfig: {
+				model: snapshot.modelConfig.model,
+				temperature: snapshot.modelConfig.temperature,
+			},
+			spans: snapshot.spans.map((s) => ({
+				toolCalls: s.toolCalls.map((tc) => ({ captureMode: tc.captureMode })),
+			})),
 			originalScore: 0.74,
 			originalPassed: false,
 			capturedInput: { prompt: "Summarize this complaint." },
@@ -233,7 +276,9 @@ const replayJob = {
 };
 
 const plan = buildReplayPlan(replayJob);
-ok(`Replay plan: ${plan.totalSnapshots} snapshot(s), ${plan.plannedReplays.length} planned, ${plan.skippedCount} skipped`);
+ok(
+	`Replay plan: ${plan.totalSnapshots} snapshot(s), ${plan.plannedReplays.length} planned, ${plan.skippedCount} skipped`,
+);
 ok(`Has blockers: ${plan.hasBlockers}`);
 
 // ── Step 7: Dataset health snapshot ──────────────────────────────────────────
@@ -246,9 +291,9 @@ function makeEntry(id: string, input: string, score: number): DatasetEntry {
 
 const prevEntries: DatasetEntry[] = [
 	makeEntry("e1", "What is 2+2?", 0.95),
-	makeEntry("e2", "Summarize this article.", 0.90),
+	makeEntry("e2", "Summarize this article.", 0.9),
 	makeEntry("e3", "Translate to Spanish.", 0.88),
-	makeEntry("e4", "Summarize this article.", 0.90), // near-duplicate
+	makeEntry("e4", "Summarize this article.", 0.9), // near-duplicate
 ];
 
 const currEntries: DatasetEntry[] = [
@@ -274,5 +319,7 @@ console.log(`\n${"═".repeat(60)}`);
 console.log("  EvalGate Golden Path — COMPLETE");
 console.log(`${"═".repeat(60)}`);
 console.log("  All 7 steps executed with zero mocks, zero DB, zero network.");
-console.log("  The loop: SDK → freeze → detect → quarantine → PR gate → replay → health.");
+console.log(
+	"  The loop: SDK → freeze → detect → quarantine → PR gate → replay → health.",
+);
 console.log(`${"═".repeat(60)}\n`);

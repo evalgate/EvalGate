@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { TEMPLATE_CATEGORIES } from "@/lib/evaluation-templates/categories";
 import {
 	COMPREHENSIVE_TEMPLATES,
 	getTemplateById,
 	getTemplatesByCategory,
 } from "@/lib/evaluation-templates/helpers";
-import { TEMPLATE_CATEGORIES } from "@/lib/evaluation-templates/categories";
 
 // ── COMPREHENSIVE_TEMPLATES ───────────────────────────────────────────────────
 
@@ -60,7 +60,9 @@ describe("getTemplatesByCategory", () => {
 	});
 
 	it("all returned templates belong to the requested category", () => {
-		const allCategories = [...new Set(COMPREHENSIVE_TEMPLATES.map((t) => t.category))];
+		const allCategories = [
+			...new Set(COMPREHENSIVE_TEMPLATES.map((t) => t.category)),
+		];
 		for (const cat of allCategories) {
 			const results = getTemplatesByCategory(cat);
 			for (const t of results) {
@@ -70,7 +72,9 @@ describe("getTemplatesByCategory", () => {
 	});
 
 	it("total templates across all categories equals COMPREHENSIVE_TEMPLATES length", () => {
-		const allCategories = [...new Set(COMPREHENSIVE_TEMPLATES.map((t) => t.category))];
+		const allCategories = [
+			...new Set(COMPREHENSIVE_TEMPLATES.map((t) => t.category)),
+		];
 		const total = allCategories.reduce(
 			(sum, cat) => sum + getTemplatesByCategory(cat).length,
 			0,

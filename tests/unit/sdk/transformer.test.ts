@@ -1,4 +1,9 @@
 import { describe, expect, it } from "vitest";
+import type {
+	SDKEvaluationResult,
+	SDKTestResult,
+	SDKTrace,
+} from "@/lib/sdk/mapper";
 import {
 	calculateMetrics,
 	extractMessagesFromTrace,
@@ -6,7 +11,6 @@ import {
 	transformTestResultToDB,
 	transformTraceToDB,
 } from "@/lib/sdk/transformer";
-import type { SDKEvaluationResult, SDKTestResult, SDKTrace } from "@/lib/sdk/mapper";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -51,7 +55,10 @@ function makeTrace(overrides: Partial<SDKTrace> = {}): SDKTrace {
 					{
 						id: "tc-1",
 						type: "function",
-						function: { name: "calculator", arguments: { a: 6, b: 7, op: "multiply" } },
+						function: {
+							name: "calculator",
+							arguments: { a: 6, b: 7, op: "multiply" },
+						},
 						result: 42,
 						timestamp: "2024-01-01T00:00:00.200Z",
 					},
@@ -62,7 +69,9 @@ function makeTrace(overrides: Partial<SDKTrace> = {}): SDKTrace {
 	};
 }
 
-function makeEvalResult(overrides: Partial<SDKEvaluationResult> = {}): SDKEvaluationResult {
+function makeEvalResult(
+	overrides: Partial<SDKEvaluationResult> = {},
+): SDKEvaluationResult {
 	return {
 		evaluationId: 1,
 		runId: "run-001",
@@ -123,12 +132,21 @@ describe("transformTestResultToDB", () => {
 		const tc = makeTestResult({
 			assertions: [
 				{ key: "no_pii", category: "privacy", passed: true },
-				{ key: "safe", category: "safety", passed: false, score: 0.1, severity: "high" },
+				{
+					key: "safe",
+					category: "safety",
+					passed: false,
+					score: 0.1,
+					severity: "high",
+				},
 			],
 		});
 		const row = transformTestResultToDB(tc, 1, 1);
 		expect((row as Record<string, unknown>).assertionsJson).toBeDefined();
-		const env = (row as Record<string, unknown>).assertionsJson as { version: string; assertions: unknown[] };
+		const env = (row as Record<string, unknown>).assertionsJson as {
+			version: string;
+			assertions: unknown[];
+		};
 		expect(env.version).toBe("v1");
 		expect(env.assertions).toHaveLength(2);
 	});
@@ -139,7 +157,11 @@ describe("transformTestResultToDB", () => {
 	});
 
 	it("passes null output and score through", () => {
-		const row = transformTestResultToDB(makeTestResult({ output: null, score: null }), 1, 1);
+		const row = transformTestResultToDB(
+			makeTestResult({ output: null, score: null }),
+			1,
+			1,
+		);
 		expect(row.output).toBeNull();
 		expect(row.score).toBeNull();
 	});
@@ -209,7 +231,9 @@ describe("extractMessagesFromTrace", () => {
 
 	it("attaches spanName to each message", () => {
 		const messages = extractMessagesFromTrace(makeTrace());
-		const nonToolMessages = messages.filter((m) => m.role !== "tool" && m.role !== "tool_result");
+		const nonToolMessages = messages.filter(
+			(m) => m.role !== "tool" && m.role !== "tool_result",
+		);
 		for (const msg of nonToolMessages) {
 			expect(msg.spanName).toBe("llm-call");
 		}
@@ -291,7 +315,10 @@ describe("calculateMetrics", () => {
 	it("returns averageScore=0 when all scores are null", () => {
 		const metrics = calculateMetrics(
 			makeEvalResult({
-				results: [makeTestResult({ score: null }), makeTestResult({ score: null })],
+				results: [
+					makeTestResult({ score: null }),
+					makeTestResult({ score: null }),
+				],
 			}),
 		);
 		expect(metrics.averageScore).toBe(0);

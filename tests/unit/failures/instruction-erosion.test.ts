@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
 	detectInstructionErosion,
 	generateErosionReport,
-	scoreAdherence,
 	type Instruction,
 	type InstructionObservation,
+	scoreAdherence,
 } from "@/lib/failures/detectors/instruction-erosion";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -23,47 +23,81 @@ const CONCISE_INSTRUCTION: Instruction = {
 	id: "concise",
 	description: "Keep responses under 100 words",
 	adherenceSignals: ["brief", "summary", "in short"],
-	violationSignals: ["furthermore", "additionally", "moreover", "in conclusion", "to summarize at length"],
+	violationSignals: [
+		"furthermore",
+		"additionally",
+		"moreover",
+		"in conclusion",
+		"to summarize at length",
+	],
 	importance: 0.5,
 };
 
-function obs(instructionId: string, text: string, offsetMs = 0, manual?: number): InstructionObservation {
-	return { instructionId, responseText: text, timestamp: now + offsetMs, manualScore: manual };
+function obs(
+	instructionId: string,
+	text: string,
+	offsetMs = 0,
+	manual?: number,
+): InstructionObservation {
+	return {
+		instructionId,
+		responseText: text,
+		timestamp: now + offsetMs,
+		manualScore: manual,
+	};
 }
 
 // ── scoreAdherence ────────────────────────────────────────────────────────────
 
 describe("scoreAdherence — polite instruction", () => {
 	it("scores high when adherence signals present", () => {
-		const result = scoreAdherence(POLITE_INSTRUCTION, "Thank you for your question, I appreciate your patience.");
+		const result = scoreAdherence(
+			POLITE_INSTRUCTION,
+			"Thank you for your question, I appreciate your patience.",
+		);
 		expect(result.score).toBeGreaterThan(0.5);
 		expect(result.violated).toBe(false);
 	});
 
 	it("scores low when violation signals present", () => {
-		const result = scoreAdherence(POLITE_INSTRUCTION, "That's stupid. You're wrong about this.");
+		const result = scoreAdherence(
+			POLITE_INSTRUCTION,
+			"That's stupid. You're wrong about this.",
+		);
 		expect(result.score).toBeLessThan(0.5);
 		expect(result.violated).toBe(true);
 	});
 
 	it("returns neutral score when no signals matched", () => {
-		const result = scoreAdherence(POLITE_INSTRUCTION, "The capital of France is Paris.");
+		const result = scoreAdherence(
+			POLITE_INSTRUCTION,
+			"The capital of France is Paris.",
+		);
 		expect(result.score).toBeCloseTo(0.5);
 		expect(result.violated).toBe(false);
 	});
 
 	it("returns violation evidence", () => {
-		const result = scoreAdherence(POLITE_INSTRUCTION, "Shut up and listen to me.");
+		const result = scoreAdherence(
+			POLITE_INSTRUCTION,
+			"Shut up and listen to me.",
+		);
 		expect(result.violationEvidence).toContain("shut up");
 	});
 
 	it("returns adherence evidence", () => {
-		const result = scoreAdherence(POLITE_INSTRUCTION, "Please review this, and thank you for asking.");
+		const result = scoreAdherence(
+			POLITE_INSTRUCTION,
+			"Please review this, and thank you for asking.",
+		);
 		expect(result.adherenceEvidence.length).toBeGreaterThan(0);
 	});
 
 	it("is case-insensitive for signal matching", () => {
-		const result = scoreAdherence(POLITE_INSTRUCTION, "THANK YOU for reaching out.");
+		const result = scoreAdherence(
+			POLITE_INSTRUCTION,
+			"THANK YOU for reaching out.",
+		);
 		expect(result.score).toBeGreaterThan(0.5);
 	});
 });
@@ -173,7 +207,9 @@ describe("detectInstructionErosion — edge cases", () => {
 			obs("polite", "text", 0, 0.5),
 			obs("polite", "text", 1000, 0.2),
 		];
-		const result = detectInstructionErosion(POLITE_INSTRUCTION, twoObs, { minObservationsForSlope: 3 });
+		const result = detectInstructionErosion(POLITE_INSTRUCTION, twoObs, {
+			minObservationsForSlope: 3,
+		});
 		expect(result.adherenceSlope).toBe(0);
 	});
 });
@@ -211,7 +247,9 @@ describe("generateErosionReport", () => {
 			obs("concise", "t", 1000, 0.1),
 			obs("concise", "t", 2000, 0.1),
 		];
-		const report = generateErosionReport(INSTRUCTIONS, badObs, { alertThreshold: 0.2 });
+		const report = generateErosionReport(INSTRUCTIONS, badObs, {
+			alertThreshold: 0.2,
+		});
 		expect(report.alertTriggered).toBe(true);
 		expect(report.overallErosionIndex).toBeGreaterThan(0);
 	});
@@ -232,9 +270,16 @@ describe("generateErosionReport", () => {
 			obs("concise", "t", 1000, 0.52),
 			obs("concise", "t", 2000, 0.48),
 		];
-		const report = generateErosionReport(INSTRUCTIONS, mixedObs, { alertThreshold: 0.05 });
+		const report = generateErosionReport(INSTRUCTIONS, mixedObs, {
+			alertThreshold: 0.05,
+		});
 		if (report.erodingInstructions.length >= 2) {
-			const sev: Record<string, number> = { severe: 3, moderate: 2, mild: 1, none: 0 };
+			const sev: Record<string, number> = {
+				severe: 3,
+				moderate: 2,
+				mild: 1,
+				none: 0,
+			};
 			const first = sev[report.erodingInstructions[0]!.severity] ?? 0;
 			const second = sev[report.erodingInstructions[1]!.severity] ?? 0;
 			expect(first).toBeGreaterThanOrEqual(second);

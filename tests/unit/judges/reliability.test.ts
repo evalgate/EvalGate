@@ -3,24 +3,34 @@ import {
 	computeAllJudgeReliability,
 	computeJudgeReliability,
 	detectUnstableJudges,
-	judgeReliabilityWeight,
 	type JudgeObservation,
+	judgeReliabilityWeight,
 } from "@/lib/judges/reliability";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
 const now = Date.now();
 
-function obs(judgeId: string, predicted: number, truth: number | null = null, offset = 0): JudgeObservation {
-	return { judgeId, predictedScore: predicted, groundTruth: truth, timestamp: now + offset };
+function obs(
+	judgeId: string,
+	predicted: number,
+	truth: number | null = null,
+	offset = 0,
+): JudgeObservation {
+	return {
+		judgeId,
+		predictedScore: predicted,
+		groundTruth: truth,
+		timestamp: now + offset,
+	};
 }
 
 // Accurate judge — always within 0.05 of ground truth
 const ACCURATE_OBS: JudgeObservation[] = [
-	obs("accurate", 0.80, 0.82),
-	obs("accurate", 0.70, 0.72),
-	obs("accurate", 0.90, 0.88),
-	obs("accurate", 0.60, 0.62),
+	obs("accurate", 0.8, 0.82),
+	obs("accurate", 0.7, 0.72),
+	obs("accurate", 0.9, 0.88),
+	obs("accurate", 0.6, 0.62),
 	obs("accurate", 0.75, 0.74),
 	obs("accurate", 0.85, 0.83),
 ];
@@ -100,7 +110,9 @@ describe("computeJudgeReliability — noisy judge", () => {
 
 describe("computeJudgeReliability — edge cases", () => {
 	it("returns unrated tier with fewer than minObservations", () => {
-		const m = computeJudgeReliability("new-judge", [obs("new-judge", 0.8, 0.75)]);
+		const m = computeJudgeReliability("new-judge", [
+			obs("new-judge", 0.8, 0.75),
+		]);
 		expect(m.tier).toBe("unrated");
 	});
 
@@ -128,7 +140,10 @@ describe("computeJudgeReliability — edge cases", () => {
 		// Bias ~0.3; raising threshold to 0.4 means the BIAS flag doesn't fire.
 		// The judge may still be flagged for poor calibration (MAE also > threshold)
 		// but the flagReason should NOT mention over/under-scoring.
-		const m = computeJudgeReliability("biased", BIASED_OBS, { biasFlagThreshold: 0.4, minObservationsForTier: 5 });
+		const m = computeJudgeReliability("biased", BIASED_OBS, {
+			biasFlagThreshold: 0.4,
+			minObservationsForTier: 5,
+		});
 		if (m.flagged) {
 			expect(m.flagReason).not.toMatch(/over.*scor|under.*scor/i);
 		}
@@ -161,13 +176,27 @@ describe("judgeReliabilityWeight", () => {
 	it("poor judge gets lower weight than good judge", () => {
 		const poor = computeJudgeReliability("noisy", NOISY_OBS);
 		const good = computeJudgeReliability("accurate", ACCURATE_OBS);
-		expect(judgeReliabilityWeight(poor)).toBeLessThan(judgeReliabilityWeight(good));
+		expect(judgeReliabilityWeight(poor)).toBeLessThan(
+			judgeReliabilityWeight(good),
+		);
 	});
 
 	it("flagged judge is penalised vs unflagged same tier", () => {
-		const unflagged = { judgeId: "a", observationCount: 10, mae: 0.05, bias: 0.01, calibration: 0.9, recentStdDev: 0.05, tier: "excellent" as const, flagged: false, flagReason: null };
+		const unflagged = {
+			judgeId: "a",
+			observationCount: 10,
+			mae: 0.05,
+			bias: 0.01,
+			calibration: 0.9,
+			recentStdDev: 0.05,
+			tier: "excellent" as const,
+			flagged: false,
+			flagReason: null,
+		};
 		const flagged = { ...unflagged, flagged: true };
-		expect(judgeReliabilityWeight(flagged)).toBeLessThan(judgeReliabilityWeight(unflagged));
+		expect(judgeReliabilityWeight(flagged)).toBeLessThan(
+			judgeReliabilityWeight(unflagged),
+		);
 	});
 });
 
