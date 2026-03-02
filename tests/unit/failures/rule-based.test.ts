@@ -26,11 +26,11 @@ describe("detectRuleBased", () => {
 	});
 
 	it("detects incomplete response", () => {
-		const signals = detectRuleBased({
+		const _signals = detectRuleBased({
 			output: "The solution to your problem is...",
 		});
-		const incomplete = detectRuleBased({ output: "Here are the steps..." });
-		const incomplete2 = detectRuleBased({ output: "The answer is..." });
+		const _incomplete = detectRuleBased({ output: "Here are the steps..." });
+		const _incomplete2 = detectRuleBased({ output: "The answer is..." });
 		// Simple check — ellipsis at end
 		const signals2 = detectRuleBased({ output: "The result is..." });
 		expect(

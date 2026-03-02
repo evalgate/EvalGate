@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-	COMPAT_WINDOW,
 	checkCompat,
 	formatCompatMatrix,
 	getContractTestVersions,

@@ -100,7 +100,7 @@ export function ScoreLayerBreakdown({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				{LAYERS.map(
-					({ key, label, icon: Icon, description, color, textColor }) => {
+					({ key, label, icon: Icon, description: _description, color, textColor }) => {
 						const layer = layers[key];
 						const pct = Math.round(layer.score * 100);
 						return (

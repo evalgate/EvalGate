@@ -99,7 +99,7 @@ export function extractTraceFeatures(
 	let totalCostUsd = 0;
 	let totalTokens = 0;
 	let retrievalCount = 0;
-	let hasReasoningData = false;
+	let _hasReasoningData = false;
 
 	for (const span of spans) {
 		// Error detection
@@ -138,7 +138,7 @@ export function extractTraceFeatures(
 		// Reasoning segments
 		for (const seg of span.behavioral?.reasoningSegments ?? []) {
 			allReasoningSegments.push({ type: seg.type, confidence: seg.confidence });
-			hasReasoningData = true;
+			_hasReasoningData = true;
 		}
 
 		// Retrieval
@@ -149,7 +149,7 @@ export function extractTraceFeatures(
 			timelineSteps.push({
 				type: "llm",
 				name: span.name,
-				success: span.behavioral?.error ? false : true,
+				success: !span.behavioral?.error,
 			});
 		}
 	}

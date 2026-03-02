@@ -5,7 +5,6 @@ import {
 	getAncestorChain,
 	getDescendants,
 	getRootNode,
-	toLineageNode,
 } from "@/lib/reliability/lineage";
 import {
 	bumpReliabilityVersion,

@@ -51,7 +51,7 @@ describe("detectBehavioralDrift — CoT drift", () => {
 	});
 
 	it("detects CoT usage spike", () => {
-		const current = {
+		const _current = {
 			...baseline,
 			label: "current",
 			cotUsageRate: 0.1,

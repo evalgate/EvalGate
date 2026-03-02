@@ -103,7 +103,7 @@ function buildAggregationNarrative(result: AggregatedJudgeResult): string {
 	const scores = result.votes
 		.map((v) => `${v.judgeId}=${formatScore(v.score)}`)
 		.join(", ");
-	return `Strategy: ${result.strategy}. Votes: [${scores}]. Final: ${formatScore(result.finalScore)}. Std dev: ${result.agreement.stdDev.toFixed(3)}. Consensus ratio: ${(result.agreement.consensusRatio * 100).toFixed(0)}%.`;
+	return `Strategy: ${result.strategy}. Votes: [${scores}]. Final: ${formatScore(result.finalScore)}. Std dev: ${result.agreementStats.stdDev.toFixed(3)}. Consensus ratio: ${(result.agreementStats.consensusRatio * 100).toFixed(0)}%.`;
 }
 
 // ── Factory ───────────────────────────────────────────────────────────────────
@@ -153,19 +153,19 @@ export function createTransparencyArtifact(
 	const flags: string[] = [];
 
 	if (!result.highConfidence) flags.push("low-confidence");
-	if (!result.agreement.isHighAgreement) flags.push("low-agreement");
+	if (!result.agreementStats.isHighAgreement) flags.push("low-agreement");
 	if (result.judgeCount === 1) flags.push("single-judge");
-	if (result.agreement.range > 0.5) flags.push("high-score-range");
+	if (result.agreementStats.range > 0.5) flags.push("high-score-range");
 
 	const judgeCards: JudgeCard[] = result.votes.map((v: JudgeVote) => ({
 		judgeId: v.judgeId,
 		score: v.score,
 		scoreDisplay: formatScore(v.score),
 		reasoning: v.reasoning ?? "No reasoning provided",
-		isOutlier: isOutlier(v.score, result.finalScore, result.agreement.stdDev),
+		isOutlier: isOutlier(v.score, result.finalScore, result.agreementStats.stdDev),
 	}));
 
-	const level = agreementLevel(result.agreement.stdDev);
+	const level = agreementLevel(result.agreementStats.stdDev);
 	const summary = flags.includes("low-confidence")
 		? `Result uncertain — ${result.judgeCount} judge(s), ${level} agreement`
 		: `${formatScore(result.finalScore)} — ${result.judgeCount} judge(s), ${level} agreement`;
@@ -182,9 +182,9 @@ export function createTransparencyArtifact(
 			strategy: result.strategy,
 			finalScore: result.finalScore,
 			judgeCount: result.judgeCount,
-			stdDev: result.agreement.stdDev,
-			consensusRatio: result.agreement.consensusRatio,
-			isHighAgreement: result.agreement.isHighAgreement,
+			stdDev: result.agreementStats.stdDev,
+			consensusRatio: result.agreementStats.consensusRatio,
+			isHighAgreement: result.agreementStats.isHighAgreement,
 			aggregationNarrative: buildAggregationNarrative(result),
 		},
 		explainView: {

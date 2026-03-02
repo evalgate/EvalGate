@@ -9,6 +9,7 @@ import type { AggregatedJudgeResult } from "@/lib/judges/aggregation";
 const PASSING_RESULT: AggregatedJudgeResult = {
 	finalScore: 0.87,
 	strategy: "majority_vote",
+	judgeCount: 3,
 	votes: [
 		{ judgeId: "gpt-4o", score: 0.9 },
 		{ judgeId: "claude-3", score: 0.85 },
@@ -17,7 +18,9 @@ const PASSING_RESULT: AggregatedJudgeResult = {
 	agreementStats: {
 		stdDev: 0.05,
 		range: 0.1,
+		consensusRatio: 0.9,
 		agreementRatio: 0.9,
+		isHighAgreement: true,
 		outlierJudgeIds: [],
 	},
 	highConfidence: true,
@@ -26,6 +29,7 @@ const PASSING_RESULT: AggregatedJudgeResult = {
 const TIE_RESULT: AggregatedJudgeResult = {
 	finalScore: 0.5,
 	strategy: "majority_vote",
+	judgeCount: 2,
 	votes: [
 		{ judgeId: "judge-a", score: 0.9 },
 		{ judgeId: "judge-b", score: 0.1 },
@@ -33,7 +37,9 @@ const TIE_RESULT: AggregatedJudgeResult = {
 	agreementStats: {
 		stdDev: 0.4,
 		range: 0.8,
+		consensusRatio: 0.0,
 		agreementRatio: 0.0,
+		isHighAgreement: false,
 		outlierJudgeIds: ["judge-b"],
 	},
 	highConfidence: false,

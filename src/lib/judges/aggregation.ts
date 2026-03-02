@@ -34,7 +34,7 @@ export interface AggregatedJudgeResult {
 	/** Number of judges that participated */
 	judgeCount: number;
 	/** Agreement statistics */
-	agreement: AgreementStats;
+	agreementStats: AgreementStats;
 	/** Individual judge votes */
 	votes: JudgeVote[];
 	/** Whether this result is high-confidence */
@@ -48,8 +48,12 @@ export interface AgreementStats {
 	range: number;
 	/** Percentage of judges within ±0.1 of median (0-1) */
 	consensusRatio: number;
+	/** Alias for consensusRatio — used by UI components */
+	agreementRatio: number;
 	/** Whether agreement is above threshold */
 	isHighAgreement: boolean;
+	/** Judge IDs whose scores deviate > 2σ from the final score */
+	outlierJudgeIds: string[];
 }
 
 // ── Math helpers ──────────────────────────────────────────────────────────────
@@ -81,9 +85,11 @@ function median(values: number[]): number {
 export function computeAgreementStats(
 	scores: number[],
 	agreementThreshold = 0.3,
+	judgeIds?: string[],
+	finalScore?: number,
 ): AgreementStats {
 	if (scores.length === 0) {
-		return { stdDev: 0, range: 0, consensusRatio: 1, isHighAgreement: true };
+		return { stdDev: 0, range: 0, consensusRatio: 1, agreementRatio: 1, isHighAgreement: true, outlierJudgeIds: [] };
 	}
 
 	const med = median(scores);
@@ -93,7 +99,18 @@ export function computeAgreementStats(
 	const consensusRatio = withinConsensus / scores.length;
 	const isHighAgreement = sd <= agreementThreshold;
 
-	return { stdDev: sd, range, consensusRatio, isHighAgreement };
+	// Outliers: judges whose score deviates more than 2σ from finalScore (or median)
+	const ref = finalScore ?? med;
+	const outlierJudgeIds: string[] = [];
+	if (sd > 0 && judgeIds) {
+		for (let i = 0; i < scores.length; i++) {
+			if (Math.abs((scores[i] ?? 0) - ref) > sd * 2) {
+				outlierJudgeIds.push(judgeIds[i] ?? String(i));
+			}
+		}
+	}
+
+	return { stdDev: sd, range, consensusRatio, agreementRatio: consensusRatio, isHighAgreement, outlierJudgeIds };
 }
 
 // ── Aggregation strategies ────────────────────────────────────────────────────
@@ -163,25 +180,27 @@ export function aggregateJudges(
 			finalScore: 0,
 			strategy,
 			judgeCount: 0,
-			agreement: computeAgreementStats([]),
+			agreementStats: computeAgreementStats([]),
 			votes: [],
 			highConfidence: false,
 		};
 	}
 
 	const finalScore = Math.min(1, Math.max(0, aggregateScores(votes, strategy)));
-	const agreement = computeAgreementStats(
+	const agreementStats = computeAgreementStats(
 		votes.map((v) => v.score),
 		agreementThreshold,
+		votes.map((v) => v.judgeId),
+		finalScore,
 	);
 
 	return {
 		finalScore,
 		strategy,
 		judgeCount: votes.length,
-		agreement,
+		agreementStats,
 		votes,
-		highConfidence: votes.length >= 2 && agreement.isHighAgreement,
+		highConfidence: votes.length >= 2 && agreementStats.isHighAgreement,
 	};
 }
 
