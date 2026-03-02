@@ -65,7 +65,9 @@ export default function RootLayout({
 	const appOrigin =
 		process.env.NEXT_PUBLIC_SITE_URL ||
 		process.env.BETTER_AUTH_BASE_URL ||
-		"http://localhost:3000";
+		(process.env.NODE_ENV === "production"
+			? "https://evalgate.com"
+			: "http://localhost:3000");
 
 	return (
 		<html

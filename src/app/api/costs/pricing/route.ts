@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 import { internalError, zodValidationError } from "@/lib/api/errors";
 import { secureRoute } from "@/lib/api/secure-route";

@@ -1,5 +1,5 @@
 import { Autumn as autumn } from "autumn-js";
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { internalError } from "@/lib/api/errors";
 import { secureRoute } from "@/lib/api/secure-route";
 import { logger } from "@/lib/logger";

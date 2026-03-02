@@ -27,6 +27,7 @@ Canonical paths for all project documentation. If you're linking to a doc, use t
 | **OpenAPI Spec** | [`docs/openapi.json`](openapi.json) | API consumers |
 | **OpenAPI Changelog** | [`docs/OPENAPI_CHANGELOG.md`](OPENAPI_CHANGELOG.md) | API consumers |
 | **Integration Reference** | [`docs/INTEGRATION_REFERENCE.md`](INTEGRATION_REFERENCE.md) | SDK users |
+| **Python CLI** | [`docs/python-cli.md`](python-cli.md) | Python SDK users |
 | **SDK README** | [`src/packages/sdk/README.md`](../src/packages/sdk/README.md) | SDK users |
 | **SDK Changelog** | [`src/packages/sdk/CHANGELOG.md`](../src/packages/sdk/CHANGELOG.md) | SDK users |
 

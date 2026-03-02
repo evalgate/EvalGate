@@ -124,9 +124,11 @@ export const POST = secureRoute(
 						: qs?.flags) ?? [];
 				const baseUrl =
 					process.env.NEXT_PUBLIC_APP_URL ||
-					(process.env.VERCEL_URL
-						? `https://${process.env.VERCEL_URL}`
-						: null) ||
+					(process.env.NODE_ENV === "production"
+						? "https://evalgate.com"
+						: process.env.VERCEL_URL
+							? `https://${process.env.VERCEL_URL}`
+							: null) ||
 					"http://localhost:3000";
 				const dashboardUrl = `${String(baseUrl).replace(/\/$/, "")}/evaluations/${evaluationId}/runs/${existing.id}`;
 
@@ -216,7 +218,11 @@ export const POST = secureRoute(
 
 		const baseUrl =
 			process.env.NEXT_PUBLIC_APP_URL ||
-			(process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+			(process.env.NODE_ENV === "production"
+				? "https://evalgate.com"
+				: process.env.VERCEL_URL
+					? `https://${process.env.VERCEL_URL}`
+					: null) ||
 			"http://localhost:3000";
 		const dashboardUrl = `${String(baseUrl).replace(/\/$/, "")}/evaluations/${evaluationId}/runs/${run.id}`;
 

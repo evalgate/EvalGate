@@ -1,6 +1,7 @@
 # EvalGate
 
 [![Platform CI](https://github.com/pauly7610/ai-evaluation-platform/actions/workflows/platform-ci.yml/badge.svg)](https://github.com/pauly7610/ai-evaluation-platform/actions/workflows/platform-ci.yml)
+[![GitHub stars](https://img.shields.io/github/stars/pauly7610/ai-evaluation-platform?style=flat-square)](https://github.com/pauly7610/ai-evaluation-platform)
 [![npm](https://img.shields.io/npm/v/@evalgate/sdk?style=flat-square&logo=npm&color=cb3837)](https://www.npmjs.com/package/@evalgate/sdk)
 [![npm downloads](https://img.shields.io/npm/dm/@evalgate/sdk?style=flat-square&logo=npm)](https://www.npmjs.com/package/@evalgate/sdk)
 [![PyPI](https://img.shields.io/pypi/v/pauly4010-evalgate-sdk?style=flat-square&logo=python&color=3776ab)](https://pypi.org/project/pauly4010-evalgate-sdk/)
@@ -48,7 +49,7 @@ client = AIEvalClient(api_key="sk-...")
 trace = await client.traces.create(CreateTraceParams(name="chat-quality"))
 ```
 
-Same CI gate, same quality checks. Python SDK has full parity with TypeScript: assertions, test suites, OpenAI/Anthropic tracing, and regression gates.
+Same CI gate, same quality checks. Python SDK has full parity with TypeScript: assertions, test suites, OpenAI/Anthropic tracing, LangChain/CrewAI/AutoGen integrations, and regression gates. **Python CLI:** `pip install "pauly4010-evalgate-sdk[cli]"` → `evalgate init`, `evalgate run`, `evalgate gate`, `evalgate ci` ([docs](docs/python-cli.md)).
 
 ## What happens on a PR?
 
@@ -122,7 +123,7 @@ No account cancellation. No data export. Your tests keep working.
 
 **Live demo:** [https://evalgate.com](https://evalgate.com)
 
-Open source. Production-ready. **1.4k+ npm downloads/month** · Used by developers building AI systems that ship to production.
+Open source. Production-ready. **1.4k+ npm downloads/month** · Used by developers building AI systems that ship to production. [Terms of Service](https://evalgate.com/terms) · [Privacy Policy](https://evalgate.com/privacy)
 
 ## Platform Readiness
 
@@ -137,6 +138,7 @@ Open source. Production-ready. **1.4k+ npm downloads/month** · Used by develope
 | Observability (traces, spans, cost tracking)                                                    | Production          |
 | Self-hosted Docker                                                                              | Beta                |
 | Advanced product analytics                                                                      | Planned             |
+| Additional SDKs (Go, Rust)                                                                      | Roadmap             |
 
 ## CI in One Command
 
@@ -194,7 +196,7 @@ jobs:
 ### Developer Experience
 
 - **Full TypeScript SDK** — [`@evalgate/sdk`](https://www.npmjs.com/package/@evalgate/sdk) with CLI, regression gate, traces, evaluations, LLM judge
-- **Python SDK** — [`pauly4010-evalgate-sdk`](https://pypi.org/project/pauly4010-evalgate-sdk/) with assertions, test workflows, OpenAI/Anthropic integrations
+- **Python SDK** — [`pauly4010-evalgate-sdk`](https://pypi.org/project/pauly4010-evalgate-sdk/) with assertions, test workflows, OpenAI/Anthropic/LangChain/CrewAI/AutoGen integrations, and CLI (`evalgate run`, `evalgate gate`, `evalgate ci`)
 - **CLI commands** — `evalgate init`, `evalgate gate`, `evalgate baseline`, `evalgate upgrade`, `evalgate check`, `evalgate doctor`, `evalgate explain`, `evalgate print-config`, `evalgate share`
 - **Programmatic exports** — gate exit codes, categories, report types via `@evalgate/sdk/regression`
 - **API keys** — scoped keys for CI/CD and production

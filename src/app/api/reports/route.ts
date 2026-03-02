@@ -241,8 +241,8 @@ export const POST = secureRoute(
 		return NextResponse.json(
 			{
 				shareToken,
-				shareUrl: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/r/${shareToken}`,
-				apiUrl: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/api/r/${shareToken}`,
+				shareUrl: `${process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === "production" ? "https://evalgate.com" : "")}/r/${shareToken}`,
+				apiUrl: `${process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === "production" ? "https://evalgate.com" : "")}/api/r/${shareToken}`,
 				expiresAt,
 			},
 			{ status: 201 },

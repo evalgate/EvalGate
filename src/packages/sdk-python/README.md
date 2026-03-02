@@ -211,14 +211,16 @@ assert to_pass_gate(report), f"Regression detected: {report.summary}"
 
 ## CLI
 
+The Python CLI is available as `evalgate` (install with `pip install "pauly4010-evalgate-sdk[cli]"`):
+
 ```bash
-evalai init                    # Scaffold eval config
-evalai run --dir ./evals       # Run all evaluations
-evalai gate --baseline b.json  # Regression gate
-evalai ci                      # Run + gate (CI mode)
-evalai doctor                  # Check setup
-evalai discover                # Find eval files
-evalai explain                 # Root cause analysis on last failure
+evalgate init                    # Scaffold eval config
+evalgate run --dir ./evals       # Run all evaluations
+evalgate gate --baseline b.json  # Regression gate
+evalgate ci                      # Run + gate (CI mode)
+evalgate doctor                  # Check setup
+evalgate discover                # Find eval files
+evalgate explain                 # Root cause analysis on last failure
 ```
 
 ---
@@ -264,7 +266,7 @@ See the [`examples/python/`](https://github.com/pauly7610/ai-evaluation-platform
 ## No Lock-in
 
 ```bash
-rm evalai.config.json
+rm .evalgate/config.json
 ```
 
 No account cancellation. No data export. Your local assertions keep working.

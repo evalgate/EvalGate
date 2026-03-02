@@ -158,7 +158,7 @@ export async function checkFeature(params: CheckFeatureParams): Promise<{
 	try {
 		// Call Autumn API to check feature allowance
 		const response = await fetch(
-			`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/autumn/check`,
+			`${process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === "production" ? "https://evalgate.com" : "http://localhost:3000")}/api/autumn/check`,
 			{
 				method: "POST",
 				headers: {
@@ -229,7 +229,7 @@ export async function trackFeature(params: TrackFeatureParams): Promise<{
 	try {
 		// Call Autumn API to track usage
 		const response = await fetch(
-			`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/autumn/track`,
+			`${process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === "production" ? "https://evalgate.com" : "http://localhost:3000")}/api/autumn/track`,
 			{
 				method: "POST",
 				headers: {

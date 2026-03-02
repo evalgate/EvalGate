@@ -65,7 +65,7 @@ export default function PrivacyPage() {
 						</p>
 						<ul className="list-disc pl-6 text-muted-foreground space-y-2 mb-4">
 							<li>Name and email address</li>
-							<li>Compunknown or organization name</li>
+							<li>Company or organization name</li>
 							<li>
 								Billing and payment information (processed securely through
 								Stripe)

@@ -342,6 +342,24 @@ jobs:
 									<CopyButton code={installCodePython} />
 								</div>
 							</div>
+							<p className="text-sm text-muted-foreground mt-2">
+								Python CLI:{" "}
+								<code className="text-xs">
+									pip install &quot;pauly4010-evalgate-sdk[cli]&quot;
+								</code>{" "}
+								→ <code className="text-xs">evalgate init</code>,{" "}
+								<code className="text-xs">evalgate run</code>,{" "}
+								<code className="text-xs">evalgate gate</code>,{" "}
+								<code className="text-xs">evalgate ci</code>.{" "}
+								<a
+									href="https://github.com/pauly7610/ai-evaluation-platform/blob/main/docs/python-cli.md"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-primary hover:underline"
+								>
+									Python CLI docs
+								</a>
+							</p>
 						</div>
 					</section>
 

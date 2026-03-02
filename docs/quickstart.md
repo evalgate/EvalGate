@@ -148,7 +148,9 @@ client = AIEvalClient(api_key="sk-...")
 trace = await client.traces.create(CreateTraceParams(name="chat-quality"))
 ```
 
-See [Python SDK README](../src/packages/sdk-python/README.md) for full parity: assertions, test suites, OpenAI/Anthropic tracing, and regression gates.
+**Python CLI:** Install with `pip install "pauly4010-evalgate-sdk[cli]"` and run `evalgate init`, `evalgate run`, `evalgate gate`, `evalgate ci`. See [Python CLI docs](python-cli.md).
+
+See [Python SDK README](../src/packages/sdk-python/README.md) for full parity: assertions, test suites, OpenAI/Anthropic tracing, LangChain/CrewAI/AutoGen integrations, and regression gates.
 
 ## Legacy Mode (Optional)
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -175,8 +176,15 @@ export default function LoginPage() {
 						</div>
 
 						<p className="mt-6 text-center text-xs text-muted-foreground">
-							By continuing, you agree to our Terms of Service and Privacy
-							Policy.
+							By continuing, you agree to our{" "}
+							<Link href="/terms" className="text-primary hover:underline">
+								Terms of Service
+							</Link>{" "}
+							and{" "}
+							<Link href="/privacy" className="text-primary hover:underline">
+								Privacy Policy
+							</Link>
+							.
 						</p>
 					</CardContent>
 				</Card>

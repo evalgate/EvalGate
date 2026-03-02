@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { organizationMembers, organizations, user } from "@/db/schema";
 import { internalError } from "@/lib/api/errors";

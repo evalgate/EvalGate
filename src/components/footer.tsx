@@ -110,12 +110,9 @@ export function Footer() {
 								</Link>
 							</li>
 							<li>
-								<button
-									type="button"
-									className="hover:text-foreground text-left"
-								>
+								<Link href="/terms" className="hover:text-foreground">
 									Terms
-								</button>
+								</Link>
 							</li>
 							<li>
 								<Link href="/security" className="hover:text-foreground">
