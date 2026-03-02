@@ -99,12 +99,11 @@ describe("API Route Auth Audit", () => {
 		const legacyRoutes = nonAllowlisted.filter((f) => isLegacyAllowlisted(f));
 
 		if (legacyRoutes.length > 0) {
-			it.each(legacyRoutes)(
-				"%s is tracked for legacy auth migration",
-				(routeFile) => {
-					expect(routeFile).toBeDefined();
-				},
-			);
+			it.each(
+				legacyRoutes,
+			)("%s is tracked for legacy auth migration", (routeFile) => {
+				expect(routeFile).toBeDefined();
+			});
 		} else {
 			it("no legacy routes remaining (all migrated to secureRoute)", () => {
 				expect(LEGACY_AUTH_ALLOWLIST).toHaveLength(0);

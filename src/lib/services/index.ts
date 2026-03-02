@@ -3,6 +3,14 @@
  * Use: import { evaluationService } from '@/lib/services'
  */
 
+// Aggregate metrics (functions, not class instances)
+export {
+	addConfidenceBands,
+	computeAndStoreQualityScore,
+	computeRunAggregates,
+	recomputeAndStoreQualityScore,
+	wilsonConfidence,
+} from "./aggregate-metrics.service";
 export { arenaMatchesService } from "./arena-matches.service";
 export { auditService } from "./audit.service";
 export { benchmarkService } from "./benchmark.service";
@@ -23,12 +31,3 @@ export { traceService } from "./trace.service";
 export { versioningService } from "./versioning.service";
 export { webhookService } from "./webhook.service";
 export { workflowService } from "./workflow.service";
-
-// Aggregate metrics (functions, not class instances)
-export {
-	addConfidenceBands,
-	computeAndStoreQualityScore,
-	computeRunAggregates,
-	recomputeAndStoreQualityScore,
-	wilsonConfidence,
-} from "./aggregate-metrics.service";
