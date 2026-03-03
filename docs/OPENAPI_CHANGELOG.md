@@ -4,6 +4,10 @@ When you change `docs/openapi.json`, add an entry here before running `pnpm open
 
 Format: `## X.Y.Z` or `## [X.Y.Z]` with a short description.
 
+## 2.1.2
+
+- Align spec version with platform 2.1.2 (type safety fixes, CI gate alignment)
+
 ## 2.1.0
 
 - Align OpenAPI spec version with SDK 2.1.0 (EvalGate Intelligence Layer — behavioral drift, multi-judge, three-layer scoring, dataset coverage, failure detection)
