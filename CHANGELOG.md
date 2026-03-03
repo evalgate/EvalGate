@@ -2,6 +2,19 @@
 
 Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANGELOG.md](src/packages/sdk/CHANGELOG.md).
 
+## [2.1.3] - 2026-03-02
+
+### Fixed
+
+- **Critical:** Multi-`defineEval` calls per file — only first was discovered (silent data loss)
+- **High:** First-run gate false regression on fresh init when no test script exists  
+- **High:** Doctor defaults baseUrl to localhost:3000 instead of production API
+- **Critical:** Simulated executeSpec replaced with real spec execution
+- **High:** Run scores now include scoring model context for clarity
+- **Low:** Explain no longer shows "unnamed" for builtin gate failures
+- **Docs:** Added missing `discover --manifest` step to local quickstart
+- **Platform:** Updated stability docs, OpenAPI changelog, and version synchronization
+
 ## [2.1.2] - 2026-03-02
 
 ### Fixed
