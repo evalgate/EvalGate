@@ -14,10 +14,7 @@
 import { spawn } from "node:child_process";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import {
-	disposeActiveRuntime,
-	getActiveRuntime,
-} from "../runtime/registry";
+import { disposeActiveRuntime, getActiveRuntime } from "../runtime/registry";
 import { runImpactAnalysis } from "./impact-analysis";
 import type { EvaluationManifest, Spec } from "./manifest";
 
@@ -227,8 +224,7 @@ async function executeSpecs(specs: Spec[]): Promise<SpecResult[]> {
 			// eslint-disable-next-line @typescript-eslint/no-require-imports
 			require(absPath);
 		} catch (loadError) {
-			const isTs =
-				absPath.endsWith(".ts") || absPath.endsWith(".tsx");
+			const isTs = absPath.endsWith(".ts") || absPath.endsWith(".tsx");
 			const msg =
 				isTs &&
 				loadError instanceof Error &&
@@ -248,9 +244,7 @@ async function executeSpecs(specs: Spec[]): Promise<SpecResult[]> {
 		const registered = runtime.list();
 
 		for (const spec of fileSpecs) {
-			const registeredSpec = registered.find(
-				(r) => r.name === spec.name,
-			);
+			const registeredSpec = registered.find((r) => r.name === spec.name);
 
 			if (!registeredSpec) {
 				results.push({
@@ -287,9 +281,7 @@ async function executeSpecs(specs: Spec[]): Promise<SpecResult[]> {
 				results.push(
 					makeErrorResult(
 						spec,
-						execError instanceof Error
-							? execError.message
-							: String(execError),
+						execError instanceof Error ? execError.message : String(execError),
 						Date.now() - startTime,
 					),
 				);

@@ -217,9 +217,7 @@ async function executeSpecs(specs) {
                 });
             }
             catch (execError) {
-                results.push(makeErrorResult(spec, execError instanceof Error
-                    ? execError.message
-                    : String(execError), Date.now() - startTime));
+                results.push(makeErrorResult(spec, execError instanceof Error ? execError.message : String(execError), Date.now() - startTime));
             }
         }
     }
