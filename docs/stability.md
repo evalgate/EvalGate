@@ -105,7 +105,7 @@ This document classifies every major feature by maturity level and provides API 
 | Cost Records | **Stable** | v1.0 | Per-call token + cost tracking |
 | LLM Judge | **Beta** | v1.0 | Meta-judge post-eval hook |
 
-### SDK (`@evalgate/sdk`) — v2.1.0
+### SDK (`@evalgate/sdk`) — v2.1.2
 
 | Feature | Tier | Since | Notes |
 |---------|------|-------|-------|
@@ -116,7 +116,7 @@ This document classifies every major feature by maturity level and provides API 
 | Framework integrations | **Beta** | v1.0 | Jest, Vitest adapters |
 | Regression gate exports | **Stable** | v1.6 | `@evalgate/sdk/regression` |
 
-### EvalGate Intelligence Layer — v2.1.0
+### EvalGate Intelligence Layer — v2.1.2
 
 | Feature | Tier | Since | Notes |
 |---------|------|-------|-------|
@@ -140,7 +140,7 @@ This document classifies every major feature by maturity level and provides API 
 | **Replay Determinism** | **Beta** | v2.1 | SHA-256 input canonicalization for reproducible replay |
 | **Regression Attribution** | **Beta** | v2.1 | Scores diff signals (git, model, prompt, tool schema, dataset, judge) to rank regression causes |
 
-### EvalGate UX Components — v2.1.0
+### EvalGate UX Components — v2.1.2
 
 | Component | Tier | Since | Notes |
 |-----------|------|-------|-------|

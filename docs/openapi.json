@@ -2,7 +2,7 @@
 	"openapi": "3.1.0",
 	"info": {
 		"title": "EvalGate API",
-		"version": "2.1.0",
+		"version": "2.1.2",
 		"description": "EvalGate API. See docs/api-contract.md for stability commitments."
 	},
 	"servers": [
