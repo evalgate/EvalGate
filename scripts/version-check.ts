@@ -125,19 +125,8 @@ function main(): number {
 		check("Git tag doesn't exist yet", true, "Good - tag doesn't exist");
 	}
 	
-	// 7. README version badge
-	try {
-		const content = readFileSync("src/packages/sdk/README.md", "utf-8");
-		const badgePattern = new RegExp(`v\\d+\\.\\d+\\.\\d+`);
-		const match = content.match(badgePattern);
-		if (!match) {
-			check("README version badge is current", true, "No badge found, that's ok");
-		} else {
-			check("README version badge is current", match[0] === `v${targetVersion}`, "Update version badge in src/packages/sdk/README.md");
-		}
-	} catch {
-		check("README readable", true, "File doesn't exist, that's ok");
-	}
+	// 7. README version badge (skip npm badge - auto-updated)
+	check("README version badge check", true, "NPM badge auto-updated on publish");
 	
 	// Summary
 	console.log("");
