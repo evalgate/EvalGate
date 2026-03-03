@@ -9,7 +9,8 @@
 			"!**/node_modules",
 			"!**/drizzle/meta",
 			"!**/coverage",
-			"!evals"
+			"!evals",
+			"!scripts/version-check.ts"
 		]
 	},
 	"css": {
