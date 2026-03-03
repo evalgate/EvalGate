@@ -39,6 +39,7 @@
 		"audit:openapi": "npx tsx scripts/audit-openapi-coverage.ts && npx tsx scripts/audit-openapi-spec.ts",
 		"openapi:snapshot": "npx tsx scripts/openapi-snapshot.ts",
 		"version:spec": "npx tsx scripts/version-spec.ts",
+		"version:check": "npx tsx scripts/version-check.ts",
 		"audit:coverage": "npx tsx scripts/coverage-audit.ts",
 		"audit:demo-assets": "npx tsx scripts/audit-demo-assets.ts",
 		"create:demo-placeholders": "npx tsx scripts/create-demo-placeholders.ts",
