@@ -126,7 +126,6 @@ function runBaselineInit(cwd) {
 }
 // ── baseline update ──
 function runBaselineUpdate(cwd) {
-    // Check if eval:baseline-update script exists in package.json
     const pkgPath = path.join(cwd, "package.json");
     if (!fs.existsSync(pkgPath)) {
         console.error("❌ No package.json found. Run this from your project root.");
@@ -140,13 +139,39 @@ function runBaselineUpdate(cwd) {
         console.error("❌ Failed to parse package.json");
         return 1;
     }
-    if (!pkg.scripts?.["eval:baseline-update"]) {
-        console.error("❌ Missing 'eval:baseline-update' script in package.json.");
-        console.error('   Add it:  "eval:baseline-update": "npx tsx scripts/regression-gate.ts --update-baseline"');
+    // Use custom script if available
+    if (pkg.scripts?.["eval:baseline-update"]) {
+        console.log("📊 Running baseline update (custom script)...\n");
+        return runScript(cwd, "eval:baseline-update");
+    }
+    // Self-contained built-in mode: run the test suite then stamp the baseline
+    console.log("📊 Running baseline update (built-in mode)...\n");
+    const pm = detectPackageManager(cwd);
+    const isWin = process.platform === "win32";
+    const testResult = (0, node_child_process_1.spawnSync)(pm, ["test"], {
+        cwd,
+        stdio: "inherit",
+        shell: isWin,
+    });
+    const baselinePath = path.join(cwd, BASELINE_REL);
+    if (!fs.existsSync(baselinePath)) {
+        console.error("❌ No baseline found. Run 'evalgate baseline init' first.");
         return 1;
     }
-    console.log("📊 Running baseline update...\n");
-    return runScript(cwd, "eval:baseline-update");
+    try {
+        const baseline = JSON.parse(fs.readFileSync(baselinePath, "utf-8"));
+        baseline.updatedAt = new Date().toISOString();
+        baseline.updatedBy = process.env.USER || process.env.USERNAME || "unknown";
+        baseline.confidenceTests = baseline.confidenceTests ?? {};
+        baseline.confidenceTests.unitPassed = testResult.status === 0;
+        fs.writeFileSync(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`);
+        console.log("\n✅ Baseline updated successfully");
+    }
+    catch {
+        console.error("❌ Failed to update baseline file");
+        return 1;
+    }
+    return testResult.status ?? 1;
 }
 // ── baseline router ──
 function runBaseline(argv) {

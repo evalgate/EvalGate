@@ -18,10 +18,19 @@ export declare const evalai: {
     test: DefineEvalFunction;
 };
 /**
- * Suite definition for grouping related specifications
- * This will be expanded in Layer 3 for dependency graph support
+ * Suite definition for grouping related specifications.
+ * Accepts both a positional form and an object form:
+ *
+ * @example Positional form:
+ * defineSuite('My Suite', [() => defineEval('spec 1', executor), ...])
+ *
+ * @example Object form:
+ * defineSuite({ name: 'My Suite', specs: [() => defineEval('spec 1', executor), ...] })
  */
-export declare function defineSuite(_name: string, specs: (() => void)[]): void;
+export declare function defineSuite(nameOrConfig: string | {
+    name: string;
+    specs: (() => void)[];
+}, specsArg?: (() => void)[]): void;
 /**
  * Helper function to create specification contexts
  * Useful for testing and manual execution

@@ -39,6 +39,7 @@ export {
 	hasLength,
 	hasNoHallucinations,
 	hasNoToxicity,
+	hasPII,
 	hasReadabilityScore,
 	hasSentiment,
 	hasValidCodeSyntax,

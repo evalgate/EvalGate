@@ -40,13 +40,20 @@ Create `eval/your-spec.spec.ts`:
 ```typescript
 import { defineEval } from "@evalgate/sdk";
 
+defineEval("Basic Math Operations", async () => {
+  const result = 1 + 1;
+  return { pass: result === 2, score: result === 2 ? 100 : 0 };
+});
+
+// Object form (with metadata):
 defineEval({
-  name: "Basic Math Operations",
-  description: "Test fundamental arithmetic",
-  prompt: "Test: 1+1=2, string concatenation, array includes",
-  expected: "All tests should pass",
+  name: "String concatenation",
+  description: "Test string operations",
   tags: ["basic", "math"],
-  category: "unit-test"
+  executor: async () => {
+    const result = "hello" + " world";
+    return { pass: result === "hello world", score: 100 };
+  },
 });
 ```
 
@@ -259,14 +266,27 @@ Create `eval/your-spec.spec.ts`:
 ```typescript
 import { defineEval } from "@evalgate/sdk";
 
-defineEval({
-  name: "Basic Math Operations",
-  description: "Test fundamental arithmetic",
-  prompt: "Test: 1+1=2, string concatenation, array includes",
-  expected: "All tests should pass",
-  tags: ["basic", "math"],
-  category: "unit-test"
+defineEval("Basic Math Operations", async () => {
+  const result = 1 + 1;
+  return { pass: result === 2, score: result === 2 ? 100 : 0 };
 });
+
+// Object form (with metadata):
+defineEval({
+  name: "String concatenation",
+  description: "Test string operations",
+  tags: ["basic", "math"],
+  executor: async () => {
+    const result = "hello" + " world";
+    return { pass: result === "hello world", score: 100 };
+  },
+});
+
+// Suite form — group related specs:
+defineSuite("Math suite", [
+  () => defineEval("addition", async () => ({ pass: 1 + 1 === 2, score: 100 })),
+  () => defineEval("subtraction", async () => ({ pass: 5 - 3 === 2, score: 100 })),
+]);
 ```
 
 ```bash

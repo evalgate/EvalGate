@@ -109,7 +109,18 @@ async function getChangedFiles(baseBranch) {
         });
         git.on("close", (code) => {
             if (code !== 0) {
-                reject(new Error(`Git diff failed: ${error}`));
+                const lowerError = error.toLowerCase();
+                if (lowerError.includes("not a git repository") ||
+                    lowerError.includes("fatal: not a git")) {
+                    reject(new Error("Not a git repository. Run 'git init' or run evalgate from inside a git repo."));
+                }
+                else if (lowerError.includes("unknown revision") ||
+                    lowerError.includes("bad revision")) {
+                    reject(new Error(`Base branch '${baseBranch}' not found. Fetch it first: git fetch origin ${baseBranch}`));
+                }
+                else {
+                    reject(new Error(`Git diff failed (exit ${code}). Ensure git is installed and '${baseBranch}' exists.`));
+                }
                 return;
             }
             const files = output

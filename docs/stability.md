@@ -105,16 +105,21 @@ This document classifies every major feature by maturity level and provides API 
 | Cost Records | **Stable** | v1.0 | Per-call token + cost tracking |
 | LLM Judge | **Beta** | v1.0 | Meta-judge post-eval hook |
 
-### SDK (`@evalgate/sdk`) — v2.1.3
+### SDK (`@evalgate/sdk`) — v2.2.0
 
 | Feature | Tier | Since | Notes |
 |---------|------|-------|-------|
 | `AIEvalClient` | **Stable** | v1.0 | Core client class |
 | `WorkflowTracer` | **Stable** | v1.0 | Trace instrumentation |
 | `createTestSuite` + `expect` | **Stable** | v1.0 | Testing DSL |
+| `expect().not` modifier | **Stable** | v2.2 | Proxy-based negation for all assertion methods |
 | Assertions library | **Stable** | v1.0 | 15+ assertion types |
+| `hasPII(text)` | **Stable** | v2.2 | Semantic PII detection; `true` = PII found |
+| `defineSuite` (object + positional) | **Stable** | v2.2 | Both call forms accepted |
+| `snapshot(name, output)` | **Stable** | v2.2 | Param order fixed; `saveSnapshot` alias updated |
 | Framework integrations | **Beta** | v1.0 | Jest, Vitest adapters |
 | Regression gate exports | **Stable** | v1.6 | `@evalgate/sdk/regression` |
+| Behavioral spec discover/run/diff | **Beta** | v2.0 | `evalgate discover`, `run`, `diff`, `ci` pipeline |
 
 ### EvalGate Intelligence Layer — v2.1.2
 

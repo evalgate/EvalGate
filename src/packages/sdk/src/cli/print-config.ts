@@ -148,7 +148,7 @@ function buildResolvedConfig(
 			flags.baseUrl ||
 			envBaseUrl ||
 			fileConfig?.baseUrl ||
-			"http://localhost:3000",
+			"https://api.evalgate.com",
 		source: baseUrlSource,
 	});
 

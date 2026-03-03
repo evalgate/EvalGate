@@ -204,13 +204,22 @@ exports.evalai = {
     test: exports.defineEval,
 };
 /**
- * Suite definition for grouping related specifications
- * This will be expanded in Layer 3 for dependency graph support
+ * Suite definition for grouping related specifications.
+ * Accepts both a positional form and an object form:
+ *
+ * @example Positional form:
+ * defineSuite('My Suite', [() => defineEval('spec 1', executor), ...])
+ *
+ * @example Object form:
+ * defineSuite({ name: 'My Suite', specs: [() => defineEval('spec 1', executor), ...] })
  */
-function defineSuite(_name, specs) {
-    // For now, just execute the specs to register them
-    // In Layer 3, this will build the dependency graph
-    for (const specFn of specs) {
+function defineSuite(nameOrConfig, specsArg) {
+    const specFns = typeof nameOrConfig === "string"
+        ? (specsArg ?? [])
+        : (nameOrConfig.specs ?? []);
+    // Execute each spec function to register its defineEval calls
+    // In Layer 3, this will also build the dependency graph
+    for (const specFn of specFns) {
         specFn();
     }
 }

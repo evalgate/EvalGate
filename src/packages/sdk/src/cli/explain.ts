@@ -110,6 +110,8 @@ const REPORT_SEARCH_PATHS = [
 	"evals/regression-report.json",
 	".evalgate/last-report.json",
 	".evalgate/last_report.json",
+	".evalgate/last-run.json",
+	".evalgate/runs/latest.json",
 ];
 
 function findReport(cwd: string, explicitPath: string | null): string | null {
@@ -440,7 +442,19 @@ function buildExplainOutput(
 	report: CheckReport | Record<string, unknown>,
 	reportPath: string,
 ): ExplainOutput {
-	// Support both CheckReport (from evalgate check) and BuiltinReport (from evalgate gate)
+	// Support RunResult (from evalgate run) — has schemaVersion + results[] + summary
+	const isRunResult =
+		"results" in report &&
+		Array.isArray(report.results) &&
+		"summary" in report &&
+		report.summary !== null &&
+		typeof report.summary === "object";
+
+	if (isRunResult) {
+		return buildFromRunResult(report as Record<string, unknown>, reportPath);
+	}
+
+	// Support BuiltinReport (from evalgate gate)
 	const isBuiltinReport = "category" in report && "deltas" in report;
 
 	if (isBuiltinReport) {
@@ -451,6 +465,87 @@ function buildExplainOutput(
 	}
 
 	return buildFromCheckReport(report as CheckReport, reportPath);
+}
+
+function buildFromRunResult(
+	report: Record<string, unknown>,
+	reportPath: string,
+): ExplainOutput {
+	const summary = report.summary as {
+		passed: number;
+		failed: number;
+		skipped: number;
+		passRate: number;
+	};
+	const results =
+		(report.results as Array<{
+			specId: string;
+			name: string;
+			filePath: string;
+			result: {
+				status: string;
+				score?: number;
+				error?: string;
+				duration: number;
+			};
+		}>) ?? [];
+
+	const passed = summary.failed === 0;
+
+	// Top failures
+	const failures = results.filter((r) => r.result.status === "failed");
+	const topFailures = failures.slice(0, 3).map((r, i) => ({
+		rank: i + 1,
+		name: r.name,
+		filePath: r.filePath,
+		reason: r.result.error,
+	}));
+
+	// Changes: pass rate
+	const changes: ExplainOutput["changes"] = [
+		{
+			metric: "Pass rate",
+			baseline: "—",
+			current: `${Math.round(summary.passRate * 100)}%`,
+			direction: passed ? "same" : "worse",
+		},
+	];
+
+	// For passing runs, emit nothing so no misleading "Run doctor" suggestions appear
+	if (passed) {
+		return {
+			verdict: "pass",
+			reasonMessage: `All ${summary.passed} spec${summary.passed === 1 ? "" : "s"} passed`,
+			topFailures: [],
+			totalFailures: 0,
+			changes,
+			rootCauses: [],
+			suggestedFixes: [],
+			reportPath,
+		};
+	}
+
+	// Classify root cause by inspecting error messages
+	const errorText = failures
+		.map((r) => (r.result.error ?? "").toLowerCase())
+		.join(" ");
+	const rootCauses: RootCauseClass[] = [];
+	if (errorText.includes("pii") || errorText.includes("safety"))
+		rootCauses.push("safety_regression");
+	if (errorText.includes("tool") || errorText.includes("function_call"))
+		rootCauses.push("tool_use_drift");
+	if (rootCauses.length === 0) rootCauses.push("prompt_drift");
+
+	return {
+		verdict: "fail",
+		reasonMessage: `${summary.failed} of ${results.length} spec${results.length === 1 ? "" : "s"} failed`,
+		topFailures,
+		totalFailures: failures.length,
+		changes,
+		rootCauses,
+		suggestedFixes: suggestFixes(rootCauses),
+		reportPath,
+	};
 }
 
 function buildFromCheckReport(

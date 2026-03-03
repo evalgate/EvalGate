@@ -2,6 +2,29 @@
 
 Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANGELOG.md](src/packages/sdk/CHANGELOG.md).
 
+## [2.2.0] - 2026-03-03
+
+### Breaking
+
+- **`snapshot(output, name)` → `snapshot(name, output)`** (SDK) — parameter order swapped. Update call sites.
+
+### Added
+
+- **`expect().not`** — negated assertion modifier now works (`expect(x).not.toContain(y)`)
+- **`hasPII(text)`** — clear semantic alias for PII detection; exported from `@evalgate/sdk`
+- **`defineSuite` object form** — accepts `{ name, specs }` object in addition to positional args
+
+### Fixed
+
+- **`specId` collision** — all specs in `eval/` shared one ID; SHA-256 fix in `discover.ts`
+- **`explain` UNKNOWN verdict** — now correctly reads `last-run.json` (RunResult format) and shows PASS/FAIL
+- **`print-config` baseUrl** — default changed from `localhost:3000` → `https://api.evalgate.com`
+- **`baseline update`** — self-contained; no longer requires custom npm script
+- **`impact-analysis` git error** — clean error messages instead of raw git help output
+- **README quickstart** — `defineEval` examples now include executor function
+
+---
+
 ## [2.1.3] - 2026-03-02
 
 ### Fixed

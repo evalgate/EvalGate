@@ -138,7 +138,7 @@ function buildResolvedConfig(cwd, flags) {
         value: flags.baseUrl ||
             envBaseUrl ||
             fileConfig?.baseUrl ||
-            "http://localhost:3000",
+            "https://api.evalgate.com",
         source: baseUrlSource,
     });
     // apiKey (always redacted)

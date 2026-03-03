@@ -5,6 +5,31 @@ All notable changes to the @evalgate/sdk package will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-03-03
+
+### Breaking
+
+- **`snapshot(output, name)` → `snapshot(name, output)`** — parameter order swapped to match natural call convention (`name` first, value second, same as `test('name', fn)`). Update any existing `snapshot(output, 'label')` calls to `snapshot('label', output)`.
+
+### Added
+
+- **`expect().not` modifier** — `expect('drop table').not.toContain('drop table')` now works; negates `passed` on any chained assertion via Proxy
+- **`hasPII(text)`** — semantic inverse of `notContainsPII`; returns `true` when PII is detected (email, phone, SSN, IP). Exported from main package. Eliminates double-negative confusion.
+- **`defineSuite` object form** — now accepts both `defineSuite(name, [...fns])` and `defineSuite({ name, specs: [...fns] })`. README updated with examples.
+
+### Fixed
+
+- **`specId` collision** — all specs in `eval/` directory shared the same 8-char ID (`ZXZhbC9j`). Root cause: short base64 prefix was identical for any path starting with `eval/c`. Fixed: SHA-256 hex (16 chars) in `discover.ts`.
+- **`explain` UNKNOWN verdict** — `evalgate explain` showed `Verdict: UNKNOWN` when reading `.evalgate/last-run.json`. Added `RunResult` format detection (`results[]` + `summary`). Added `.evalgate/last-run.json` and `.evalgate/runs/latest.json` to auto-search paths. Passing runs now show clean `✅ PASS` with no spurious "Run doctor" suggestions.
+- **`print-config` baseUrl default** — was `http://localhost:3000`; now `https://api.evalgate.com` to match `evalgate doctor`.
+- **`baseline update` self-contained** — no longer requires a custom `eval:baseline-update` npm script. Falls back to built-in mode (runs `pm test`, stamps baseline) if no script is present.
+- **`notContainsPII` phone regex** — broadened to cover `555-123-4567`, `555.123.4567`, and `555 123 4567` formats. JSDoc clarified: `false` = PII found (unsafe), `true` = no PII (safe).
+- **`impact-analysis` git error** — replaced raw `git diff --help` wall-of-text with clean targeted messages: `Not a git repository`, `Base branch 'X' not found. Fetch it first`, or generic exit-code message.
+- **README quickstart** — both `defineEval` examples now include an `executor` function. Running the quickstart no longer throws `Executor must be a function`.
+- **`snapshot` module docstring** — updated `@example` to reflect new `(name, output)` parameter order.
+
+---
+
 ## [2.1.3] - 2026-03-02
 
 ### Fixed

@@ -10,7 +10,7 @@ export { AIEvalClient } from "./client";
 import { AuthenticationError, EvalGateError, NetworkError, RateLimitError, SDKError } from "./errors";
 export { EvalGateError, RateLimitError, AuthenticationError, SDKError as ValidationError, // Using SDKError as ValidationError for backward compatibility
 NetworkError, };
-export { containsAllRequiredFields, containsJSON, containsKeywords, containsLanguage, expect, followsInstructions, hasFactualAccuracy, hasLength, hasNoHallucinations, hasNoToxicity, hasReadabilityScore, hasSentiment, hasValidCodeSyntax, isValidEmail, isValidURL, matchesPattern, matchesSchema, notContainsPII, respondedWithinTime, similarTo, withinRange, } from "./assertions";
+export { containsAllRequiredFields, containsJSON, containsKeywords, containsLanguage, expect, followsInstructions, hasFactualAccuracy, hasLength, hasNoHallucinations, hasNoToxicity, hasPII, hasReadabilityScore, hasSentiment, hasValidCodeSyntax, isValidEmail, isValidURL, matchesPattern, matchesSchema, notContainsPII, respondedWithinTime, similarTo, withinRange, } from "./assertions";
 import { createContext, EvalContext, getCurrentContext, withContext } from "./context";
 export { createContext, getCurrentContext as getContext, withContext, EvalContext as ContextManager, };
 export { cloneContext, mergeContexts, validateContext, } from "./runtime/context";

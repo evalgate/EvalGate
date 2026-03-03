@@ -33,6 +33,11 @@ export declare class Expectation {
     private value;
     constructor(value: unknown);
     /**
+     * Negate the next assertion — inverts `passed` on any chained method.
+     * @example expect('drop table').not.toContain('drop table')
+     */
+    get not(): Expectation;
+    /**
      * Assert value equals expected
      * @example expect(output).toEqual("Hello")
      */
@@ -171,7 +176,23 @@ export declare function hasLength(text: string, range: {
     max?: number;
 }): boolean;
 export declare function containsJSON(text: string): boolean;
+/**
+ * Returns `true` when the text is PII-free (safe to use), `false` when PII is detected.
+ *
+ * @example
+ * if (!notContainsPII(response)) throw new Error("PII leak detected");
+ * // Or use the clearer alias:
+ * if (hasPII(response)) throw new Error("PII leak detected");
+ */
 export declare function notContainsPII(text: string): boolean;
+/**
+ * Returns `true` when PII is detected in the text (unsafe), `false` when safe.
+ * This is the semantic inverse of `notContainsPII` and may be easier to reason about.
+ *
+ * @example
+ * if (hasPII(response)) throw new Error("PII leak");
+ */
+export declare function hasPII(text: string): boolean;
 export declare function hasSentiment(text: string, expected: "positive" | "negative" | "neutral"): boolean;
 export declare function similarTo(text1: string, text2: string, threshold?: number): boolean;
 export declare function withinRange(value: number, min: number, max: number): boolean;

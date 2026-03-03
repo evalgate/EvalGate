@@ -42,6 +42,34 @@ export class Expectation {
 	constructor(private value: unknown) {}
 
 	/**
+	 * Negate the next assertion — inverts `passed` on any chained method.
+	 * @example expect('drop table').not.toContain('drop table')
+	 */
+	get not(): Expectation {
+		const value = this.value;
+		return new Proxy(new Expectation(value), {
+			get(target, prop) {
+				const orig = (target as unknown as Record<string | symbol, unknown>)[
+					prop
+				];
+				if (typeof orig === "function" && prop !== "constructor") {
+					return (...args: unknown[]) => {
+						const result = (orig as (...a: unknown[]) => AssertionResult).call(
+							target,
+							...args,
+						);
+						if (result && typeof result === "object" && "passed" in result) {
+							return { ...result, passed: !result.passed };
+						}
+						return result;
+					};
+				}
+				return orig;
+			},
+		}) as Expectation;
+	}
+
+	/**
 	 * Assert value equals expected
 	 * @example expect(output).toEqual("Hello")
 	 */
@@ -590,16 +618,35 @@ export function containsJSON(text: string): boolean {
 	}
 }
 
+/**
+ * Returns `true` when the text is PII-free (safe to use), `false` when PII is detected.
+ *
+ * @example
+ * if (!notContainsPII(response)) throw new Error("PII leak detected");
+ * // Or use the clearer alias:
+ * if (hasPII(response)) throw new Error("PII leak detected");
+ */
 export function notContainsPII(text: string): boolean {
 	// Simple PII detection patterns
 	const piiPatterns = [
 		/\b\d{3}-\d{2}-\d{4}\b/, // SSN
 		/\b\d{3}\.\d{3}\.\d{4}\b/, // SSN with dots
-		/\b\d{10}\b/, // Phone number
-		/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/, // Email
+		/\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/, // Phone (various formats)
+		/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/, // Email
 		/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, // IP address
 	];
 	return !piiPatterns.some((pattern) => pattern.test(text));
+}
+
+/**
+ * Returns `true` when PII is detected in the text (unsafe), `false` when safe.
+ * This is the semantic inverse of `notContainsPII` and may be easier to reason about.
+ *
+ * @example
+ * if (hasPII(response)) throw new Error("PII leak");
+ */
+export function hasPII(text: string): boolean {
+	return !notContainsPII(text);
 }
 
 export function hasSentiment(

@@ -22,6 +22,7 @@
  * This becomes your entry point command.
  */
 
+import * as crypto from "node:crypto";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { getExecutionMode } from "../runtime/execution-mode";
@@ -344,13 +345,11 @@ function analyzeComplexity(content: string): "simple" | "medium" | "complex" {
  * Generate specification ID from file path + name + index (unique per defineEval call)
  */
 function generateSpecId(filePath: string, name: string, index: number): string {
-	const relativePath = path.relative(process.cwd(), filePath);
-	const key = `${relativePath}:${name}:${index}`;
-	const hash = Buffer.from(key)
-		.toString("base64")
-		.replace(/[+/=]/g, "")
-		.slice(0, 8);
-	return hash;
+	const relativePath = path
+		.relative(process.cwd(), filePath)
+		.replace(/\\/g, "/");
+	const key = `${relativePath}|${name}|${index}`;
+	return crypto.createHash("sha256").update(key).digest("hex").slice(0, 16);
 }
 
 /**

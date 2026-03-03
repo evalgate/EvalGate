@@ -6,5 +6,5 @@ exports.SPEC_VERSION = exports.SDK_VERSION = void 0;
  * X-EvalGate-SDK-Version: SDK package version
  * X-EvalGate-Spec-Version: OpenAPI spec version (docs/openapi.json info.version)
  */
-exports.SDK_VERSION = "2.1.3";
-exports.SPEC_VERSION = "2.1.3";
+exports.SDK_VERSION = "2.2.0";
+exports.SPEC_VERSION = "2.2.0";

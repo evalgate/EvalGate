@@ -4,6 +4,10 @@ When you change `docs/openapi.json`, add an entry here before running `pnpm open
 
 Format: `## X.Y.Z` or `## [X.Y.Z]` with a short description.
 
+## 2.2.0
+
+- Bump spec version to align with SDK 2.2.0 (bug fixes: specId collision, explain RunResult support, baseline self-contained, impact-analysis clean errors; new APIs: expect().not, hasPII, defineSuite object form; breaking: snapshot param order swap)
+
 ## 2.1.3
 
 - Fix critical post-mortem bugs: multi-defineEval discovery, false regression gate, doctor localhost default, simulated execution, scoring opacity, explain "unnamed"

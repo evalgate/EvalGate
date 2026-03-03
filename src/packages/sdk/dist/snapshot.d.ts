@@ -9,7 +9,7 @@
  * import { snapshot, loadSnapshot } from '@ai-eval-platform/sdk';
  *
  * const output = await generateText('Write a haiku about coding');
- * await snapshot(output, 'haiku-test');
+ * await snapshot('haiku-test', output);
  *
  * // Later, compare with snapshot
  * const saved = await loadSnapshot('haiku-test');
@@ -135,10 +135,10 @@ export declare class SnapshotManager {
  * @example
  * ```typescript
  * const output = await generateText('Write a haiku');
- * await snapshot(output, 'haiku-test');
+ * await snapshot('haiku-test', output);
  * ```
  */
-export declare function snapshot(output: string, name: string, options?: {
+export declare function snapshot(name: string, output: string, options?: {
     tags?: string[];
     metadata?: Record<string, unknown>;
     overwrite?: boolean;

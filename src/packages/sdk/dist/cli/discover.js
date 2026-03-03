@@ -59,6 +59,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.discoverSpecs = discoverSpecs;
 exports.printDiscoveryResults = printDiscoveryResults;
 exports.runDiscover = runDiscover;
+const crypto = __importStar(require("node:crypto"));
 const fs = __importStar(require("node:fs/promises"));
 const path = __importStar(require("node:path"));
 const execution_mode_1 = require("../runtime/execution-mode");
@@ -284,13 +285,11 @@ function analyzeComplexity(content) {
  * Generate specification ID from file path + name + index (unique per defineEval call)
  */
 function generateSpecId(filePath, name, index) {
-    const relativePath = path.relative(process.cwd(), filePath);
-    const key = `${relativePath}:${name}:${index}`;
-    const hash = Buffer.from(key)
-        .toString("base64")
-        .replace(/[+/=]/g, "")
-        .slice(0, 8);
-    return hash;
+    const relativePath = path
+        .relative(process.cwd(), filePath)
+        .replace(/\\/g, "/");
+    const key = `${relativePath}|${name}|${index}`;
+    return crypto.createHash("sha256").update(key).digest("hex").slice(0, 16);
 }
 /**
  * Calculate discovery statistics
