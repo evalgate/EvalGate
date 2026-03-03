@@ -5,6 +5,18 @@ All notable changes to the @evalgate/sdk package will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2026-03-02
+
+### Fixed
+
+- **Critical:** Multi-`defineEval` calls per file — only first was discovered (silent data loss)
+- **High:** First-run gate false regression on fresh init when no test script exists
+- **High:** Doctor defaults baseUrl to localhost:3000 instead of production API
+- **Critical:** Simulated executeSpec replaced with real spec execution
+- **High:** Run scores now include scoring model context for clarity
+- **Low:** Explain no longer shows "unnamed" for builtin gate failures
+- **Docs:** Added missing `discover --manifest` step to local quickstart
+
 ## [2.1.2] - 2026-03-02
 
 ### Fixed
