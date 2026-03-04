@@ -2,6 +2,10 @@
  * Simple in-memory cache with TTL for SDK requests
  * Reduces redundant API calls and improves performance
  */
+/**
+ * @internal — HTTP request cache used by AIEvalClient. Not part of the public API.
+ * Use {@link CacheTTL} to configure cache durations via client options.
+ */
 export declare class RequestCache {
     private cache;
     private maxSize;

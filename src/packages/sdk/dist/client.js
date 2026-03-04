@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AIEvalClient = void 0;
 const batch_1 = require("./batch");
-const constants_1 = require("./constants");
 const cache_1 = require("./cache");
+const constants_1 = require("./constants");
 const context_1 = require("./context");
 const errors_1 = require("./errors");
 const logger_1 = require("./logger");
@@ -101,7 +101,7 @@ class AIEvalClient {
             const MAX_CONCURRENCY = 5;
             this.batcher = new batch_1.RequestBatcher(async (requests) => {
                 const results = [];
-                const executing = [];
+                const executing = new Set();
                 for (const req of requests) {
                     const task = (async () => {
                         try {
@@ -122,18 +122,10 @@ class AIEvalClient {
                             });
                         }
                     })();
-                    executing.push(task);
-                    if (executing.length >= MAX_CONCURRENCY) {
+                    const tracked = task.finally(() => executing.delete(tracked));
+                    executing.add(tracked);
+                    if (executing.size >= MAX_CONCURRENCY) {
                         await Promise.race(executing);
-                        // Remove settled promises
-                        for (let i = executing.length - 1; i >= 0; i--) {
-                            const settled = await Promise.race([
-                                executing[i].then(() => true),
-                                Promise.resolve(false),
-                            ]);
-                            if (settled)
-                                executing.splice(i, 1);
-                        }
                     }
                 }
                 await Promise.allSettled(executing);

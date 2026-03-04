@@ -9,6 +9,10 @@ interface CacheEntry<T> {
 	ttl: number;
 }
 
+/**
+ * @internal — HTTP request cache used by AIEvalClient. Not part of the public API.
+ * Use {@link CacheTTL} to configure cache durations via client options.
+ */
 export class RequestCache {
 	private cache: Map<string, CacheEntry<unknown>>;
 	private maxSize: number;

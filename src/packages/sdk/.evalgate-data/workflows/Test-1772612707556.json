@@ -1,0 +1,21 @@
+{
+	"name": "Test",
+	"startedAt": "2026-03-04T08:25:07.555Z",
+	"endedAt": "2026-03-04T08:25:07.556Z",
+	"status": "completed",
+	"durationMs": 0,
+	"totalCost": "0.000000",
+	"handoffs": [
+		{
+			"fromAgent": "AgentA",
+			"toAgent": "AgentB",
+			"handoffType": "delegation",
+			"context": {
+				"reason": "escalation"
+			},
+			"timestamp": "2026-03-04T08:25:07.555Z"
+		}
+	],
+	"decisions": [],
+	"costs": []
+}

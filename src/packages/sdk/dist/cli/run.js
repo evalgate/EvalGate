@@ -54,6 +54,7 @@ const fs = __importStar(require("node:fs/promises"));
 const path = __importStar(require("node:path"));
 const registry_1 = require("../runtime/registry");
 const impact_analysis_1 = require("./impact-analysis");
+const traces_1 = require("./traces");
 /**
  * Generate deterministic run ID
  */
@@ -377,6 +378,15 @@ function printHumanResults(result) {
     console.log(`   ❌ Failed: ${result.summary.failed}`);
     console.log(`   ⏭️  Skipped: ${result.summary.skipped}`);
     console.log(`   📊 Pass Rate: ${(result.summary.passRate * 100).toFixed(1)}%`);
+    // Latency percentiles
+    const durations = result.results
+        .filter((r) => r.result.status !== "skipped")
+        .map((r) => r.result.duration);
+    if (durations.length > 0) {
+        const latency = (0, traces_1.calculatePercentiles)(durations);
+        console.log("");
+        console.log((0, traces_1.formatLatencyTable)(latency));
+    }
     const hasScores = result.results.some((r) => r.result.score !== undefined);
     console.log(`\n📋 Individual Results:${hasScores ? "  (score = value returned by spec executor, 0–100)" : ""}`);
     for (const spec of result.results) {
@@ -404,6 +414,18 @@ function printJsonResults(result) {
 async function runEvaluationsCLI(options) {
     try {
         const result = await runEvaluations(options);
+        // Auto-write structured traces
+        if (result.results.length > 0) {
+            try {
+                const tracePath = await (0, traces_1.writeTraces)(result);
+                if (options.format !== "json") {
+                    console.log(`\n🔍 Trace written to ${tracePath}`);
+                }
+            }
+            catch {
+                // Trace writing is best-effort, don't fail the run
+            }
+        }
         if (options.format === "json") {
             printJsonResults(result);
         }

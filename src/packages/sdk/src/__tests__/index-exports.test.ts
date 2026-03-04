@@ -5,8 +5,8 @@
  * For compiled-output verification, see `dist-smoke.test.ts`.
  */
 import { describe, expect, it } from "vitest";
-import * as sdk from "../index";
 import { ValidationError as SourceValidationError } from "../errors";
+import * as sdk from "../index";
 
 describe("index.ts barrel exports — error class identity", () => {
 	it("sdk.ValidationError is the real ValidationError from errors.ts", () => {

@@ -41,9 +41,9 @@
  *   EVALGATE_API_KEY   — API key for authentication
  */
 
-import { DEFAULT_BASE_URL } from "../constants";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { DEFAULT_BASE_URL } from "../constants";
 import {
 	fetchQualityLatest,
 	fetchRunDetails,
@@ -419,7 +419,9 @@ export async function runCheck(args: CheckArgs): Promise<number> {
 	}
 
 	if (args.dryRun) {
-		console.error("\n[dry-run] Gate would have exited with code " + gateResult.exitCode);
+		console.error(
+			`\n[dry-run] Gate would have exited with code ${gateResult.exitCode}`,
+		);
 		return EXIT.PASS;
 	}
 

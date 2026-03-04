@@ -50,6 +50,26 @@ class TestSuite {
     async run() {
         const startTime = Date.now();
         const results = [];
+        // Deterministic shuffle when seed is provided
+        const orderedCases = this.config.cases.map((c, i) => ({
+            case: c,
+            originalIndex: i,
+        }));
+        if (this.config.seed !== undefined) {
+            // mulberry32 seeded PRNG
+            let s = this.config.seed | 0;
+            const rand = () => {
+                s = (s + 0x6d2b79f5) | 0;
+                let t = Math.imul(s ^ (s >>> 15), 1 | s);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+            // Fisher-Yates shuffle
+            for (let i = orderedCases.length - 1; i > 0; i--) {
+                const j = Math.floor(rand() * (i + 1));
+                [orderedCases[i], orderedCases[j]] = [orderedCases[j], orderedCases[i]];
+            }
+        }
         const runTestCase = async (testCase, index) => {
             const caseStartTime = Date.now();
             const id = testCase.id || `case-${index}`;
@@ -114,15 +134,16 @@ class TestSuite {
                 };
             }
         };
-        // Run tests
+        // Run tests (using orderedCases which may be seeded-shuffled)
         if (this.config.parallel) {
-            results.push(...(await Promise.all(this.config.cases.map((tc, i) => runTestCase(tc, i)))));
+            results.push(...(await Promise.all(orderedCases.map((oc) => runTestCase(oc.case, oc.originalIndex)))));
         }
         else {
-            for (let i = 0; i < this.config.cases.length; i++) {
-                const result = await runTestCase(this.config.cases[i], i);
+            for (const oc of orderedCases) {
+                const result = await runTestCase(oc.case, oc.originalIndex);
                 results.push(result);
-                if (this.config.stopOnFailure && !result.passed) {
+                if ((this.config.stopOnFailure || this.config.strict) &&
+                    !result.passed) {
                     break;
                 }
             }
@@ -137,7 +158,7 @@ class TestSuite {
                 .filter((i) => i >= 0);
             for (let attempt = 0; attempt < retries && failingIndices.length > 0; attempt++) {
                 // Exponential backoff with jitter before each retry round
-                const delay = baseDelay * Math.pow(2, attempt);
+                const delay = baseDelay * 2 ** attempt;
                 const jitter = jitterFraction > 0
                     ? delay * jitterFraction * (Math.random() * 2 - 1)
                     : 0;
@@ -147,15 +168,18 @@ class TestSuite {
                 }
                 const toRetry = [...failingIndices];
                 failingIndices.length = 0;
-                for (const i of toRetry) {
-                    const tc = this.config.cases[i];
-                    const retryResult = await runTestCase(tc, i);
+                for (const idx of toRetry) {
+                    const tc = results[idx]; // retry based on result index
+                    const originalCase = orderedCases.find((oc) => (oc.case.id || `case-${oc.originalIndex}`) === tc.id);
+                    if (!originalCase)
+                        continue;
+                    const retryResult = await runTestCase(originalCase.case, originalCase.originalIndex);
                     if (retryResult.passed) {
-                        results[i] = retryResult;
+                        results[idx] = retryResult;
                         retriedCases.push(retryResult.id);
                     }
                     else {
-                        failingIndices.push(i);
+                        failingIndices.push(idx);
                     }
                 }
             }

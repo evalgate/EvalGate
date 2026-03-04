@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.2.3] - 2026-03-03
 
+### Breaking
+
+- **`PaginatedIterator` API changed from cursor-based to offset-based** — the constructor signature changed from `(cursor) => { items, nextCursor, hasMore }` to `(offset, limit) => { data, hasMore }`. If you were using `PaginatedIterator` directly with a cursor-based fetcher, update your callback to accept `(offset: number, limit: number)` and return `{ data: T[], hasMore: boolean }`. The `autoPaginate` and `autoPaginateGenerator` helpers also use the new offset-based signature. Cursor encoding/decoding utilities (`encodeCursor`, `decodeCursor`) remain available for server-side cursor generation.
+- **`RequestCache` removed from public exports** — `RequestCache` was an internal HTTP cache with a method-specific API (`set(method, url, data, ttl, params)`) that did not match general-purpose cache expectations. It is no longer exported from the package entry point. If you were importing it directly, use your own cache implementation or rely on the SDK's built-in automatic caching. `CacheTTL` constants remain exported for advanced configuration.
+
 ### Fixed
 
 - **`RequestCache.set` missing default TTL** — entries stored without an explicit TTL were immediately stale on next read. Default is now `CacheTTL.MEDIUM`; callers that omit `ttl` get a live cache entry instead of a cache miss every time.

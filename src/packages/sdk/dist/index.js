@@ -8,9 +8,9 @@
  * @packageDocumentation
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createResult = exports.createEvalContext = exports.validateContext = exports.mergeContexts = exports.cloneContext = exports.ContextManager = exports.withContext = exports.getContext = exports.createContext = exports.withinRange = exports.similarTo = exports.respondedWithinTimeSince = exports.respondedWithinTime = exports.respondedWithinDuration = exports.notContainsPII = exports.matchesSchema = exports.matchesPattern = exports.isValidURL = exports.isValidEmail = exports.hasValidCodeSyntaxAsync = exports.hasValidCodeSyntax = exports.hasSentimentAsync = exports.hasSentiment = exports.hasReadabilityScore = exports.hasPII = exports.hasNoToxicityAsync = exports.hasNoToxicity = exports.hasConsistencyAsync = exports.hasConsistency = exports.hasNoHallucinationsAsync = exports.hasNoHallucinations = exports.hasLength = exports.hasFactualAccuracyAsync = exports.hasFactualAccuracy = exports.getAssertionConfig = exports.followsInstructions = exports.expect = exports.containsLanguageAsync = exports.containsLanguage = exports.containsKeywords = exports.containsJSON = exports.containsAllRequiredFields = exports.configureAssertions = exports.SDKError = exports.NetworkError = exports.ValidationError = exports.AuthenticationError = exports.RateLimitError = exports.EvalGateError = exports.AIEvalClient = void 0;
-exports.traceAutoGen = exports.createWorkflowTracer = exports.EvaluationTemplates = exports.streamEvaluation = exports.RateLimiter = exports.batchRead = exports.batchProcess = exports.REPORT_SCHEMA_VERSION = exports.GATE_EXIT = exports.GATE_CATEGORY = exports.ARTIFACTS = exports.PaginatedIterator = exports.encodeCursor = exports.decodeCursor = exports.createPaginatedIterator = exports.autoPaginateGenerator = exports.autoPaginate = exports.extendExpectWithToPassGate = exports.Logger = exports.openAIChatEval = exports.traceOpenAI = exports.traceAnthropic = exports.runCheck = exports.parseArgs = exports.EXIT = exports.RequestCache = exports.CacheTTL = exports.RequestBatcher = exports.importData = exports.exportData = exports.saveSnapshot = exports.compareSnapshots = exports.compareWithSnapshot = exports.snapshot = exports.TestSuite = exports.createTestSuite = exports.SpecRegistrationError = exports.SpecExecutionError = exports.RuntimeError = exports.EvalRuntimeError = exports.setActiveRuntime = exports.getActiveRuntime = exports.disposeActiveRuntime = exports.createEvalRuntime = exports.defaultLocalExecutor = exports.createLocalExecutor = exports.getFilteredSpecs = exports.evalai = exports.defineSuite = exports.defineEval = void 0;
-exports.WorkflowTracer = exports.traceWorkflowStep = exports.traceLangChainAgent = exports.traceCrewAI = void 0;
+exports.validateContext = exports.mergeContexts = exports.cloneContext = exports.ContextManager = exports.withContext = exports.getContext = exports.createContext = exports.SDKError = exports.withinRange = exports.toSemanticallyContain = exports.similarTo = exports.respondedWithinTimeSince = exports.respondedWithinTime = exports.respondedWithinDuration = exports.notContainsPII = exports.matchesSchema = exports.matchesPattern = exports.isValidURL = exports.isValidEmail = exports.hasValidCodeSyntaxAsync = exports.hasValidCodeSyntax = exports.hasSentimentWithScore = exports.hasSentimentAsync = exports.hasSentiment = exports.hasReadabilityScore = exports.hasPII = exports.hasNoToxicityAsync = exports.hasNoToxicity = exports.hasNoHallucinationsAsync = exports.hasNoHallucinations = exports.hasLength = exports.hasFactualAccuracyAsync = exports.hasFactualAccuracy = exports.hasConsistencyAsync = exports.hasConsistency = exports.getAssertionConfig = exports.followsInstructions = exports.expect = exports.containsLanguageAsync = exports.containsLanguage = exports.containsKeywords = exports.containsJSON = exports.containsAllRequiredFields = exports.configureAssertions = exports.NetworkError = exports.ValidationError = exports.AuthenticationError = exports.RateLimitError = exports.EvalGateError = exports.AIEvalClient = void 0;
+exports.streamEvaluation = exports.RateLimiter = exports.batchRead = exports.batchProcess = exports.REPORT_SCHEMA_VERSION = exports.GATE_EXIT = exports.GATE_CATEGORY = exports.ARTIFACTS = exports.PaginatedIterator = exports.encodeCursor = exports.decodeCursor = exports.createPaginatedIterator = exports.autoPaginateGenerator = exports.autoPaginate = exports.OTelExporter = exports.createOTelExporter = exports.extendExpectWithToPassGate = exports.Logger = exports.openAIChatEval = exports.traceOpenAI = exports.traceAnthropic = exports.runCheck = exports.parseArgs = exports.EXIT = exports.CacheTTL = exports.RequestBatcher = exports.importData = exports.exportData = exports.saveSnapshot = exports.compareSnapshots = exports.compareWithSnapshot = exports.snapshot = exports.TestSuite = exports.createTestSuite = exports.SpecRegistrationError = exports.SpecExecutionError = exports.RuntimeError = exports.EvalRuntimeError = exports.setActiveRuntime = exports.getActiveRuntime = exports.disposeActiveRuntime = exports.createEvalRuntime = exports.defaultLocalExecutor = exports.createLocalExecutor = exports.getFilteredSpecs = exports.evalai = exports.defineSuite = exports.defineEval = exports.createResult = exports.createEvalContext = void 0;
+exports.WorkflowTracer = exports.traceWorkflowStep = exports.traceLangChainAgent = exports.traceCrewAI = exports.traceAutoGen = exports.createWorkflowTracer = exports.EvaluationTemplates = void 0;
 // Main SDK exports
 var client_1 = require("./client");
 Object.defineProperty(exports, "AIEvalClient", { enumerable: true, get: function () { return client_1.AIEvalClient; } });
@@ -21,9 +21,6 @@ Object.defineProperty(exports, "EvalGateError", { enumerable: true, get: functio
 Object.defineProperty(exports, "NetworkError", { enumerable: true, get: function () { return errors_1.NetworkError; } });
 Object.defineProperty(exports, "RateLimitError", { enumerable: true, get: function () { return errors_1.RateLimitError; } });
 Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function () { return errors_1.ValidationError; } });
-// Legacy backward compat — SDKError is the old name for EvalGateError
-var errors_2 = require("./errors");
-Object.defineProperty(exports, "SDKError", { enumerable: true, get: function () { return errors_2.EvalGateError; } });
 // Enhanced assertions (Tier 1.3)
 var assertions_1 = require("./assertions");
 // LLM config
@@ -37,19 +34,20 @@ Object.defineProperty(exports, "containsLanguageAsync", { enumerable: true, get:
 Object.defineProperty(exports, "expect", { enumerable: true, get: function () { return assertions_1.expect; } });
 Object.defineProperty(exports, "followsInstructions", { enumerable: true, get: function () { return assertions_1.followsInstructions; } });
 Object.defineProperty(exports, "getAssertionConfig", { enumerable: true, get: function () { return assertions_1.getAssertionConfig; } });
+Object.defineProperty(exports, "hasConsistency", { enumerable: true, get: function () { return assertions_1.hasConsistency; } });
+Object.defineProperty(exports, "hasConsistencyAsync", { enumerable: true, get: function () { return assertions_1.hasConsistencyAsync; } });
 Object.defineProperty(exports, "hasFactualAccuracy", { enumerable: true, get: function () { return assertions_1.hasFactualAccuracy; } });
 Object.defineProperty(exports, "hasFactualAccuracyAsync", { enumerable: true, get: function () { return assertions_1.hasFactualAccuracyAsync; } });
 Object.defineProperty(exports, "hasLength", { enumerable: true, get: function () { return assertions_1.hasLength; } });
 Object.defineProperty(exports, "hasNoHallucinations", { enumerable: true, get: function () { return assertions_1.hasNoHallucinations; } });
 Object.defineProperty(exports, "hasNoHallucinationsAsync", { enumerable: true, get: function () { return assertions_1.hasNoHallucinationsAsync; } });
-Object.defineProperty(exports, "hasConsistency", { enumerable: true, get: function () { return assertions_1.hasConsistency; } });
-Object.defineProperty(exports, "hasConsistencyAsync", { enumerable: true, get: function () { return assertions_1.hasConsistencyAsync; } });
 Object.defineProperty(exports, "hasNoToxicity", { enumerable: true, get: function () { return assertions_1.hasNoToxicity; } });
 Object.defineProperty(exports, "hasNoToxicityAsync", { enumerable: true, get: function () { return assertions_1.hasNoToxicityAsync; } });
 Object.defineProperty(exports, "hasPII", { enumerable: true, get: function () { return assertions_1.hasPII; } });
 Object.defineProperty(exports, "hasReadabilityScore", { enumerable: true, get: function () { return assertions_1.hasReadabilityScore; } });
 Object.defineProperty(exports, "hasSentiment", { enumerable: true, get: function () { return assertions_1.hasSentiment; } });
 Object.defineProperty(exports, "hasSentimentAsync", { enumerable: true, get: function () { return assertions_1.hasSentimentAsync; } });
+Object.defineProperty(exports, "hasSentimentWithScore", { enumerable: true, get: function () { return assertions_1.hasSentimentWithScore; } });
 Object.defineProperty(exports, "hasValidCodeSyntax", { enumerable: true, get: function () { return assertions_1.hasValidCodeSyntax; } });
 Object.defineProperty(exports, "hasValidCodeSyntaxAsync", { enumerable: true, get: function () { return assertions_1.hasValidCodeSyntaxAsync; } });
 Object.defineProperty(exports, "isValidEmail", { enumerable: true, get: function () { return assertions_1.isValidEmail; } });
@@ -61,7 +59,11 @@ Object.defineProperty(exports, "respondedWithinDuration", { enumerable: true, ge
 Object.defineProperty(exports, "respondedWithinTime", { enumerable: true, get: function () { return assertions_1.respondedWithinTime; } });
 Object.defineProperty(exports, "respondedWithinTimeSince", { enumerable: true, get: function () { return assertions_1.respondedWithinTimeSince; } });
 Object.defineProperty(exports, "similarTo", { enumerable: true, get: function () { return assertions_1.similarTo; } });
+Object.defineProperty(exports, "toSemanticallyContain", { enumerable: true, get: function () { return assertions_1.toSemanticallyContain; } });
 Object.defineProperty(exports, "withinRange", { enumerable: true, get: function () { return assertions_1.withinRange; } });
+// Legacy backward compat — SDKError is the old name for EvalGateError
+var errors_2 = require("./errors");
+Object.defineProperty(exports, "SDKError", { enumerable: true, get: function () { return errors_2.EvalGateError; } });
 // Context propagation (Tier 2.9)
 const context_1 = require("./context");
 Object.defineProperty(exports, "createContext", { enumerable: true, get: function () { return context_1.createContext; } });
@@ -113,11 +115,12 @@ Object.defineProperty(exports, "importData", { enumerable: true, get: function (
 var batch_1 = require("./batch");
 Object.defineProperty(exports, "RequestBatcher", { enumerable: true, get: function () { return batch_1.RequestBatcher; } });
 // Performance optimization utilities (v1.3.0)
-// Note: RequestCache and CacheTTL are for advanced users only
-// Most users don't need these - caching is automatic
+// Note: CacheTTL is for advanced users only
+// Most users don't need this - caching is automatic
+// RequestCache is intentionally NOT exported — it's an internal HTTP cache.
+// Use CacheTTL to configure cache durations via client options.
 var cache_1 = require("./cache");
 Object.defineProperty(exports, "CacheTTL", { enumerable: true, get: function () { return cache_1.CacheTTL; } });
-Object.defineProperty(exports, "RequestCache", { enumerable: true, get: function () { return cache_1.RequestCache; } });
 // CLI (programmatic use)
 var check_1 = require("./cli/check");
 Object.defineProperty(exports, "EXIT", { enumerable: true, get: function () { return check_1.EXIT; } });
@@ -137,6 +140,10 @@ Object.defineProperty(exports, "Logger", { enumerable: true, get: function () { 
 // Vitest matcher: expect(await openAIChatEval(...)).toPassGate()
 var matchers_1 = require("./matchers");
 Object.defineProperty(exports, "extendExpectWithToPassGate", { enumerable: true, get: function () { return matchers_1.extendExpectWithToPassGate; } });
+// OpenTelemetry export
+var otel_1 = require("./otel");
+Object.defineProperty(exports, "createOTelExporter", { enumerable: true, get: function () { return otel_1.createOTelExporter; } });
+Object.defineProperty(exports, "OTelExporter", { enumerable: true, get: function () { return otel_1.OTelExporter; } });
 var pagination_1 = require("./pagination");
 Object.defineProperty(exports, "autoPaginate", { enumerable: true, get: function () { return pagination_1.autoPaginate; } });
 Object.defineProperty(exports, "autoPaginateGenerator", { enumerable: true, get: function () { return pagination_1.autoPaginateGenerator; } });

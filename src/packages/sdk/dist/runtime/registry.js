@@ -39,6 +39,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports._registerDefineEval = _registerDefineEval;
 exports.createEvalRuntime = createEvalRuntime;
 exports.withRuntime = withRuntime;
 exports.getActiveRuntime = getActiveRuntime;
@@ -47,6 +48,12 @@ exports.disposeActiveRuntime = disposeActiveRuntime;
 const crypto = __importStar(require("node:crypto"));
 const path = __importStar(require("node:path"));
 const types_1 = require("./types");
+// Registration pattern to break circular dependency (eval.ts imports from registry.ts)
+let _registeredDefineEval = null;
+/** @internal Called by eval.ts to register defineEval without circular import */
+function _registerDefineEval(fn) {
+    _registeredDefineEval = fn;
+}
 /**
  * Runtime registry implementation
  * Scoped lifecycle with proper memory management
@@ -326,9 +333,10 @@ function createEvalRuntime(projectRootOrConfig = process.cwd()) {
         const previousRuntime = activeRuntime;
         activeRuntime = runtime;
         try {
-            // Import and call defineEval
-            const { defineEval } = require("./eval");
-            return defineEval(nameOrConfig, executor, options);
+            if (!_registeredDefineEval) {
+                throw new types_1.RuntimeError("defineEval not registered. Ensure eval.ts is imported before calling createEvalRuntime.");
+            }
+            return _registeredDefineEval(nameOrConfig, executor, options);
         }
         finally {
             // Restore previous runtime

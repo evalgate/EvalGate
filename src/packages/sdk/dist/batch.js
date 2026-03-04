@@ -163,15 +163,15 @@ function canBatch(method, endpoint) {
  */
 async function batchProcess(items, processor, concurrency = 5) {
     const results = [];
-    const executing = [];
+    const executing = new Set();
     for (const item of items) {
         const promise = processor(item).then((result) => {
             results.push(result);
         });
-        executing.push(promise);
-        if (executing.length >= concurrency) {
+        const tracked = promise.finally(() => executing.delete(tracked));
+        executing.add(tracked);
+        if (executing.size >= concurrency) {
             await Promise.race(executing);
-            executing.splice(executing.indexOf(promise), 1);
         }
     }
     await Promise.all(executing);

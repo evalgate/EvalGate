@@ -1,4 +1,4 @@
-import { describe, expect, it, afterEach, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { parseArgs, runCheck } from "../../cli/check";
 import { EXIT } from "../../cli/constants";
 import { DEFAULT_BASE_URL } from "../../constants";
@@ -36,9 +36,12 @@ describe("parseArgs baseUrl defaults", () => {
 	it("should respect --baseUrl flag over env var", () => {
 		process.env.EVALGATE_BASE_URL = "http://from-env:8080";
 		const result = parseArgs([
-			"--apiKey", "key",
-			"--evaluationId", "42",
-			"--baseUrl", "http://from-flag:9090",
+			"--apiKey",
+			"key",
+			"--evaluationId",
+			"42",
+			"--baseUrl",
+			"http://from-flag:9090",
 		]);
 		expect(result.ok).toBe(true);
 		if (result.ok) {
@@ -50,8 +53,10 @@ describe("parseArgs baseUrl defaults", () => {
 describe("parseArgs --dry-run", () => {
 	it("parses --dry-run flag as dryRun: true", () => {
 		const result = parseArgs([
-			"--apiKey", "key",
-			"--evaluationId", "42",
+			"--apiKey",
+			"key",
+			"--evaluationId",
+			"42",
 			"--dry-run",
 		]);
 		expect(result.ok).toBe(true);
@@ -61,10 +66,7 @@ describe("parseArgs --dry-run", () => {
 	});
 
 	it("dryRun is undefined when --dry-run is not passed", () => {
-		const result = parseArgs([
-			"--apiKey", "key",
-			"--evaluationId", "42",
-		]);
+		const result = parseArgs(["--apiKey", "key", "--evaluationId", "42"]);
 		expect(result.ok).toBe(true);
 		if (result.ok) {
 			expect(result.args.dryRun).toBeUndefined();
@@ -79,11 +81,12 @@ describe("runCheck --dry-run exit code override", () => {
 		globalThis.fetch = vi.fn().mockResolvedValue({
 			ok: true,
 			headers: new Headers(),
-			text: async () => JSON.stringify({
-				score: 10,
-				total: 5,
-				evaluationRunId: 1,
-			}),
+			text: async () =>
+				JSON.stringify({
+					score: 10,
+					total: 5,
+					evaluationRunId: 1,
+				}),
 		}) as unknown as typeof fetch;
 
 		try {

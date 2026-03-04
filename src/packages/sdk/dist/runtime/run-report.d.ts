@@ -159,7 +159,7 @@ export declare class RunReportBuilder {
     addResult(testId: string, testName: string, filePath: string, position: {
         line: number;
         column: number;
-    }, input: string, result: EnhancedEvalResult): void;
+    }, input: string, result: EnhancedEvalResult, tags?: string[]): void;
     /**
      * Update summary statistics
      */

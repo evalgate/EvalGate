@@ -3,17 +3,16 @@
  */
 
 import * as path from "node:path";
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import {
-	disposeActiveRuntime,
-	getActiveRuntime,
-} from "../runtime/registry";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { defineEval } from "../runtime/eval";
+import { disposeActiveRuntime, getActiveRuntime } from "../runtime/registry";
 import type { EvalContext, EvalResult } from "../runtime/types";
 
 const fixturesDir = path.join(__dirname, "fixtures");
 
-const dummyExecutor = async (ctx: EvalContext & { input: Record<string, unknown> }): Promise<EvalResult> => ({
+const dummyExecutor = async (
+	ctx: EvalContext & { input: Record<string, unknown> },
+): Promise<EvalResult> => ({
 	pass: true,
 	score: 100,
 	metadata: { question: ctx.input.question },
@@ -93,14 +92,22 @@ describe("defineEval.fromDataset", () => {
 
 	it("throws on missing file", () => {
 		expect(() =>
-			defineEval.fromDataset("missing", "/nonexistent/file.jsonl", dummyExecutor),
+			defineEval.fromDataset(
+				"missing",
+				"/nonexistent/file.jsonl",
+				dummyExecutor,
+			),
 		).toThrow("Dataset file not found");
 	});
 
 	it("throws on unsupported extension", () => {
 		// Use an existing file with wrong extension
 		expect(() =>
-			defineEval.fromDataset("bad-ext", path.join(fixturesDir, "..", "eval-skip-only.test.ts"), dummyExecutor),
+			defineEval.fromDataset(
+				"bad-ext",
+				path.join(fixturesDir, "..", "eval-skip-only.test.ts"),
+				dummyExecutor,
+			),
 		).toThrow("Unsupported dataset format");
 	});
 

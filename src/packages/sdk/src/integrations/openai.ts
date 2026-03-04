@@ -108,55 +108,60 @@ export function traceOpenAI(
 			const durationMs = Date.now() - startTime;
 
 			// Create trace with success status and complete metadata
-			const traceMetadata = mergeWithContext({
-				model: params.model,
-				temperature: params.temperature,
-				max_tokens: params.max_tokens,
-				...(captureInput ? { input: params.messages } : {}),
-				...(captureOutput ? { output: response.choices[0]?.message } : {}),
-				...(captureMetadata
-					? {
-							usage: response.usage,
-							finish_reason: response.choices[0]?.finish_reason,
-						}
-					: {}),
-			});
+			// Trace creation is non-fatal — never lose the OpenAI result due to tracing issues
+			try {
+				const traceMetadata = mergeWithContext({
+					model: params.model,
+					temperature: params.temperature,
+					max_tokens: params.max_tokens,
+					...(captureInput ? { input: params.messages } : {}),
+					...(captureOutput ? { output: response.choices[0]?.message } : {}),
+					...(captureMetadata
+						? {
+								usage: response.usage,
+								finish_reason: response.choices[0]?.finish_reason,
+							}
+						: {}),
+				});
 
-			await evalClient.traces?.create({
-				name: `OpenAI: ${params.model}`,
-				traceId,
-				organizationId: organizationId || evalClient.getOrganizationId(),
-				status: "success",
-				durationMs,
-				metadata: traceMetadata,
-			});
+				await evalClient.traces?.create({
+					name: `OpenAI: ${params.model}`,
+					traceId,
+					organizationId: organizationId || evalClient.getOrganizationId(),
+					status: "success",
+					durationMs,
+					metadata: traceMetadata,
+				});
+			} catch {
+				/* trace failure is non-fatal */
+			}
 
 			return response;
 		} catch (error) {
 			const durationMs = Date.now() - startTime;
 
-			// Create trace with error status
-			const errorMetadata = mergeWithContext({
-				model: params.model,
-				temperature: params.temperature,
-				max_tokens: params.max_tokens,
-				...(captureInput ? { input: params.messages } : {}),
-				...(captureMetadata ? { params } : {}),
-				error: error instanceof Error ? error.message : String(error),
-			});
+			// Create trace with error status — non-fatal
+			try {
+				const errorMetadata = mergeWithContext({
+					model: params.model,
+					temperature: params.temperature,
+					max_tokens: params.max_tokens,
+					...(captureInput ? { input: params.messages } : {}),
+					...(captureMetadata ? { params } : {}),
+					error: error instanceof Error ? error.message : String(error),
+				});
 
-			await evalClient.traces
-				?.create({
+				await evalClient.traces?.create({
 					name: `OpenAI: ${params.model}`,
 					traceId,
 					organizationId: organizationId || evalClient.getOrganizationId(),
 					status: "error",
 					durationMs,
 					metadata: errorMetadata,
-				})
-				?.catch(() => {
-					// Ignore errors in trace creation to avoid masking the original error
 				});
+			} catch {
+				/* trace failure is non-fatal */
+			}
 
 			throw error;
 		}
@@ -212,7 +217,8 @@ export async function traceOpenAICall<T>(
 			await evalClient.traces?.create({
 				name,
 				traceId,
-				organizationId: options.organizationId || evalClient.getOrganizationId(),
+				organizationId:
+					options.organizationId || evalClient.getOrganizationId(),
 				status: "success",
 				durationMs,
 				metadata: mergeWithContext({}),
@@ -229,7 +235,8 @@ export async function traceOpenAICall<T>(
 			await evalClient.traces?.create({
 				name,
 				traceId,
-				organizationId: options.organizationId || evalClient.getOrganizationId(),
+				organizationId:
+					options.organizationId || evalClient.getOrganizationId(),
 				status: "error",
 				durationMs,
 				metadata: mergeWithContext({

@@ -77,9 +77,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EXIT = void 0;
 exports.parseArgs = parseArgs;
 exports.runCheck = runCheck;
-const constants_1 = require("../constants");
 const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
+const constants_1 = require("../constants");
 const api_1 = require("./api");
 const ci_context_1 = require("./ci-context");
 const config_1 = require("./config");
@@ -341,7 +341,7 @@ async function runCheck(args) {
         }
     }
     if (args.dryRun) {
-        console.error("\n[dry-run] Gate would have exited with code " + gateResult.exitCode);
+        console.error(`\n[dry-run] Gate would have exited with code ${gateResult.exitCode}`);
         return constants_2.EXIT.PASS;
     }
     return gateResult.exitCode;

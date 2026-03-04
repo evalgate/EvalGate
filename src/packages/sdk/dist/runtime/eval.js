@@ -39,15 +39,21 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.evalai = exports.defineEval = void 0;
+exports.createLocalExecutor = exports.withRuntime = exports.setActiveRuntime = exports.getActiveRuntime = exports.disposeActiveRuntime = exports.createEvalRuntime = exports.evalai = exports.defineEval = void 0;
 exports.getFilteredSpecs = getFilteredSpecs;
 exports.defineSuite = defineSuite;
 exports.createContext = createContext;
+exports.createEvalContext = createContext;
 exports.createResult = createResult;
 const crypto = __importStar(require("node:crypto"));
 const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
 const registry_1 = require("./registry");
+Object.defineProperty(exports, "createEvalRuntime", { enumerable: true, get: function () { return registry_1.createEvalRuntime; } });
+Object.defineProperty(exports, "disposeActiveRuntime", { enumerable: true, get: function () { return registry_1.disposeActiveRuntime; } });
+Object.defineProperty(exports, "getActiveRuntime", { enumerable: true, get: function () { return registry_1.getActiveRuntime; } });
+Object.defineProperty(exports, "setActiveRuntime", { enumerable: true, get: function () { return registry_1.setActiveRuntime; } });
+Object.defineProperty(exports, "withRuntime", { enumerable: true, get: function () { return registry_1.withRuntime; } });
 const types_1 = require("./types");
 /**
  * Extract AST position from call stack
@@ -364,4 +370,9 @@ function createResult(config) {
 /**
  * Default export for convenience
  */
+// Register defineEval with registry to break circular dependency
+(0, registry_1._registerDefineEval)(exports.defineEval);
+// Re-export createLocalExecutor from executor.ts
+var executor_1 = require("./executor");
+Object.defineProperty(exports, "createLocalExecutor", { enumerable: true, get: function () { return executor_1.createLocalExecutor; } });
 exports.default = exports.defineEval;

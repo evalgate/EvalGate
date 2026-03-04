@@ -26,6 +26,7 @@
 		"dev": "tsc --watch",
 		"test": "vitest run",
 		"test:dist": "tsc && vitest run src/__tests__/dist-smoke.test.ts",
+		"otel:test": "bash otel-integration/run-test.sh",
 		"test:watch": "vitest"
 	},
 	"keywords": [
@@ -114,6 +115,11 @@
 			"import": "./dist/regression.js",
 			"require": "./dist/regression.js",
 			"types": "./dist/regression.d.ts"
+		},
+		"./otel": {
+			"import": "./dist/otel.js",
+			"require": "./dist/otel.js",
+			"types": "./dist/otel.d.ts"
 		}
 	}
 }

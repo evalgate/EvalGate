@@ -17,11 +17,11 @@ import {
 	expect,
 	followsInstructions,
 	getAssertionConfig,
+	hasConsistency,
+	hasConsistencyAsync,
 	hasFactualAccuracy,
 	hasFactualAccuracyAsync,
 	hasLength,
-	hasConsistency,
-	hasConsistencyAsync,
 	hasNoHallucinations,
 	hasNoHallucinationsAsync,
 	hasNoToxicity,
@@ -29,6 +29,7 @@ import {
 	hasReadabilityScore,
 	hasSentiment,
 	hasSentimentAsync,
+	hasSentimentWithScore,
 	hasValidCodeSyntax,
 	hasValidCodeSyntaxAsync,
 	isValidEmail,
@@ -36,8 +37,11 @@ import {
 	matchesPattern,
 	matchesSchema,
 	notContainsPII,
+	resetSentimentDeprecationWarning,
 	runAssertions,
 	similarTo,
+	toSemanticallyContain,
+	toSemanticallyContainLLM,
 	withinRange,
 } from "../assertions";
 import { createLocalExecutor, defaultLocalExecutor } from "../runtime/executor";
@@ -329,14 +333,24 @@ describe("Expectation fluent API", () => {
 		});
 
 		it("should NOT false-positive on 'shell', 'shellfish', 'assess'", () => {
-			vitestExpect(expect("The shell command failed").toHaveNoProfanity().passed).toBe(true);
-			vitestExpect(expect("I love shellfish").toHaveNoProfanity().passed).toBe(true);
-			vitestExpect(expect("Let me assess the situation").toHaveNoProfanity().passed).toBe(true);
+			vitestExpect(
+				expect("The shell command failed").toHaveNoProfanity().passed,
+			).toBe(true);
+			vitestExpect(expect("I love shellfish").toHaveNoProfanity().passed).toBe(
+				true,
+			);
+			vitestExpect(
+				expect("Let me assess the situation").toHaveNoProfanity().passed,
+			).toBe(true);
 		});
 
 		it("should still catch actual profanity as whole words", () => {
-			vitestExpect(expect("What the hell is this").toHaveNoProfanity().passed).toBe(false);
-			vitestExpect(expect("You are an ass").toHaveNoProfanity().passed).toBe(false);
+			vitestExpect(
+				expect("What the hell is this").toHaveNoProfanity().passed,
+			).toBe(false);
+			vitestExpect(expect("You are an ass").toHaveNoProfanity().passed).toBe(
+				false,
+			);
 		});
 	});
 
@@ -829,31 +843,97 @@ describe("Async LLM assertions", () => {
 
 	it("configureAssertions sets global config used by async functions", async () => {
 		configureAssertions(openaiCfg);
-		mockOpenAI("positive");
+		mockOpenAI('{"sentiment":"positive","confidence":0.92}');
 		const result = await hasSentimentAsync("I love this!", "positive");
-		vitestExpect(result).toBe(true);
+		vitestExpect(result.matches).toBe(true);
+		vitestExpect(result.sentiment).toBe("positive");
+		vitestExpect(result.confidence).toBe(0.92);
 		vitestExpect(fetch).toHaveBeenCalledOnce();
 	});
 
-	it("hasSentimentAsync — OpenAI — positive match", async () => {
+	it("hasSentimentAsync — OpenAI — positive match with confidence", async () => {
+		mockOpenAI('{"sentiment":"positive","confidence":0.95}');
+		const result = await hasSentimentAsync(
+			"I love this!",
+			"positive",
+			openaiCfg,
+		);
+		vitestExpect(result.matches).toBe(true);
+		vitestExpect(result.sentiment).toBe("positive");
+		vitestExpect(result.confidence).toBe(0.95);
+	});
+
+	it("hasSentimentAsync — OpenAI — mismatch returns matches=false", async () => {
+		mockOpenAI('{"sentiment":"negative","confidence":0.8}');
+		const result = await hasSentimentAsync(
+			"I love this!",
+			"positive",
+			openaiCfg,
+		);
+		vitestExpect(result.matches).toBe(false);
+		vitestExpect(result.sentiment).toBe("negative");
+		vitestExpect(result.confidence).toBe(0.8);
+	});
+
+	it("hasSentimentAsync — Anthropic path with confidence", async () => {
+		mockAnthropic('{"sentiment":"neutral","confidence":0.75}');
+		const result = await hasSentimentAsync(
+			"The sky is blue.",
+			"neutral",
+			anthropicCfg,
+		);
+		vitestExpect(result.matches).toBe(true);
+		vitestExpect(result.sentiment).toBe("neutral");
+		vitestExpect(result.confidence).toBe(0.75);
+	});
+
+	it("hasSentimentAsync — falls back gracefully for single-word response", async () => {
 		mockOpenAI("positive");
-		vitestExpect(
-			await hasSentimentAsync("I love this!", "positive", openaiCfg),
-		).toBe(true);
+		const result = await hasSentimentAsync(
+			"I love this!",
+			"positive",
+			openaiCfg,
+		);
+		vitestExpect(result.matches).toBe(true);
+		vitestExpect(result.sentiment).toBe("positive");
+		vitestExpect(result.confidence).toBe(0.5); // fallback confidence
 	});
 
-	it("hasSentimentAsync — OpenAI — mismatch returns false", async () => {
-		mockOpenAI("negative");
-		vitestExpect(
-			await hasSentimentAsync("I love this!", "positive", openaiCfg),
-		).toBe(false);
+	it("hasSentimentAsync — Symbol.toPrimitive coerces to matches (true case)", async () => {
+		mockOpenAI('{"sentiment":"positive","confidence":0.9}');
+		const result = await hasSentimentAsync(
+			"I love this!",
+			"positive",
+			openaiCfg,
+		);
+		// Legacy boolean coercion via Symbol.toPrimitive — should return matches (true)
+		vitestExpect(+result).toBe(1); // number coercion
+		vitestExpect(`${result}`).toContain("matches=true"); // string coercion
 	});
 
-	it("hasSentimentAsync — Anthropic path", async () => {
-		mockAnthropic("neutral");
-		vitestExpect(
-			await hasSentimentAsync("The sky is blue.", "neutral", anthropicCfg),
-		).toBe(true);
+	it("hasSentimentAsync — Symbol.toPrimitive coerces to matches (false case)", async () => {
+		mockOpenAI('{"sentiment":"negative","confidence":0.8}');
+		const result = await hasSentimentAsync(
+			"I hate this!",
+			"positive",
+			openaiCfg,
+		);
+		// Legacy boolean coercion — should return matches (false)
+		vitestExpect(+result).toBe(0); // number coercion
+		vitestExpect(`${result}`).toContain("matches=false"); // string coercion
+	});
+
+	it("hasSentimentAsync — deprecation warning fires on coercion", async () => {
+		resetSentimentDeprecationWarning();
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+		mockOpenAI('{"sentiment":"positive","confidence":0.9}');
+		const result = await hasSentimentAsync("Great!", "positive", openaiCfg);
+		// Trigger coercion
+		void +result;
+		vitestExpect(warnSpy).toHaveBeenCalledWith(
+			vitestExpect.stringContaining("DEPRECATION"),
+		);
+		warnSpy.mockRestore();
 	});
 
 	it("hasNoToxicityAsync — returns true when LLM says no", async () => {
@@ -950,12 +1030,13 @@ describe("Async LLM assertions", () => {
 	});
 
 	it("does NOT time out when LLM responds before deadline", async () => {
-		mockOpenAI("positive");
+		mockOpenAI('{"sentiment":"positive","confidence":0.9}');
 		const result = await hasSentimentAsync("Great!", "positive", {
 			...openaiCfg,
 			timeoutMs: 5000,
 		});
-		vitestExpect(result).toBe(true);
+		vitestExpect(result.matches).toBe(true);
+		vitestExpect(result.sentiment).toBe("positive");
 	});
 
 	it("uses default 30s timeout when timeoutMs is not set", async () => {
@@ -1085,6 +1166,184 @@ describe("hasConsistencyAsync — LLM-backed", () => {
 		const result = await hasConsistencyAsync(["single"], openaiCfg);
 		vitestExpect(result.score).toBe(1);
 		vitestExpect(result.consistent).toBe(true);
+	});
+});
+
+describe("hasSentimentWithScore — confidence scoring", () => {
+	it("returns positive sentiment with high confidence for strongly positive text", () => {
+		const result = hasSentimentWithScore(
+			"This is absolutely amazing, wonderful, and fantastic!",
+			"positive",
+		);
+		vitestExpect(result.sentiment).toBe("positive");
+		vitestExpect(result.confidence).toBeGreaterThan(0.5);
+		vitestExpect(result.matches).toBe(true);
+	});
+
+	it("returns negative sentiment with high confidence for strongly negative text", () => {
+		const result = hasSentimentWithScore(
+			"This is terrible, awful, and horrible",
+			"negative",
+		);
+		vitestExpect(result.sentiment).toBe("negative");
+		vitestExpect(result.confidence).toBeGreaterThan(0.5);
+		vitestExpect(result.matches).toBe(true);
+	});
+
+	it("returns neutral with confidence 1 for text with no sentiment words", () => {
+		const result = hasSentimentWithScore(
+			"The sky is blue and water is wet",
+			"neutral",
+		);
+		vitestExpect(result.sentiment).toBe("neutral");
+		vitestExpect(result.confidence).toBe(1);
+		vitestExpect(result.matches).toBe(true);
+	});
+
+	it("returns matches=false when detected sentiment differs from expected", () => {
+		const result = hasSentimentWithScore(
+			"This is terrible and awful",
+			"positive",
+		);
+		vitestExpect(result.sentiment).toBe("negative");
+		vitestExpect(result.matches).toBe(false);
+	});
+
+	it("returns confidence between 0 and 1", () => {
+		const result = hasSentimentWithScore(
+			"Good but also bad and terrible",
+			"negative",
+		);
+		vitestExpect(result.confidence).toBeGreaterThanOrEqual(0);
+		vitestExpect(result.confidence).toBeLessThanOrEqual(1);
+	});
+});
+
+describe("toSemanticallyContain — embedding-based", () => {
+	const openaiCfg: AssertionLLMConfig = {
+		provider: "openai",
+		apiKey: "test-key",
+	};
+
+	beforeEach(() => {
+		vi.stubGlobal("fetch", vi.fn());
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	// Helper: mock embedding response with two vectors
+	const mockEmbeddings = (vec1: number[], vec2: number[]) => {
+		(fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				data: [
+					{ embedding: vec1, index: 0 },
+					{ embedding: vec2, index: 1 },
+				],
+			}),
+			text: async () => "ok",
+		});
+	};
+
+	it("returns contains=true and similarity when vectors are close", async () => {
+		// Nearly identical vectors → high cosine similarity
+		mockEmbeddings([1, 0, 0], [0.9, 0.1, 0]);
+		const result = await toSemanticallyContain(
+			"The city of lights is beautiful in spring",
+			"Paris",
+			openaiCfg,
+		);
+		vitestExpect(result.contains).toBe(true);
+		vitestExpect(result.similarity).toBeGreaterThan(0.4);
+		vitestExpect(typeof result.similarity).toBe("number");
+	});
+
+	it("returns contains=false when vectors are orthogonal", async () => {
+		// Orthogonal vectors → cosine similarity = 0
+		mockEmbeddings([1, 0, 0], [0, 1, 0]);
+		const result = await toSemanticallyContain(
+			"I had pizza for lunch",
+			"Paris",
+			openaiCfg,
+		);
+		vitestExpect(result.contains).toBe(false);
+		vitestExpect(result.similarity).toBeCloseTo(0, 5);
+	});
+
+	it("respects custom threshold", async () => {
+		// Moderate similarity ~0.71
+		mockEmbeddings([1, 1, 0], [1, 0, 0]);
+		const result = await toSemanticallyContain(
+			"text",
+			"phrase",
+			openaiCfg,
+			0.8, // higher threshold
+		);
+		vitestExpect(result.contains).toBe(false);
+		vitestExpect(result.similarity).toBeGreaterThan(0);
+	});
+
+	it("calls the embeddings API, not chat completions", async () => {
+		mockEmbeddings([1, 0], [0, 1]);
+		await toSemanticallyContain("text", "phrase", openaiCfg);
+		const callUrl = (fetch as ReturnType<typeof vi.fn>).mock.calls[0][0];
+		vitestExpect(callUrl).toContain("/v1/embeddings");
+		vitestExpect(callUrl).not.toContain("/v1/chat/completions");
+	});
+
+	it("throws for non-OpenAI providers", async () => {
+		const anthropicCfg: AssertionLLMConfig = {
+			provider: "anthropic",
+			apiKey: "test-key",
+		};
+		await vitestExpect(
+			toSemanticallyContain("text", "phrase", anthropicCfg),
+		).rejects.toThrow('requires provider "openai"');
+	});
+});
+
+describe("toSemanticallyContainLLM — LLM-prompt fallback", () => {
+	const openaiCfg: AssertionLLMConfig = {
+		provider: "openai",
+		apiKey: "test-key",
+	};
+
+	beforeEach(() => {
+		vi.stubGlobal("fetch", vi.fn());
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it("returns true when LLM says yes", async () => {
+		(fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({ choices: [{ message: { content: "yes" } }] }),
+			text: async () => "yes",
+		});
+		const result = await toSemanticallyContainLLM(
+			"The city of lights is beautiful in spring",
+			"Paris",
+			openaiCfg,
+		);
+		vitestExpect(result).toBe(true);
+	});
+
+	it("returns false when LLM says no", async () => {
+		(fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({ choices: [{ message: { content: "no" } }] }),
+			text: async () => "no",
+		});
+		const result = await toSemanticallyContainLLM(
+			"I had pizza for lunch",
+			"Paris",
+			openaiCfg,
+		);
+		vitestExpect(result).toBe(false);
 	});
 });
 

@@ -8,7 +8,14 @@
 import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { getActiveRuntime } from "./registry";
+import {
+	_registerDefineEval,
+	createEvalRuntime,
+	disposeActiveRuntime,
+	getActiveRuntime,
+	setActiveRuntime,
+	withRuntime,
+} from "./registry";
 import type {
 	DefineEvalFunction,
 	EvalContext,
@@ -316,9 +323,7 @@ function fromDatasetImpl<TRow extends Record<string, unknown>>(
 		: path.resolve(process.cwd(), datasetPath);
 
 	if (!fs.existsSync(resolvedPath)) {
-		throw new SpecRegistrationError(
-			`Dataset file not found: ${resolvedPath}`,
-		);
+		throw new SpecRegistrationError(`Dataset file not found: ${resolvedPath}`);
 	}
 
 	const content = fs.readFileSync(resolvedPath, "utf8");
@@ -339,9 +344,7 @@ function fromDatasetImpl<TRow extends Record<string, unknown>>(
 	}
 
 	if (rows.length === 0) {
-		throw new SpecRegistrationError(
-			`Dataset is empty: ${resolvedPath}`,
-		);
+		throw new SpecRegistrationError(`Dataset is empty: ${resolvedPath}`);
 	}
 
 	for (let i = 0; i < rows.length; i++) {
@@ -453,4 +456,22 @@ export function createResult(config: {
 /**
  * Default export for convenience
  */
+// Register defineEval with registry to break circular dependency
+_registerDefineEval(defineEval as (...args: unknown[]) => unknown);
+
+// Re-export registry functions for convenience (tests import from eval.ts)
+export {
+	createEvalRuntime,
+	disposeActiveRuntime,
+	getActiveRuntime,
+	setActiveRuntime,
+	withRuntime,
+};
+
+// Alias for backward compatibility (tests use createEvalContext)
+export { createContext as createEvalContext };
+
+// Re-export createLocalExecutor from executor.ts
+export { createLocalExecutor } from "./executor";
+
 export default defineEval;

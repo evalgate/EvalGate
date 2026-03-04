@@ -208,6 +208,28 @@ export declare function hasPII(text: string): boolean;
  * {@link hasSentimentAsync} with an LLM provider for context-aware accuracy.
  */
 export declare function hasSentiment(text: string, expected: "positive" | "negative" | "neutral"): boolean;
+/**
+ * Lexicon-based sentiment check with confidence score.
+ * Returns the detected sentiment, a confidence score (0–1), and whether
+ * it matches the expected sentiment.
+ *
+ * Confidence is derived from the magnitude of the word-count difference
+ * relative to the total sentiment-bearing words found.
+ *
+ * @example
+ * ```ts
+ * const { sentiment, confidence, matches } = hasSentimentWithScore(
+ *   "This product is absolutely amazing and wonderful!",
+ *   "positive",
+ * );
+ * // sentiment: "positive", confidence: ~0.9, matches: true
+ * ```
+ */
+export declare function hasSentimentWithScore(text: string, expected: "positive" | "negative" | "neutral"): {
+    sentiment: "positive" | "negative" | "neutral";
+    confidence: number;
+    matches: boolean;
+};
 export declare function similarTo(text1: string, text2: string, threshold?: number): boolean;
 /**
  * Measure consistency across multiple outputs for the same input.
@@ -303,6 +325,8 @@ export interface AssertionLLMConfig {
     provider: "openai" | "anthropic";
     apiKey: string;
     model?: string;
+    /** Embedding model for toSemanticallyContain (default: text-embedding-3-small). OpenAI only. */
+    embeddingModel?: string;
     baseUrl?: string;
     /** Maximum time in ms to wait for an LLM response. Default: 30 000 (30s). */
     timeoutMs?: number;
@@ -310,12 +334,57 @@ export interface AssertionLLMConfig {
 export declare function configureAssertions(config: AssertionLLMConfig): void;
 export declare function getAssertionConfig(): AssertionLLMConfig | null;
 /**
- * LLM-backed sentiment check. **Slow and accurate** — uses an LLM to
- * classify sentiment with full context awareness. Requires
- * {@link configureAssertions} or an inline `config` argument.
- * Falls back gracefully with a clear error if no API key is configured.
+ * Result object from {@link hasSentimentAsync}.
+ *
+ * Implements `Symbol.toPrimitive` so that legacy callers using
+ * `if (await hasSentimentAsync(...))` get the correct `matches` boolean
+ * instead of an always-truthy object. A one-time deprecation warning is
+ * emitted when boolean coercion is detected.
+ *
+ * **Migration:** Destructure the result instead of using it as a boolean.
+ * ```ts
+ * // ❌ Deprecated (works but warns):
+ * if (await hasSentimentAsync(text, "positive")) { ... }
+ *
+ * // ✅ New pattern:
+ * const { matches } = await hasSentimentAsync(text, "positive");
+ * if (matches) { ... }
+ * ```
  */
-export declare function hasSentimentAsync(text: string, expected: "positive" | "negative" | "neutral", config?: AssertionLLMConfig): Promise<boolean>;
+export interface SentimentAsyncResult {
+    sentiment: "positive" | "negative" | "neutral";
+    confidence: number;
+    matches: boolean;
+    [Symbol.toPrimitive]: (hint: string) => boolean | number | string;
+}
+/** @internal Reset the one-time deprecation flag. For testing only. */
+export declare function resetSentimentDeprecationWarning(): void;
+/**
+ * LLM-backed sentiment check. **Slow and accurate** — uses an LLM to
+ * classify sentiment with full context awareness and return a confidence score.
+ * Requires {@link configureAssertions} or an inline `config` argument.
+ * Falls back gracefully with a clear error if no API key is configured.
+ *
+ * Returns `{ sentiment, confidence, matches }` — the async layer now provides
+ * the same rich return shape as {@link hasSentimentWithScore}, but powered by
+ * an LLM instead of keyword counting. The `confidence` field is the LLM's
+ * self-reported confidence (0–1), not a lexical heuristic.
+ *
+ * The returned object implements `Symbol.toPrimitive` so that legacy code
+ * using `if (await hasSentimentAsync(...))` still works correctly (coerces
+ * to `matches`), but a deprecation warning is emitted. Migrate to
+ * destructuring: `const { matches } = await hasSentimentAsync(...)`.
+ *
+ * @example
+ * ```ts
+ * const { sentiment, confidence, matches } = await hasSentimentAsync(
+ *   "This product is revolutionary but overpriced",
+ *   "negative",
+ * );
+ * // sentiment: "negative", confidence: 0.7, matches: true
+ * ```
+ */
+export declare function hasSentimentAsync(text: string, expected: "positive" | "negative" | "neutral", config?: AssertionLLMConfig): Promise<SentimentAsyncResult>;
 /**
  * LLM-backed toxicity check. **Slow and accurate** — context-aware, handles
  * sarcasm, implicit threats, and culturally specific harmful content that
@@ -330,4 +399,54 @@ export declare function hasFactualAccuracyAsync(text: string, facts: string[], c
  * claims even when they are paraphrased or contradict facts indirectly.
  */
 export declare function hasNoHallucinationsAsync(text: string, groundTruth: string[], config?: AssertionLLMConfig): Promise<boolean>;
+/**
+ * Embedding-based semantic containment check. Uses OpenAI embeddings and
+ * cosine similarity to determine whether the text semantically contains
+ * the given concept — no LLM prompt, no "does this text contain X" trick.
+ *
+ * This is **real semantic containment**: embed both strings, compute cosine
+ * similarity, and compare against a threshold. "The city of lights" will
+ * have high similarity to "Paris" because their embeddings are close in
+ * vector space.
+ *
+ * Requires `provider: "openai"` in the config. For Anthropic or other
+ * providers without an embedding API, use {@link toSemanticallyContainLLM}.
+ *
+ * @param text - The text to check
+ * @param phrase - The semantic concept to look for
+ * @param config - LLM config (must be OpenAI with embedding support)
+ * @param threshold - Cosine similarity threshold (default: 0.4). Lower values
+ *   are more permissive. Typical ranges: 0.3–0.5 for concept containment,
+ *   0.6–0.8 for paraphrase detection, 0.9+ for near-duplicates.
+ * @returns `{ contains, similarity }` — whether the threshold was met and the raw score
+ *
+ * @example
+ * ```ts
+ * const { contains, similarity } = await toSemanticallyContain(
+ *   "The city of lights is beautiful in spring",
+ *   "Paris",
+ *   { provider: "openai", apiKey: process.env.OPENAI_API_KEY },
+ * );
+ * // contains: true, similarity: ~0.52
+ * ```
+ */
+export declare function toSemanticallyContain(text: string, phrase: string, config?: AssertionLLMConfig, threshold?: number): Promise<{
+    contains: boolean;
+    similarity: number;
+}>;
+/**
+ * LLM-prompt-based semantic containment check. Uses an LLM prompt to ask
+ * whether the text conveys a concept. This is a **fallback** for providers
+ * that don't offer an embedding API (e.g., Anthropic).
+ *
+ * Note: This is functionally similar to `followsInstructions` — the LLM is
+ * being asked to judge containment, not compute vector similarity. For
+ * real embedding-based semantic containment, use {@link toSemanticallyContain}.
+ *
+ * @param text - The text to check
+ * @param phrase - The semantic concept to look for
+ * @param config - Optional LLM config
+ * @returns true if the LLM judges the text contains the concept
+ */
+export declare function toSemanticallyContainLLM(text: string, phrase: string, config?: AssertionLLMConfig): Promise<boolean>;
 export declare function hasValidCodeSyntax(code: string, language: string): boolean;

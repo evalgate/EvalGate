@@ -1,0 +1,14 @@
+{
+  "name": "Offline Test",
+  "startedAt": "2026-03-04T15:51:00.865Z",
+  "endedAt": "2026-03-04T15:51:00.866Z",
+  "status": "completed",
+  "durationMs": 0,
+  "totalCost": "0.000000",
+  "handoffs": [],
+  "decisions": [],
+  "costs": [],
+  "output": {
+    "result": "ok"
+  }
+}

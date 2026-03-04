@@ -2,12 +2,9 @@
  * Tests for defineEval.skip / defineEval.only / getFilteredSpecs
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import {
-	disposeActiveRuntime,
-	getActiveRuntime,
-} from "../runtime/registry";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { defineEval, getFilteredSpecs } from "../runtime/eval";
+import { disposeActiveRuntime, getActiveRuntime } from "../runtime/registry";
 import type { EvalSpec } from "../runtime/types";
 
 const dummyExecutor = async () => ({

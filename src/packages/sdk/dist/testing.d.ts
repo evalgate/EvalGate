@@ -51,12 +51,16 @@ export interface TestSuiteConfig {
     stopOnFailure?: boolean;
     /** Timeout per test case in ms (default: 30000) */
     timeout?: number;
+    /** Alias for stopOnFailure — fail the entire suite on the first failing case. Useful in pre-commit hooks. */
+    strict?: boolean;
     /** Retry failing cases N times (default: 0). Only failing cases are retried. */
     retries?: number;
     /** Base delay between retries in ms (default: 500). Exponential backoff: delay * 2^attempt. */
     retryDelayMs?: number;
     /** Add random jitter up to this fraction of the delay (default: 0.5 = ±50%). Set 0 to disable. */
     retryJitter?: number;
+    /** Seed for deterministic case ordering. When set, cases are shuffled using this seed for reproducible runs. */
+    seed?: number;
 }
 export interface TestSuiteCaseResult {
     /** Test case ID */

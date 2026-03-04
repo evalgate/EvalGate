@@ -77,7 +77,7 @@ class RunReportBuilder {
     /**
      * Add a test result to the report
      */
-    addResult(testId, testName, filePath, position, input, result) {
+    addResult(testId, testName, filePath, position, input, result, tags) {
         const runResult = {
             testId,
             testName,
@@ -88,7 +88,7 @@ class RunReportBuilder {
             score: result.score,
             durationMs: result.durationMs || 0,
             metadata: result.metadata,
-            tags: [], // TODO: Extract from spec
+            tags: tags ?? [],
             assertions: result.assertions?.map((assertion, index) => ({
                 name: assertion.name || `assertion-${index}`,
                 passed: assertion.passed,
@@ -182,8 +182,11 @@ class RunReportBuilder {
         // Set completion timestamp
         this.report.finishedAt = new Date().toISOString();
         const finalReport = this.report;
-        // Add toJSON method
-        finalReport.toJSON = () => JSON.stringify(finalReport, null, 2);
+        // Add toJSON method (spread to avoid circular reference via toJSON itself)
+        finalReport.toJSON = () => {
+            const { toJSON: _, ...data } = finalReport;
+            return JSON.stringify(data, null, 2);
+        };
         return finalReport;
     }
     /**

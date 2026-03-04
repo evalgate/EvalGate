@@ -437,15 +437,9 @@ export class ReportCardsService {
 		}
 
 		const scores = judgeResults.map((r) => r.score || 0).filter((s) => s > 0);
-		// TODO: remove typeof guard after DecisionAlternative migration complete — metadata is now always object from JSONB
 		const passed = judgeResults.filter((r) => {
-			try {
-				const metadata =
-					typeof r.metadata === "string" ? JSON.parse(r.metadata) : r.metadata;
-				return metadata?.passed === true;
-			} catch {
-				return false;
-			}
+			const metadata = r.metadata as Record<string, unknown> | null;
+			return metadata?.passed === true;
 		});
 
 		// Calculate consistency metrics
@@ -595,17 +589,9 @@ export class ReportCardsService {
 	 * Extract cost from test result metadata.
 	 */
 	private extractCost(testResult: TestResult): number {
-		// TODO: remove typeof guard after DecisionAlternative migration complete — metadata is now always object from JSONB
-		try {
-			const meta =
-				typeof testResult.metadata === "string"
-					? JSON.parse(testResult.metadata)
-					: testResult.metadata;
-			const cost = (meta as Record<string, unknown>)?.cost;
-			return typeof cost === "number" ? cost : 0;
-		} catch {
-			return 0;
-		}
+		const meta = testResult.metadata as Record<string, unknown> | null;
+		const cost = meta?.cost;
+		return typeof cost === "number" ? cost : 0;
 	}
 
 	/**

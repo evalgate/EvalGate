@@ -4,6 +4,7 @@
  * The core DSL function for defining behavioral specifications.
  * Uses content-addressable identity with AST position for stability.
  */
+import { createEvalRuntime, disposeActiveRuntime, getActiveRuntime, setActiveRuntime, withRuntime } from "./registry";
 import type { DefineEvalFunction, EvalContext, EvalResult, EvalSpec } from "./types";
 /**
  * Export the defineEval function with proper typing
@@ -58,7 +59,7 @@ export declare function createResult(config: {
     durationMs?: number;
     tokens?: number;
 }): EvalResult;
-/**
- * Default export for convenience
- */
+export { createEvalRuntime, disposeActiveRuntime, getActiveRuntime, setActiveRuntime, withRuntime, };
+export { createContext as createEvalContext };
+export { createLocalExecutor } from "./executor";
 export default defineEval;

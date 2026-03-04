@@ -27,9 +27,6 @@ export {
 	NetworkError,
 };
 
-// Legacy backward compat — SDKError is the old name for EvalGateError
-export { EvalGateError as SDKError } from "./errors";
-
 // Enhanced assertions (Tier 1.3)
 export {
 	type AssertionLLMConfig,
@@ -44,19 +41,20 @@ export {
 	expect,
 	followsInstructions,
 	getAssertionConfig,
+	hasConsistency,
+	hasConsistencyAsync,
 	hasFactualAccuracy,
 	hasFactualAccuracyAsync,
 	hasLength,
 	hasNoHallucinations,
 	hasNoHallucinationsAsync,
-	hasConsistency,
-	hasConsistencyAsync,
 	hasNoToxicity,
 	hasNoToxicityAsync,
 	hasPII,
 	hasReadabilityScore,
 	hasSentiment,
 	hasSentimentAsync,
+	hasSentimentWithScore,
 	hasValidCodeSyntax,
 	hasValidCodeSyntaxAsync,
 	isValidEmail,
@@ -67,9 +65,13 @@ export {
 	respondedWithinDuration,
 	respondedWithinTime,
 	respondedWithinTimeSince,
+	type SentimentAsyncResult,
 	similarTo,
+	toSemanticallyContain,
 	withinRange,
 } from "./assertions";
+// Legacy backward compat — SDKError is the old name for EvalGateError
+export { EvalGateError as SDKError } from "./errors";
 
 // Context propagation (Tier 2.9)
 import {
@@ -174,9 +176,11 @@ export type { ExportFormat, ExportFormat as ExportType };
 export { RequestBatcher } from "./batch";
 
 // Performance optimization utilities (v1.3.0)
-// Note: RequestCache and CacheTTL are for advanced users only
-// Most users don't need these - caching is automatic
-export { CacheTTL, RequestCache } from "./cache";
+// Note: CacheTTL is for advanced users only
+// Most users don't need this - caching is automatic
+// RequestCache is intentionally NOT exported — it's an internal HTTP cache.
+// Use CacheTTL to configure cache durations via client options.
+export { CacheTTL } from "./cache";
 // CLI (programmatic use)
 export { type CheckArgs, EXIT, parseArgs, runCheck } from "./cli/check";
 export { traceAnthropic } from "./integrations/anthropic";
@@ -193,6 +197,16 @@ export {
 export { Logger } from "./logger";
 // Vitest matcher: expect(await openAIChatEval(...)).toPassGate()
 export { extendExpectWithToPassGate } from "./matchers";
+// OpenTelemetry export
+export {
+	createOTelExporter,
+	type OTelAttribute,
+	type OTelEvent,
+	OTelExporter,
+	type OTelExporterOptions,
+	type OTelExportPayload,
+	type OTelSpan,
+} from "./otel";
 export {
 	autoPaginate,
 	autoPaginateGenerator,

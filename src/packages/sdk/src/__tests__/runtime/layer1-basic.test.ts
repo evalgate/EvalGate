@@ -202,9 +202,9 @@ describe("LAYER 1: Runtime Foundation", () => {
 	});
 
 	describe("Backward Compatibility", () => {
-		it("should not interfere with existing TestSuite", () => {
+		it("should not interfere with existing TestSuite", async () => {
 			// This test ensures the new runtime doesn't break existing functionality
-			const { createTestSuite } = require("../../testing");
+			const { createTestSuite } = await import("../../testing");
 
 			const suite = createTestSuite("compatibility test", {
 				cases: [

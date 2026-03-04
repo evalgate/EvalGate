@@ -1,6 +1,6 @@
 import { RequestBatcher } from "./batch";
-import { DEFAULT_BASE_URL } from "./constants";
 import { getTTL, RequestCache, shouldCache } from "./cache";
+import { DEFAULT_BASE_URL } from "./constants";
 import { mergeWithContext } from "./context";
 import { createErrorFromResponse, EvalGateError } from "./errors";
 import { createLogger, type Logger, RequestLogger } from "./logger";
@@ -196,7 +196,7 @@ export class AIEvalClient {
 			this.batcher = new RequestBatcher(
 				async (requests) => {
 					const results: import("./batch").BatchResponse[] = [];
-					const executing: Promise<void>[] = [];
+					const executing = new Set<Promise<void>>();
 
 					for (const req of requests) {
 						const task = (async () => {
@@ -221,18 +221,11 @@ export class AIEvalClient {
 							}
 						})();
 
-						executing.push(task);
+						const tracked = task.finally(() => executing.delete(tracked));
+						executing.add(tracked);
 
-						if (executing.length >= MAX_CONCURRENCY) {
+						if (executing.size >= MAX_CONCURRENCY) {
 							await Promise.race(executing);
-							// Remove settled promises
-							for (let i = executing.length - 1; i >= 0; i--) {
-								const settled = await Promise.race([
-									executing[i].then(() => true),
-									Promise.resolve(false),
-								]);
-								if (settled) executing.splice(i, 1);
-							}
 						}
 					}
 

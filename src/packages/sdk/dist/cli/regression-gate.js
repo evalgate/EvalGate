@@ -48,6 +48,7 @@ exports.runGate = runGate;
 const node_child_process_1 = require("node:child_process");
 const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
+const baseline_1 = require("./baseline");
 const REPORT_REL = "evals/regression-report.json";
 const BASELINE_REL = "evals/baseline.json";
 /** Detect the package manager used in the project */
@@ -146,6 +147,28 @@ function runBuiltinGate(cwd) {
             command,
             runner,
         };
+    }
+    // Verify baseline integrity
+    const checksumResult = (0, baseline_1.verifyBaselineChecksum)(baselineData);
+    if (!checksumResult.valid) {
+        return {
+            schemaVersion: 1,
+            timestamp: now,
+            exitCode: 2,
+            category: "infra_error",
+            passed: false,
+            failures: [
+                checksumResult.reason ?? "Baseline checksum verification failed",
+            ],
+            deltas: [],
+            baseline: null,
+            durationMs: Date.now() - t0,
+            command,
+            runner,
+        };
+    }
+    if (checksumResult.reason === "no_checksum") {
+        console.warn("⚠ Baseline has no checksum. Run 'evalgate baseline update' to stamp one.");
     }
     const baselineMeta = baselineData.updatedAt
         ? {

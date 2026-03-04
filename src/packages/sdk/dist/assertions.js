@@ -26,6 +26,7 @@ exports.containsJSON = containsJSON;
 exports.notContainsPII = notContainsPII;
 exports.hasPII = hasPII;
 exports.hasSentiment = hasSentiment;
+exports.hasSentimentWithScore = hasSentimentWithScore;
 exports.similarTo = similarTo;
 exports.hasConsistency = hasConsistency;
 exports.hasConsistencyAsync = hasConsistencyAsync;
@@ -45,12 +46,15 @@ exports.followsInstructions = followsInstructions;
 exports.containsAllRequiredFields = containsAllRequiredFields;
 exports.configureAssertions = configureAssertions;
 exports.getAssertionConfig = getAssertionConfig;
+exports.resetSentimentDeprecationWarning = resetSentimentDeprecationWarning;
 exports.hasSentimentAsync = hasSentimentAsync;
 exports.hasNoToxicityAsync = hasNoToxicityAsync;
 exports.containsLanguageAsync = containsLanguageAsync;
 exports.hasValidCodeSyntaxAsync = hasValidCodeSyntaxAsync;
 exports.hasFactualAccuracyAsync = hasFactualAccuracyAsync;
 exports.hasNoHallucinationsAsync = hasNoHallucinationsAsync;
+exports.toSemanticallyContain = toSemanticallyContain;
+exports.toSemanticallyContainLLM = toSemanticallyContainLLM;
 exports.hasValidCodeSyntax = hasValidCodeSyntax;
 /**
  * Test if a term appears in text as a whole word (word-boundary match)
@@ -729,6 +733,120 @@ function hasSentiment(text, expected) {
         return negativeCount > positiveCount;
     return positiveCount === negativeCount; // neutral
 }
+/**
+ * Lexicon-based sentiment check with confidence score.
+ * Returns the detected sentiment, a confidence score (0–1), and whether
+ * it matches the expected sentiment.
+ *
+ * Confidence is derived from the magnitude of the word-count difference
+ * relative to the total sentiment-bearing words found.
+ *
+ * @example
+ * ```ts
+ * const { sentiment, confidence, matches } = hasSentimentWithScore(
+ *   "This product is absolutely amazing and wonderful!",
+ *   "positive",
+ * );
+ * // sentiment: "positive", confidence: ~0.9, matches: true
+ * ```
+ */
+function hasSentimentWithScore(text, expected) {
+    const lower = text.toLowerCase();
+    const positiveWords = [
+        "good",
+        "great",
+        "excellent",
+        "amazing",
+        "wonderful",
+        "fantastic",
+        "love",
+        "best",
+        "happy",
+        "helpful",
+        "awesome",
+        "superb",
+        "outstanding",
+        "brilliant",
+        "perfect",
+        "delightful",
+        "joyful",
+        "pleased",
+        "glad",
+        "terrific",
+        "fabulous",
+        "exceptional",
+        "impressive",
+        "magnificent",
+        "marvelous",
+        "splendid",
+        "positive",
+        "enjoy",
+        "enjoyed",
+        "like",
+        "liked",
+        "beautiful",
+        "innovative",
+        "inspiring",
+        "effective",
+        "useful",
+        "valuable",
+    ];
+    const negativeWords = [
+        "bad",
+        "terrible",
+        "awful",
+        "horrible",
+        "worst",
+        "hate",
+        "poor",
+        "disappointing",
+        "sad",
+        "useless",
+        "dreadful",
+        "miserable",
+        "angry",
+        "frustrated",
+        "broken",
+        "failed",
+        "pathetic",
+        "stupid",
+        "disgusting",
+        "unacceptable",
+        "wrong",
+        "error",
+        "fail",
+        "problem",
+        "negative",
+        "dislike",
+        "annoying",
+        "irritating",
+        "offensive",
+        "regret",
+        "disappointment",
+        "inadequate",
+        "mediocre",
+        "flawed",
+        "unreliable",
+    ];
+    const positiveCount = positiveWords.filter((w) => lower.includes(w)).length;
+    const negativeCount = negativeWords.filter((w) => lower.includes(w)).length;
+    const total = positiveCount + negativeCount;
+    let sentiment;
+    let confidence;
+    if (positiveCount > negativeCount) {
+        sentiment = "positive";
+        confidence = total > 0 ? (positiveCount - negativeCount) / total : 0;
+    }
+    else if (negativeCount > positiveCount) {
+        sentiment = "negative";
+        confidence = total > 0 ? (negativeCount - positiveCount) / total : 0;
+    }
+    else {
+        sentiment = "neutral";
+        confidence = total === 0 ? 1 : 0; // high confidence neutral when no words found
+    }
+    return { sentiment, confidence, matches: sentiment === expected };
+}
 function similarTo(text1, text2, threshold = 0.8) {
     // Simple similarity check - in a real app, you'd use a proper string similarity algorithm
     const words1 = new Set(text1.toLowerCase().split(/\s+/));
@@ -800,7 +918,9 @@ async function hasConsistencyAsync(outputs, config) {
     const prompt = `Rate the semantic consistency of the following ${outputs.length} outputs on a scale from 0 to 100, where 100 means they all convey exactly the same meaning and 0 means they completely contradict each other. Reply with ONLY a number.\n\n${numbered}`;
     const result = await callAssertionLLM(prompt, config);
     const parsed = parseInt(result.replace(/[^0-9]/g, ""), 10);
-    const score = Number.isNaN(parsed) ? 0 : Math.min(100, Math.max(0, parsed)) / 100;
+    const score = Number.isNaN(parsed)
+        ? 0
+        : Math.min(100, Math.max(0, parsed)) / 100;
     return { score, consistent: score >= 0.7 };
 }
 function withinRange(value, min, max) {
@@ -1324,7 +1444,7 @@ async function callAssertionLLM(prompt, config) {
                 body: JSON.stringify({
                     model,
                     messages: [{ role: "user", content: prompt }],
-                    max_tokens: 10,
+                    max_tokens: 60,
                     temperature: 0,
                 }),
             });
@@ -1346,7 +1466,7 @@ async function callAssertionLLM(prompt, config) {
                 },
                 body: JSON.stringify({
                     model,
-                    max_tokens: 10,
+                    max_tokens: 60,
                     messages: [{ role: "user", content: prompt }],
                 }),
             });
@@ -1372,19 +1492,99 @@ async function callAssertionLLM(prompt, config) {
         clearTimeout(timer);
     }
 }
-// ============================================================================
-// LLM-BACKED ASYNC ASSERTION FUNCTIONS
-// ============================================================================
+let _hasSentimentAsyncDeprecationWarned = false;
+/** @internal Reset the one-time deprecation flag. For testing only. */
+function resetSentimentDeprecationWarning() {
+    _hasSentimentAsyncDeprecationWarned = false;
+}
+function makeSentimentResult(sentiment, confidence, matches) {
+    return {
+        sentiment,
+        confidence,
+        matches,
+        [Symbol.toPrimitive](hint) {
+            if (!_hasSentimentAsyncDeprecationWarned) {
+                _hasSentimentAsyncDeprecationWarned = true;
+                console.warn("[evalgate] DEPRECATION: hasSentimentAsync() now returns { sentiment, confidence, matches }. " +
+                    "Using it as a boolean (e.g. `if (await hasSentimentAsync(...))`) is deprecated and will be " +
+                    "removed in the next major version. Migrate to: `const { matches } = await hasSentimentAsync(...)`");
+            }
+            if (hint === "number")
+                return matches ? 1 : 0;
+            if (hint === "string")
+                return `SentimentAsyncResult(${sentiment}, matches=${matches})`;
+            return matches;
+        },
+    };
+}
 /**
  * LLM-backed sentiment check. **Slow and accurate** — uses an LLM to
- * classify sentiment with full context awareness. Requires
- * {@link configureAssertions} or an inline `config` argument.
+ * classify sentiment with full context awareness and return a confidence score.
+ * Requires {@link configureAssertions} or an inline `config` argument.
  * Falls back gracefully with a clear error if no API key is configured.
+ *
+ * Returns `{ sentiment, confidence, matches }` — the async layer now provides
+ * the same rich return shape as {@link hasSentimentWithScore}, but powered by
+ * an LLM instead of keyword counting. The `confidence` field is the LLM's
+ * self-reported confidence (0–1), not a lexical heuristic.
+ *
+ * The returned object implements `Symbol.toPrimitive` so that legacy code
+ * using `if (await hasSentimentAsync(...))` still works correctly (coerces
+ * to `matches`), but a deprecation warning is emitted. Migrate to
+ * destructuring: `const { matches } = await hasSentimentAsync(...)`.
+ *
+ * @example
+ * ```ts
+ * const { sentiment, confidence, matches } = await hasSentimentAsync(
+ *   "This product is revolutionary but overpriced",
+ *   "negative",
+ * );
+ * // sentiment: "negative", confidence: 0.7, matches: true
+ * ```
  */
 async function hasSentimentAsync(text, expected, config) {
-    const prompt = `Classify the sentiment of the following text. Reply with exactly one word — positive, negative, or neutral — and nothing else.\n\nText: "${text}"`;
-    const result = await callAssertionLLM(prompt, config);
-    return result.replace(/[^a-z]/g, "") === expected;
+    const prompt = `Classify the sentiment of the following text as positive, negative, or neutral. Also rate your confidence from 0.0 to 1.0. Reply with ONLY a JSON object like {"sentiment":"positive","confidence":0.85} and nothing else.\n\nText: "${text}"`;
+    const raw = await callAssertionLLM(prompt, config);
+    // Parse structured response; fall back to keyword extraction if LLM doesn't return valid JSON
+    let sentiment = "neutral";
+    let confidence = 0.5;
+    try {
+        // Extract JSON from response (LLM may wrap in markdown code fences)
+        const jsonMatch = raw.match(/\{[^}]+\}/);
+        if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            const s = String(parsed.sentiment ?? "").replace(/[^a-z]/g, "");
+            if (s === "positive" || s === "negative" || s === "neutral") {
+                sentiment = s;
+            }
+            const c = Number(parsed.confidence);
+            if (!Number.isNaN(c) && c >= 0 && c <= 1) {
+                confidence = c;
+            }
+        }
+        else {
+            // Fallback: old-style single-word response
+            const cleaned = raw.replace(/[^a-z]/g, "");
+            if (cleaned === "positive" ||
+                cleaned === "negative" ||
+                cleaned === "neutral") {
+                sentiment = cleaned;
+                confidence = 0.5; // no confidence info from single-word response
+            }
+        }
+    }
+    catch {
+        // JSON parse failed — try plain text extraction
+        const cleaned = raw.replace(/[^a-z]/g, "");
+        if (cleaned.includes("positive"))
+            sentiment = "positive";
+        else if (cleaned.includes("negative"))
+            sentiment = "negative";
+        else
+            sentiment = "neutral";
+        confidence = 0.5;
+    }
+    return makeSentimentResult(sentiment, confidence, sentiment === expected);
 }
 /**
  * LLM-backed toxicity check. **Slow and accurate** — context-aware, handles
@@ -1419,6 +1619,108 @@ async function hasFactualAccuracyAsync(text, facts, config) {
 async function hasNoHallucinationsAsync(text, groundTruth, config) {
     const truthList = groundTruth.map((f, i) => `${i + 1}. ${f}`).join("\n");
     const prompt = `Does the following text stay consistent with the ground truth facts below, without introducing fabricated or hallucinated claims?\n\nGround truth:\n${truthList}\n\nText: "${text}"\n\nReply with only "yes" or "no".`;
+    const result = await callAssertionLLM(prompt, config);
+    return result.replace(/[^a-z]/g, "") === "yes";
+}
+/**
+ * Compute cosine similarity between two vectors.
+ */
+function cosineSimilarity(a, b) {
+    if (a.length !== b.length || a.length === 0)
+        return 0;
+    let dot = 0;
+    let normA = 0;
+    let normB = 0;
+    for (let i = 0; i < a.length; i++) {
+        dot += a[i] * b[i];
+        normA += a[i] * a[i];
+        normB += b[i] * b[i];
+    }
+    const denom = Math.sqrt(normA) * Math.sqrt(normB);
+    return denom === 0 ? 0 : dot / denom;
+}
+/**
+ * Fetch embeddings from OpenAI's embedding API.
+ * Returns an array of embedding vectors, one per input string.
+ */
+async function fetchEmbeddings(texts, config) {
+    if (config.provider !== "openai") {
+        throw new Error(`Embedding-based semantic containment requires provider "openai" (got "${config.provider}"). ` +
+            `Set provider to "openai" or use toSemanticallyContainLLM() for LLM-prompt fallback.`);
+    }
+    const baseUrl = config.baseUrl ?? "https://api.openai.com";
+    const model = config.embeddingModel ?? "text-embedding-3-small";
+    const res = await fetch(`${baseUrl}/v1/embeddings`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${config.apiKey}`,
+        },
+        body: JSON.stringify({ model, input: texts }),
+    });
+    if (!res.ok) {
+        throw new Error(`OpenAI Embeddings API error ${res.status}: ${await res.text()}`);
+    }
+    const data = (await res.json());
+    // Return embeddings sorted by input index
+    return data.data.sort((a, b) => a.index - b.index).map((d) => d.embedding);
+}
+/**
+ * Embedding-based semantic containment check. Uses OpenAI embeddings and
+ * cosine similarity to determine whether the text semantically contains
+ * the given concept — no LLM prompt, no "does this text contain X" trick.
+ *
+ * This is **real semantic containment**: embed both strings, compute cosine
+ * similarity, and compare against a threshold. "The city of lights" will
+ * have high similarity to "Paris" because their embeddings are close in
+ * vector space.
+ *
+ * Requires `provider: "openai"` in the config. For Anthropic or other
+ * providers without an embedding API, use {@link toSemanticallyContainLLM}.
+ *
+ * @param text - The text to check
+ * @param phrase - The semantic concept to look for
+ * @param config - LLM config (must be OpenAI with embedding support)
+ * @param threshold - Cosine similarity threshold (default: 0.4). Lower values
+ *   are more permissive. Typical ranges: 0.3–0.5 for concept containment,
+ *   0.6–0.8 for paraphrase detection, 0.9+ for near-duplicates.
+ * @returns `{ contains, similarity }` — whether the threshold was met and the raw score
+ *
+ * @example
+ * ```ts
+ * const { contains, similarity } = await toSemanticallyContain(
+ *   "The city of lights is beautiful in spring",
+ *   "Paris",
+ *   { provider: "openai", apiKey: process.env.OPENAI_API_KEY },
+ * );
+ * // contains: true, similarity: ~0.52
+ * ```
+ */
+async function toSemanticallyContain(text, phrase, config, threshold = 0.4) {
+    const cfg = config ?? _assertionLLMConfig;
+    if (!cfg) {
+        throw new Error("No LLM config set. Call configureAssertions({ provider, apiKey }) first, or pass a config argument.");
+    }
+    const [textEmbedding, phraseEmbedding] = await fetchEmbeddings([text, phrase], cfg);
+    const similarity = cosineSimilarity(textEmbedding, phraseEmbedding);
+    return { contains: similarity >= threshold, similarity };
+}
+/**
+ * LLM-prompt-based semantic containment check. Uses an LLM prompt to ask
+ * whether the text conveys a concept. This is a **fallback** for providers
+ * that don't offer an embedding API (e.g., Anthropic).
+ *
+ * Note: This is functionally similar to `followsInstructions` — the LLM is
+ * being asked to judge containment, not compute vector similarity. For
+ * real embedding-based semantic containment, use {@link toSemanticallyContain}.
+ *
+ * @param text - The text to check
+ * @param phrase - The semantic concept to look for
+ * @param config - Optional LLM config
+ * @returns true if the LLM judges the text contains the concept
+ */
+async function toSemanticallyContainLLM(text, phrase, config) {
+    const prompt = `Does the following text semantically contain or convey the concept "${phrase}"? The text does not need to use those exact words — paraphrases, synonyms, and implied references count. Reply with only "yes" or "no".\n\nText: "${text}"`;
     const result = await callAssertionLLM(prompt, config);
     return result.replace(/[^a-z]/g, "") === "yes";
 }

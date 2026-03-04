@@ -313,11 +313,14 @@ describe("WorkflowTracer offline mode", () => {
 		const mockCreate = vi.fn().mockResolvedValue({ id: 1 });
 		const mockUpdate = vi.fn().mockResolvedValue({});
 		const mockCreateSpan = vi.fn().mockResolvedValue({});
-		vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-			ok: true,
-			json: async () => ({ id: 1 }),
-			status: 200,
-		}));
+		vi.stubGlobal(
+			"fetch",
+			vi.fn().mockResolvedValue({
+				ok: true,
+				json: async () => ({ id: 1 }),
+				status: 200,
+			}),
+		);
 		const client = new AIEvalClient({
 			apiKey: "test-key",
 			baseUrl: "http://localhost:3000",
@@ -344,11 +347,14 @@ describe("WorkflowTracer offline mode", () => {
 	});
 
 	it("should still record handoffs in memory when offline", async () => {
-		vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-			ok: true,
-			json: async () => ({ id: 1 }),
-			status: 200,
-		}));
+		vi.stubGlobal(
+			"fetch",
+			vi.fn().mockResolvedValue({
+				ok: true,
+				json: async () => ({ id: 1 }),
+				status: 200,
+			}),
+		);
 		const client = new AIEvalClient({
 			apiKey: "test-key",
 			baseUrl: "http://localhost:3000",

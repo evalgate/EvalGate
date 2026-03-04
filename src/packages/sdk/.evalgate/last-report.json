@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "evaluationId": "42",
+  "runId": 1,
+  "verdict": "fail",
+  "gateApplied": true,
+  "gateMode": "enforced",
+  "actionableMessage": "score 10 < minScore 90",
+  "reasonCode": "SCORE_TOO_LOW",
+  "reasonMessage": "score 10 < minScore 90",
+  "score": 10,
+  "n": 5,
+  "baselineMissing": false,
+  "thresholds": {
+    "minScore": 90,
+    "allowWeakEvidence": true,
+    "baseline": "published"
+  },
+  "dashboardUrl": "http://localhost:3000/evaluations/42/runs/1",
+  "failedCases": [],
+  "explain": false
+}

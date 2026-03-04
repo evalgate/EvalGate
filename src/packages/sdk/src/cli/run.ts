@@ -17,6 +17,11 @@ import * as path from "node:path";
 import { disposeActiveRuntime, getActiveRuntime } from "../runtime/registry";
 import { runImpactAnalysis } from "./impact-analysis";
 import type { EvaluationManifest, Spec } from "./manifest";
+import {
+	calculatePercentiles,
+	formatLatencyTable,
+	writeTraces,
+} from "./traces";
 
 /**
  * Run execution options
@@ -501,6 +506,16 @@ export function printHumanResults(result: RunResult): void {
 		`   📊 Pass Rate: ${(result.summary.passRate * 100).toFixed(1)}%`,
 	);
 
+	// Latency percentiles
+	const durations = result.results
+		.filter((r) => r.result.status !== "skipped")
+		.map((r) => r.result.duration);
+	if (durations.length > 0) {
+		const latency = calculatePercentiles(durations);
+		console.log("");
+		console.log(formatLatencyTable(latency));
+	}
+
 	const hasScores = result.results.some((r) => r.result.score !== undefined);
 	console.log(
 		`\n📋 Individual Results:${hasScores ? "  (score = value returned by spec executor, 0–100)" : ""}`,
@@ -534,6 +549,18 @@ export function printJsonResults(result: RunResult): void {
 export async function runEvaluationsCLI(options: RunOptions): Promise<void> {
 	try {
 		const result = await runEvaluations(options);
+
+		// Auto-write structured traces
+		if (result.results.length > 0) {
+			try {
+				const tracePath = await writeTraces(result);
+				if (options.format !== "json") {
+					console.log(`\n🔍 Trace written to ${tracePath}`);
+				}
+			} catch {
+				// Trace writing is best-effort, don't fail the run
+			}
+		}
 
 		if (options.format === "json") {
 			printJsonResults(result);

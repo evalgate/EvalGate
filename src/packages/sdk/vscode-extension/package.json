@@ -1,0 +1,84 @@
+{
+	"name": "evalgate-vscode",
+	"displayName": "EvalGate",
+	"description": "Inline spec pass/fail gutters and evaluation diagnostics for EvalGate",
+	"version": "0.1.0",
+	"publisher": "evalgate",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/pauly7610/ai-evaluation-platform.git",
+		"directory": "src/packages/sdk/vscode-extension"
+	},
+	"engines": {
+		"vscode": "^1.85.0"
+	},
+	"categories": [
+		"Testing",
+		"Linters",
+		"Other"
+	],
+	"keywords": [
+		"evalgate",
+		"ai",
+		"evaluation",
+		"llm",
+		"testing"
+	],
+	"activationEvents": [
+		"workspaceContains:evalgate.config.json",
+		"workspaceContains:.evalgate/manifest.json"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "evalgate.runAll",
+				"title": "EvalGate: Run All Specs"
+			},
+			{
+				"command": "evalgate.runFile",
+				"title": "EvalGate: Run Specs in Current File"
+			},
+			{
+				"command": "evalgate.discover",
+				"title": "EvalGate: Discover Specs"
+			},
+			{
+				"command": "evalgate.showLastRun",
+				"title": "EvalGate: Show Last Run Results"
+			}
+		],
+		"configuration": {
+			"title": "EvalGate",
+			"properties": {
+				"evalgate.autoRun": {
+					"type": "boolean",
+					"default": false,
+					"description": "Automatically run specs on file save"
+				},
+				"evalgate.showGutterIcons": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show pass/fail icons in the gutter"
+				},
+				"evalgate.showInlineAnnotations": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show inline pass/fail annotations"
+				}
+			}
+		}
+	},
+	"scripts": {
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"package": "npx @vscode/vsce package"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.85.0",
+		"@types/node": "^20.0.0",
+		"typescript": "^5.0.0",
+		"@vscode/vsce": "^2.0.0"
+	}
+}

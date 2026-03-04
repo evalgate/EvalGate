@@ -157,6 +157,42 @@ Every failure prints a clear next step:
 | `npx evalgate diff --base last --head last` | Compare last two runs |
 | `npx evalgate diff --format github` | GitHub Step Summary with regressions |
 
+### Compare — Side-by-Side Result Diff
+
+**Important:** `evalgate compare` compares **result files**, not models.
+You run each model/config separately (via `evalgate run --write-results`),
+then compare the saved JSON artifacts. Nothing is re-executed.
+
+```bash
+# The primary interface — two result files:
+evalgate compare --base .evalgate/runs/gpt4o-run.json --head .evalgate/runs/claude-run.json
+
+# Optional labels for the output table (cosmetic, not identifiers):
+evalgate compare --base gpt4o.json --head claude.json --labels "GPT-4o" "Claude 3.5"
+
+# N-way compare (3+ files):
+evalgate compare --runs run-a.json run-b.json run-c.json
+
+# Machine-readable:
+evalgate compare --base a.json --head b.json --format json
+```
+
+| Command | Description |
+|---------|-------------|
+| `evalgate compare --base <file> --head <file>` | Compare two run result JSON files |
+| `evalgate compare --runs <f1> <f2> [f3...]` | N-way comparison across multiple runs |
+| `--labels <l1> <l2>` | Optional human-readable labels for output |
+| `--sort-by <key>` | Sort specs by: `name` (default), `score`, `duration` |
+| `--format json` | Machine-readable JSON output |
+
+**Workflow:**
+```
+evalgate run --write-results   # saves .evalgate/runs/run-<id>.json
+# change model/config/prompt
+evalgate run --write-results   # saves another run file
+evalgate compare --base <first>.json --head <second>.json
+```
+
 ### Legacy Regression Gate (local, no account needed)
 
 | Command | Description |
@@ -389,7 +425,8 @@ console.log(hasNoToxicity("Have a great day!"));          // true
 console.log(hasValidCodeSyntax("function f() {}", "js")); // true
 
 // Async — LLM-backed, context-aware
-console.log(await hasSentimentAsync("subtle irony...", "negative")); // true
+const { matches, confidence } = await hasSentimentAsync("subtle irony...", "negative");
+console.log(matches, confidence);                                     // true, 0.85
 console.log(await hasNoToxicityAsync("sarcastic attack text"));       // false
 ```
 

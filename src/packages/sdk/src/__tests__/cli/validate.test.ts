@@ -5,14 +5,14 @@
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { ValidationIssue } from "../../cli/validate";
 
 // We test the analyzeFile logic directly by creating temp spec files
 // and importing the validate module's internals via the public API shape.
 
 /** Helper: create a temp dir with spec files and run validation */
-function createTempSpecFile(
+function _createTempSpecFile(
 	content: string,
 	filename = "test-spec.eval.ts",
 ): { dir: string; file: string; cleanup: () => void } {
@@ -116,7 +116,12 @@ describe("evalgate validate — static analysis patterns", () => {
 describe("ValidateResult interface contract", () => {
 	it("passed is true when no errors exist", () => {
 		const issues: ValidationIssue[] = [
-			{ severity: "warn", file: "test.ts", code: "NO_DEFINE_EVAL", message: "warn" },
+			{
+				severity: "warn",
+				file: "test.ts",
+				code: "NO_DEFINE_EVAL",
+				message: "warn",
+			},
 		];
 		const errors = issues.filter((i) => i.severity === "error");
 		expect(errors.length === 0).toBe(true);
@@ -124,8 +129,18 @@ describe("ValidateResult interface contract", () => {
 
 	it("passed is false when errors exist", () => {
 		const issues: ValidationIssue[] = [
-			{ severity: "error", file: "test.ts", code: "EMPTY_NAME", message: "err" },
-			{ severity: "warn", file: "test.ts", code: "NO_DEFINE_EVAL", message: "warn" },
+			{
+				severity: "error",
+				file: "test.ts",
+				code: "EMPTY_NAME",
+				message: "err",
+			},
+			{
+				severity: "warn",
+				file: "test.ts",
+				code: "NO_DEFINE_EVAL",
+				message: "warn",
+			},
 		];
 		const errors = issues.filter((i) => i.severity === "error");
 		expect(errors.length === 0).toBe(false);

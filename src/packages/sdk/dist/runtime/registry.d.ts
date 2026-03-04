@@ -4,7 +4,9 @@
  * Scoped registry with proper lifecycle management.
  * Prevents cross-run contamination and memory leaks.
  */
-import type { EvalRuntime } from "./types";
+import type { DefineEvalFunction, EvalRuntime } from "./types";
+/** @internal Called by eval.ts to register defineEval without circular import */
+export declare function _registerDefineEval(fn: (...args: unknown[]) => unknown): void;
 /**
  * Runtime interface with lifecycle management
  * Ensures proper cleanup and prevents resource leaks
@@ -13,7 +15,7 @@ export interface RuntimeHandle {
     /** Runtime instance */
     runtime: EvalRuntime;
     /** defineEval function bound to this runtime */
-    defineEval: typeof import("./eval").defineEval;
+    defineEval: DefineEvalFunction;
     /** Dispose runtime and clean up resources */
     dispose(): void;
     /** Create runtime snapshot for persistence */

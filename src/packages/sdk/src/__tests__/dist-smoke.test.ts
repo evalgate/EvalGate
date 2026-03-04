@@ -6,9 +6,10 @@
  *
  * Run after `pnpm build`: `pnpm test:dist`
  */
+
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { describe, expect, it } from "vitest";
-import * as path from "path";
-import * as fs from "fs";
 
 const DIST_ROOT = path.resolve(__dirname, "../../dist");
 
@@ -193,7 +194,9 @@ describe.skipIf(!distExists)("dist-smoke: compiled output contract", () => {
 	// ── 9. toHaveNoProfanity + deprecated toBeProfessional ──────
 	describe("toHaveNoProfanity and toBeProfessional", () => {
 		it("toHaveNoProfanity passes for clean text", () => {
-			const result = sdk.expect("Thank you for your inquiry.").toHaveNoProfanity();
+			const result = sdk
+				.expect("Thank you for your inquiry.")
+				.toHaveNoProfanity();
 			expect(result.passed).toBe(true);
 			expect(result.name).toBe("toHaveNoProfanity");
 		});
@@ -204,13 +207,19 @@ describe.skipIf(!distExists)("dist-smoke: compiled output contract", () => {
 		});
 
 		it("word-boundary: 'Hello' does NOT false-positive on 'hell'", () => {
-			const result = sdk.expect("Hello, how can I help you?").toHaveNoProfanity();
+			const result = sdk
+				.expect("Hello, how can I help you?")
+				.toHaveNoProfanity();
 			expect(result.passed).toBe(true);
 		});
 
 		it("word-boundary: 'shell', 'assess' do NOT false-positive", () => {
-			expect(sdk.expect("The shell command failed").toHaveNoProfanity().passed).toBe(true);
-			expect(sdk.expect("Let me assess the situation").toHaveNoProfanity().passed).toBe(true);
+			expect(
+				sdk.expect("The shell command failed").toHaveNoProfanity().passed,
+			).toBe(true);
+			expect(
+				sdk.expect("Let me assess the situation").toHaveNoProfanity().passed,
+			).toBe(true);
 		});
 
 		it("toBeProfessional deprecated alias still works", () => {

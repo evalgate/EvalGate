@@ -12,6 +12,7 @@
 import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { verifyBaselineChecksum } from "./baseline";
 
 const REPORT_REL = "evals/regression-report.json";
 const BASELINE_REL = "evals/baseline.json";
@@ -122,6 +123,7 @@ function runBuiltinGate(cwd: string): BuiltinReport {
 		confidenceTests?: { passed?: boolean; total?: number };
 		updatedAt?: string;
 		updatedBy?: string;
+		_checksum?: string;
 	};
 	try {
 		baselineData = JSON.parse(fs.readFileSync(baselinePath, "utf-8"));
@@ -139,6 +141,33 @@ function runBuiltinGate(cwd: string): BuiltinReport {
 			command,
 			runner,
 		};
+	}
+
+	// Verify baseline integrity
+	const checksumResult = verifyBaselineChecksum(
+		baselineData as Record<string, unknown>,
+	);
+	if (!checksumResult.valid) {
+		return {
+			schemaVersion: 1,
+			timestamp: now,
+			exitCode: 2,
+			category: "infra_error",
+			passed: false,
+			failures: [
+				checksumResult.reason ?? "Baseline checksum verification failed",
+			],
+			deltas: [],
+			baseline: null,
+			durationMs: Date.now() - t0,
+			command,
+			runner,
+		};
+	}
+	if (checksumResult.reason === "no_checksum") {
+		console.warn(
+			"⚠ Baseline has no checksum. Run 'evalgate baseline update' to stamp one.",
+		);
 	}
 
 	const baselineMeta = baselineData.updatedAt

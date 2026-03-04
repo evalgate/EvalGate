@@ -105,8 +105,7 @@ function analyzeFile(filePath: string): ValidationIssue[] {
 			severity: "warn",
 			file: relPath,
 			code: "NO_DEFINE_EVAL",
-			message:
-				"No defineEval() calls found. File may not define any specs.",
+			message: "No defineEval() calls found. File may not define any specs.",
 		});
 	}
 
@@ -115,8 +114,7 @@ function analyzeFile(filePath: string): ValidationIssue[] {
 	for (const match of nameMatches) {
 		const name = match[1];
 		const matchIndex = match.index ?? 0;
-		const lineNum =
-			content.substring(0, matchIndex).split("\n").length;
+		const lineNum = content.substring(0, matchIndex).split("\n").length;
 
 		if (!name || name.trim() === "") {
 			issues.push({
@@ -154,8 +152,7 @@ function analyzeFile(filePath: string): ValidationIssue[] {
 	const configMatches = [...content.matchAll(DEFINE_EVAL_CONFIG_RE)];
 	for (const match of configMatches) {
 		const matchIndex = match.index ?? 0;
-		const lineNum =
-			content.substring(0, matchIndex).split("\n").length;
+		const lineNum = content.substring(0, matchIndex).split("\n").length;
 
 		// Simple heuristic: look for 'name:' and 'executor:' in the next ~20 lines
 		const contextLines = lines.slice(lineNum - 1, lineNum + 19).join("\n");
@@ -177,8 +174,7 @@ function analyzeFile(filePath: string): ValidationIssue[] {
 				file: relPath,
 				line: lineNum,
 				code: "MISSING_EXECUTOR",
-				message:
-					"Config-form defineEval() missing required 'executor' field",
+				message: "Config-form defineEval() missing required 'executor' field",
 			});
 		}
 	}

@@ -27,6 +27,39 @@
  * await tracer.endWorkflow({ resolution: 'Issue resolved' });
  * ```
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WorkflowTracer = void 0;
 exports.traceLangChainAgent = traceLangChainAgent;
@@ -34,6 +67,8 @@ exports.traceCrewAI = traceCrewAI;
 exports.traceAutoGen = traceAutoGen;
 exports.createWorkflowTracer = createWorkflowTracer;
 exports.traceWorkflowStep = traceWorkflowStep;
+const fs = __importStar(require("node:fs"));
+const nodePath = __importStar(require("node:path"));
 const context_1 = require("./context");
 // ============================================================================
 // MAIN CLASS - WorkflowTracer
@@ -166,6 +201,37 @@ class WorkflowTracer {
                 }),
             });
         }
+        // In offline mode, persist workflow data to local filesystem
+        if (this.options.offline) {
+            try {
+                const dataDir = nodePath.resolve(".evalgate-data", "workflows");
+                fs.mkdirSync(dataDir, { recursive: true });
+                const fileName = `${this.currentWorkflow.name.replace(/[^a-zA-Z0-9_-]/g, "_")}-${Date.now()}.json`;
+                const workflowData = {
+                    name: this.currentWorkflow.name,
+                    startedAt: this.currentWorkflow.startedAt,
+                    endedAt: new Date().toISOString(),
+                    status,
+                    durationMs,
+                    totalCost: totalCost.toFixed(6),
+                    handoffs: this.handoffs,
+                    decisions: this.decisions,
+                    costs: this.costs,
+                    output,
+                    metadata: this.currentWorkflow.metadata,
+                    definition: this.currentWorkflow.definition,
+                };
+                fs.writeFileSync(nodePath.join(dataDir, fileName), JSON.stringify(workflowData, null, 2));
+                this.log("Saved workflow to local filesystem", {
+                    path: nodePath.join(dataDir, fileName),
+                });
+            }
+            catch (err) {
+                this.log("Failed to save workflow to local filesystem", {
+                    error: err instanceof Error ? err.message : String(err),
+                });
+            }
+        }
         this.log("Ended workflow", {
             name: this.currentWorkflow.name,
             status,
@@ -279,22 +345,24 @@ class WorkflowTracer {
             timestamp: new Date().toISOString(),
         };
         this.handoffs.push(handoff);
-        // Also create a span for the handoff
-        const spanId = `handoff-${this.handoffs.length}-${this.generateId()}`;
-        await this.client.traces.createSpan(this.currentWorkflow.traceId, {
-            name: `Handoff: ${fromAgent || "start"} → ${toAgent}`,
-            spanId,
-            type: "handoff",
-            startTime: handoff.timestamp,
-            endTime: handoff.timestamp,
-            durationMs: 0,
-            metadata: (0, context_1.mergeWithContext)({
-                handoffType,
-                fromAgent,
-                toAgent,
-                context,
-            }),
-        });
+        // Also create a span for the handoff (skip in offline mode)
+        if (!this.options.offline) {
+            const spanId = `handoff-${this.handoffs.length}-${this.generateId()}`;
+            await this.client.traces.createSpan(this.currentWorkflow.traceId, {
+                name: `Handoff: ${fromAgent || "start"} → ${toAgent}`,
+                spanId,
+                type: "handoff",
+                startTime: handoff.timestamp,
+                endTime: handoff.timestamp,
+                durationMs: 0,
+                metadata: (0, context_1.mergeWithContext)({
+                    handoffType,
+                    fromAgent,
+                    toAgent,
+                    context,
+                }),
+            });
+        }
         this.log("Recorded handoff", { fromAgent, toAgent, handoffType });
     }
     // ==========================================================================
@@ -324,28 +392,30 @@ class WorkflowTracer {
             throw new Error("No active workflow. Call startWorkflow() first.");
         }
         this.decisions.push(params);
-        // Create a span for the decision
-        const spanId = `decision-${this.decisions.length}-${this.generateId()}`;
-        const timestamp = new Date().toISOString();
-        await this.client.traces.createSpan(this.currentWorkflow.traceId, {
-            name: `Decision: ${params.agent} chose ${params.chosen}`,
-            spanId,
-            type: "decision",
-            startTime: timestamp,
-            endTime: timestamp,
-            durationMs: 0,
-            metadata: (0, context_1.mergeWithContext)({
-                isDecisionPoint: true,
-                agentName: params.agent,
-                decisionType: params.type,
-                chosen: params.chosen,
-                alternatives: params.alternatives,
-                reasoning: params.reasoning,
-                confidence: params.confidence,
-                contextFactors: params.contextFactors,
-                inputContext: params.inputContext,
-            }),
-        });
+        // Create a span for the decision (skip in offline mode)
+        if (!this.options.offline) {
+            const spanId = `decision-${this.decisions.length}-${this.generateId()}`;
+            const timestamp = new Date().toISOString();
+            await this.client.traces.createSpan(this.currentWorkflow.traceId, {
+                name: `Decision: ${params.agent} chose ${params.chosen}`,
+                spanId,
+                type: "decision",
+                startTime: timestamp,
+                endTime: timestamp,
+                durationMs: 0,
+                metadata: (0, context_1.mergeWithContext)({
+                    isDecisionPoint: true,
+                    agentName: params.agent,
+                    decisionType: params.type,
+                    chosen: params.chosen,
+                    alternatives: params.alternatives,
+                    reasoning: params.reasoning,
+                    confidence: params.confidence,
+                    contextFactors: params.contextFactors,
+                    inputContext: params.inputContext,
+                }),
+            });
+        }
         this.log("Recorded decision", {
             agent: params.agent,
             type: params.type,
@@ -387,8 +457,8 @@ class WorkflowTracer {
             totalCost: totalCost.toFixed(6),
         };
         this.costs.push(costRecord);
-        // Also record as a span if in an active workflow
-        if (this.currentWorkflow) {
+        // Also record as a span if in an active workflow (skip in offline mode)
+        if (this.currentWorkflow && !this.options.offline) {
             const spanId = `cost-${this.costs.length}-${this.generateId()}`;
             const timestamp = new Date().toISOString();
             await this.client.traces.createSpan(this.currentWorkflow.traceId, {

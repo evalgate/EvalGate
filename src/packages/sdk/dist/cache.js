@@ -7,6 +7,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CacheTTL = exports.RequestCache = void 0;
 exports.shouldCache = shouldCache;
 exports.getTTL = getTTL;
+/**
+ * @internal — HTTP request cache used by AIEvalClient. Not part of the public API.
+ * Use {@link CacheTTL} to configure cache durations via client options.
+ */
 class RequestCache {
     constructor(maxSize = 1000) {
         this.cache = new Map();

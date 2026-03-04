@@ -8,6 +8,7 @@
 import * as crypto from "node:crypto";
 import * as path from "node:path";
 import type {
+	DefineEvalFunction,
 	EvalRuntime,
 	EvalSpec,
 	RuntimeHealth,
@@ -15,6 +16,14 @@ import type {
 	SpecSearchCriteria,
 } from "./types";
 import { RuntimeError, SpecRegistrationError } from "./types";
+
+// Registration pattern to break circular dependency (eval.ts imports from registry.ts)
+let _registeredDefineEval: ((...args: unknown[]) => unknown) | null = null;
+
+/** @internal Called by eval.ts to register defineEval without circular import */
+export function _registerDefineEval(fn: (...args: unknown[]) => unknown): void {
+	_registeredDefineEval = fn;
+}
 
 /**
  * Runtime interface with lifecycle management
@@ -24,7 +33,7 @@ export interface RuntimeHandle {
 	/** Runtime instance */
 	runtime: EvalRuntime;
 	/** defineEval function bound to this runtime */
-	defineEval: typeof import("./eval").defineEval;
+	defineEval: DefineEvalFunction;
 	/** Dispose runtime and clean up resources */
 	dispose(): void;
 	/** Create runtime snapshot for persistence */
@@ -425,14 +434,17 @@ export function createEvalRuntime(
 		activeRuntime = runtime;
 
 		try {
-			// Import and call defineEval
-			const { defineEval } = require("./eval");
-			return defineEval(nameOrConfig, executor, options);
+			if (!_registeredDefineEval) {
+				throw new RuntimeError(
+					"defineEval not registered. Ensure eval.ts is imported before calling createEvalRuntime.",
+				);
+			}
+			return _registeredDefineEval(nameOrConfig, executor, options);
 		} finally {
 			// Restore previous runtime
 			activeRuntime = previousRuntime;
 		}
-	}) as typeof import("./eval").defineEval;
+	}) as unknown as DefineEvalFunction;
 
 	return {
 		runtime,

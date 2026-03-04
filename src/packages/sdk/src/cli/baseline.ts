@@ -7,8 +7,44 @@
  */
 
 import { spawnSync } from "node:child_process";
+import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
+
+/**
+ * Compute a SHA-256 checksum of the baseline data (excluding the _checksum field).
+ * This detects accidental corruption or manual tampering between runs.
+ */
+export function computeBaselineChecksum(data: Record<string, unknown>): string {
+	const copy = { ...data };
+	delete copy._checksum;
+	const content = JSON.stringify(copy, Object.keys(copy).sort());
+	return crypto.createHash("sha256").update(content).digest("hex");
+}
+
+/**
+ * Verify the checksum stored in a baseline file matches its content.
+ * Returns { valid: true } if checksum matches or is absent (legacy files).
+ * Returns { valid: false, reason } if checksum is present but doesn't match.
+ */
+export function verifyBaselineChecksum(data: Record<string, unknown>): {
+	valid: boolean;
+	reason?: string;
+} {
+	const stored = data._checksum;
+	if (typeof stored !== "string") {
+		// Legacy baseline without checksum — allow but warn
+		return { valid: true, reason: "no_checksum" };
+	}
+	const computed = computeBaselineChecksum(data);
+	if (computed !== stored) {
+		return {
+			valid: false,
+			reason: `Checksum mismatch: expected ${stored.slice(0, 12)}…, got ${computed.slice(0, 12)}…. Baseline may be corrupted or tampered with.`,
+		};
+	}
+	return { valid: true };
+}
 
 const BASELINE_REL = "evals/baseline.json";
 
@@ -128,9 +164,18 @@ export function runBaselineInit(cwd: string): number {
 		productMetrics: {},
 	};
 
-	fs.writeFileSync(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`);
+	// Stamp checksum
+	const withChecksum = {
+		...baseline,
+		_checksum: computeBaselineChecksum(
+			baseline as unknown as Record<string, unknown>,
+		),
+	};
+	fs.writeFileSync(baselinePath, `${JSON.stringify(withChecksum, null, 2)}\n`);
 
-	console.log(`✅ Created ${BASELINE_REL} with sample values\n`);
+	console.log(
+		`✅ Created ${BASELINE_REL} with sample values (checksum stamped)\n`,
+	);
 	console.log("Next steps:");
 	console.log(`  1. Commit ${BASELINE_REL} to your repo`);
 	console.log(
@@ -186,8 +231,10 @@ export function runBaselineUpdate(cwd: string): number {
 		baseline.updatedBy = process.env.USER || process.env.USERNAME || "unknown";
 		baseline.confidenceTests = baseline.confidenceTests ?? {};
 		baseline.confidenceTests.unitPassed = testResult.status === 0;
+		// Re-stamp checksum
+		baseline._checksum = computeBaselineChecksum(baseline);
 		fs.writeFileSync(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`);
-		console.log("\n✅ Baseline updated successfully");
+		console.log("\n✅ Baseline updated successfully (checksum stamped)");
 	} catch {
 		console.error("❌ Failed to update baseline file");
 		return 1;

@@ -220,18 +220,18 @@ export async function batchProcess<T, R>(
 	concurrency: number = 5,
 ): Promise<R[]> {
 	const results: R[] = [];
-	const executing: Promise<void>[] = [];
+	const executing = new Set<Promise<void>>();
 
 	for (const item of items) {
 		const promise = processor(item).then((result) => {
 			results.push(result);
 		});
 
-		executing.push(promise);
+		const tracked = promise.finally(() => executing.delete(tracked));
+		executing.add(tracked);
 
-		if (executing.length >= concurrency) {
+		if (executing.size >= concurrency) {
 			await Promise.race(executing);
-			executing.splice(executing.indexOf(promise), 1);
 		}
 	}
 
