@@ -14,7 +14,7 @@ export { type AssertionLLMConfig, configureAssertions, containsAllRequiredFields
 import { createContext, EvalContext, getCurrentContext, withContext } from "./context";
 export { createContext, getCurrentContext as getContext, withContext, EvalContext as ContextManager, };
 export { cloneContext, mergeContexts, validateContext, } from "./runtime/context";
-export { createContext as createEvalContext, createResult, defineEval, defineSuite, evalai, } from "./runtime/eval";
+export { createContext as createEvalContext, createResult, defineEval, defineSuite, evalai, getFilteredSpecs, } from "./runtime/eval";
 export { createLocalExecutor, defaultLocalExecutor, } from "./runtime/executor";
 export { createEvalRuntime, disposeActiveRuntime, getActiveRuntime, setActiveRuntime, } from "./runtime/registry";
 export type { CloudExecutor, DefineEvalFunction, EvalContext, EvalExecutor, EvalExecutorInterface, EvalOptions, EvalResult, EvalRuntime, EvalSpec, ExecutorCapabilities, LocalExecutor, SpecConfig, SpecOptions, WorkerExecutor, } from "./runtime/types";

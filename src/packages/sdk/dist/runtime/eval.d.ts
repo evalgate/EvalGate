@@ -4,12 +4,18 @@
  * The core DSL function for defining behavioral specifications.
  * Uses content-addressable identity with AST position for stability.
  */
-import type { DefineEvalFunction, EvalContext, EvalResult } from "./types";
+import type { DefineEvalFunction, EvalContext, EvalResult, EvalSpec } from "./types";
 /**
  * Export the defineEval function with proper typing
  * This is the main DSL entry point
  */
 export declare const defineEval: DefineEvalFunction;
+/**
+ * Filter a list of specs according to skip/only semantics:
+ * - If any spec has mode === "only", return only those specs
+ * - Otherwise, return all specs except those with mode === "skip"
+ */
+export declare function getFilteredSpecs(specs: EvalSpec[]): EvalSpec[];
 /**
  * Convenience export for evalai.test() alias (backward compatibility)
  * Provides alternative naming that matches the original roadmap vision

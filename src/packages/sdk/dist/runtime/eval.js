@@ -40,6 +40,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.evalai = exports.defineEval = void 0;
+exports.getFilteredSpecs = getFilteredSpecs;
 exports.defineSuite = defineSuite;
 exports.createContext = createContext;
 exports.createResult = createResult;
@@ -159,7 +160,7 @@ function createSpecConfig(nameOrConfig, executor, options) {
 /**
  * Core defineEval function implementation
  */
-function defineEvalImpl(nameOrConfig, executor, options) {
+function defineEvalWithMode(mode, nameOrConfig, executor, options) {
     // Get caller position for identity
     const callerPosition = getCallerPosition();
     // Create specification configuration
@@ -187,15 +188,40 @@ function defineEvalImpl(nameOrConfig, executor, options) {
             budget: config.budget,
             model: config.model,
         },
+        mode,
     };
     // Register specification
     runtime.register(spec);
+}
+function defineEvalImpl(nameOrConfig, executor, options) {
+    defineEvalWithMode("normal", nameOrConfig, executor, options);
+}
+function defineEvalSkipImpl(nameOrConfig, executor, options) {
+    defineEvalWithMode("skip", nameOrConfig, executor, options);
+}
+function defineEvalOnlyImpl(nameOrConfig, executor, options) {
+    defineEvalWithMode("only", nameOrConfig, executor, options);
 }
 /**
  * Export the defineEval function with proper typing
  * This is the main DSL entry point
  */
 exports.defineEval = defineEvalImpl;
+// Attach .skip and .only modifiers (vitest/jest convention)
+exports.defineEval.skip = defineEvalSkipImpl;
+exports.defineEval.only = defineEvalOnlyImpl;
+/**
+ * Filter a list of specs according to skip/only semantics:
+ * - If any spec has mode === "only", return only those specs
+ * - Otherwise, return all specs except those with mode === "skip"
+ */
+function getFilteredSpecs(specs) {
+    const onlySpecs = specs.filter((s) => s.mode === "only");
+    if (onlySpecs.length > 0) {
+        return onlySpecs;
+    }
+    return specs.filter((s) => s.mode !== "skip");
+}
 /**
  * Convenience export for evalai.test() alias (backward compatibility)
  * Provides alternative naming that matches the original roadmap vision

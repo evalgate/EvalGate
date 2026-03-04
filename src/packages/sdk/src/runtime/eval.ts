@@ -174,7 +174,8 @@ function createSpecConfig(
 /**
  * Core defineEval function implementation
  */
-function defineEvalImpl<_TInput = string>(
+function defineEvalWithMode(
+	mode: "normal" | "skip" | "only",
 	nameOrConfig: string | SpecConfig,
 	executor?: EvalExecutor,
 	options?: SpecOptions,
@@ -216,17 +217,60 @@ function defineEvalImpl<_TInput = string>(
 			budget: config.budget,
 			model: config.model,
 		},
+		mode,
 	};
 
 	// Register specification
 	runtime.register(spec);
 }
 
+function defineEvalImpl<_TInput = string>(
+	nameOrConfig: string | SpecConfig,
+	executor?: EvalExecutor,
+	options?: SpecOptions,
+): void {
+	defineEvalWithMode("normal", nameOrConfig, executor, options);
+}
+
+function defineEvalSkipImpl<_TInput = string>(
+	nameOrConfig: string | SpecConfig,
+	executor?: EvalExecutor,
+	options?: SpecOptions,
+): void {
+	defineEvalWithMode("skip", nameOrConfig, executor, options);
+}
+
+function defineEvalOnlyImpl<_TInput = string>(
+	nameOrConfig: string | SpecConfig,
+	executor?: EvalExecutor,
+	options?: SpecOptions,
+): void {
+	defineEvalWithMode("only", nameOrConfig, executor, options);
+}
+
 /**
  * Export the defineEval function with proper typing
  * This is the main DSL entry point
  */
-export const defineEval: DefineEvalFunction = defineEvalImpl;
+export const defineEval: DefineEvalFunction =
+	defineEvalImpl as DefineEvalFunction;
+
+// Attach .skip and .only modifiers (vitest/jest convention)
+defineEval.skip = defineEvalSkipImpl as DefineEvalFunction;
+defineEval.only = defineEvalOnlyImpl as DefineEvalFunction;
+
+/**
+ * Filter a list of specs according to skip/only semantics:
+ * - If any spec has mode === "only", return only those specs
+ * - Otherwise, return all specs except those with mode === "skip"
+ */
+export function getFilteredSpecs(specs: EvalSpec[]): EvalSpec[] {
+	const onlySpecs = specs.filter((s) => s.mode === "only");
+	if (onlySpecs.length > 0) {
+		return onlySpecs;
+	}
+	return specs.filter((s) => s.mode !== "skip");
+}
 
 /**
  * Convenience export for evalai.test() alias (backward compatibility)

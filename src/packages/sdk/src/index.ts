@@ -97,6 +97,7 @@ export {
 	defineEval,
 	defineSuite,
 	evalai,
+	getFilteredSpecs,
 } from "./runtime/eval";
 export {
 	createLocalExecutor,

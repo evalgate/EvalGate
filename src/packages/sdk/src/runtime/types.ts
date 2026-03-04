@@ -35,6 +35,8 @@ export interface EvalSpec {
 		budget?: string;
 		model?: string | "auto";
 	};
+	/** Filtering mode: skip = registered but never executed, only = exclusive execution */
+	mode?: "normal" | "skip" | "only";
 }
 
 /**
@@ -196,6 +198,19 @@ export interface DefineEvalFunction {
 	 * @param config - Complete specification configuration
 	 */
 	(config: SpecConfig): void;
+
+	/**
+	 * Register a specification but skip it during execution.
+	 * Follows the vitest/jest `.skip` convention.
+	 */
+	skip: DefineEvalFunction;
+
+	/**
+	 * Register a specification for exclusive execution.
+	 * If any spec is marked `.only`, only those specs run.
+	 * Follows the vitest/jest `.only` convention.
+	 */
+	only: DefineEvalFunction;
 }
 
 /**
