@@ -234,9 +234,33 @@ export interface HandoffContext {
 // ── agent_decisions ──────────────────────────────────────────
 
 export interface DecisionAlternative {
-	name: string;
-	score?: number;
+	/** Current shape — the action taken */
+	action: string;
+	/** Current shape — confidence score (0-100) */
+	confidence: number;
 	reasoning?: string;
+	rejectedReason?: string;
+	/** @deprecated Old shape field — use `action` instead */
+	name?: string;
+	/** @deprecated Old shape field — use `confidence` instead */
+	score?: number;
+	[key: string]: unknown;
+}
+
+/**
+ * Normalize a DecisionAlternative from either old { name, score } or
+ * new { action, confidence } JSONB shape into the canonical form.
+ * Use on read to handle rows written before the schema migration.
+ */
+export function normalizeDecisionAlternative(
+	raw: Record<string, unknown>,
+): DecisionAlternative {
+	return {
+		action: (raw.action as string) ?? (raw.name as string) ?? "",
+		confidence: (raw.confidence as number) ?? (raw.score as number) ?? 0,
+		reasoning: (raw.reasoning as string) ?? undefined,
+		rejectedReason: (raw.rejectedReason as string) ?? undefined,
+	};
 }
 
 export interface DecisionInputContext {

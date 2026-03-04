@@ -6,17 +6,16 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { agentDecisions, spans, workflowRuns } from "@/db/schema";
+import {
+	type DecisionAlternative,
+	normalizeDecisionAlternative,
+} from "@/db/types";
+
+export type { DecisionAlternative };
 
 // ============================================================================
 // TYPES
 // ============================================================================
-
-export interface DecisionAlternative {
-	action: string;
-	confidence: number;
-	reasoning?: string;
-	rejectedReason?: string;
-}
 
 export interface CreateDecisionParams {
 	spanId: number;
@@ -205,8 +204,9 @@ class DecisionService {
 		const decision = await this.getById(decisionId);
 		if (!decision) return null;
 
-		const alternatives =
-			(decision.alternatives as unknown as DecisionAlternative[]) || [];
+		const rawAlternatives =
+			(decision.alternatives as unknown as Record<string, unknown>[]) || [];
+		const alternatives = rawAlternatives.map(normalizeDecisionAlternative);
 
 		// Calculate what-if scenarios
 		const comparison = {
