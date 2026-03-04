@@ -799,6 +799,82 @@ export function similarTo(
 	return intersection.size / union.size >= threshold;
 }
 
+/**
+ * Compute pairwise Jaccard similarity between word sets.
+ * Returns the mean of all C(n,2) pair similarities.
+ */
+function meanPairwiseJaccard(texts: string[]): number {
+	if (texts.length < 2) return 1;
+	const wordSets = texts.map(
+		(t) => new Set(t.toLowerCase().split(/\s+/).filter(Boolean)),
+	);
+	let sum = 0;
+	let count = 0;
+	for (let i = 0; i < wordSets.length; i++) {
+		for (let j = i + 1; j < wordSets.length; j++) {
+			const a = wordSets[i];
+			const b = wordSets[j];
+			const intersection = new Set([...a].filter((w) => b.has(w)));
+			const union = new Set([...a, ...b]);
+			sum += union.size > 0 ? intersection.size / union.size : 1;
+			count++;
+		}
+	}
+	return count > 0 ? sum / count : 1;
+}
+
+/**
+ * Measure consistency across multiple outputs for the same input.
+ * **Fast and approximate** — uses word-overlap (Jaccard) across all pairs.
+ * Returns a score from 0 (completely inconsistent) to 1 (identical).
+ *
+ * @param outputs - Array of LLM outputs to compare (minimum 2)
+ * @param threshold - Optional minimum consistency score to return true (default 0.7)
+ * @returns `{ score, consistent }` where `consistent` is `score >= threshold`
+ *
+ * @example
+ * ```ts
+ * const { score, consistent } = hasConsistency([
+ *   "The capital of France is Paris.",
+ *   "Paris is the capital of France.",
+ *   "France's capital city is Paris.",
+ * ]);
+ * // score ≈ 0.6-0.8, consistent = true at default threshold
+ * ```
+ */
+export function hasConsistency(
+	outputs: string[],
+	threshold = 0.7,
+): { score: number; consistent: boolean } {
+	if (outputs.length < 2) {
+		return { score: 1, consistent: true };
+	}
+	const score = meanPairwiseJaccard(outputs);
+	return { score, consistent: score >= threshold };
+}
+
+/**
+ * LLM-backed consistency check. **Slow and accurate** — asks the LLM to
+ * judge whether multiple outputs convey the same meaning, catching
+ * paraphrased contradictions that word-overlap misses.
+ *
+ * @returns A score from 0 to 1 where 1 = perfectly consistent.
+ */
+export async function hasConsistencyAsync(
+	outputs: string[],
+	config?: AssertionLLMConfig,
+): Promise<{ score: number; consistent: boolean }> {
+	if (outputs.length < 2) {
+		return { score: 1, consistent: true };
+	}
+	const numbered = outputs.map((o, i) => `Output ${i + 1}: "${o}"`).join("\n");
+	const prompt = `Rate the semantic consistency of the following ${outputs.length} outputs on a scale from 0 to 100, where 100 means they all convey exactly the same meaning and 0 means they completely contradict each other. Reply with ONLY a number.\n\n${numbered}`;
+	const result = await callAssertionLLM(prompt, config);
+	const parsed = parseInt(result.replace(/[^0-9]/g, ""), 10);
+	const score = Number.isNaN(parsed) ? 0 : Math.min(100, Math.max(0, parsed)) / 100;
+	return { score, consistent: score >= 0.7 };
+}
+
 export function withinRange(value: number, min: number, max: number): boolean {
 	return value >= min && value <= max;
 }

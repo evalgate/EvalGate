@@ -20,6 +20,8 @@ import {
 	hasFactualAccuracy,
 	hasFactualAccuracyAsync,
 	hasLength,
+	hasConsistency,
+	hasConsistencyAsync,
 	hasNoHallucinations,
 	hasNoHallucinationsAsync,
 	hasNoToxicity,
@@ -995,6 +997,94 @@ describe("hasReadabilityScore — {min} object form (bug fix)", () => {
 
 	it("should treat missing min as 0 when only max provided", () => {
 		vitestExpect(hasReadabilityScore(readable, { max: 200 })).toBe(true);
+	});
+});
+
+describe("hasConsistency — pairwise Jaccard consistency scoring", () => {
+	it("returns score 1 for single output (trivially consistent)", () => {
+		const result = hasConsistency(["only one"]);
+		vitestExpect(result.score).toBe(1);
+		vitestExpect(result.consistent).toBe(true);
+	});
+
+	it("returns score 1 for identical outputs", () => {
+		const result = hasConsistency([
+			"The capital of France is Paris.",
+			"The capital of France is Paris.",
+		]);
+		vitestExpect(result.score).toBe(1);
+		vitestExpect(result.consistent).toBe(true);
+	});
+
+	it("returns high score for outputs with significant word overlap", () => {
+		const result = hasConsistency([
+			"The application server crashed due to a memory leak in the cache layer",
+			"The application server crashed because of a memory leak in the cache layer",
+			"The server application crashed from a memory leak in the cache layer",
+		]);
+		vitestExpect(result.score).toBeGreaterThan(0.7);
+		vitestExpect(result.consistent).toBe(true);
+	});
+
+	it("returns low score for contradictory outputs", () => {
+		const result = hasConsistency([
+			"The answer is yes, absolutely correct.",
+			"No, that is completely wrong and false.",
+		]);
+		vitestExpect(result.score).toBeLessThan(0.3);
+		vitestExpect(result.consistent).toBe(false);
+	});
+
+	it("respects custom threshold", () => {
+		const outputs = [
+			"The application server crashed due to a memory leak in the cache layer",
+			"The application server crashed because of a memory leak in the cache layer",
+		];
+		const strict = hasConsistency(outputs, 0.99);
+		const lenient = hasConsistency(outputs, 0.5);
+		vitestExpect(strict.consistent).toBe(false);
+		vitestExpect(lenient.consistent).toBe(true);
+	});
+
+	it("handles empty array", () => {
+		const result = hasConsistency([]);
+		vitestExpect(result.score).toBe(1);
+	});
+});
+
+describe("hasConsistencyAsync — LLM-backed", () => {
+	const openaiCfg: AssertionLLMConfig = {
+		provider: "openai",
+		apiKey: "test-key",
+	};
+
+	const originalFetch = globalThis.fetch;
+	beforeEach(() => {
+		globalThis.fetch = vi.fn();
+	});
+	afterEach(() => {
+		globalThis.fetch = originalFetch;
+	});
+
+	it("returns score from LLM response", async () => {
+		(globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				choices: [{ message: { content: "85" } }],
+			}),
+		});
+		const result = await hasConsistencyAsync(
+			["Output A", "Output B"],
+			openaiCfg,
+		);
+		vitestExpect(result.score).toBeCloseTo(0.85, 2);
+		vitestExpect(result.consistent).toBe(true);
+	});
+
+	it("returns score 1 for single output without LLM call", async () => {
+		const result = await hasConsistencyAsync(["single"], openaiCfg);
+		vitestExpect(result.score).toBe(1);
+		vitestExpect(result.consistent).toBe(true);
 	});
 });
 

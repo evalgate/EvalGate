@@ -31,6 +31,9 @@ Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANG
 
 - **Compiled-output test harness** — `dist-smoke.test.ts` (31 tests) that `require()`s from `dist/`, not source. Catches stale bundles, missing exports, and async function preservation.
 - **Word-boundary regression tests** — "hello", "shell", "assess", "shellfish" all verified as non-matches for profanity/toxicity blocklists.
+- **Async assertion timeouts** — `timeoutMs` on `AssertionLLMConfig` (default 30s). `Promise.race` + `AbortController` cancels in-flight fetch; `clearTimeout` prevents timer leak on fast responses.
+- **`defineEval.skip` / `defineEval.only`** — vitest/jest convention for spec filtering. `getFilteredSpecs(specs)` helper applies only/skip semantics for runners.
+- **`--dry-run` on gate CLI** — runs all checks, prints results, always exits 0. Logs `[dry-run] Gate would have exited with code N` to stderr.
 
 ---
 

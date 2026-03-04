@@ -49,6 +49,8 @@ export {
 	hasLength,
 	hasNoHallucinations,
 	hasNoHallucinationsAsync,
+	hasConsistency,
+	hasConsistencyAsync,
 	hasNoToxicity,
 	hasNoToxicityAsync,
 	hasPII,

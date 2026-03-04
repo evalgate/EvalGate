@@ -209,6 +209,40 @@ export declare function hasPII(text: string): boolean;
  */
 export declare function hasSentiment(text: string, expected: "positive" | "negative" | "neutral"): boolean;
 export declare function similarTo(text1: string, text2: string, threshold?: number): boolean;
+/**
+ * Measure consistency across multiple outputs for the same input.
+ * **Fast and approximate** — uses word-overlap (Jaccard) across all pairs.
+ * Returns a score from 0 (completely inconsistent) to 1 (identical).
+ *
+ * @param outputs - Array of LLM outputs to compare (minimum 2)
+ * @param threshold - Optional minimum consistency score to return true (default 0.7)
+ * @returns `{ score, consistent }` where `consistent` is `score >= threshold`
+ *
+ * @example
+ * ```ts
+ * const { score, consistent } = hasConsistency([
+ *   "The capital of France is Paris.",
+ *   "Paris is the capital of France.",
+ *   "France's capital city is Paris.",
+ * ]);
+ * // score ≈ 0.6-0.8, consistent = true at default threshold
+ * ```
+ */
+export declare function hasConsistency(outputs: string[], threshold?: number): {
+    score: number;
+    consistent: boolean;
+};
+/**
+ * LLM-backed consistency check. **Slow and accurate** — asks the LLM to
+ * judge whether multiple outputs convey the same meaning, catching
+ * paraphrased contradictions that word-overlap misses.
+ *
+ * @returns A score from 0 to 1 where 1 = perfectly consistent.
+ */
+export declare function hasConsistencyAsync(outputs: string[], config?: AssertionLLMConfig): Promise<{
+    score: number;
+    consistent: boolean;
+}>;
 export declare function withinRange(value: number, min: number, max: number): boolean;
 export declare function isValidEmail(email: string): boolean;
 export declare function isValidURL(url: string): boolean;
