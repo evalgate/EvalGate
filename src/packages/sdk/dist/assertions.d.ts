@@ -270,6 +270,8 @@ export interface AssertionLLMConfig {
     apiKey: string;
     model?: string;
     baseUrl?: string;
+    /** Maximum time in ms to wait for an LLM response. Default: 30 000 (30s). */
+    timeoutMs?: number;
 }
 export declare function configureAssertions(config: AssertionLLMConfig): void;
 export declare function getAssertionConfig(): AssertionLLMConfig | null;

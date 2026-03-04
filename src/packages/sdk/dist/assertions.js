@@ -1227,6 +1227,7 @@ function followsInstructions(text, instructions) {
 function containsAllRequiredFields(obj, requiredFields) {
     return requiredFields.every((field) => obj && typeof obj === "object" && field in obj);
 }
+const DEFAULT_ASSERTION_TIMEOUT_MS = 30000;
 let _assertionLLMConfig = null;
 function configureAssertions(config) {
     _assertionLLMConfig = config;
@@ -1239,51 +1240,69 @@ async function callAssertionLLM(prompt, config) {
     if (!cfg) {
         throw new Error("No LLM config set. Call configureAssertions({ provider, apiKey }) first, or pass a config as the last argument.");
     }
-    if (cfg.provider === "openai") {
-        const baseUrl = cfg.baseUrl ?? "https://api.openai.com";
-        const model = cfg.model ?? "gpt-4o-mini";
-        const res = await fetch(`${baseUrl}/v1/chat/completions`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${cfg.apiKey}`,
-            },
-            body: JSON.stringify({
-                model,
-                messages: [{ role: "user", content: prompt }],
-                max_tokens: 10,
-                temperature: 0,
-            }),
-        });
-        if (!res.ok) {
-            throw new Error(`OpenAI API error ${res.status}: ${await res.text()}`);
+    const timeoutMs = cfg.timeoutMs ?? DEFAULT_ASSERTION_TIMEOUT_MS;
+    const ac = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const fetchWithSignal = (url, init) => fetch(url, ac ? { ...init, signal: ac.signal } : init);
+    const llmCall = async () => {
+        if (cfg.provider === "openai") {
+            const baseUrl = cfg.baseUrl ?? "https://api.openai.com";
+            const model = cfg.model ?? "gpt-4o-mini";
+            const res = await fetchWithSignal(`${baseUrl}/v1/chat/completions`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${cfg.apiKey}`,
+                },
+                body: JSON.stringify({
+                    model,
+                    messages: [{ role: "user", content: prompt }],
+                    max_tokens: 10,
+                    temperature: 0,
+                }),
+            });
+            if (!res.ok) {
+                throw new Error(`OpenAI API error ${res.status}: ${await res.text()}`);
+            }
+            const data = (await res.json());
+            return data.choices[0]?.message?.content?.trim().toLowerCase() ?? "";
         }
-        const data = (await res.json());
-        return data.choices[0]?.message?.content?.trim().toLowerCase() ?? "";
-    }
-    if (cfg.provider === "anthropic") {
-        const baseUrl = cfg.baseUrl ?? "https://api.anthropic.com";
-        const model = cfg.model ?? "claude-3-haiku-20240307";
-        const res = await fetch(`${baseUrl}/v1/messages`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "x-api-key": cfg.apiKey,
-                "anthropic-version": "2023-06-01",
-            },
-            body: JSON.stringify({
-                model,
-                max_tokens: 10,
-                messages: [{ role: "user", content: prompt }],
-            }),
-        });
-        if (!res.ok) {
-            throw new Error(`Anthropic API error ${res.status}: ${await res.text()}`);
+        if (cfg.provider === "anthropic") {
+            const baseUrl = cfg.baseUrl ?? "https://api.anthropic.com";
+            const model = cfg.model ?? "claude-3-haiku-20240307";
+            const res = await fetchWithSignal(`${baseUrl}/v1/messages`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": cfg.apiKey,
+                    "anthropic-version": "2023-06-01",
+                },
+                body: JSON.stringify({
+                    model,
+                    max_tokens: 10,
+                    messages: [{ role: "user", content: prompt }],
+                }),
+            });
+            if (!res.ok) {
+                throw new Error(`Anthropic API error ${res.status}: ${await res.text()}`);
+            }
+            const data = (await res.json());
+            return data.content[0]?.text?.trim().toLowerCase() ?? "";
         }
-        const data = (await res.json());
-        return data.content[0]?.text?.trim().toLowerCase() ?? "";
+        throw new Error(`Unsupported provider: "${cfg.provider}". Use "openai" or "anthropic".`);
+    };
+    let timer;
+    const timeoutPromise = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+            ac?.abort();
+            reject(new Error(`Assertion LLM call timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
+    });
+    try {
+        return await Promise.race([llmCall(), timeoutPromise]);
     }
-    throw new Error(`Unsupported provider: "${cfg.provider}". Use "openai" or "anthropic".`);
+    finally {
+        clearTimeout(timer);
+    }
 }
 // ============================================================================
 // LLM-BACKED ASYNC ASSERTION FUNCTIONS

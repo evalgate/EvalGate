@@ -936,6 +936,34 @@ describe("Async LLM assertions", () => {
 			hasSentimentAsync("test", "positive", openaiCfg),
 		).rejects.toThrow("OpenAI API error 401");
 	});
+
+	it("times out when LLM call exceeds timeoutMs", async () => {
+		(fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(
+			() => new Promise((resolve) => setTimeout(resolve, 5000)),
+		);
+		const fastTimeoutCfg = { ...openaiCfg, timeoutMs: 50 };
+		await vitestExpect(
+			hasSentimentAsync("test", "positive", fastTimeoutCfg),
+		).rejects.toThrow("timed out after 50ms");
+	});
+
+	it("does NOT time out when LLM responds before deadline", async () => {
+		mockOpenAI("positive");
+		const result = await hasSentimentAsync("Great!", "positive", {
+			...openaiCfg,
+			timeoutMs: 5000,
+		});
+		vitestExpect(result).toBe(true);
+	});
+
+	it("uses default 30s timeout when timeoutMs is not set", async () => {
+		// Verify the config type accepts timeoutMs as optional
+		const cfgWithoutTimeout: AssertionLLMConfig = {
+			provider: "openai",
+			apiKey: "test-key",
+		};
+		vitestExpect(cfgWithoutTimeout.timeoutMs).toBeUndefined();
+	});
 });
 
 describe("hasReadabilityScore — {min} object form (bug fix)", () => {

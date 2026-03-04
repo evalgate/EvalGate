@@ -1345,7 +1345,11 @@ export interface AssertionLLMConfig {
 	apiKey: string;
 	model?: string;
 	baseUrl?: string;
+	/** Maximum time in ms to wait for an LLM response. Default: 30 000 (30s). */
+	timeoutMs?: number;
 }
+
+const DEFAULT_ASSERTION_TIMEOUT_MS = 30_000;
 
 let _assertionLLMConfig: AssertionLLMConfig | null = null;
 
@@ -1368,59 +1372,81 @@ async function callAssertionLLM(
 		);
 	}
 
-	if (cfg.provider === "openai") {
-		const baseUrl = cfg.baseUrl ?? "https://api.openai.com";
-		const model = cfg.model ?? "gpt-4o-mini";
-		const res = await fetch(`${baseUrl}/v1/chat/completions`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${cfg.apiKey}`,
-			},
-			body: JSON.stringify({
-				model,
-				messages: [{ role: "user", content: prompt }],
-				max_tokens: 10,
-				temperature: 0,
-			}),
-		});
-		if (!res.ok) {
-			throw new Error(`OpenAI API error ${res.status}: ${await res.text()}`);
-		}
-		const data = (await res.json()) as {
-			choices: Array<{ message: { content: string } }>;
-		};
-		return data.choices[0]?.message?.content?.trim().toLowerCase() ?? "";
-	}
+	const timeoutMs = cfg.timeoutMs ?? DEFAULT_ASSERTION_TIMEOUT_MS;
+	const ac = typeof AbortController !== "undefined" ? new AbortController() : null;
 
-	if (cfg.provider === "anthropic") {
-		const baseUrl = cfg.baseUrl ?? "https://api.anthropic.com";
-		const model = cfg.model ?? "claude-3-haiku-20240307";
-		const res = await fetch(`${baseUrl}/v1/messages`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"x-api-key": cfg.apiKey,
-				"anthropic-version": "2023-06-01",
-			},
-			body: JSON.stringify({
-				model,
-				max_tokens: 10,
-				messages: [{ role: "user", content: prompt }],
-			}),
-		});
-		if (!res.ok) {
-			throw new Error(`Anthropic API error ${res.status}: ${await res.text()}`);
-		}
-		const data = (await res.json()) as {
-			content: Array<{ text: string }>;
-		};
-		return data.content[0]?.text?.trim().toLowerCase() ?? "";
-	}
+	const fetchWithSignal = (url: string, init: RequestInit): Promise<Response> =>
+		fetch(url, ac ? { ...init, signal: ac.signal } : init);
 
-	throw new Error(
-		`Unsupported provider: "${(cfg as AssertionLLMConfig).provider}". Use "openai" or "anthropic".`,
-	);
+	const llmCall = async (): Promise<string> => {
+		if (cfg.provider === "openai") {
+			const baseUrl = cfg.baseUrl ?? "https://api.openai.com";
+			const model = cfg.model ?? "gpt-4o-mini";
+			const res = await fetchWithSignal(`${baseUrl}/v1/chat/completions`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${cfg.apiKey}`,
+				},
+				body: JSON.stringify({
+					model,
+					messages: [{ role: "user", content: prompt }],
+					max_tokens: 10,
+					temperature: 0,
+				}),
+			});
+			if (!res.ok) {
+				throw new Error(`OpenAI API error ${res.status}: ${await res.text()}`);
+			}
+			const data = (await res.json()) as {
+				choices: Array<{ message: { content: string } }>;
+			};
+			return data.choices[0]?.message?.content?.trim().toLowerCase() ?? "";
+		}
+
+		if (cfg.provider === "anthropic") {
+			const baseUrl = cfg.baseUrl ?? "https://api.anthropic.com";
+			const model = cfg.model ?? "claude-3-haiku-20240307";
+			const res = await fetchWithSignal(`${baseUrl}/v1/messages`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"x-api-key": cfg.apiKey,
+					"anthropic-version": "2023-06-01",
+				},
+				body: JSON.stringify({
+					model,
+					max_tokens: 10,
+					messages: [{ role: "user", content: prompt }],
+				}),
+			});
+			if (!res.ok) {
+				throw new Error(`Anthropic API error ${res.status}: ${await res.text()}`);
+			}
+			const data = (await res.json()) as {
+				content: Array<{ text: string }>;
+			};
+			return data.content[0]?.text?.trim().toLowerCase() ?? "";
+		}
+
+		throw new Error(
+			`Unsupported provider: "${(cfg as AssertionLLMConfig).provider}". Use "openai" or "anthropic".`,
+		);
+	};
+
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	const timeoutPromise = new Promise<never>((_, reject) => {
+		timer = setTimeout(() => {
+			ac?.abort();
+			reject(new Error(`Assertion LLM call timed out after ${timeoutMs}ms`));
+		}, timeoutMs);
+	});
+
+	try {
+		return await Promise.race([llmCall(), timeoutPromise]);
+	} finally {
+		clearTimeout(timer);
+	}
 }
 
 // ============================================================================
