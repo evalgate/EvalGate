@@ -168,6 +168,47 @@ describe.skipIf(!distExists)("dist-smoke: compiled output contract", () => {
 		});
 	});
 
+	// ── 8. respondedWithinDuration + deprecated alias ───────────
+	describe("respondedWithinDuration and respondedWithinTime", () => {
+		it("respondedWithinDuration returns true when within limit", () => {
+			expect(sdk.respondedWithinDuration(250, 500)).toBe(true);
+		});
+
+		it("respondedWithinDuration returns false when over limit", () => {
+			expect(sdk.respondedWithinDuration(600, 500)).toBe(false);
+		});
+
+		it("respondedWithinTimeSince is a function", () => {
+			expect(typeof sdk.respondedWithinTimeSince).toBe("function");
+		});
+
+		it("respondedWithinTime deprecated alias still works", () => {
+			expect(typeof sdk.respondedWithinTime).toBe("function");
+			// It should return a boolean (takes a timestamp, not a duration)
+			const start = Date.now();
+			expect(sdk.respondedWithinTime(start, 10000)).toBe(true);
+		});
+	});
+
+	// ── 9. toHaveNoProfanity + deprecated toBeProfessional ──────
+	describe("toHaveNoProfanity and toBeProfessional", () => {
+		it("toHaveNoProfanity passes for clean text", () => {
+			const result = sdk.expect("Thank you for your inquiry.").toHaveNoProfanity();
+			expect(result.passed).toBe(true);
+			expect(result.name).toBe("toHaveNoProfanity");
+		});
+
+		it("toHaveNoProfanity fails for profane text", () => {
+			const result = sdk.expect("This is damn stupid").toHaveNoProfanity();
+			expect(result.passed).toBe(false);
+		});
+
+		it("toBeProfessional deprecated alias still works", () => {
+			const result = sdk.expect("Thank you for your inquiry.").toBeProfessional();
+			expect(result.passed).toBe(true);
+		});
+	});
+
 	// ── 7. Subpath exports resolve ──────────────────────────────
 	describe("subpath exports", () => {
 		it("assertions module loads", () => {

@@ -132,8 +132,16 @@ export declare class Expectation {
      */
     toContainCode(language?: string, message?: string): AssertionResult;
     /**
-     * Assert value is professional tone (no profanity)
-     * @example expect(output).toBeProfessional()
+     * Blocklist check for 7 common profane words. Does NOT analyze tone,
+     * formality, or professional communication quality. For actual tone
+     * analysis, use an LLM-backed assertion.
+     * @see hasSentimentAsync for LLM-based tone checking
+     * @example expect(output).toHaveNoProfanity()
+     */
+    toHaveNoProfanity(message?: string): AssertionResult;
+    /**
+     * @deprecated Use {@link toHaveNoProfanity} instead. This method only
+     * checks for 7 profane words — it does not analyze professional tone.
      */
     toBeProfessional(message?: string): AssertionResult;
     /**
@@ -229,6 +237,23 @@ export declare function containsLanguage(text: string, language: string): boolea
  * paraphrasing. Use {@link hasFactualAccuracyAsync} for semantic accuracy.
  */
 export declare function hasFactualAccuracy(text: string, facts: string[]): boolean;
+/**
+ * Check if a measured duration is within the allowed limit.
+ * @param durationMs - The actual elapsed time in milliseconds
+ * @param maxMs - Maximum allowed duration in milliseconds
+ */
+export declare function respondedWithinDuration(durationMs: number, maxMs: number): boolean;
+/**
+ * Check if elapsed time since a start timestamp is within the allowed limit.
+ * @param startTime - Timestamp from Date.now() captured before the operation
+ * @param maxMs - Maximum allowed duration in milliseconds
+ */
+export declare function respondedWithinTimeSince(startTime: number, maxMs: number): boolean;
+/**
+ * @deprecated Use {@link respondedWithinDuration} (takes measured duration)
+ * or {@link respondedWithinTimeSince} (takes start timestamp) instead.
+ * This function takes a start timestamp, not a duration — the name is misleading.
+ */
 export declare function respondedWithinTime(startTime: number, maxMs: number): boolean;
 /**
  * Blocklist-based toxicity check (~80 terms across 9 categories).

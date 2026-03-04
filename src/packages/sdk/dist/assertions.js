@@ -35,6 +35,8 @@ exports.matchesSchema = matchesSchema;
 exports.hasReadabilityScore = hasReadabilityScore;
 exports.containsLanguage = containsLanguage;
 exports.hasFactualAccuracy = hasFactualAccuracy;
+exports.respondedWithinDuration = respondedWithinDuration;
+exports.respondedWithinTimeSince = respondedWithinTimeSince;
 exports.respondedWithinTime = respondedWithinTime;
 exports.hasNoToxicity = hasNoToxicity;
 exports.followsInstructions = followsInstructions;
@@ -464,26 +466,36 @@ class Expectation {
         };
     }
     /**
-     * Assert value is professional tone (no profanity)
-     * @example expect(output).toBeProfessional()
+     * Blocklist check for 7 common profane words. Does NOT analyze tone,
+     * formality, or professional communication quality. For actual tone
+     * analysis, use an LLM-backed assertion.
+     * @see hasSentimentAsync for LLM-based tone checking
+     * @example expect(output).toHaveNoProfanity()
      */
-    toBeProfessional(message) {
+    toHaveNoProfanity(message) {
         const text = String(this.value).toLowerCase();
         const profanity = ["damn", "hell", "shit", "fuck", "ass", "bitch", "crap"];
         const foundProfanity = profanity.filter((word) => text.includes(word));
         const passed = foundProfanity.length === 0;
         return {
-            name: "toBeProfessional",
+            name: "toHaveNoProfanity",
             passed,
-            expected: "professional tone",
+            expected: "no profanity",
             actual: foundProfanity.length > 0
                 ? `Found: ${foundProfanity.join(", ")}`
-                : "professional",
+                : "clean",
             message: message ||
                 (passed
-                    ? "Professional tone"
-                    : `Unprofessional language: ${foundProfanity.join(", ")}`),
+                    ? "No profanity found"
+                    : `Profanity detected: ${foundProfanity.join(", ")}`),
         };
+    }
+    /**
+     * @deprecated Use {@link toHaveNoProfanity} instead. This method only
+     * checks for 7 profane words — it does not analyze professional tone.
+     */
+    toBeProfessional(message) {
+        return this.toHaveNoProfanity(message);
     }
     /**
      * Assert value has proper grammar (basic checks)
@@ -999,8 +1011,29 @@ function hasFactualAccuracy(text, facts) {
     const lower = text.toLowerCase();
     return facts.every((fact) => lower.includes(fact.toLowerCase()));
 }
-function respondedWithinTime(startTime, maxMs) {
+/**
+ * Check if a measured duration is within the allowed limit.
+ * @param durationMs - The actual elapsed time in milliseconds
+ * @param maxMs - Maximum allowed duration in milliseconds
+ */
+function respondedWithinDuration(durationMs, maxMs) {
+    return durationMs <= maxMs;
+}
+/**
+ * Check if elapsed time since a start timestamp is within the allowed limit.
+ * @param startTime - Timestamp from Date.now() captured before the operation
+ * @param maxMs - Maximum allowed duration in milliseconds
+ */
+function respondedWithinTimeSince(startTime, maxMs) {
     return Date.now() - startTime <= maxMs;
+}
+/**
+ * @deprecated Use {@link respondedWithinDuration} (takes measured duration)
+ * or {@link respondedWithinTimeSince} (takes start timestamp) instead.
+ * This function takes a start timestamp, not a duration — the name is misleading.
+ */
+function respondedWithinTime(startTime, maxMs) {
+    return respondedWithinTimeSince(startTime, maxMs);
 }
 /**
  * Blocklist-based toxicity check (~80 terms across 9 categories).
