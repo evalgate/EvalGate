@@ -117,6 +117,69 @@ describe("TestSuite", () => {
 			vitestExpect(result.passed).toBe(1);
 			vitestExpect(result.retriedCases).toContain("flaky");
 		});
+
+		it("respects retryDelayMs with exponential backoff", async () => {
+			let attempts = 0;
+			const timestamps: number[] = [];
+			const suite = createTestSuite("delay-test", {
+				cases: [{ id: "slow", input: "x", expected: "x" }],
+				executor: async () => {
+					timestamps.push(Date.now());
+					attempts++;
+					return attempts >= 3 ? "x" : "y";
+				},
+				retries: 2,
+				retryDelayMs: 50,
+				retryJitter: 0,
+			});
+
+			const result = await suite.run();
+			vitestExpect(result.passed).toBe(1);
+			vitestExpect(timestamps.length).toBe(3);
+			// First retry delay ~50ms, second ~100ms (2^1 * 50)
+			const gap1 = timestamps[1] - timestamps[0];
+			const gap2 = timestamps[2] - timestamps[1];
+			vitestExpect(gap1).toBeGreaterThanOrEqual(40);
+			vitestExpect(gap2).toBeGreaterThanOrEqual(80);
+		});
+
+		it("disables jitter when retryJitter is 0", async () => {
+			let attempts = 0;
+			const gaps: number[] = [];
+			let lastTs = 0;
+			const suite = createTestSuite("no-jitter", {
+				cases: [{ id: "c", input: "x", expected: "x" }],
+				executor: async () => {
+					const now = Date.now();
+					if (lastTs > 0) gaps.push(now - lastTs);
+					lastTs = now;
+					attempts++;
+					return attempts >= 2 ? "x" : "y";
+				},
+				retries: 1,
+				retryDelayMs: 60,
+				retryJitter: 0,
+			});
+
+			const result = await suite.run();
+			vitestExpect(result.passed).toBe(1);
+			// With jitter=0, delay should be consistent around 60ms
+			vitestExpect(gaps[0]).toBeGreaterThanOrEqual(50);
+			vitestExpect(gaps[0]).toBeLessThan(150);
+		});
+
+		it("retriedCases is absent when no retries needed", async () => {
+			const suite = createTestSuite("no-retry-needed", {
+				cases: [{ id: "ok", input: "x", expected: "x" }],
+				executor: async () => "x",
+				retries: 2,
+				retryDelayMs: 10,
+			});
+
+			const result = await suite.run();
+			vitestExpect(result.passed).toBe(1);
+			vitestExpect(result.retriedCases).toBeUndefined();
+		});
 	});
 
 	describe("parallel execution", () => {

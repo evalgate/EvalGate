@@ -53,6 +53,10 @@ export interface TestSuiteConfig {
     timeout?: number;
     /** Retry failing cases N times (default: 0). Only failing cases are retried. */
     retries?: number;
+    /** Base delay between retries in ms (default: 500). Exponential backoff: delay * 2^attempt. */
+    retryDelayMs?: number;
+    /** Add random jitter up to this fraction of the delay (default: 0.5 = ±50%). Set 0 to disable. */
+    retryJitter?: number;
 }
 export interface TestSuiteCaseResult {
     /** Test case ID */

@@ -129,11 +129,22 @@ class TestSuite {
         }
         const retriedCases = [];
         const retries = this.config.retries ?? 0;
+        const baseDelay = this.config.retryDelayMs ?? 500;
+        const jitterFraction = this.config.retryJitter ?? 0.5;
         if (retries > 0 && results.length > 0) {
             const failingIndices = results
                 .map((r, i) => (r.passed ? -1 : i))
                 .filter((i) => i >= 0);
             for (let attempt = 0; attempt < retries && failingIndices.length > 0; attempt++) {
+                // Exponential backoff with jitter before each retry round
+                const delay = baseDelay * Math.pow(2, attempt);
+                const jitter = jitterFraction > 0
+                    ? delay * jitterFraction * (Math.random() * 2 - 1)
+                    : 0;
+                const waitMs = Math.max(0, Math.round(delay + jitter));
+                if (waitMs > 0) {
+                    await new Promise((resolve) => setTimeout(resolve, waitMs));
+                }
                 const toRetry = [...failingIndices];
                 failingIndices.length = 0;
                 for (const i of toRetry) {
