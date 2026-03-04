@@ -129,10 +129,11 @@ export class Logger {
 	/**
 	 * Create child logger with prefix
 	 */
-	child(prefix: string): Logger {
+	child(prefix: string | { prefix: string }): Logger {
+		const resolvedPrefix = typeof prefix === "string" ? prefix : prefix.prefix;
 		return new Logger({
 			...this.options,
-			prefix: `${this.options.prefix}:${prefix}`,
+			prefix: `${this.options.prefix}:${resolvedPrefix}`,
 		});
 	}
 
