@@ -23,6 +23,7 @@ const regression_gate_1 = require("./regression-gate");
 const run_1 = require("./run");
 const share_1 = require("./share");
 const upgrade_1 = require("./upgrade");
+const validate_1 = require("./validate");
 const argv = process.argv.slice(2);
 const subcommand = argv[0];
 if (subcommand === "init") {
@@ -213,6 +214,14 @@ else if (subcommand === "diff") {
         process.exit(2);
     });
 }
+else if (subcommand === "validate") {
+    (0, validate_1.runValidate)(argv.slice(1))
+        .then((result) => process.exit(result.passed ? 0 : 1))
+        .catch((err) => {
+        console.error(`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`);
+        process.exit(1);
+    });
+}
 else if (subcommand === "ci") {
     // Parse arguments for ci command
     const args = argv.slice(1);
@@ -266,6 +275,8 @@ Usage:
   evalgate baseline init       Create starter evals/baseline.json
   evalgate baseline update     Run tests and update baseline with real scores
   evalgate upgrade --full      Upgrade from Tier 1 to Tier 2 (full gate)
+  evalgate validate             Validate spec files without running them (like tsc --noEmit for evals)
+    --format <fmt>           Output format: human (default), json
   evalgate print-config        Show resolved config with source-of-truth annotations
   evalgate share [options]     Create share link for a run
 

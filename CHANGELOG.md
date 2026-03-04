@@ -34,6 +34,10 @@ Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANG
 - **Async assertion timeouts** — `timeoutMs` on `AssertionLLMConfig` (default 30s). `Promise.race` + `AbortController` cancels in-flight fetch; `clearTimeout` prevents timer leak on fast responses.
 - **`defineEval.skip` / `defineEval.only`** — vitest/jest convention for spec filtering. `getFilteredSpecs(specs)` helper applies only/skip semantics for runners.
 - **`--dry-run` on gate CLI** — runs all checks, prints results, always exits 0. Logs `[dry-run] Gate would have exited with code N` to stderr.
+- **`hasConsistency` / `hasConsistencyAsync`** — new eval primitive measuring output consistency across multiple LLM responses. Sync uses pairwise Jaccard similarity; async uses LLM-backed semantic scoring.
+- **`defineEval.fromDataset(name, path, executor)`** — loads JSONL, CSV, or JSON array and registers one spec per row. Eliminates the manual loop for the most common eval pattern.
+- **Retry-with-jitter** — `retryDelayMs` (default 500) and `retryJitter` (default 0.5) on `createTestSuite` config. Exponential backoff: `delay * 2^attempt ± jitter`. Prevents cache-hit retries for nondeterministic LLM outputs.
+- **`evalgate validate`** — static validation of spec files without execution. Catches invalid names, missing fields, empty files, and missing `EvalResult` return shapes. Like `tsc --noEmit` for eval specs.
 
 ---
 
