@@ -9,7 +9,7 @@
 export { AIEvalClient } from "./client";
 import { AuthenticationError, EvalGateError, NetworkError, RateLimitError, ValidationError } from "./errors";
 export { EvalGateError, RateLimitError, AuthenticationError, ValidationError, NetworkError, };
-export { type AssertionLLMConfig, configureAssertions, containsAllRequiredFields, containsJSON, containsKeywords, containsLanguage, containsLanguageAsync, expect, followsInstructions, getAssertionConfig, hasConsistency, hasConsistencyAsync, hasFactualAccuracy, hasFactualAccuracyAsync, hasLength, hasNoHallucinations, hasNoHallucinationsAsync, hasNoToxicity, hasNoToxicityAsync, hasPII, hasReadabilityScore, hasSentiment, hasSentimentAsync, hasSentimentWithScore, hasValidCodeSyntax, hasValidCodeSyntaxAsync, isValidEmail, isValidURL, matchesPattern, matchesSchema, notContainsPII, respondedWithinDuration, respondedWithinTime, respondedWithinTimeSince, type SentimentAsyncResult, similarTo, toSemanticallyContain, withinRange, } from "./assertions";
+export { type AssertionLLMConfig, configureAssertions, containsAllRequiredFields, containsJSON, containsKeywords, containsLanguage, containsLanguageAsync, expect, followsInstructions, getAssertionConfig, hasConsistency, hasConsistencyAsync, hasFactualAccuracy, hasFactualAccuracyAsync, hasLength, hasNoHallucinations, hasNoHallucinationsAsync, hasNoToxicity, hasNoToxicityAsync, hasPII, hasReadabilityScore, hasSentiment, hasSentimentAsync, hasSentimentWithScore, hasValidCodeSyntax, hasValidCodeSyntaxAsync, isValidEmail, isValidURL, matchesPattern, matchesSchema, notContainsPII, resetSentimentDeprecationWarning, respondedWithinDuration, respondedWithinTime, respondedWithinTimeSince, type SentimentAsyncResult, similarTo, toSemanticallyContain, withinRange, } from "./assertions";
 export { EvalGateError as SDKError } from "./errors";
 import { createContext, EvalContext, getCurrentContext, withContext } from "./context";
 export { createContext, getCurrentContext as getContext, withContext, EvalContext as ContextManager, };
@@ -28,6 +28,7 @@ export { exportData, importData };
 export type { ExportFormat, ExportFormat as ExportType };
 export { RequestBatcher } from "./batch";
 export { CacheTTL } from "./cache";
+export { computeBaselineChecksum, verifyBaselineChecksum, } from "./cli/baseline";
 export { type CheckArgs, EXIT, parseArgs, runCheck } from "./cli/check";
 export { traceAnthropic } from "./integrations/anthropic";
 export { traceOpenAI } from "./integrations/openai";

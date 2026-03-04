@@ -955,27 +955,27 @@ function meanPairwiseJaccard(texts: string[]): number {
  *
  * @param outputs - Array of LLM outputs to compare (minimum 2)
  * @param threshold - Optional minimum consistency score to return true (default 0.7)
- * @returns `{ score, consistent }` where `consistent` is `score >= threshold`
+ * @returns `{ score, passed }` where `passed` is `score >= threshold`
  *
  * @example
  * ```ts
- * const { score, consistent } = hasConsistency([
+ * const { score, passed } = hasConsistency([
  *   "The capital of France is Paris.",
  *   "Paris is the capital of France.",
  *   "France's capital city is Paris.",
  * ]);
- * // score ≈ 0.6-0.8, consistent = true at default threshold
+ * // score ≈ 0.6-0.8, passed = true at default threshold
  * ```
  */
 export function hasConsistency(
 	outputs: string[],
 	threshold = 0.7,
-): { score: number; consistent: boolean } {
+): { score: number; passed: boolean } {
 	if (outputs.length < 2) {
-		return { score: 1, consistent: true };
+		return { score: 1, passed: true };
 	}
 	const score = meanPairwiseJaccard(outputs);
-	return { score, consistent: score >= threshold };
+	return { score, passed: score >= threshold };
 }
 
 /**
@@ -988,9 +988,9 @@ export function hasConsistency(
 export async function hasConsistencyAsync(
 	outputs: string[],
 	config?: AssertionLLMConfig,
-): Promise<{ score: number; consistent: boolean }> {
+): Promise<{ score: number; passed: boolean }> {
 	if (outputs.length < 2) {
-		return { score: 1, consistent: true };
+		return { score: 1, passed: true };
 	}
 	const numbered = outputs.map((o, i) => `Output ${i + 1}: "${o}"`).join("\n");
 	const prompt = `Rate the semantic consistency of the following ${outputs.length} outputs on a scale from 0 to 100, where 100 means they all convey exactly the same meaning and 0 means they completely contradict each other. Reply with ONLY a number.\n\n${numbered}`;
@@ -999,7 +999,7 @@ export async function hasConsistencyAsync(
 	const score = Number.isNaN(parsed)
 		? 0
 		: Math.min(100, Math.max(0, parsed)) / 100;
-	return { score, consistent: score >= 0.7 };
+	return { score, passed: score >= 0.7 };
 }
 
 export function withinRange(value: number, min: number, max: number): boolean {
@@ -1324,8 +1324,17 @@ export function hasFactualAccuracy(text: string, facts: string[]): boolean {
 export function respondedWithinDuration(
 	durationMs: number,
 	maxMs: number,
-): boolean {
-	return durationMs <= maxMs;
+): AssertionResult {
+	const passed = durationMs <= maxMs;
+	return {
+		name: "respondedWithinDuration",
+		passed,
+		expected: `<= ${maxMs}ms`,
+		actual: `${durationMs}ms`,
+		message: passed
+			? `Response time ${durationMs}ms is within ${maxMs}ms limit`
+			: `Response time ${durationMs}ms exceeded ${maxMs}ms limit`,
+	};
 }
 
 /**
@@ -1336,8 +1345,18 @@ export function respondedWithinDuration(
 export function respondedWithinTimeSince(
 	startTime: number,
 	maxMs: number,
-): boolean {
-	return Date.now() - startTime <= maxMs;
+): AssertionResult {
+	const elapsed = Date.now() - startTime;
+	const passed = elapsed <= maxMs;
+	return {
+		name: "respondedWithinTimeSince",
+		passed,
+		expected: `<= ${maxMs}ms`,
+		actual: `${elapsed}ms`,
+		message: passed
+			? `Elapsed time ${elapsed}ms is within ${maxMs}ms limit`
+			: `Elapsed time ${elapsed}ms exceeded ${maxMs}ms limit`,
+	};
 }
 
 /**
@@ -1345,7 +1364,10 @@ export function respondedWithinTimeSince(
  * or {@link respondedWithinTimeSince} (takes start timestamp) instead.
  * This function takes a start timestamp, not a duration — the name is misleading.
  */
-export function respondedWithinTime(startTime: number, maxMs: number): boolean {
+export function respondedWithinTime(
+	startTime: number,
+	maxMs: number,
+): AssertionResult {
 	return respondedWithinTimeSince(startTime, maxMs);
 }
 

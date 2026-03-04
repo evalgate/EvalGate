@@ -62,6 +62,7 @@ export {
 	matchesPattern,
 	matchesSchema,
 	notContainsPII,
+	resetSentimentDeprecationWarning,
 	respondedWithinDuration,
 	respondedWithinTime,
 	respondedWithinTimeSince,
@@ -182,6 +183,10 @@ export { RequestBatcher } from "./batch";
 // Use CacheTTL to configure cache durations via client options.
 export { CacheTTL } from "./cache";
 // CLI (programmatic use)
+export {
+	computeBaselineChecksum,
+	verifyBaselineChecksum,
+} from "./cli/baseline";
 export { type CheckArgs, EXIT, parseArgs, runCheck } from "./cli/check";
 export { traceAnthropic } from "./integrations/anthropic";
 // Framework integrations (Tier 1.2)

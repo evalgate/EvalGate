@@ -238,21 +238,21 @@ export declare function similarTo(text1: string, text2: string, threshold?: numb
  *
  * @param outputs - Array of LLM outputs to compare (minimum 2)
  * @param threshold - Optional minimum consistency score to return true (default 0.7)
- * @returns `{ score, consistent }` where `consistent` is `score >= threshold`
+ * @returns `{ score, passed }` where `passed` is `score >= threshold`
  *
  * @example
  * ```ts
- * const { score, consistent } = hasConsistency([
+ * const { score, passed } = hasConsistency([
  *   "The capital of France is Paris.",
  *   "Paris is the capital of France.",
  *   "France's capital city is Paris.",
  * ]);
- * // score ≈ 0.6-0.8, consistent = true at default threshold
+ * // score ≈ 0.6-0.8, passed = true at default threshold
  * ```
  */
 export declare function hasConsistency(outputs: string[], threshold?: number): {
     score: number;
-    consistent: boolean;
+    passed: boolean;
 };
 /**
  * LLM-backed consistency check. **Slow and accurate** — asks the LLM to
@@ -263,7 +263,7 @@ export declare function hasConsistency(outputs: string[], threshold?: number): {
  */
 export declare function hasConsistencyAsync(outputs: string[], config?: AssertionLLMConfig): Promise<{
     score: number;
-    consistent: boolean;
+    passed: boolean;
 }>;
 export declare function withinRange(value: number, min: number, max: number): boolean;
 export declare function isValidEmail(email: string): boolean;
@@ -298,19 +298,19 @@ export declare function hasFactualAccuracy(text: string, facts: string[]): boole
  * @param durationMs - The actual elapsed time in milliseconds
  * @param maxMs - Maximum allowed duration in milliseconds
  */
-export declare function respondedWithinDuration(durationMs: number, maxMs: number): boolean;
+export declare function respondedWithinDuration(durationMs: number, maxMs: number): AssertionResult;
 /**
  * Check if elapsed time since a start timestamp is within the allowed limit.
  * @param startTime - Timestamp from Date.now() captured before the operation
  * @param maxMs - Maximum allowed duration in milliseconds
  */
-export declare function respondedWithinTimeSince(startTime: number, maxMs: number): boolean;
+export declare function respondedWithinTimeSince(startTime: number, maxMs: number): AssertionResult;
 /**
  * @deprecated Use {@link respondedWithinDuration} (takes measured duration)
  * or {@link respondedWithinTimeSince} (takes start timestamp) instead.
  * This function takes a start timestamp, not a duration — the name is misleading.
  */
-export declare function respondedWithinTime(startTime: number, maxMs: number): boolean;
+export declare function respondedWithinTime(startTime: number, maxMs: number): AssertionResult;
 /**
  * Blocklist-based toxicity check (~80 terms across 9 categories).
  * **Fast and approximate** — catches explicit harmful language but has

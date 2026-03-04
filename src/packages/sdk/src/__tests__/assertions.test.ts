@@ -1085,7 +1085,7 @@ describe("hasConsistency — pairwise Jaccard consistency scoring", () => {
 	it("returns score 1 for single output (trivially consistent)", () => {
 		const result = hasConsistency(["only one"]);
 		vitestExpect(result.score).toBe(1);
-		vitestExpect(result.consistent).toBe(true);
+		vitestExpect(result.passed).toBe(true);
 	});
 
 	it("returns score 1 for identical outputs", () => {
@@ -1094,7 +1094,7 @@ describe("hasConsistency — pairwise Jaccard consistency scoring", () => {
 			"The capital of France is Paris.",
 		]);
 		vitestExpect(result.score).toBe(1);
-		vitestExpect(result.consistent).toBe(true);
+		vitestExpect(result.passed).toBe(true);
 	});
 
 	it("returns high score for outputs with significant word overlap", () => {
@@ -1104,7 +1104,7 @@ describe("hasConsistency — pairwise Jaccard consistency scoring", () => {
 			"The server application crashed from a memory leak in the cache layer",
 		]);
 		vitestExpect(result.score).toBeGreaterThan(0.7);
-		vitestExpect(result.consistent).toBe(true);
+		vitestExpect(result.passed).toBe(true);
 	});
 
 	it("returns low score for contradictory outputs", () => {
@@ -1113,7 +1113,7 @@ describe("hasConsistency — pairwise Jaccard consistency scoring", () => {
 			"No, that is completely wrong and false.",
 		]);
 		vitestExpect(result.score).toBeLessThan(0.3);
-		vitestExpect(result.consistent).toBe(false);
+		vitestExpect(result.passed).toBe(false);
 	});
 
 	it("respects custom threshold", () => {
@@ -1123,8 +1123,8 @@ describe("hasConsistency — pairwise Jaccard consistency scoring", () => {
 		];
 		const strict = hasConsistency(outputs, 0.99);
 		const lenient = hasConsistency(outputs, 0.5);
-		vitestExpect(strict.consistent).toBe(false);
-		vitestExpect(lenient.consistent).toBe(true);
+		vitestExpect(strict.passed).toBe(false);
+		vitestExpect(lenient.passed).toBe(true);
 	});
 
 	it("handles empty array", () => {
@@ -1159,13 +1159,13 @@ describe("hasConsistencyAsync — LLM-backed", () => {
 			openaiCfg,
 		);
 		vitestExpect(result.score).toBeCloseTo(0.85, 2);
-		vitestExpect(result.consistent).toBe(true);
+		vitestExpect(result.passed).toBe(true);
 	});
 
 	it("returns score 1 for single output without LLM call", async () => {
 		const result = await hasConsistencyAsync(["single"], openaiCfg);
 		vitestExpect(result.score).toBe(1);
-		vitestExpect(result.consistent).toBe(true);
+		vitestExpect(result.passed).toBe(true);
 	});
 });
 

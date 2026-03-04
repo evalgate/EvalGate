@@ -171,12 +171,15 @@ describe.skipIf(!distExists)("dist-smoke: compiled output contract", () => {
 
 	// ── 8. respondedWithinDuration + deprecated alias ───────────
 	describe("respondedWithinDuration and respondedWithinTime", () => {
-		it("respondedWithinDuration returns true when within limit", () => {
-			expect(sdk.respondedWithinDuration(250, 500)).toBe(true);
+		it("respondedWithinDuration returns passed=true when within limit", () => {
+			const result = sdk.respondedWithinDuration(250, 500);
+			expect(result.passed).toBe(true);
+			expect(result.name).toBe("respondedWithinDuration");
 		});
 
-		it("respondedWithinDuration returns false when over limit", () => {
-			expect(sdk.respondedWithinDuration(600, 500)).toBe(false);
+		it("respondedWithinDuration returns passed=false when over limit", () => {
+			const result = sdk.respondedWithinDuration(600, 500);
+			expect(result.passed).toBe(false);
 		});
 
 		it("respondedWithinTimeSince is a function", () => {
@@ -185,9 +188,10 @@ describe.skipIf(!distExists)("dist-smoke: compiled output contract", () => {
 
 		it("respondedWithinTime deprecated alias still works", () => {
 			expect(typeof sdk.respondedWithinTime).toBe("function");
-			// It should return a boolean (takes a timestamp, not a duration)
+			// It should return an AssertionResult (takes a timestamp, not a duration)
 			const start = Date.now();
-			expect(sdk.respondedWithinTime(start, 10000)).toBe(true);
+			const result = sdk.respondedWithinTime(start, 10000);
+			expect(result.passed).toBe(true);
 		});
 	});
 
