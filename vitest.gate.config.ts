@@ -100,7 +100,7 @@ const config = defineConfig({
 					"src",
 					"tests/components/**/*.test.tsx",
 					"tests/hooks/**/*.test.ts",
-					"tests/lib/**/*.test.ts",
+					"tests/lib/production-ci-tables.test.ts",
 				],
 			},
 		},
