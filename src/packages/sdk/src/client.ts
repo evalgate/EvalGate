@@ -1,4 +1,5 @@
 import { RequestBatcher } from "./batch";
+import { DEFAULT_BASE_URL } from "./constants";
 import { getTTL, RequestCache, shouldCache } from "./cache";
 import { mergeWithContext } from "./context";
 import { createErrorFromResponse, EvalGateError } from "./errors";
@@ -161,7 +162,7 @@ export class AIEvalClient {
 		this.baseUrl =
 			config.baseUrl ||
 			getEnvVar("EVALGATE_BASE_URL", "EVALAI_BASE_URL") ||
-			(isBrowser ? "" : "https://api.evalgate.com");
+			(isBrowser ? "" : DEFAULT_BASE_URL);
 		this.timeout = config.timeout || 30000;
 
 		// Tier 4.17: Debug mode with request logging
