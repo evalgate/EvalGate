@@ -12,7 +12,7 @@ Thanks for your interest in contributing! This guide covers the essentials.
 ## Local Setup
 
 ```bash
-git clone https://github.com/pauly7610/ai-evaluation-platform.git
+git clone https://github.com/evalgate/ai-evaluation-platform.git
 cd ai-evaluation-platform
 pnpm install
 cp .env.example .env.local   # fill in secrets

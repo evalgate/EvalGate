@@ -353,7 +353,7 @@ jobs:
 								<code className="text-xs">evalgate gate</code>,{" "}
 								<code className="text-xs">evalgate ci</code>.{" "}
 								<a
-									href="https://github.com/pauly7610/ai-evaluation-platform/blob/main/docs/python-cli.md"
+									href="https://github.com/evalgate/ai-evaluation-platform/blob/main/docs/python-cli.md"
 									target="_blank"
 									rel="noopener noreferrer"
 									className="text-primary hover:underline"

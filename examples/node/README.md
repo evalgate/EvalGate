@@ -156,4 +156,4 @@ const result = await client.evaluations.create({
 
 ## Support
 
-Need help? [Open an issue or PR](https://github.com/pauly7610/ai-evaluation-platform/issues) on GitHub.
+Need help? [Open an issue or PR](https://github.com/evalgate/ai-evaluation-platform/issues) on GitHub.

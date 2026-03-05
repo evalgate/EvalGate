@@ -512,4 +512,4 @@ MIT
 ## Support
 
 - **Docs:** https://evalgate.com/documentation
-- **Issues:** https://github.com/pauly7610/ai-evaluation-platform/issues
+- **Issues:** https://github.com/evalgate/ai-evaluation-platform/issues

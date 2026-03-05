@@ -14,7 +14,7 @@ Get from clone to your first PR quickly.
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/pauly7610/ai-evaluation-platform.git
+git clone https://github.com/evalgate/ai-evaluation-platform.git
 cd ai-evaluation-platform
 pnpm install
 cp .env.example .env.local   # fill in secrets

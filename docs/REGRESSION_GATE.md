@@ -119,7 +119,7 @@ A standalone `evalgate.yml` drop-in workflow is also available for external repo
 
 ### 1. Verify required checks in GitHub
 
-1. Go to `https://github.com/pauly7610/ai-evaluation-platform/settings/branches`
+1. Go to `https://github.com/evalgate/ai-evaluation-platform/settings/branches`
 2. Edit the `main` branch protection rule
 3. Under "Require status checks to pass before merging", add:
    - `quality`

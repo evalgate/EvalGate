@@ -392,7 +392,7 @@ data = import_from_langsmith(langsmith_export)
 
 **Major release: Production-ready AI quality infrastructure**
 
-- **Repository migration** - Moved to evalgate organization (https://github.com/evalgate/EvalGate)
+- **Repository migration** - Moved to evalgate organization (https://github.com/evalgate/ai-evaluation-platform)
 - **Version alignment** - All SDKs now at v3.0.0 with unified API surface
 - **CI compatibility** - Full compatibility with platform CI pipeline (507 tests passing)
 - **Enhanced error handling** - Improved CLI dependency management and import error messages

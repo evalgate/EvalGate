@@ -78,6 +78,6 @@ jobs:
 
 - [SDK on PyPI](https://pypi.org/project/pauly4010-evalgate-sdk/)
 - [SDK Documentation](https://evalgate.com/sdk)
-- [GitHub](https://github.com/pauly7610/ai-evaluation-platform)
+- [GitHub](https://github.com/evalgate/ai-evaluation-platform)
 
-Need help? [Open an issue](https://github.com/pauly7610/ai-evaluation-platform/issues) on GitHub.
+Need help? [Open an issue](https://github.com/evalgate/ai-evaluation-platform/issues) on GitHub.

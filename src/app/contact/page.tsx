@@ -39,7 +39,7 @@ export default function ContactPage() {
 				<section className="mb-12 sm:mb-16">
 					<div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
 						<a
-							href="https://github.com/pauly7610/ai-evaluation-platform/issues/new"
+							href="https://github.com/evalgate/ai-evaluation-platform/issues/new"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="rounded-lg border border-border bg-card p-5 sm:p-6 text-center hover:border-blue-500/40 transition-colors"
@@ -62,7 +62,7 @@ export default function ContactPage() {
 						</a>
 
 						<a
-							href="https://github.com/pauly7610/ai-evaluation-platform/issues"
+							href="https://github.com/evalgate/ai-evaluation-platform/issues"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="rounded-lg border border-border bg-card p-5 sm:p-6 text-center hover:border-blue-500/40 transition-colors"
@@ -85,7 +85,7 @@ export default function ContactPage() {
 						</a>
 
 						<a
-							href="https://github.com/pauly7610/ai-evaluation-platform/pulls"
+							href="https://github.com/evalgate/ai-evaluation-platform/pulls"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="rounded-lg border border-border bg-card p-5 sm:p-6 text-center hover:border-blue-500/40 transition-colors"
@@ -122,7 +122,7 @@ export default function ContactPage() {
 						<div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
 							<Button variant="outline" asChild className="w-full sm:w-auto">
 								<a
-									href="https://github.com/pauly7610/ai-evaluation-platform"
+									href="https://github.com/evalgate/ai-evaluation-platform"
 									target="_blank"
 									rel="noopener noreferrer"
 								>

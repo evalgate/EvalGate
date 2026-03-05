@@ -585,10 +585,10 @@ const result = await traceWorkflowStep(tracer, 'MyAgent', async () => {
 						</p>
 						<p className="mt-2">
 							<a
-								href="https://github.com/pauly7610/ai-evaluation-platform"
+								href="https://github.com/evalgate/ai-evaluation-platform"
 								className="text-violet-500 hover:text-violet-400"
 							>
-								github.com/pauly7610/ai-evaluation-platform
+								github.com/evalgate/ai-evaluation-platform
 							</a>
 						</p>
 					</div>

@@ -238,7 +238,7 @@ export default function TemplatesPage() {
 						</p>
 						<div className="flex gap-4 justify-center">
 							<a
-								href="https://github.com/pauly7610/ai-evaluation-platform/pulls"
+								href="https://github.com/evalgate/ai-evaluation-platform/pulls"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="px-6 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"

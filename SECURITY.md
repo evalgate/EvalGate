@@ -13,7 +13,7 @@ The SDK (`@evalgate/sdk`) and the hosted platform follow semantic versioning. Se
 
 **Do not open a public issue for security vulnerabilities.**
 
-1. Open a [GitHub Security Advisory](https://github.com/pauly7610/ai-evaluation-platform/security/advisories/new) (preferred), or
+1. Open a [GitHub Security Advisory](https://github.com/evalgate/ai-evaluation-platform/security/advisories/new) (preferred), or
 2. Email the maintainer privately if you prefer not to use GitHub.
 
 Include:

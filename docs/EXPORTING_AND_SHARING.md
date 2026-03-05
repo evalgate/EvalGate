@@ -496,7 +496,7 @@ A: Yes, all test inputs, outputs, and metadata are included.
 Need help with exports or sharing?
 
 - 📚 Docs: [Full documentation](https://evalgate.com/documentation)
-- 🐛 Issues: [GitHub Issues](https://github.com/pauly7610/ai-evaluation-platform/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/evalgate/ai-evaluation-platform/issues)
 
 ---
 

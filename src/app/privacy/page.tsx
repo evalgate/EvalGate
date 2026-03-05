@@ -253,7 +253,7 @@ export default function PrivacyPage() {
 						<p className="text-muted-foreground mt-4">
 							To exercise these rights, contact us at{" "}
 							<a
-								href="https://github.com/pauly7610/ai-evaluation-platform/issues"
+								href="https://github.com/evalgate/ai-evaluation-platform/issues"
 								className="text-blue-500 hover:underline"
 							>
 								GitHub Issues
@@ -328,7 +328,7 @@ export default function PrivacyPage() {
 							<p className="text-sm mb-2">
 								<strong>Email:</strong>{" "}
 								<a
-									href="https://github.com/pauly7610/ai-evaluation-platform/issues"
+									href="https://github.com/evalgate/ai-evaluation-platform/issues"
 									className="text-blue-500 hover:underline"
 								>
 									GitHub Issues
@@ -344,7 +344,7 @@ export default function PrivacyPage() {
 							<p className="text-sm">
 								<strong>Data Protection Officer:</strong>{" "}
 								<a
-									href="https://github.com/pauly7610/ai-evaluation-platform/issues"
+									href="https://github.com/evalgate/ai-evaluation-platform/issues"
 									className="text-blue-500 hover:underline"
 								>
 									GitHub Issues

@@ -482,4 +482,4 @@ interface GovernanceResult {
 
 - **Documentation**: https://evalgate.com/documentation
 - **API Reference**: https://evalgate.com/api-reference
-- **Support**: https://github.com/pauly7610/ai-evaluation-platform/issues
+- **Support**: https://github.com/evalgate/ai-evaluation-platform/issues

@@ -156,7 +156,7 @@ export default function TermsPage() {
 						<p className="text-muted-foreground mb-4">
 							Questions about these terms? Open an issue at{" "}
 							<a
-								href="https://github.com/pauly7610/ai-evaluation-platform/issues"
+								href="https://github.com/evalgate/ai-evaluation-platform/issues"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="text-primary hover:underline"

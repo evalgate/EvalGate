@@ -133,7 +133,7 @@ export default function LocalDevelopmentPage() {
 								<div className="flex-1">
 									<h3 className="font-semibold mb-2">Clone the repository</h3>
 									<div className="bg-muted rounded-lg p-4 font-mono text-sm">
-										<pre>{`git clone https://github.com/pauly7610/ai-evaluation-platform.git
+										<pre>{`git clone https://github.com/evalgate/ai-evaluation-platform.git
 cd ai-evaluation-platform`}</pre>
 									</div>
 								</div>

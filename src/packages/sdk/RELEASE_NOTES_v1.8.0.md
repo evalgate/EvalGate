@@ -21,4 +21,4 @@ evalai check  →  fails  →  "Next: evalai explain"
                     evalai explain  →  root causes + fixes
 ```
 
-**Full changelog:** https://github.com/pauly7610/ai-evaluation-platform/blob/main/src/packages/sdk/CHANGELOG.md
+**Full changelog:** https://github.com/evalgate/ai-evaluation-platform/blob/main/src/packages/sdk/CHANGELOG.md

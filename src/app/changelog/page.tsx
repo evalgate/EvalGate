@@ -693,7 +693,7 @@ export default function ChangelogPage() {
 						<p className="text-muted-foreground text-sm">
 							Full changelog on{" "}
 							<a
-								href="https://github.com/pauly7610/ai-evaluation-platform"
+								href="https://github.com/evalgate/ai-evaluation-platform"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="text-primary hover:underline"
