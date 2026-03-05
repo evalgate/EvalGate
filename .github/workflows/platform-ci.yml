@@ -157,7 +157,7 @@ jobs:
         run: pnpm eval:regression-gate
       - name: Upload regression report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: regression-report
           path: evals/regression-report.json
@@ -215,7 +215,7 @@ jobs:
         run: pnpm eval:regression-gate
       - name: Upload regression report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: regression-report-windows
           path: evals/regression-report.json
