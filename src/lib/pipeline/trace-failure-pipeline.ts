@@ -260,7 +260,7 @@ async function runPipelineCore(
 
 	if (!generated.evalCase) {
 		return {
-			failureReportId: reportRow!.id,
+			failureReportId: reportRow?.id,
 			candidateId: null,
 			category: aggregated.category,
 			autoPromoteEligible: false,
@@ -283,7 +283,7 @@ async function runPipelineCore(
 		.insert(candidateEvalCases)
 		.values({
 			organizationId,
-			failureReportId: reportRow!.id,
+			failureReportId: reportRow?.id,
 			traceId: traceDbId,
 			title: generated.evalCase.title,
 			tags: generated.evalCase.tags ?? [],
@@ -323,16 +323,16 @@ async function runPipelineCore(
 
 	logger.info("Pipeline completed", {
 		traceDbId,
-		failureReportId: reportRow!.id,
-		candidateId: candidateRow!.id,
+		failureReportId: reportRow?.id,
+		candidateId: candidateRow?.id,
 		category: aggregated.category,
 		qualityScore: qualityResult.compositeScore,
 		autoPromoteEligible: autoPromote,
 	});
 
 	return {
-		failureReportId: reportRow!.id,
-		candidateId: candidateRow!.id,
+		failureReportId: reportRow?.id,
+		candidateId: candidateRow?.id,
 		category: aggregated.category,
 		autoPromoteEligible: autoPromote,
 		skipped: false,

@@ -29,13 +29,13 @@ from evalgate_sdk.assertions import (
 
 class TestContainsKeywords:
     def test_all_present(self):
-        assert contains_keywords("The quick brown fox", ["quick", "fox"])
+        assert contains_keywords("The quick brown fox", ["quick", "fox"]).passed
 
     def test_case_insensitive(self):
-        assert contains_keywords("Hello World", ["hello", "WORLD"])
+        assert contains_keywords("Hello World", ["hello", "WORLD"]).passed
 
     def test_missing_keyword(self):
-        assert not contains_keywords("Hello", ["hello", "world"])
+        assert not contains_keywords("Hello", ["hello", "world"]).passed
 
 
 class TestMatchesPattern:
@@ -62,13 +62,13 @@ class TestHasLength:
 
 class TestContainsJSON:
     def test_json_in_text(self):
-        assert contains_json('Here is the data: {"key": "value"} end')
+        assert contains_json('Here is the data: {"key": "value"} end').passed
 
     def test_no_json(self):
-        assert not contains_json("no json here")
+        assert not contains_json("no json here").passed
 
     def test_array_json(self):
-        assert contains_json("result: [1, 2, 3]")
+        assert contains_json("result: [1, 2, 3]").passed
 
 
 class TestNotContainsPII:
@@ -84,24 +84,24 @@ class TestNotContainsPII:
 
 class TestHasSentiment:
     def test_positive(self):
-        assert has_sentiment("This is great and wonderful!", "positive")
+        assert has_sentiment("This is great and wonderful!", "positive").passed
 
     def test_negative(self):
-        assert has_sentiment("This is terrible and awful", "negative")
+        assert has_sentiment("This is terrible and awful", "negative").passed
 
     def test_neutral(self):
-        assert has_sentiment("The sky is blue", "neutral")
+        assert has_sentiment("The sky is blue", "neutral").passed
 
 
 class TestSimilarTo:
     def test_identical(self):
-        assert similar_to("hello world", "hello world")
+        assert similar_to("hello world", "hello world").passed
 
     def test_similar(self):
-        assert similar_to("the quick brown fox", "the quick brown dog", threshold=0.5)
+        assert similar_to("the quick brown fox", "the quick brown dog", threshold=0.5).passed
 
     def test_different(self):
-        assert not similar_to("hello", "goodbye world", threshold=0.8)
+        assert not similar_to("hello", "goodbye world", threshold=0.8).passed
 
 
 class TestWithinRange:
@@ -143,10 +143,10 @@ class TestMatchesSchema:
 
 class TestHasNoToxicity:
     def test_clean(self):
-        assert has_no_toxicity("Have a wonderful day")
+        assert has_no_toxicity("Have a wonderful day").passed
 
     def test_toxic(self):
-        assert not has_no_toxicity("You are an idiot")
+        assert not has_no_toxicity("You are an idiot").passed
 
 
 class TestFollowsInstructions:

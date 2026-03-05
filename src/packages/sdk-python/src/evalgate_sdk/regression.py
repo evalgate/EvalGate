@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
@@ -165,3 +167,26 @@ def evaluate_regression(
             "passed": sum(1 for d in deltas if d.category == GATE_CATEGORY.PASS),
         },
     )
+
+
+def compute_baseline_checksum(baseline: Baseline) -> str:
+    """Compute a deterministic SHA-256 checksum of a baseline's score data.
+
+    The checksum covers ``version``, ``scores``, and ``latencies`` so that
+    any tamper with the stored values is detectable.
+    """
+    payload = json.dumps(
+        {
+            "version": baseline.version,
+            "scores": dict(sorted(baseline.scores.items())),
+            "latencies": dict(sorted(baseline.latencies.items())),
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def verify_baseline_checksum(baseline: Baseline, expected_checksum: str) -> bool:
+    """Return ``True`` if the baseline's current checksum matches *expected_checksum*."""
+    return compute_baseline_checksum(baseline) == expected_checksum

@@ -81,8 +81,22 @@ async def export_data(client: Any, options: ExportOptions | None = None) -> Expo
     return data
 
 
-async def import_data(client: Any, data: ExportData, options: ImportOptions | None = None) -> ImportResult:
-    """Import data back into the platform."""
+async def import_data(data: ExportData, options: ImportOptions | None = None, *, client: Any = None) -> ImportResult:
+    """Import data back into the platform.
+
+    The *client* parameter is keyword-only.  When omitted the function
+    attempts to use the global default client (``get_default_client()``).
+    This 2-arg signature matches the TS public export.
+    """
+    if client is None:
+        try:
+            from evalgate_sdk.client import get_default_client
+            client = get_default_client()
+        except Exception as err:
+            raise TypeError(
+                "import_data() requires a client. Either pass client=... "
+                "or initialise a default client first."
+            ) from err
     opts = options or ImportOptions()
     result = ImportResult(dry_run=opts.dry_run)
 

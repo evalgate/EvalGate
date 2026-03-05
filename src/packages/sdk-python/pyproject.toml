@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pauly4010-evalgate-sdk"
-version = "2.2.2"
+version = "2.3.0"
 description = "EvalGate Python SDK — CI for AI behavior. Traces, evaluations, assertions, and regression gates for LLM apps."
 readme = "README.md"
 license = "MIT"

@@ -89,7 +89,7 @@ class TestLogger:
 
         parent = create_logger(level="info")
         child = parent.child("sub")
-        assert child._prefix == "evalai.sub"
+        assert child._prefix == "evalai:sub"
 
     def test_custom_handler(self):
         from evalgate_sdk.logger import Logger

@@ -139,6 +139,11 @@ class EvalGateError(Exception):
                 self.reset_at = datetime.fromisoformat(details["resetAt"])
             self.request_id = details.get("requestId")
 
+    @property
+    def message(self) -> str:
+        """Return the error message string, matching the TS ``error.message`` API."""
+        return str(self.args[0]) if self.args else ""
+
     def should_retry(self) -> bool:
         return self.retryable
 

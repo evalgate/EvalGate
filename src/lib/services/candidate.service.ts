@@ -186,7 +186,7 @@ export const candidateService = {
 
 		return {
 			ok: true as const,
-			testCaseId: newTestCase!.id,
+			testCaseId: newTestCase?.id,
 			evaluationId: targetEvaluationId,
 		};
 	},

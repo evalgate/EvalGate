@@ -518,6 +518,12 @@ class TestSuiteConfig(BaseModel):
     evaluator: Any | None = None
     test_cases: list[TestSuiteCase] = Field(default_factory=list)
     timeout: int = 30_000
+    retries: int = 0
+    retry_delay_ms: int = 1000
+    retry_jitter: bool = False
+    seed: int | None = None
+    strict: bool = False
+    stop_on_failure: bool = False
 
 
 class TestSuiteCaseResult(BaseModel):

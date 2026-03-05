@@ -35,9 +35,18 @@ class WorkflowTracer:
         await tracer.end_workflow()
     """
 
-    def __init__(self, client: Any, *, session_id: str | None = None) -> None:
+    def __init__(
+        self,
+        client: Any,
+        *,
+        name: str | None = None,
+        session_id: str | None = None,
+        offline: bool = False,
+    ) -> None:
         self._client = client
+        self._name = name
         self._session_id = session_id or str(uuid.uuid4())
+        self._offline = offline
         self._workflow: WorkflowContext | None = None
         self._handoffs: list[AgentHandoff] = []
         self._decisions: list[RecordDecisionParams] = []
@@ -48,27 +57,32 @@ class WorkflowTracer:
 
     async def start_workflow(
         self,
-        name: str,
+        name: str | None = None,
         definition: WorkflowDefinition | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> WorkflowContext:
-        from evalgate_sdk.types import CreateTraceParams
+        wf_name = name or self._name or "unnamed-workflow"
+        trace_id: str | None = None
 
-        trace = await self._client.traces.create(
-            CreateTraceParams(
-                name=name,
-                metadata={
-                    **(metadata or {}),
-                    "workflow": True,
-                    "session_id": self._session_id,
-                },
+        if not self._offline:
+            from evalgate_sdk.types import CreateTraceParams
+
+            trace = await self._client.traces.create(
+                CreateTraceParams(
+                    name=wf_name,
+                    metadata={
+                        **(metadata or {}),
+                        "workflow": True,
+                        "session_id": self._session_id,
+                    },
+                )
             )
-        )
+            trace_id = trace.id
 
         self._workflow = WorkflowContext(
             workflow_id=str(uuid.uuid4()),
-            trace_id=trace.id,
-            name=name,
+            trace_id=trace_id,
+            name=wf_name,
             status=WorkflowStatus.RUNNING,
             definition=definition,
             metadata=metadata,
@@ -84,7 +98,7 @@ class WorkflowTracer:
         if self._workflow is None:
             return
         self._workflow.status = status
-        if self._workflow.trace_id is not None:
+        if not self._offline and self._workflow.trace_id is not None:
             from evalgate_sdk.types import UpdateTraceParams
 
             await self._client.traces.update(
@@ -111,7 +125,7 @@ class WorkflowTracer:
         span_id = str(uuid.uuid4())
         trace_id = self._workflow.trace_id if self._workflow else None
 
-        if trace_id is not None:
+        if not self._offline and trace_id is not None:
             from evalgate_sdk.types import CreateSpanParams
 
             await self._client.traces.create_span(
@@ -142,7 +156,7 @@ class WorkflowTracer:
         error: str | None = None,
     ) -> None:
         span.ended_at = datetime.now(timezone.utc)
-        if span.trace_id is not None:
+        if not self._offline and span.trace_id is not None:
             from evalgate_sdk.types import UpdateTraceParams
 
             metadata: dict[str, Any] = {}

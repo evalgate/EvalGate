@@ -82,7 +82,7 @@ class Logger:
     def child(self, prefix: str) -> Logger:
         return Logger(
             level=self._level,
-            prefix=f"{self._prefix}.{prefix}",
+            prefix=f"{self._prefix}:{prefix}",
             handler=self._handler,
         )
 

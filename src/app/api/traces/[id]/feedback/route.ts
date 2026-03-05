@@ -81,7 +81,7 @@ export const POST = secureRoute(
 
 		return NextResponse.json(
 			{
-				id: row!.id,
+				id: row?.id,
 				feedback_type: parsed.data.feedback_type,
 				queued_for_analysis: queuedForAnalysis,
 			},

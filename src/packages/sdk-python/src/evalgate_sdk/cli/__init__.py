@@ -56,3 +56,19 @@ app.command("configure")(configure)
 app.command("upgrade")(upgrade)
 app.command("impact-analysis")(impact_analysis)
 app.command("migrate")(migrate)
+
+from evalgate_sdk.cli.new_commands import (  # noqa: E402
+    compare,
+    promote,
+    replay,
+    start,
+    validate,
+    watch,
+)
+
+app.command("start")(start)
+app.command("watch")(watch)
+app.command("compare")(compare)
+app.command("validate")(validate)
+app.command("promote")(promote)
+app.command("replay")(replay)

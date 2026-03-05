@@ -7,12 +7,26 @@ from typing import Any, Literal
 
 
 @dataclass
+class DependsOn:
+    """Dependency hints for impact analysis."""
+    prompts: list[str] = field(default_factory=list)
+    datasets: list[str] = field(default_factory=list)
+    tools: list[str] = field(default_factory=list)
+    code: list[str] = field(default_factory=list)
+
+
+@dataclass
 class SpecOptions:
     timeout_ms: int = 30_000
     retries: int = 0
     tags: list[str] = field(default_factory=list)
     skip: bool = False
     only: bool = False
+    description: str | None = None
+    budget: str | None = None
+    model: str | None = None
+    metadata: dict[str, Any] | None = None
+    depends_on: DependsOn | None = None
 
 
 @dataclass
@@ -22,6 +36,13 @@ class SpecConfig:
     options: SpecOptions = field(default_factory=SpecOptions)
     description: str | None = None
     suite: str | None = None
+    tags: list[str] | None = None
+    timeout: int | None = None
+    retries: int | None = None
+    budget: str | None = None
+    model: str | None = None
+    metadata: dict[str, Any] | None = None
+    depends_on: DependsOn | None = None
 
 
 @dataclass
@@ -33,6 +54,11 @@ class EvalSpec:
     file_path: str | None = None
     suite: str | None = None
     description: str | None = None
+    position: dict[str, int] | None = None
+    tags: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] | None = None
+    config: dict[str, Any] | None = None
+    mode: Literal["normal", "skip", "only"] = "normal"
 
 
 @dataclass
@@ -52,6 +78,8 @@ class EvalResult:
     error: str | None = None
     duration_ms: float = 0.0
     status: Literal["passed", "failed", "error", "timeout"] = "passed"
+    output: str | None = None
+    tokens: int | None = None
 
 
 @dataclass
