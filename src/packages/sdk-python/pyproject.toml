@@ -51,7 +51,7 @@ dev = [
 ]
 
 [project.scripts]
-evalgate = "evalgate_sdk.cli:app"
+evalgate = "evalgate_sdk.cli:main"
 
 [project.urls]
 Homepage = "https://evalgate.com"
