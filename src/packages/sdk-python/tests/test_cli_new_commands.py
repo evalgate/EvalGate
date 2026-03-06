@@ -8,8 +8,6 @@ from pathlib import Path
 from typer.testing import CliRunner
 
 from evalgate_sdk.cli import get_app
-
-app = get_app()
 from evalgate_sdk.cli.new_commands import (
     TEMPLATE_DESCRIPTIONS,
     TEMPLATES,
@@ -17,6 +15,7 @@ from evalgate_sdk.cli.new_commands import (
 )
 from evalgate_sdk.cli.profiles import PROFILES
 
+app = get_app()
 runner = CliRunner()
 
 

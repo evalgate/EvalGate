@@ -15,9 +15,7 @@ def _ensure_typer() -> None:
     try:
         import typer  # noqa: F401
     except ImportError as exc:
-        raise SystemExit(
-            "CLI requires typer. Install with: pip install 'pauly4010-evalgate-sdk[cli]'"
-        ) from exc
+        raise SystemExit("CLI requires typer. Install with: pip install 'pauly4010-evalgate-sdk[cli]'") from exc
 
 
 def get_app():
