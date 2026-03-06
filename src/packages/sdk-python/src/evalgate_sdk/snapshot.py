@@ -58,7 +58,7 @@ def _similarity(a: str, b: str) -> float:
     if not lines_a and not lines_b:
         return 1.0
     total = max(len(lines_a), len(lines_b))
-    matches = sum(1 for la, lb in zip(lines_a, lines_b) if la == lb)
+    matches = sum(1 for la, lb in zip(lines_a, lines_b, strict=False) if la == lb)
     return matches / total if total > 0 else 1.0
 
 

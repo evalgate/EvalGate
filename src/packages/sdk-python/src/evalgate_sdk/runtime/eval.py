@@ -9,7 +9,8 @@ import io
 import json
 import os
 import re
-from typing import Any, Callable, Literal
+from collections.abc import Callable
+from typing import Any, Literal
 
 from evalgate_sdk.runtime.registry import get_active_runtime
 from evalgate_sdk.runtime.types import (

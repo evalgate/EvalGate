@@ -9,7 +9,7 @@ Port of ``cli/api.ts``.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import quote
 
 import httpx
@@ -26,20 +26,20 @@ API_HEADERS = {
 
 @dataclass
 class QualityLatestData:
-    score: Optional[float] = None
-    total: Optional[int] = None
-    evidence_level: Optional[str] = None
-    baseline_score: Optional[float] = None
-    regression_delta: Optional[float] = None
-    baseline_missing: Optional[bool] = None
+    score: float | None = None
+    total: int | None = None
+    evidence_level: str | None = None
+    baseline_score: float | None = None
+    regression_delta: float | None = None
+    baseline_missing: bool | None = None
     breakdown: dict[str, float] = field(default_factory=dict)
     flags: list[str] = field(default_factory=list)
-    evaluation_run_id: Optional[int] = None
-    evaluation_id: Optional[int] = None
-    avg_latency_ms: Optional[float] = None
-    cost_usd: Optional[float] = None
-    baseline_cost_usd: Optional[float] = None
-    baseline_run_id: Optional[int] = None
+    evaluation_run_id: int | None = None
+    evaluation_id: int | None = None
+    avg_latency_ms: float | None = None
+    cost_usd: float | None = None
+    baseline_cost_usd: float | None = None
+    baseline_run_id: int | None = None
 
 
 @dataclass
@@ -52,7 +52,7 @@ class FetchOptions:
     api_key: str = ""
     base_url: str = ""
     method: str = "GET"
-    body: Optional[dict[str, Any]] = None
+    body: dict[str, Any] | None = None
 
 
 @dataclass
@@ -60,9 +60,9 @@ class ImportResult:
     test_case_id: int = 0
     status: str = "passed"
     output: str = ""
-    latency_ms: Optional[float] = None
-    cost_usd: Optional[float] = None
-    assertions_json: Optional[dict[str, Any]] = None
+    latency_ms: float | None = None
+    cost_usd: float | None = None
+    assertions_json: dict[str, Any] | None = None
 
 
 @dataclass
@@ -187,7 +187,7 @@ async def publish_share(
     evaluation_id: str,
     export_data: dict[str, Any],
     evaluation_run_id: int,
-    expires_in_days: Optional[int] = None,
+    expires_in_days: int | None = None,
 ) -> dict[str, Any]:
     """Publish a shared report."""
     key = _require_api_key(api_key)
@@ -222,10 +222,10 @@ async def import_run_on_fail(
     api_key: str,
     evaluation_id: str,
     results: list[dict[str, Any]],
-    idempotency_key: Optional[str] = None,
-    ci: Optional[dict[str, Any]] = None,
-    import_client_version: Optional[str] = None,
-    check_report: Optional[dict[str, Any]] = None,
+    idempotency_key: str | None = None,
+    ci: dict[str, Any] | None = None,
+    import_client_version: str | None = None,
+    check_report: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Import run results on failure."""
     key = _require_api_key(api_key)

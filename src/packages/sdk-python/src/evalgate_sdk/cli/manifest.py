@@ -15,7 +15,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from evalgate_sdk._version import SDK_VERSION
 
@@ -184,7 +184,7 @@ def write_manifest(manifest: EvaluationManifest, project_root: str) -> None:
     )
 
 
-def read_manifest(project_root: str) -> Optional[EvaluationManifest]:
+def read_manifest(project_root: str) -> EvaluationManifest | None:
     """Read existing manifest."""
     manifest_path = os.path.join(project_root, ".evalgate", "manifest.json")
     try:
@@ -216,7 +216,7 @@ def read_manifest(project_root: str) -> Optional[EvaluationManifest]:
         return None
 
 
-def read_lock(project_root: str) -> Optional[ManifestLock]:
+def read_lock(project_root: str) -> ManifestLock | None:
     """Read existing lock file."""
     lock_path = os.path.join(project_root, ".evalgate", "manifest.lock.json")
     try:

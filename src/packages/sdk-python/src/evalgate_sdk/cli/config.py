@@ -10,7 +10,7 @@ import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from evalgate_sdk.cli.new_commands import PROFILES
 
@@ -26,20 +26,20 @@ CONFIG_FILES = [
 class EvalAIConfig:
     """Loaded configuration."""
 
-    evaluation_id: Optional[str] = None
-    api_key: Optional[str] = None
-    base_url: Optional[str] = None
-    min_score: Optional[int] = None
-    min_n: Optional[int] = None
-    max_drop: Optional[int] = None
-    warn_drop: Optional[int] = None
-    allow_weak_evidence: Optional[bool] = None
-    baseline: Optional[str] = None  # "published" | "previous" | "production" | "auto"
-    profile: Optional[str] = None
-    packages: Optional[dict[str, Any]] = None
+    evaluation_id: str | None = None
+    api_key: str | None = None
+    base_url: str | None = None
+    min_score: int | None = None
+    min_n: int | None = None
+    max_drop: int | None = None
+    warn_drop: int | None = None
+    allow_weak_evidence: bool | None = None
+    baseline: str | None = None  # "published" | "previous" | "production" | "auto"
+    profile: str | None = None
+    packages: dict[str, Any] | None = None
 
 
-def find_config_path(cwd: Optional[str] = None) -> Optional[str]:
+def find_config_path(cwd: str | None = None) -> str | None:
     """Find config file path in directory, walking up to root."""
     directory = os.path.abspath(cwd or os.getcwd())
     root = os.path.splitdrive(directory)[0] + os.sep
@@ -68,7 +68,7 @@ def find_config_path(cwd: Optional[str] = None) -> Optional[str]:
     return None
 
 
-def load_config(cwd: Optional[str] = None) -> Optional[EvalAIConfig]:
+def load_config(cwd: str | None = None) -> EvalAIConfig | None:
     """Load config from file system."""
     config_path = find_config_path(cwd)
     if not config_path:
@@ -107,7 +107,7 @@ def load_config(cwd: Optional[str] = None) -> Optional[EvalAIConfig]:
 
 
 def merge_config_with_args(
-    config: Optional[EvalAIConfig],
+    config: EvalAIConfig | None,
     args: dict[str, Any],
 ) -> dict[str, Any]:
     """Merge config with CLI args. Priority: args > profile > config > defaults."""
@@ -202,7 +202,7 @@ def _config_to_dict(c: EvalAIConfig) -> dict[str, Any]:
     }
 
 
-def _load_from_pyproject(path: str, cwd: Optional[str]) -> Optional[EvalAIConfig]:
+def _load_from_pyproject(path: str, cwd: str | None) -> EvalAIConfig | None:
     """Load config from pyproject.toml [tool.evalgate] or [tool.evalai]."""
     try:
         import tomllib  # type: ignore[import-not-found]

@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import os
 import re
-from typing import Optional
 
 
 def is_ci() -> bool:
@@ -28,7 +27,7 @@ def is_github_actions() -> bool:
     return os.environ.get("GITHUB_ACTIONS") == "true"
 
 
-def get_github_step_summary_path() -> Optional[str]:
+def get_github_step_summary_path() -> str | None:
     """Get GitHub Step Summary path if available."""
     return os.environ.get("GITHUB_STEP_SUMMARY")
 

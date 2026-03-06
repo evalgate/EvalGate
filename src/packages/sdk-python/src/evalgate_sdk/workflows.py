@@ -5,8 +5,9 @@ from __future__ import annotations
 import contextlib
 import json
 import uuid
+from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from evalgate_sdk.types import (
     AgentHandoff,

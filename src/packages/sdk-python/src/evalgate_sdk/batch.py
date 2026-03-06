@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from collections.abc import Coroutine
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable, Coroutine
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -83,7 +83,7 @@ class RequestBatcher:
         try:
             results = await self._flush_fn(batch)
             if isinstance(results, list):
-                for req, result in zip(batch, results):
+                for req, result in zip(batch, results, strict=False):
                     fut = self._pending.pop(req["id"], None)
                     if fut and not fut.done():
                         fut.set_result(result)

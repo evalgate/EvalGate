@@ -16,7 +16,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
@@ -29,7 +29,7 @@ class SpecTrace:
     run_id: str = ""
     spec: dict[str, str] = field(default_factory=dict)
     execution: dict[str, Any] = field(default_factory=dict)
-    git: Optional[dict[str, str]] = None
+    git: dict[str, str] | None = None
     env: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -88,7 +88,7 @@ def calculate_percentiles(durations: list[float]) -> dict[str, float]:
 
 def build_run_trace(
     result: dict[str, Any],
-    git_info: Optional[dict[str, str]] = None,
+    git_info: dict[str, str] | None = None,
 ) -> RunTrace:
     """Build a RunTrace from a run result dict."""
     now = int(time.time() * 1000)
@@ -152,8 +152,8 @@ def build_run_trace(
 
 async def write_traces(
     result: dict[str, Any],
-    project_root: Optional[str] = None,
-    git_info: Optional[dict[str, str]] = None,
+    project_root: str | None = None,
+    git_info: dict[str, str] | None = None,
 ) -> str:
     """Write structured trace files to .evalgate/traces/."""
     root = project_root or os.getcwd()

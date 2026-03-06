@@ -9,9 +9,10 @@ Port of ``runtime/adapters/testsuite-to-dsl.ts``.
 from __future__ import annotations
 
 import base64
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import Any
 
 from evalgate_sdk.runtime.eval import create_result
 

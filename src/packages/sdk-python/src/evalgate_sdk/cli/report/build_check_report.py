@@ -7,7 +7,7 @@ Port of ``cli/report/build-check-report.ts``.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from evalgate_sdk.cli.formatters.types import (
     CHECK_REPORT_SCHEMA_VERSION,
@@ -45,22 +45,22 @@ def build_check_report(
     quality: dict[str, Any],
     gate_result: dict[str, Any],
     base_url: str = "",
-    run_details: Optional[dict[str, Any]] = None,
-    request_id: Optional[str] = None,
-    share_url: Optional[str] = None,
-    baseline_run_id: Optional[int] = None,
-    ci_run_url: Optional[str] = None,
+    run_details: dict[str, Any] | None = None,
+    request_id: str | None = None,
+    share_url: str | None = None,
+    baseline_run_id: int | None = None,
+    ci_run_url: str | None = None,
     explain: bool = False,
-    policy: Optional[str] = None,
-    min_score: Optional[float] = None,
-    max_drop: Optional[float] = None,
-    warn_drop: Optional[float] = None,
-    min_n: Optional[int] = None,
-    allow_weak_evidence: Optional[bool] = None,
-    baseline: Optional[str] = None,
-    max_cost_usd: Optional[float] = None,
-    max_latency_ms: Optional[float] = None,
-    max_cost_delta_usd: Optional[float] = None,
+    policy: str | None = None,
+    min_score: float | None = None,
+    max_drop: float | None = None,
+    warn_drop: float | None = None,
+    min_n: int | None = None,
+    allow_weak_evidence: bool | None = None,
+    baseline: str | None = None,
+    max_cost_usd: float | None = None,
+    max_latency_ms: float | None = None,
+    max_cost_delta_usd: float | None = None,
 ) -> CheckReport:
     """Build a CheckReport from API data and gate result."""
     score = quality.get("score", 0)

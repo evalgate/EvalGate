@@ -9,7 +9,7 @@ Port of ``cli/policy-packs.ts``.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
@@ -70,7 +70,7 @@ POLICY_PACKS: dict[str, dict[int, PolicyPack]] = {
 }
 
 
-def resolve_policy_pack(spec: str) -> Optional[PolicyPack]:
+def resolve_policy_pack(spec: str) -> PolicyPack | None:
     """Parse --policy flag (e.g. 'HIPAA@1' or 'HIPAA') and resolve to PolicyPack.
 
     Default version is 1 when omitted.

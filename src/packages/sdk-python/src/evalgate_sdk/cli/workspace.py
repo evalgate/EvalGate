@@ -11,7 +11,6 @@ from __future__ import annotations
 import os
 import warnings
 from dataclasses import dataclass
-from typing import Optional
 
 _LEGACY_WARNING_SHOWN = False
 
@@ -29,7 +28,7 @@ class EvalWorkspace:
     baseline_path: str
 
 
-def resolve_eval_workspace(project_root: Optional[str] = None) -> EvalWorkspace:
+def resolve_eval_workspace(project_root: str | None = None) -> EvalWorkspace:
     """Resolve EvalGate workspace paths.
 
     Prefers ``.evalgate/``, falls back to ``.evalai/`` for legacy projects.

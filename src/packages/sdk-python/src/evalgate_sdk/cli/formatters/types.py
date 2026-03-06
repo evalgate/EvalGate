@@ -6,7 +6,7 @@ Port of ``cli/formatters/types.ts``.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 GateVerdict = Literal["pass", "warn", "fail"]
 GateMode = Literal["enforced", "neutral"]
@@ -37,60 +37,60 @@ CHECK_REPORT_SCHEMA_VERSION = 1
 
 @dataclass
 class ScoreBreakdown01:
-    pass_rate: Optional[float] = None
-    safety: Optional[float] = None
-    judge: Optional[float] = None
-    schema: Optional[float] = None
-    latency: Optional[float] = None
-    cost: Optional[float] = None
+    pass_rate: float | None = None
+    safety: float | None = None
+    judge: float | None = None
+    schema: float | None = None
+    latency: float | None = None
+    cost: float | None = None
 
 
 @dataclass
 class ScoreContribPts:
-    pass_rate_pts: Optional[float] = None
-    safety_pts: Optional[float] = None
-    compliance_pts: Optional[float] = None
-    performance_pts: Optional[float] = None
+    pass_rate_pts: float | None = None
+    safety_pts: float | None = None
+    compliance_pts: float | None = None
+    performance_pts: float | None = None
 
 
 @dataclass
 class GateThresholds:
-    min_score: Optional[float] = None
-    min_pass_rate: Optional[float] = None
-    min_safety: Optional[float] = None
-    max_drop: Optional[float] = None
-    warn_drop: Optional[float] = None
-    min_n: Optional[int] = None
-    allow_weak_evidence: Optional[bool] = None
-    baseline: Optional[str] = None
-    max_cost_usd: Optional[float] = None
-    max_latency_ms: Optional[float] = None
-    max_cost_delta_usd: Optional[float] = None
+    min_score: float | None = None
+    min_pass_rate: float | None = None
+    min_safety: float | None = None
+    max_drop: float | None = None
+    warn_drop: float | None = None
+    min_n: int | None = None
+    allow_weak_evidence: bool | None = None
+    baseline: str | None = None
+    max_cost_usd: float | None = None
+    max_latency_ms: float | None = None
+    max_cost_delta_usd: float | None = None
 
 
 @dataclass
 class FailedCase:
-    test_case_id: Optional[int] = None
-    status: Optional[str] = None
-    name: Optional[str] = None
-    input: Optional[str] = None
-    input_snippet: Optional[str] = None
-    expected_output: Optional[str] = None
-    expected_snippet: Optional[str] = None
-    output: Optional[str] = None
-    output_snippet: Optional[str] = None
-    reason: Optional[str] = None
+    test_case_id: int | None = None
+    status: str | None = None
+    name: str | None = None
+    input: str | None = None
+    input_snippet: str | None = None
+    expected_output: str | None = None
+    expected_snippet: str | None = None
+    output: str | None = None
+    output_snippet: str | None = None
+    reason: str | None = None
 
 
 @dataclass
 class CiContext:
-    provider: Optional[str] = None
-    repo: Optional[str] = None
-    sha: Optional[str] = None
-    branch: Optional[str] = None
-    pr: Optional[int] = None
-    run_url: Optional[str] = None
-    actor: Optional[str] = None
+    provider: str | None = None
+    repo: str | None = None
+    sha: str | None = None
+    branch: str | None = None
+    pr: int | None = None
+    run_url: str | None = None
+    actor: str | None = None
 
 
 @dataclass
@@ -101,32 +101,32 @@ class CheckReport:
     gate_mode: GateMode = "enforced"
     reason_code: str = "UNKNOWN"
     schema_version: int = CHECK_REPORT_SCHEMA_VERSION
-    run_id: Optional[int] = None
-    actionable_message: Optional[str] = None
-    reason_message: Optional[str] = None
-    score: Optional[float] = None
-    baseline_score: Optional[float] = None
-    delta: Optional[float] = None
-    pass_rate: Optional[float] = None
-    safety_pass_rate: Optional[float] = None
-    flags: Optional[list[str]] = None
-    breakdown_01: Optional[ScoreBreakdown01] = None
-    contrib_pts: Optional[ScoreContribPts] = None
-    thresholds: Optional[GateThresholds] = None
-    n: Optional[int] = None
-    evidence_level: Optional[str] = None
-    baseline_missing: Optional[bool] = None
-    baseline_status: Optional[str] = None
-    dashboard_url: Optional[str] = None
+    run_id: int | None = None
+    actionable_message: str | None = None
+    reason_message: str | None = None
+    score: float | None = None
+    baseline_score: float | None = None
+    delta: float | None = None
+    pass_rate: float | None = None
+    safety_pass_rate: float | None = None
+    flags: list[str] | None = None
+    breakdown_01: ScoreBreakdown01 | None = None
+    contrib_pts: ScoreContribPts | None = None
+    thresholds: GateThresholds | None = None
+    n: int | None = None
+    evidence_level: str | None = None
+    baseline_missing: bool | None = None
+    baseline_status: str | None = None
+    dashboard_url: str | None = None
     failed_cases: list[FailedCase] = field(default_factory=list)
-    failed_cases_shown: Optional[int] = None
-    failed_cases_more: Optional[int] = None
-    request_id: Optional[str] = None
-    duration_ms: Optional[float] = None
-    ci: Optional[CiContext] = None
-    explain: Optional[bool] = None
-    share_url: Optional[str] = None
-    policy: Optional[str] = None
-    baseline_run_id: Optional[int] = None
-    ci_run_url: Optional[str] = None
-    policy_evidence: Optional[dict[str, Any]] = None
+    failed_cases_shown: int | None = None
+    failed_cases_more: int | None = None
+    request_id: str | None = None
+    duration_ms: float | None = None
+    ci: CiContext | None = None
+    explain: bool | None = None
+    share_url: str | None = None
+    policy: str | None = None
+    baseline_run_id: int | None = None
+    ci_run_url: str | None = None
+    policy_evidence: dict[str, Any] | None = None

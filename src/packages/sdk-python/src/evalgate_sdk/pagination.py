@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import base64
 import json
-from collections.abc import AsyncIterator
-from typing import Any, Callable, Generic, TypeVar
+from collections.abc import AsyncIterator, Callable
+from typing import Any, Generic, TypeVar
 
 T = TypeVar("T")
 

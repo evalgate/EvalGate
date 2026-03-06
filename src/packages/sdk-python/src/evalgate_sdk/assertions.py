@@ -393,7 +393,7 @@ _TOXIC_PATTERNS = [re.compile(r"\b" + re.escape(w) + r"\b", re.IGNORECASE) for w
 
 
 def has_no_toxicity(text: str) -> AssertionResult:
-    matched = [w for w, p in zip(_TOXIC_WORDS, _TOXIC_PATTERNS) if p.search(text)]
+    matched = [w for w, p in zip(_TOXIC_WORDS, _TOXIC_PATTERNS, strict=False) if p.search(text)]
     passed = len(matched) == 0
     return AssertionResult(
         passed=passed,

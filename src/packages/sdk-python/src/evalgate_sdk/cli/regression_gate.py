@@ -17,7 +17,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 
 @dataclass
@@ -34,7 +34,7 @@ class BuiltinReport:
     passed: bool = True
     failures: list[str] = field(default_factory=list)
     deltas: list[dict[str, Any]] = field(default_factory=list)
-    baseline: Optional[dict[str, str]] = None
+    baseline: dict[str, str] | None = None
     duration_ms: int = 0
     command: str = ""
     runner: str = ""
@@ -280,7 +280,7 @@ def format_github(report: BuiltinReport) -> str:
     return "\n".join(lines)
 
 
-def run_gate(argv: Optional[list[str]] = None) -> int:
+def run_gate(argv: list[str] | None = None) -> int:
     """Main gate entry point. Returns exit code."""
     cwd = os.getcwd()
     args = parse_gate_args(argv or [])

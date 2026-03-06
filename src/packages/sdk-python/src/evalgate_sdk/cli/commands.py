@@ -6,7 +6,7 @@ import asyncio
 import json
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -30,9 +30,9 @@ def _load_saved_config() -> dict[str, Any]:
 
 
 def _resolve_credentials(
-    api_key: Optional[str],
-    base_url: Optional[str],
-) -> tuple[Optional[str], Optional[str]]:
+    api_key: str | None,
+    base_url: str | None,
+) -> tuple[str | None, str | None]:
     """Resolve credentials from flag -> config file (env vars handled by typer envvar=)."""
     if not api_key or not base_url:
         saved = _load_saved_config()
@@ -133,8 +133,8 @@ def init(
 
 def run(
     eval_dir: str = typer.Option("evals", "--dir", "-d", help="Eval spec directory"),
-    spec_ids: Optional[str] = typer.Option(None, "--spec-ids", help="Comma-separated spec IDs to run"),
-    output: Optional[str] = typer.Option(None, "--output", "-o", help="Output file for results"),
+    spec_ids: str | None = typer.Option(None, "--spec-ids", help="Comma-separated spec IDs to run"),
+    output: str | None = typer.Option(None, "--output", "-o", help="Output file for results"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
 ) -> None:
     """Run evaluation specs."""
@@ -238,7 +238,7 @@ def run(
 
 def gate(
     baseline_path: str = typer.Option(".evalgate/baseline.json", "--baseline", "-b", help="Baseline file"),
-    report_path: Optional[str] = typer.Option(None, "--report", help="Run report file"),
+    report_path: str | None = typer.Option(None, "--report", help="Run report file"),
     min_score: float = typer.Option(0.8, "--min-score", help="Minimum passing score"),
     max_drop: float = typer.Option(0.05, "--max-drop", help="Max allowed score drop"),
 ) -> None:
@@ -294,11 +294,11 @@ def gate(
 
 
 def check(
-    api_key: Optional[str] = typer.Option(None, "--api-key", envvar="EVALGATE_API_KEY"),
-    base_url: Optional[str] = typer.Option(None, "--base-url", envvar="EVALGATE_BASE_URL"),
-    evaluation_id: Optional[int] = typer.Option(None, "--evaluation-id", help="Evaluation to check"),
+    api_key: str | None = typer.Option(None, "--api-key", envvar="EVALGATE_API_KEY"),
+    base_url: str | None = typer.Option(None, "--base-url", envvar="EVALGATE_BASE_URL"),
+    evaluation_id: int | None = typer.Option(None, "--evaluation-id", help="Evaluation to check"),
     min_score: float = typer.Option(0.0, "--min-score", help="Minimum passing score (0-100)"),
-    max_drop: Optional[float] = typer.Option(None, "--max-drop", help="Max allowed regression delta"),
+    max_drop: float | None = typer.Option(None, "--max-drop", help="Max allowed regression delta"),
     baseline: str = typer.Option("published", "--baseline", help="Baseline mode: published|previous|production|auto"),
     fmt: str = typer.Option("human", "--format", "-f", help="Output format: human|json"),
 ) -> None:
@@ -595,7 +595,7 @@ def explain(
 def baseline(
     action: str = typer.Argument("init", help="Action: init or update"),
     path: str = typer.Option(".evalgate/baseline.json", "--path", "-p"),
-    report_path: Optional[str] = typer.Option(None, "--from-report", help="Update baseline from a run report"),
+    report_path: str | None = typer.Option(None, "--from-report", help="Update baseline from a run report"),
 ) -> None:
     """Manage baselines — init or update from a run report."""
     bp = Path(path)
@@ -676,8 +676,8 @@ def share(
     evaluation_id: int = typer.Option(..., "--evaluation-id", help="Evaluation ID"),
     run_id: int = typer.Option(..., "--run-id", help="Evaluation run ID"),
     expires: str = typer.Option("7d", "--expires", help="Expiry e.g. 7d, 24h"),
-    api_key: Optional[str] = typer.Option(None, "--api-key", envvar="EVALGATE_API_KEY"),
-    base_url: Optional[str] = typer.Option(None, "--base-url", envvar="EVALGATE_BASE_URL"),
+    api_key: str | None = typer.Option(None, "--api-key", envvar="EVALGATE_API_KEY"),
+    base_url: str | None = typer.Option(None, "--base-url", envvar="EVALGATE_BASE_URL"),
 ) -> None:
     """Create a shareable link for an evaluation run."""
     from evalgate_sdk.client import AIEvalClient
@@ -689,7 +689,7 @@ def share(
         console.print("[red]--api-key or EVALGATE_API_KEY required (or run evalgate configure)[/red]")
         raise typer.Exit(1)
 
-    def _parse_expires(spec: str) -> Optional[int]:
+    def _parse_expires(spec: str) -> int | None:
         import re
 
         m = re.match(r"^(\d+)(d|h|m|s)$", spec, re.IGNORECASE)
@@ -739,7 +739,7 @@ def share(
 
 
 def configure(
-    api_key: Optional[str] = typer.Option(None, "--api-key", help="API key (prompted if not given)"),
+    api_key: str | None = typer.Option(None, "--api-key", help="API key (prompted if not given)"),
     base_url: str = typer.Option(
         "https://evalgate.com",
         "--base-url",

@@ -6,10 +6,9 @@ Port of ``cli/render/snippet.ts``.
 from __future__ import annotations
 
 import re
-from typing import Optional
 
 
-def truncate_snippet(s: Optional[str], max_len: int = 140) -> str:
+def truncate_snippet(s: str | None, max_len: int = 140) -> str:
     """Replaces newlines with space, caps length."""
     if s is None:
         return ""
