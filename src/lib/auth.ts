@@ -4,6 +4,10 @@ import { bearer } from "better-auth/plugins";
 import type { NextRequest } from "next/server";
 import { db } from "@/db";
 
+const isBuildTime =
+	process.env.NEXT_PHASE === "phase-production-build" ||
+	process.env.npm_lifecycle_event === "build";
+
 const baseURL =
 	process.env.BETTER_AUTH_BASE_URL ||
 	process.env.NEXT_PUBLIC_SITE_URL ||
@@ -15,6 +19,9 @@ const baseURL =
 
 export const auth = betterAuth({
 	baseURL,
+	secret: isBuildTime
+		? "build-time-placeholder-secret-32chars!"
+		: process.env.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, {
 		provider: "pg",
 	}),
