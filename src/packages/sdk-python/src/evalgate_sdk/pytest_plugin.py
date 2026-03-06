@@ -10,13 +10,28 @@ Usage::
     def test_chatbot_quality(eval_result):
         assert_passes_gate(eval_result)
         assert_score_above(eval_result, 90.0)
+
+Note: pytest is imported lazily so the SDK can be used without pytest installed.
 """
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import pytest
+if TYPE_CHECKING:
+    import pytest as _pytest_type  # noqa: F401
+
+
+def _get_pytest() -> Any:
+    """Lazily import pytest, raising a clear error if not installed."""
+    try:
+        import pytest
+        return pytest
+    except ImportError as exc:
+        raise ImportError(
+            "pytest is required for evalgate_sdk.pytest_plugin. "
+            "Install with: pip install pytest"
+        ) from exc
 
 
 def assert_passes_gate(result: Any, message: str = "") -> None:
@@ -24,6 +39,7 @@ def assert_passes_gate(result: Any, message: str = "") -> None:
 
     *result* should have a ``passed`` attribute (or key) that is truthy.
     """
+    pytest = _get_pytest()
     passed = _get_field(result, "passed")
     if not passed:
         error = _get_field(result, "error") or "unknown reason"
@@ -34,6 +50,7 @@ def assert_passes_gate(result: Any, message: str = "") -> None:
 
 def assert_score_above(result: Any, threshold: float, message: str = "") -> None:
     """Assert that the eval result score is above *threshold*."""
+    pytest = _get_pytest()
     score = _get_field(result, "score")
     if score is None:
         pytest.fail(message or "Result has no 'score' field")
@@ -43,6 +60,7 @@ def assert_score_above(result: Any, threshold: float, message: str = "") -> None
 
 def assert_score_between(result: Any, min_score: float, max_score: float, message: str = "") -> None:
     """Assert that the eval result score is within [min_score, max_score]."""
+    pytest = _get_pytest()
     score = _get_field(result, "score")
     if score is None:
         pytest.fail(message or "Result has no 'score' field")
@@ -52,6 +70,7 @@ def assert_score_between(result: Any, min_score: float, max_score: float, messag
 
 def assert_no_errors(result: Any, message: str = "") -> None:
     """Assert that the eval result has no errors."""
+    pytest = _get_pytest()
     error = _get_field(result, "error")
     status = _get_field(result, "status")
     if error:
@@ -62,6 +81,7 @@ def assert_no_errors(result: Any, message: str = "") -> None:
 
 def assert_all_assertions_passed(result: Any, message: str = "") -> None:
     """Assert that all sub-assertions in the result passed."""
+    pytest = _get_pytest()
     assertions = _get_field(result, "assertions") or []
     for i, assertion in enumerate(assertions):
         passed = _get_field(assertion, "passed")
