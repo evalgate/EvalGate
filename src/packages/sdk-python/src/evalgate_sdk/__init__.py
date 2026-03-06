@@ -44,7 +44,7 @@ from evalgate_sdk.assertions import (
     within_range,
 )
 from evalgate_sdk.batch import RequestBatcher, batch_process, can_batch
-from evalgate_sdk.cache import CacheTTL, get_ttl, should_cache
+from evalgate_sdk.cache import CacheTTL, RequestCache, get_ttl, should_cache
 from evalgate_sdk.ci_context import CIContext, detect_ci_context
 from evalgate_sdk.cli.api import (
     FetchOptions,
@@ -388,6 +388,7 @@ __all__ = [
     "can_batch",
     # Cache
     "CacheTTL",
+    "RequestCache",
     "should_cache",
     "get_ttl",
     # Streaming
