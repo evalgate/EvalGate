@@ -22,6 +22,13 @@
       "when": 1772653501477,
       "tag": "0002_kind_ego",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772766474427,
+      "tag": "0003_confused_black_crow",
+      "breakpoints": true
     }
   ]
 }

@@ -64,8 +64,22 @@ export type ServerEnv = z.infer<typeof serverSchema>;
 let _cachedEnv: ServerEnv | undefined;
 
 /**
+ * Check if we're in a build-time context where env vars may not be available.
+ * Next.js sets this during static generation / build.
+ */
+function isBuildTime(): boolean {
+	return (
+		process.env.NEXT_PHASE === "phase-production-build" ||
+		process.env.npm_lifecycle_event === "build"
+	);
+}
+
+/**
  * Parse and cache the server environment. Throws a descriptive error on
  * the first call if any required variable is missing or malformed.
+ *
+ * During build time (e.g., Docker builds without env vars), returns safe
+ * placeholder values to allow static generation to complete.
  */
 export function env(): ServerEnv {
 	if (_cachedEnv) return _cachedEnv;
@@ -73,6 +87,16 @@ export function env(): ServerEnv {
 	const result = serverSchema.safeParse(process.env);
 
 	if (!result.success) {
+		// During build time, return placeholder values so static generation works
+		if (isBuildTime()) {
+			_cachedEnv = {
+				DATABASE_URL: "postgres://placeholder:placeholder@localhost:5432/placeholder",
+				BETTER_AUTH_SECRET: "build-time-placeholder-secret-not-for-runtime",
+				NODE_ENV: "production",
+			} as ServerEnv;
+			return _cachedEnv;
+		}
+
 		const formatted = result.error.issues
 			.map((i) => `  • ${i.path.join(".")}: ${i.message}`)
 			.join("\n");

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+	bigint,
 	boolean,
 	index,
 	integer,
@@ -1063,9 +1064,9 @@ export const jobs = pgTable(
 
 export const jobRunnerLocks = pgTable("job_runner_locks", {
 	lockName: text("lock_name").primaryKey(),
-	lockedUntil: integer("locked_until").notNull().default(0),
+	lockedUntil: bigint("locked_until", { mode: "number" }).notNull().default(0),
 	lockedBy: text("locked_by"),
-	updatedAt: integer("updated_at").notNull().default(0),
+	updatedAt: bigint("updated_at", { mode: "number" }).notNull().default(0),
 });
 
 // ── Production → CI Loop ─────────────────────────────────────────────────────
