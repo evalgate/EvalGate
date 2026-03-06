@@ -84,6 +84,9 @@ const nextConfig: NextConfig = {
 	// Performance optimizations
 	productionBrowserSourceMaps: false,
 
+	// Required for Docker deployments (standalone output)
+	output: "standalone",
+
 	// Turbopack configuration
 	// Note: component-tagger-loader disabled — causes Turbopack panic on Windows
 	// (tries to read src/app directory as a file). Re-enable when Turbopack fixes this.
