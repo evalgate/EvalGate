@@ -39,7 +39,7 @@ describe("Golden error catalog", () => {
 		expect(err).toBeInstanceOf(EvalGateError);
 		expect(err.code).toBe("UNKNOWN_FUTURE_CODE");
 		expect(err.documentation).toBe(
-			"https://docs.ai-eval-platform.com/errors/UNKNOWN_FUTURE_CODE",
+			"https://docs.evalgate.com/errors/UNKNOWN_FUTURE_CODE",
 		);
 		expect(err.solutions).toContain(
 			"Check the error details for more information",
