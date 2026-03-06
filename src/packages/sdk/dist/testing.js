@@ -5,7 +5,7 @@
  *
  * @example
  * ```typescript
- * import { createTestSuite, expect } from '@ai-eval-platform/sdk';
+ * import { createTestSuite, expect } from '@evalgate/sdk';
  *
  * const suite = createTestSuite('chatbot-responses', {
  *   cases: [

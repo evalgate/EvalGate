@@ -86,6 +86,11 @@ export {
 	createContext,
 	getCurrentContext as getContext,
 	withContext,
+	/**
+	 * Alias for EvalContext class.
+	 * Note: Stack traces and TypeScript errors will show "EvalContext" as the class name.
+	 * @see EvalContext
+	 */
 	EvalContext as ContextManager,
 };
 
@@ -159,7 +164,11 @@ export {
 	snapshot,
 	compareWithSnapshot,
 	compareSnapshots,
-	// Aliases for backward compatibility
+	/**
+	 * Alias for snapshot() function. Both refer to the same operation.
+	 * @deprecated Use snapshot() instead. Will be removed in v4.
+	 * @see snapshot
+	 */
 	snapshot as saveSnapshot,
 };
 

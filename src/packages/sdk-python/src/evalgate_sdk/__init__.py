@@ -61,6 +61,7 @@ from evalgate_sdk.cli.api import (
 from evalgate_sdk.cli.cli_constants import EXIT
 from evalgate_sdk.cli.config import (
     EvalAIConfig,
+    EvalGateConfig,
     find_config_path,
     load_config,
     merge_config_with_args,

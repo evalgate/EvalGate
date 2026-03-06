@@ -34,18 +34,18 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
 	MISSING_API_KEY: {
 		code: "MISSING_API_KEY",
 		message: "API key is required to initialize the SDK",
-		documentation: "https://docs.ai-eval-platform.com/errors/missing-api-key",
+		documentation: "https://docs.evalgate.com/errors/missing-api-key",
 		solutions: [
 			"Set EVALGATE_API_KEY environment variable",
 			'Pass apiKey in config: new AIEvalClient({ apiKey: "..." })',
-			"Get your API key from https://platform.ai-eval-platform.com/settings/api-keys",
+			"Get your API key from https://app.evalgate.com/settings/api-keys",
 		],
 		retryable: false,
 	},
 	MISSING_ORGANIZATION_ID: {
 		code: "MISSING_ORGANIZATION_ID",
 		message: "Organization ID is required for this operation",
-		documentation: "https://docs.ai-eval-platform.com/errors/missing-org-id",
+		documentation: "https://docs.evalgate.com/errors/missing-org-id",
 		solutions: [
 			"Set EVALGATE_ORGANIZATION_ID environment variable",
 			"Pass organizationId in config: new AIEvalClient({ organizationId: 123 })",
@@ -56,7 +56,7 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
 	RATE_LIMIT_EXCEEDED: {
 		code: "RATE_LIMIT_EXCEEDED",
 		message: "Rate limit exceeded",
-		documentation: "https://docs.ai-eval-platform.com/errors/rate-limit",
+		documentation: "https://docs.evalgate.com/errors/rate-limit",
 		solutions: [
 			"Wait before retrying (check retryAfter property)",
 			"Upgrade your plan for higher rate limits",
@@ -67,7 +67,7 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
 	TIMEOUT: {
 		code: "TIMEOUT",
 		message: "Request timed out",
-		documentation: "https://docs.ai-eval-platform.com/errors/timeout",
+		documentation: "https://docs.evalgate.com/errors/timeout",
 		solutions: [
 			"Increase timeout: new AIEvalClient({ timeout: 60000 })",
 			"Check your network connection",
@@ -78,7 +78,7 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
 	NETWORK_ERROR: {
 		code: "NETWORK_ERROR",
 		message: "Network connectivity issue",
-		documentation: "https://docs.ai-eval-platform.com/errors/network",
+		documentation: "https://docs.evalgate.com/errors/network",
 		solutions: [
 			"Check your internet connection",
 			"Verify the baseUrl is correct",
@@ -89,7 +89,7 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
 	UNAUTHORIZED: {
 		code: "UNAUTHORIZED",
 		message: "Authentication failed",
-		documentation: "https://docs.ai-eval-platform.com/errors/unauthorized",
+		documentation: "https://docs.evalgate.com/errors/unauthorized",
 		solutions: [
 			"Verify your API key is correct",
 			"Check if your API key has expired",
@@ -100,7 +100,7 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
 	FORBIDDEN: {
 		code: "FORBIDDEN",
 		message: "Access forbidden",
-		documentation: "https://docs.ai-eval-platform.com/errors/forbidden",
+		documentation: "https://docs.evalgate.com/errors/forbidden",
 		solutions: [
 			"Check if you have permission for this resource",
 			"Verify you're using the correct organization ID",
@@ -111,7 +111,7 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
 	NOT_FOUND: {
 		code: "NOT_FOUND",
 		message: "Resource not found",
-		documentation: "https://docs.ai-eval-platform.com/errors/not-found",
+		documentation: "https://docs.evalgate.com/errors/not-found",
 		solutions: [
 			"Verify the resource ID is correct",
 			"Check if the resource was deleted",
@@ -122,7 +122,7 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
 	VALIDATION_ERROR: {
 		code: "VALIDATION_ERROR",
 		message: "Request validation failed",
-		documentation: "https://docs.ai-eval-platform.com/errors/validation",
+		documentation: "https://docs.evalgate.com/errors/validation",
 		solutions: [
 			"Check the error details for specific validation failures",
 			"Verify all required fields are provided",
@@ -133,10 +133,10 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
 	INTERNAL_SERVER_ERROR: {
 		code: "INTERNAL_SERVER_ERROR",
 		message: "Internal server error",
-		documentation: "https://docs.ai-eval-platform.com/errors/server-error",
+		documentation: "https://docs.evalgate.com/errors/server-error",
 		solutions: [
 			"Retry the request after a brief delay",
-			"Check status page: https://status.ai-eval-platform.com",
+			"Check status page: https://status.evalgate.com",
 			"Contact support if the issue persists",
 		],
 		retryable: true,
@@ -144,7 +144,7 @@ const ERROR_DOCS: Record<string, ErrorDocumentation> = {
 	FEATURE_LIMIT_REACHED: {
 		code: "FEATURE_LIMIT_REACHED",
 		message: "Feature usage limit reached",
-		documentation: "https://docs.ai-eval-platform.com/errors/feature-limit",
+		documentation: "https://docs.evalgate.com/errors/feature-limit",
 		solutions: [
 			"Upgrade your plan for higher limits",
 			"Wait for your usage to reset (check resetAt property)",
@@ -218,7 +218,7 @@ export class EvalGateError extends Error {
 		// Initialize required properties from ERROR_DOCS
 		const doc = ERROR_DOCS[code];
 		this.documentation =
-			doc?.documentation ?? `https://docs.ai-eval-platform.com/errors/${code}`;
+			doc?.documentation ?? `https://docs.evalgate.com/errors/${code}`;
 		this.solutions = doc?.solutions ?? [
 			"Check the error details for more information",
 		];

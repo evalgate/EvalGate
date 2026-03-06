@@ -1,6 +1,6 @@
 # Stability Matrix
 
-> Last updated: 2026-03-04
+> Last updated: 2026-03-06
 
 This document classifies every major feature by maturity level and provides API compatibility guarantees for each tier.
 
@@ -105,7 +105,7 @@ This document classifies every major feature by maturity level and provides API 
 | Cost Records | **Stable** | v1.0 | Per-call token + cost tracking |
 | LLM Judge | **Beta** | v1.0 | Meta-judge post-eval hook |
 
-### SDK (`@evalgate/sdk`) — v3.0.0
+### SDK (`@evalgate/sdk`) — v3.0.1
 
 | Feature | Tier | Since | Notes |
 |---------|------|-------|-------|
@@ -142,7 +142,7 @@ This document classifies every major feature by maturity level and provides API 
 | Regression gate exports | **Stable** | v1.6 | `@evalgate/sdk/regression` |
 | Behavioral spec discover/run/diff | **Beta** | v2.0 | `evalgate discover`, `run`, `diff`, `ci` pipeline |
 
-### EvalGate Intelligence Layer — v3.0.0
+### EvalGate Intelligence Layer — v3.0.1
 
 | Feature | Tier | Since | Notes |
 |---------|------|-------|-------|
@@ -166,7 +166,7 @@ This document classifies every major feature by maturity level and provides API 
 | **Replay Determinism** | **Beta** | v2.1 | SHA-256 input canonicalization for reproducible replay |
 | **Regression Attribution** | **Beta** | v2.1 | Scores diff signals (git, model, prompt, tool schema, dataset, judge) to rank regression causes |
 
-### EvalGate UX Components — v3.0.0
+### EvalGate UX Components — v3.0.1
 
 | Component | Tier | Since | Notes |
 |-----------|------|-------|-------|

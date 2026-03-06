@@ -74,7 +74,7 @@ That's it! Your CI now:
 
 ---
 
-## 🚀 New in v3.0.0: Production-Ready AI Quality Infrastructure
+## 🚀 New in v3.0.1: Production-Ready AI Quality Infrastructure
 
 ### `evalgate ci` - Complete CI Pipeline
 

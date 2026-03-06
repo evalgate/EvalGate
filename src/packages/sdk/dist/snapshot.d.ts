@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { snapshot, loadSnapshot } from '@ai-eval-platform/sdk';
+ * import { snapshot, loadSnapshot } from '@evalgate/sdk';
  *
  * const output = await generateText('Write a haiku about coding');
  * await snapshot('haiku-test', output);

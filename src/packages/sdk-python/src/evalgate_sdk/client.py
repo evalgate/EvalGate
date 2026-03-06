@@ -414,6 +414,13 @@ class AIEvalClient:
     ) -> None:
         file_cfg = _load_config_file()
         self._api_key = api_key or _env("EVALGATE_API_KEY", "EVALAI_API_KEY") or file_cfg.get("api_key", "")
+
+        if not self._api_key:
+            raise EvalGateError(
+                "API key is required. Provide via api_key= or EVALGATE_API_KEY env var.",
+                "MISSING_API_KEY",
+                0,
+            )
         self._base_url = (
             base_url
             or _env("EVALGATE_BASE_URL", "EVALAI_BASE_URL")
@@ -446,6 +453,11 @@ class AIEvalClient:
     def init(cls, **kwargs: Any) -> AIEvalClient:
         """Zero-config factory — reads EVALGATE_API_KEY, EVALGATE_BASE_URL, EVALGATE_ORGANIZATION_ID."""
         return cls(**kwargs)
+
+    @property
+    def api_key(self) -> str:
+        """Return the configured API key."""
+        return self._api_key
 
     @property
     def organization_id(self) -> int | None:

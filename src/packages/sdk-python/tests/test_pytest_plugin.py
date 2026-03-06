@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 
+from evalgate_sdk.matchers import GateAssertionError
 from evalgate_sdk.pytest_plugin import (
     assert_all_assertions_passed,
     assert_no_errors,
@@ -30,14 +31,14 @@ class TestAssertPassesGate:
         assert_passes_gate(FakeResult(passed=True))
 
     def test_failing(self) -> None:
-        with pytest.raises(pytest.fail.Exception, match="gate failed"):
+        with pytest.raises(GateAssertionError, match="Gate assertion failed"):
             assert_passes_gate(FakeResult(passed=False, score=40.0, error="too low"))
 
     def test_dict_input(self) -> None:
         assert_passes_gate({"passed": True, "score": 100})
 
     def test_dict_failing(self) -> None:
-        with pytest.raises(pytest.fail.Exception):
+        with pytest.raises(GateAssertionError):
             assert_passes_gate({"passed": False, "error": "bad"})
 
 

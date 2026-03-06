@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
-from evalgate_sdk.cli.new_commands import PROFILES
+from evalgate_sdk.cli.profiles import PROFILES
 
 ProfileName = Literal["strict", "balanced", "fast"]
 
@@ -23,7 +23,7 @@ CONFIG_FILES = [
 
 
 @dataclass
-class EvalAIConfig:
+class EvalGateConfig:
     """Loaded configuration."""
 
     evaluation_id: str | None = None
@@ -37,6 +37,10 @@ class EvalAIConfig:
     baseline: str | None = None  # "published" | "previous" | "production" | "auto"
     profile: str | None = None
     packages: dict[str, Any] | None = None
+
+
+# Deprecated alias — remove in v4
+EvalAIConfig = EvalGateConfig
 
 
 def find_config_path(cwd: str | None = None) -> str | None:

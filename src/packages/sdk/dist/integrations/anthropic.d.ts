@@ -4,7 +4,7 @@
  *
  * @example
  * ```typescript
- * import { traceAnthropic } from '@ai-eval-platform/sdk/integrations/anthropic';
+ * import { traceAnthropic } from '@evalgate/sdk/integrations/anthropic';
  * import Anthropic from '@anthropic-ai/sdk';
  *
  * const anthropic = new Anthropic({ apiKey: '...' });
@@ -55,7 +55,7 @@ export interface AnthropicTraceOptions {
  * @example
  * ```typescript
  * import Anthropic from '@anthropic-ai/sdk';
- * import { traceAnthropic } from '@ai-eval-platform/sdk/integrations/anthropic';
+ * import { traceAnthropic } from '@evalgate/sdk/integrations/anthropic';
  *
  * const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
  * const tracedAnthropic = traceAnthropic(anthropic, evalClient);

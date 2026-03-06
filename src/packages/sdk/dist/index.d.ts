@@ -12,7 +12,13 @@ export { EvalGateError, RateLimitError, AuthenticationError, ValidationError, Ne
 export { type AssertionLLMConfig, configureAssertions, containsAllRequiredFields, containsJSON, containsKeywords, containsLanguage, containsLanguageAsync, expect, followsInstructions, getAssertionConfig, hasConsistency, hasConsistencyAsync, hasFactualAccuracy, hasFactualAccuracyAsync, hasLength, hasNoHallucinations, hasNoHallucinationsAsync, hasNoToxicity, hasNoToxicityAsync, hasPII, hasReadabilityScore, hasSentiment, hasSentimentAsync, hasSentimentWithScore, hasValidCodeSyntax, hasValidCodeSyntaxAsync, isValidEmail, isValidURL, matchesPattern, matchesSchema, notContainsPII, resetSentimentDeprecationWarning, respondedWithinDuration, respondedWithinTime, respondedWithinTimeSince, type SentimentAsyncResult, similarTo, toSemanticallyContain, withinRange, } from "./assertions";
 export { EvalGateError as SDKError } from "./errors";
 import { createContext, EvalContext, getCurrentContext, withContext } from "./context";
-export { createContext, getCurrentContext as getContext, withContext, EvalContext as ContextManager, };
+export { createContext, getCurrentContext as getContext, withContext, 
+/**
+ * Alias for EvalContext class.
+ * Note: Stack traces and TypeScript errors will show "EvalContext" as the class name.
+ * @see EvalContext
+ */
+EvalContext as ContextManager, };
 export { cloneContext, mergeContexts, validateContext, } from "./runtime/context";
 export { createContext as createEvalContext, createResult, defineEval, defineSuite, evalai, getFilteredSpecs, } from "./runtime/eval";
 export { createLocalExecutor, defaultLocalExecutor, } from "./runtime/executor";
@@ -21,7 +27,13 @@ export type { CloudExecutor, DefineEvalFunction, EvalContext, EvalExecutor, Eval
 export { EvalRuntimeError, RuntimeError, SpecExecutionError, SpecRegistrationError, } from "./runtime/types";
 export { createTestSuite, type TestCaseResult, TestSuite, TestSuiteCase, TestSuiteCaseResult, TestSuiteConfig, TestSuiteResult, } from "./testing";
 import { compareSnapshots, compareWithSnapshot, snapshot } from "./snapshot";
-export { snapshot, compareWithSnapshot, compareSnapshots, snapshot as saveSnapshot, };
+export { snapshot, compareWithSnapshot, compareSnapshots, 
+/**
+ * Alias for snapshot() function. Both refer to the same operation.
+ * @deprecated Use snapshot() instead. Will be removed in v4.
+ * @see snapshot
+ */
+snapshot as saveSnapshot, };
 import type { ExportFormat } from "./export";
 import { exportData, importData } from "./export";
 export { exportData, importData };

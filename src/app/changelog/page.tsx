@@ -53,6 +53,29 @@ const typeLabel: Record<ReleaseType, string> = {
 
 const versions: VersionEntry[] = [
 	{
+		version: "3.0.1",
+		date: "2026-03-06",
+		packages: ["TypeScript", "Python"],
+		type: "fix",
+		sections: [
+			{
+				title: "Fixed",
+				items: [
+					"Lazy-load CLI imports — extracted PROFILES to cli/profiles.py to prevent typer crash when SDK imported without CLI extras",
+					"API key guard — Python AIEvalClient.__init__ now raises EvalGateError immediately instead of failing later with confusing 401",
+					"Dead documentation URLs — replaced all ai-eval-platform.com URLs with evalgate.com in both SDKs",
+					"Stale package names — replaced @ai-eval-platform/sdk with @evalgate/sdk in all JSDoc examples",
+					"Consolidated assert_passes_gate — single definition in matchers.py with message param; pytest_plugin.py delegates to it",
+					"Renamed EvalAIConfig → EvalGateConfig with deprecated alias for backward compatibility",
+					"Added api_key property to Python AIEvalClient matching TypeScript SDK",
+					"Test file exclusion — added explicit !dist/**/*.test.js patterns to package.json files array",
+					"Documented aliases — added JSDoc for ContextManager → EvalContext and saveSnapshot → snapshot() aliases",
+					"Dict-style access — added __class_getitem__ to GATE_EXIT class for GATE_EXIT['PASS'] syntax",
+				],
+			},
+		],
+	},
+	{
 		version: "3.0.0",
 		date: "2026-03-04",
 		packages: ["TypeScript", "Python", "Platform"],

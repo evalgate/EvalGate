@@ -38,14 +38,12 @@ def assert_passes_gate(result: Any, message: str = "") -> None:
     """Assert that an eval result passes the quality gate.
 
     *result* should have a ``passed`` attribute (or key) that is truthy.
+
+    This delegates to :func:`evalgate_sdk.matchers.assert_passes_gate` for consistency.
     """
-    pytest = _get_pytest()
-    passed = _get_field(result, "passed")
-    if not passed:
-        error = _get_field(result, "error") or "unknown reason"
-        score = _get_field(result, "score")
-        msg = message or f"Eval gate failed (score={score}): {error}"
-        pytest.fail(msg)
+    from evalgate_sdk.matchers import assert_passes_gate as _assert_passes_gate
+
+    _assert_passes_gate(result, message)
 
 
 def assert_score_above(result: Any, threshold: float, message: str = "") -> None:

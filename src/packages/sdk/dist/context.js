@@ -8,7 +8,7 @@
  *
  * @example
  * ```typescript
- * import { createContext } from '@ai-eval-platform/sdk';
+ * import { createContext } from '@evalgate/sdk';
  *
  * const context = createContext({ userId: '123', sessionId: 'abc' });
  *

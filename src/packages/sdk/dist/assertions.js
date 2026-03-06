@@ -5,7 +5,7 @@
  *
  * @example
  * ```typescript
- * import { expect } from '@ai-eval-platform/sdk';
+ * import { expect } from '@evalgate/sdk';
  *
  * const output = "Hello, how can I help you today?";
  *

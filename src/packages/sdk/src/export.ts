@@ -4,7 +4,7 @@
  *
  * @example
  * ```typescript
- * import { exportData, importData } from '@ai-eval-platform/sdk';
+ * import { exportData, importData } from '@evalgate/sdk';
  *
  * // Export all data
  * const data = await exportData(client, {

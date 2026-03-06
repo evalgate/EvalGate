@@ -1,8 +1,8 @@
 # Release & Deprecation
 
-## Publishing @evalgate/sdk (v3.0.0+)
+## Publishing @evalgate/sdk (v3.0.1+)
 
-1. Tag: `git tag sdk/v3.0.0 && git push origin sdk/v3.0.0`
+1. Tag: `git tag sdk/v3.0.1 && git push origin sdk/v3.0.1`
 2. GitHub Release is created automatically; npm/PyPI publish if tokens are configured.
 3. **After publishing the new package**, add a deprecation notice to the old package:
 

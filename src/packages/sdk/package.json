@@ -1,6 +1,6 @@
 {
 	"name": "@evalgate/sdk",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"publishConfig": {
 		"access": "public",
 		"registry": "https://registry.npmjs.org/"
@@ -12,6 +12,10 @@
 	"sideEffects": false,
 	"files": [
 		"dist",
+		"!dist/**/*.test.js",
+		"!dist/**/*.test.d.ts",
+		"!dist/**/*.spec.js",
+		"!dist/**/*.spec.d.ts",
 		"README.md",
 		"CHANGELOG.md"
 	],

@@ -15,6 +15,10 @@ class GATE_EXIT:
     CONFIDENCE_FAILED = 3
     CONFIDENCE_MISSING = 4
 
+    def __class_getitem__(cls, key: str) -> int:
+        """Support dict-style access: GATE_EXIT['PASS'] == 0."""
+        return getattr(cls, key)
+
 
 class GATE_CATEGORY:
     PASS = "pass"

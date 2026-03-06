@@ -2,6 +2,24 @@
 
 Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANGELOG.md](src/packages/sdk/CHANGELOG.md).
 
+## [3.0.1] - 2026-03-06
+
+### Fixed (SDK)
+
+- **C-1: Lazy-load CLI imports** — Extracted `PROFILES` to `cli/profiles.py` to prevent typer crash when SDK imported without CLI extras
+- **C-3: API key guard** — Python `AIEvalClient.__init__` now raises `EvalGateError("MISSING_API_KEY")` immediately instead of failing later with confusing 401
+- **H-1: Dead documentation URLs** — Replaced all `ai-eval-platform.com` URLs with `evalgate.com` in both SDKs
+- **H-2: Stale package names** — Replaced `@ai-eval-platform/sdk` with `@evalgate/sdk` in all JSDoc examples
+- **H-3: Consolidate `assert_passes_gate`** — Single definition in `matchers.py` with `message` param; `pytest_plugin.py` delegates to it
+- **H-4: Rename `EvalAIConfig`** — Now `EvalGateConfig` with deprecated `EvalAIConfig` alias
+- **H-5: Add `api_key` property** — Python `AIEvalClient` now exposes `api_key` property matching TypeScript SDK
+- **M-1: Test file exclusion** — Added explicit `!dist/**/*.test.js` patterns to `package.json` files array
+- **M-3: Document aliases** — Added JSDoc for `ContextManager` → `EvalContext` and `saveSnapshot` → `snapshot()` aliases
+- **L-1: Deprecate `saveSnapshot`** — Added `@deprecated` notice pointing to `snapshot()`
+- **L-2: Dict-style access** — Added `__class_getitem__` to `GATE_EXIT` class for `GATE_EXIT['PASS']` syntax
+
+---
+
 ## [3.0.0] - 2026-03-04
 
 ### Breaking — AI Reliability Loop

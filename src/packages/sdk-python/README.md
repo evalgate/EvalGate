@@ -2,7 +2,7 @@
 
 > AI quality infrastructure for Python. Trace, test, and gate every LLM call.
 
-**Current version: 3.0.0** — Production-ready AI quality infrastructure.
+**Current version: 3.0.1** — Production-ready AI quality infrastructure.
 
 [![PyPI](https://img.shields.io/pypi/v/pauly4010-evalgate-sdk)](https://pypi.org/project/pauly4010-evalgate-sdk/)
 [![Python](https://img.shields.io/pypi/pyversions/pauly4010-evalgate-sdk)](https://pypi.org/project/pauly4010-evalgate-sdk/)

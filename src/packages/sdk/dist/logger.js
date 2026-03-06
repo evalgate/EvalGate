@@ -5,7 +5,7 @@
  *
  * @example
  * ```typescript
- * import { createLogger } from '@ai-eval-platform/sdk';
+ * import { createLogger } from '@evalgate/sdk';
  *
  * const logger = createLogger({ level: 'debug', pretty: true });
  *

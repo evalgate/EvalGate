@@ -4,7 +4,7 @@
  *
  * @example
  * ```typescript
- * import { traceOpenAI } from '@ai-eval-platform/sdk/integrations/openai';
+ * import { traceOpenAI } from '@evalgate/sdk/integrations/openai';
  * import OpenAI from 'openai';
  *
  * const openai = new OpenAI({ apiKey: '...' });
@@ -58,7 +58,7 @@ export interface OpenAITraceOptions {
  * @example
  * ```typescript
  * import OpenAI from 'openai';
- * import { traceOpenAI } from '@ai-eval-platform/sdk/integrations/openai';
+ * import { traceOpenAI } from '@evalgate/sdk/integrations/openai';
  *
  * const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
  * const tracedOpenAI = traceOpenAI(openai, evalClient);

@@ -2,7 +2,7 @@
  * SDK helper for reporting traces to the collector endpoint.
  *
  * Usage:
- *   import { reportTrace } from '@ai-eval-platform/sdk';
+ *   import { reportTrace } from '@evalgate/sdk';
  *   await reportTrace(client, { ... });
  *
  * Supports:

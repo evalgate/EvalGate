@@ -4,7 +4,7 @@
  *
  * @example
  * ```typescript
- * import { streamEvaluations, batchCreate } from '@ai-eval-platform/sdk';
+ * import { streamEvaluations, batchCreate } from '@evalgate/sdk';
  *
  * // Stream large evaluation results
  * for await (const result of streamEvaluations(client, config)) {

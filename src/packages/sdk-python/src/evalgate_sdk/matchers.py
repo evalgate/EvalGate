@@ -35,9 +35,16 @@ class GateAssertionError(AssertionError):
         super().__init__(f"Gate assertion failed: {passed}/{total} passed (score={score})")
 
 
-def assert_passes_gate(result: Any) -> None:
-    """Assert that a result passes the gate, with rich error output."""
+def assert_passes_gate(result: Any, message: str = "") -> None:
+    """Assert that a result passes the gate, with rich error output.
+
+    Args:
+        result: The eval result to check (must have a ``passed`` attribute or key).
+        message: Optional custom error message to display on failure.
+    """
     if not to_pass_gate(result):
+        if message:
+            raise AssertionError(message)
         raise GateAssertionError(result)
 
 

@@ -7,7 +7,7 @@ from typing import Any
 
 _ERROR_DOCS: dict[str, dict[str, Any]] = {
     "MISSING_API_KEY": {
-        "documentation": "https://docs.ai-eval-platform.com/errors/missing-api-key",
+        "documentation": "https://docs.evalgate.com/errors/missing-api-key",
         "solutions": [
             "Set EVALGATE_API_KEY environment variable",
             'Pass api_key in config: AIEvalClient(api_key="...")',
@@ -15,7 +15,7 @@ _ERROR_DOCS: dict[str, dict[str, Any]] = {
         "retryable": False,
     },
     "RATE_LIMIT_EXCEEDED": {
-        "documentation": "https://docs.ai-eval-platform.com/errors/rate-limit",
+        "documentation": "https://docs.evalgate.com/errors/rate-limit",
         "solutions": [
             "Wait before retrying (check retry_after property)",
             "Upgrade your plan for higher rate limits",
@@ -24,7 +24,7 @@ _ERROR_DOCS: dict[str, dict[str, Any]] = {
         "retryable": True,
     },
     "TIMEOUT": {
-        "documentation": "https://docs.ai-eval-platform.com/errors/timeout",
+        "documentation": "https://docs.evalgate.com/errors/timeout",
         "solutions": [
             "Increase timeout: AIEvalClient(timeout=60000)",
             "Check your network connection",
@@ -32,7 +32,7 @@ _ERROR_DOCS: dict[str, dict[str, Any]] = {
         "retryable": True,
     },
     "NETWORK_ERROR": {
-        "documentation": "https://docs.ai-eval-platform.com/errors/network",
+        "documentation": "https://docs.evalgate.com/errors/network",
         "solutions": [
             "Check your internet connection",
             "Verify the base_url is correct",
@@ -40,7 +40,7 @@ _ERROR_DOCS: dict[str, dict[str, Any]] = {
         "retryable": True,
     },
     "UNAUTHORIZED": {
-        "documentation": "https://docs.ai-eval-platform.com/errors/unauthorized",
+        "documentation": "https://docs.evalgate.com/errors/unauthorized",
         "solutions": [
             "Verify your API key is correct",
             "Check if your API key has expired",
@@ -48,7 +48,7 @@ _ERROR_DOCS: dict[str, dict[str, Any]] = {
         "retryable": False,
     },
     "FORBIDDEN": {
-        "documentation": "https://docs.ai-eval-platform.com/errors/forbidden",
+        "documentation": "https://docs.evalgate.com/errors/forbidden",
         "solutions": [
             "Check if you have permission for this resource",
             "Verify you're using the correct organization ID",
@@ -56,7 +56,7 @@ _ERROR_DOCS: dict[str, dict[str, Any]] = {
         "retryable": False,
     },
     "NOT_FOUND": {
-        "documentation": "https://docs.ai-eval-platform.com/errors/not-found",
+        "documentation": "https://docs.evalgate.com/errors/not-found",
         "solutions": [
             "Verify the resource ID is correct",
             "Check if the resource was deleted",
@@ -64,7 +64,7 @@ _ERROR_DOCS: dict[str, dict[str, Any]] = {
         "retryable": False,
     },
     "VALIDATION_ERROR": {
-        "documentation": "https://docs.ai-eval-platform.com/errors/validation",
+        "documentation": "https://docs.evalgate.com/errors/validation",
         "solutions": [
             "Check the error details for specific validation failures",
             "Verify all required fields are provided",
@@ -72,7 +72,7 @@ _ERROR_DOCS: dict[str, dict[str, Any]] = {
         "retryable": False,
     },
     "INTERNAL_SERVER_ERROR": {
-        "documentation": "https://docs.ai-eval-platform.com/errors/server-error",
+        "documentation": "https://docs.evalgate.com/errors/server-error",
         "solutions": [
             "Retry the request after a brief delay",
             "Contact support if the issue persists",
@@ -80,7 +80,7 @@ _ERROR_DOCS: dict[str, dict[str, Any]] = {
         "retryable": True,
     },
     "FEATURE_LIMIT_REACHED": {
-        "documentation": "https://docs.ai-eval-platform.com/errors/feature-limit",
+        "documentation": "https://docs.evalgate.com/errors/feature-limit",
         "solutions": [
             "Upgrade your plan for higher limits",
             "Wait for your usage to reset",
@@ -125,7 +125,7 @@ class EvalGateError(Exception):
         self.details = details
 
         doc = _ERROR_DOCS.get(code, {})
-        self.documentation = doc.get("documentation", f"https://docs.ai-eval-platform.com/errors/{code}")
+        self.documentation = doc.get("documentation", f"https://docs.evalgate.com/errors/{code}")
         self.solutions = doc.get("solutions", ["Check the error details for more information"])
         self.retryable = doc.get("retryable", False)
         self.retry_after = None

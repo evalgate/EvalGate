@@ -10,18 +10,18 @@ import { Card } from "@/components/ui/card";
 export const metadata: Metadata = {
 	title: "SDK Quick Start - EvalGate | AI Quality Infrastructure",
 	description:
-		"EvalGate 3.0.0: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs. One-command CI workflow plus production trace collection.",
+		"EvalGate 3.0.1: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs. One-command CI workflow plus production trace collection.",
 	openGraph: {
 		title: "SDK Quick Start - EvalGate | AI Quality Infrastructure",
 		description:
-			"EvalGate 3.0.0: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs.",
+			"EvalGate 3.0.1: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs.",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "SDK Quick Start - EvalGate | AI Quality Infrastructure",
 		description:
-			"EvalGate 3.0.0: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs.",
+			"EvalGate 3.0.1: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs.",
 	},
 };
 

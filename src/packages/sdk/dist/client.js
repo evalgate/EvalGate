@@ -33,7 +33,7 @@ function getEnvVar(newName, legacyName) {
  *
  * @example
  * ```typescript
- * import { AIEvalClient } from '@ai-eval-platform/sdk';
+ * import { AIEvalClient } from '@evalgate/sdk';
  *
  * // Zero-config initialization (uses env variables)
  * const client = AIEvalClient.init();
