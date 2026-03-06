@@ -11,6 +11,11 @@
 			"!**/node_modules",
 			"!**/drizzle/meta",
 			"!**/coverage",
+			"!**/.mypy_cache",
+			"!**/.ruff_cache",
+			"!**/__pycache__",
+			"!**/sdk-python",
+			"!test-results",
 			"!evals",
 			"!scripts/version-check.ts"
 		]
