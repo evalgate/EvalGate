@@ -192,7 +192,8 @@ export function InteractivePlayground({
 			name: "Code Generation",
 			description:
 				"Evaluate if generated code actually works and follows best practices",
-			preview: "Preview: failed test cases, score breakdown, and recommendations",
+			preview:
+				"Preview: failed test cases, score breakdown, and recommendations",
 			icon: "💻",
 			difficulty: "Advanced",
 			time: "1m",
@@ -471,8 +472,7 @@ ${(results.qualityScore?.recommendations || []).map((r: string) => `- ${r}`).joi
 				</h2>
 				<p className="text-xl text-muted-foreground max-w-2xl mx-auto">
 					Choose a scenario below to run a real demo endpoint and see sample
-					results instantly.
-					Sign up to save results and use the API.
+					results instantly. Sign up to save results and use the API.
 				</p>
 			</div>
 
