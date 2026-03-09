@@ -1,1851 +1,1866 @@
 {
-	"openapi": "3.1.0",
-	"info": {
-		"title": "EvalGate API",
-		"version": "3.0.0",
-		"description": "EvalGate API. See docs/api-contract.md for stability commitments."
-	},
-	"servers": [
-		{
-			"url": "https://evalgate.com",
-			"description": "Production"
-		},
-		{
-			"url": "http://localhost:3000",
-			"description": "Local"
-		}
-	],
-	"paths": {
-		"/api/quality": {
-			"get": {
-				"summary": "Get quality score",
-				"parameters": [
-					{
-						"name": "evaluationId",
-						"in": "query",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					},
-					{
-						"name": "action",
-						"in": "query",
-						"schema": {
-							"type": "string",
-							"enum": ["latest", "trend"]
-						}
-					},
-					{
-						"name": "baseline",
-						"in": "query",
-						"schema": {
-							"type": "string",
-							"enum": ["published", "previous", "production"]
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Quality score or trend"
-					},
-					"400": {
-						"$ref": "#/components/responses/ValidationError"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			},
-			"post": {
-				"summary": "Recompute quality score",
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "object",
-								"required": ["runId"],
-								"properties": {
-									"runId": {
-										"type": "integer"
-									}
-								}
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Recomputed score"
-					},
-					"404": {
-						"$ref": "#/components/responses/NotFound"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/reports": {
-			"post": {
-				"summary": "Create signed report",
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "object",
-								"required": ["evaluationId", "evaluationRunId"],
-								"properties": {
-									"evaluationId": {
-										"type": "integer"
-									},
-									"evaluationRunId": {
-										"type": "integer"
-									},
-									"expiresInDays": {
-										"type": "number"
-									},
-									"policyName": {
-										"type": "string"
-									}
-								}
-							}
-						}
-					}
-				},
-				"responses": {
-					"201": {
-						"description": "Report created",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"shareToken": {
-											"type": "string"
-										},
-										"shareUrl": {
-											"type": "string"
-										},
-										"apiUrl": {
-											"type": "string"
-										},
-										"expiresAt": {
-											"type": "string",
-											"format": "date-time"
-										}
-									}
-								}
-							}
-						}
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/mcp/call": {
-			"post": {
-				"summary": "Execute MCP tool",
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "object",
-								"required": ["tool", "arguments"],
-								"properties": {
-									"tool": {
-										"type": "string",
-										"example": "eval.quality.latest"
-									},
-									"arguments": {
-										"type": "object"
-									}
-								}
-							}
-						}
-					}
-				},
-				"responses": {
-					"200": {
-						"description": "Tool result",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"ok": {
-											"type": "boolean"
-										},
-										"content": {
-											"type": "array",
-											"items": {
-												"type": "object"
-											}
-										}
-									}
-								}
-							}
-						}
-					},
-					"400": {
-						"$ref": "#/components/responses/ValidationError"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/evaluations/{id}/runs/{runId}/export": {
-			"get": {
-				"summary": "Export evaluation run",
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					},
-					{
-						"name": "runId",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Export payload (type-specific)"
-					},
-					"404": {
-						"$ref": "#/components/responses/NotFound"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/workflows": {
-			"get": {
-				"summary": "workflows",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/workflows/{id}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/workflows/{id}/runs": {
-			"get": {
-				"summary": "runs",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/workflows/{id}/runs/{runId}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					},
-					{
-						"name": "runId",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/workflows/{id}/handoffs": {
-			"get": {
-				"summary": "handoffs",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/traces": {
-			"get": {
-				"summary": "traces",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/traces/{id}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/traces/{id}/spans": {
-			"get": {
-				"summary": "spans",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/stream": {
-			"get": {
-				"summary": "stream",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/stream/{evalId}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "evalId",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/api/shadow-evals": {
-			"get": {
-				"summary": "shadow-evals",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/shadow-evals/{id}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/shadow-evals/stats": {
-			"get": {
-				"summary": "stats",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/report-cards": {
-			"get": {
-				"summary": "report-cards",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/report-cards/{evaluationId}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "evaluationId",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/quality/spec": {
-			"get": {
-				"summary": "spec",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/organizations": {
-			"get": {
-				"summary": "organizations",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/organizations/current": {
-			"get": {
-				"summary": "current",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/mcp/tools": {
-			"get": {
-				"summary": "tools",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/llm-judge/results": {
-			"get": {
-				"summary": "results",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/llm-judge/evaluate": {
-			"get": {
-				"summary": "evaluate",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/llm-judge/configs": {
-			"get": {
-				"summary": "configs",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/llm-judge/alignment": {
-			"get": {
-				"summary": "Get LLM judge alignment for an evaluation run",
-				"parameters": [
-					{
-						"name": "evaluationRunId",
-						"in": "query",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						},
-						"description": "The evaluation run ID to compute alignment for"
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"400": {
-						"description": "Evaluation run ID required"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/exports/{shareId}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "shareId",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/evaluations": {
-			"get": {
-				"summary": "evaluations",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/evaluations/{id}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/evaluations/{id}/versions": {
-			"get": {
-				"summary": "versions",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/evaluations/{id}/test-cases": {
-			"get": {
-				"summary": "test-cases",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/evaluations/{id}/runs": {
-			"get": {
-				"summary": "runs",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/evaluations/{id}/runs/{runId}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					},
-					{
-						"name": "runId",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/evaluations/{id}/runs/{runId}/progress": {
-			"get": {
-				"summary": "progress",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					},
-					{
-						"name": "runId",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/evaluations/{id}/runs/import": {
-			"get": {
-				"summary": "import",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/evaluations/{id}/report": {
-			"get": {
-				"summary": "report",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/evaluations/{id}/regression": {
-			"get": {
-				"summary": "regression",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/evaluations/{id}/publish-run": {
-			"get": {
-				"summary": "publish-run",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/evaluations/{id}/publish": {
-			"get": {
-				"summary": "publish",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/evaluation-templates": {
-			"get": {
-				"summary": "evaluation-templates",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/drift/alerts": {
-			"get": {
-				"summary": "alerts",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/drift/alerts/{id}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/developer/webhooks": {
-			"get": {
-				"summary": "webhooks",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/developer/webhooks/{id}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/developer/webhooks/{id}/deliveries": {
-			"get": {
-				"summary": "deliveries",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/developer/usage": {
-			"get": {
-				"summary": "usage",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/developer/usage/summary": {
-			"get": {
-				"summary": "summary",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/developer/api-keys": {
-			"get": {
-				"summary": "api-keys",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/developer/api-keys/{id}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/developer/api-keys/{id}/usage": {
-			"get": {
-				"summary": "usage",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/decisions": {
-			"get": {
-				"summary": "decisions",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/decisions/stats": {
-			"get": {
-				"summary": "stats",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/costs": {
-			"get": {
-				"summary": "costs",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/costs/trends": {
-			"get": {
-				"summary": "trends",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/benchmarks": {
-			"get": {
-				"summary": "benchmarks",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/benchmarks/{id}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/benchmarks/{id}/results": {
-			"get": {
-				"summary": "results",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/benchmarks/{id}/leaderboard": {
-			"get": {
-				"summary": "leaderboard",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/audit-logs": {
-			"get": {
-				"summary": "audit-logs",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/arena-matches": {
-			"get": {
-				"summary": "arena-matches",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/arena-matches/{id}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/arena-matches/leaderboard": {
-			"get": {
-				"summary": "leaderboard",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/arena/leaderboard": {
-			"get": {
-				"summary": "leaderboard",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/arena/compare": {
-			"get": {
-				"summary": "compare",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/annotations": {
-			"get": {
-				"summary": "annotations",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/annotations/tasks": {
-			"get": {
-				"summary": "tasks",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				]
-			}
-		},
-		"/api/annotations/tasks/{id}": {
-			"get": {
-				"summary": "by id",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		},
-		"/api/annotations/tasks/{id}/items": {
-			"get": {
-				"summary": "items",
-				"responses": {
-					"200": {
-						"description": "Success"
-					},
-					"401": {
-						"$ref": "#/components/responses/Unauthorized"
-					}
-				},
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "integer"
-						}
-					}
-				]
-			}
-		}
-	},
-	"components": {
-		"securitySchemes": {
-			"bearerAuth": {
-				"type": "http",
-				"scheme": "bearer",
-				"bearerFormat": "API Key or Session Token"
-			}
-		},
-		"schemas": {
-			"ApiError": {
-				"type": "object",
-				"properties": {
-					"error": {
-						"type": "object",
-						"properties": {
-							"code": {
-								"type": "string",
-								"enum": [
-									"UNAUTHORIZED",
-									"FORBIDDEN",
-									"NOT_FOUND",
-									"VALIDATION_ERROR",
-									"RATE_LIMITED",
-									"CONFLICT",
-									"INTERNAL_ERROR",
-									"SERVICE_UNAVAILABLE",
-									"QUOTA_EXCEEDED",
-									"NO_ORG_MEMBERSHIP"
-								]
-							},
-							"message": {
-								"type": "string"
-							},
-							"details": {},
-							"requestId": {
-								"type": "string",
-								"format": "uuid"
-							}
-						}
-					}
-				}
-			}
-		},
-		"responses": {
-			"ValidationError": {
-				"description": "Validation error",
-				"content": {
-					"application/json": {
-						"schema": {
-							"$ref": "#/components/schemas/ApiError"
-						}
-					}
-				}
-			},
-			"NotFound": {
-				"description": "Resource not found",
-				"content": {
-					"application/json": {
-						"schema": {
-							"$ref": "#/components/schemas/ApiError"
-						}
-					}
-				}
-			},
-			"Unauthorized": {
-				"description": "Unauthorized",
-				"content": {
-					"application/json": {
-						"schema": {
-							"$ref": "#/components/schemas/ApiError"
-						}
-					}
-				}
-			}
-		}
-	}
+  "openapi": "3.1.0",
+  "info": {
+    "title": "EvalGate API",
+    "version": "3.0.2",
+    "description": "EvalGate API. See docs/api-contract.md for stability commitments."
+  },
+  "servers": [
+    {
+      "url": "https://evalgate.com",
+      "description": "Production"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Local"
+    }
+  ],
+  "paths": {
+    "/api/quality": {
+      "get": {
+        "summary": "Get quality score",
+        "parameters": [
+          {
+            "name": "evaluationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "latest",
+                "trend"
+              ]
+            }
+          },
+          {
+            "name": "baseline",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "published",
+                "previous",
+                "production"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quality score or trend"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Recompute quality score",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "runId"
+                ],
+                "properties": {
+                  "runId": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recomputed score"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/reports": {
+      "post": {
+        "summary": "Create signed report",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "evaluationId",
+                  "evaluationRunId"
+                ],
+                "properties": {
+                  "evaluationId": {
+                    "type": "integer"
+                  },
+                  "evaluationRunId": {
+                    "type": "integer"
+                  },
+                  "expiresInDays": {
+                    "type": "number"
+                  },
+                  "policyName": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Report created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "shareToken": {
+                      "type": "string"
+                    },
+                    "shareUrl": {
+                      "type": "string"
+                    },
+                    "apiUrl": {
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/mcp/call": {
+      "post": {
+        "summary": "Execute MCP tool",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "tool",
+                  "arguments"
+                ],
+                "properties": {
+                  "tool": {
+                    "type": "string",
+                    "example": "eval.quality.latest"
+                  },
+                  "arguments": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "content": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/evaluations/{id}/runs/{runId}/export": {
+      "get": {
+        "summary": "Export evaluation run",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Export payload (type-specific)"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workflows": {
+      "get": {
+        "summary": "workflows",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workflows/{id}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/workflows/{id}/runs": {
+      "get": {
+        "summary": "runs",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/workflows/{id}/runs/{runId}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/workflows/{id}/handoffs": {
+      "get": {
+        "summary": "handoffs",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/traces": {
+      "get": {
+        "summary": "traces",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/traces/{id}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/traces/{id}/spans": {
+      "get": {
+        "summary": "spans",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/stream": {
+      "get": {
+        "summary": "stream",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/stream/{evalId}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "evalId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/shadow-evals": {
+      "get": {
+        "summary": "shadow-evals",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/shadow-evals/{id}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/shadow-evals/stats": {
+      "get": {
+        "summary": "stats",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/report-cards": {
+      "get": {
+        "summary": "report-cards",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/report-cards/{evaluationId}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "evaluationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/quality/spec": {
+      "get": {
+        "summary": "spec",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/organizations": {
+      "get": {
+        "summary": "organizations",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/organizations/current": {
+      "get": {
+        "summary": "current",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/mcp/tools": {
+      "get": {
+        "summary": "tools",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/llm-judge/results": {
+      "get": {
+        "summary": "results",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/llm-judge/evaluate": {
+      "get": {
+        "summary": "evaluate",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/llm-judge/configs": {
+      "get": {
+        "summary": "configs",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/llm-judge/alignment": {
+      "get": {
+        "summary": "Get LLM judge alignment for an evaluation run",
+        "parameters": [
+          {
+            "name": "evaluationRunId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The evaluation run ID to compute alignment for"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Evaluation run ID required"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/exports/{shareId}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shareId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/evaluations": {
+      "get": {
+        "summary": "evaluations",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/evaluations/{id}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/evaluations/{id}/versions": {
+      "get": {
+        "summary": "versions",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/evaluations/{id}/test-cases": {
+      "get": {
+        "summary": "test-cases",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/evaluations/{id}/runs": {
+      "get": {
+        "summary": "runs",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/evaluations/{id}/runs/{runId}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/evaluations/{id}/runs/{runId}/progress": {
+      "get": {
+        "summary": "progress",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/evaluations/{id}/runs/import": {
+      "get": {
+        "summary": "import",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/evaluations/{id}/report": {
+      "get": {
+        "summary": "report",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/evaluations/{id}/regression": {
+      "get": {
+        "summary": "regression",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/evaluations/{id}/publish-run": {
+      "get": {
+        "summary": "publish-run",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/evaluations/{id}/publish": {
+      "get": {
+        "summary": "publish",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/evaluation-templates": {
+      "get": {
+        "summary": "evaluation-templates",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/drift/alerts": {
+      "get": {
+        "summary": "alerts",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/drift/alerts/{id}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/developer/webhooks": {
+      "get": {
+        "summary": "webhooks",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/developer/webhooks/{id}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/developer/webhooks/{id}/deliveries": {
+      "get": {
+        "summary": "deliveries",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/developer/usage": {
+      "get": {
+        "summary": "usage",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/developer/usage/summary": {
+      "get": {
+        "summary": "summary",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/developer/api-keys": {
+      "get": {
+        "summary": "api-keys",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/developer/api-keys/{id}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/developer/api-keys/{id}/usage": {
+      "get": {
+        "summary": "usage",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/decisions": {
+      "get": {
+        "summary": "decisions",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/decisions/stats": {
+      "get": {
+        "summary": "stats",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/costs": {
+      "get": {
+        "summary": "costs",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/costs/trends": {
+      "get": {
+        "summary": "trends",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/benchmarks": {
+      "get": {
+        "summary": "benchmarks",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/benchmarks/{id}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/benchmarks/{id}/results": {
+      "get": {
+        "summary": "results",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/benchmarks/{id}/leaderboard": {
+      "get": {
+        "summary": "leaderboard",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/audit-logs": {
+      "get": {
+        "summary": "audit-logs",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/arena-matches": {
+      "get": {
+        "summary": "arena-matches",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/arena-matches/{id}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/arena-matches/leaderboard": {
+      "get": {
+        "summary": "leaderboard",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/arena/leaderboard": {
+      "get": {
+        "summary": "leaderboard",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/arena/compare": {
+      "get": {
+        "summary": "compare",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/annotations": {
+      "get": {
+        "summary": "annotations",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/annotations/tasks": {
+      "get": {
+        "summary": "tasks",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/annotations/tasks/{id}": {
+      "get": {
+        "summary": "by id",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/annotations/tasks/{id}/items": {
+      "get": {
+        "summary": "items",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API Key or Session Token"
+      }
+    },
+    "schemas": {
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "UNAUTHORIZED",
+                  "FORBIDDEN",
+                  "NOT_FOUND",
+                  "VALIDATION_ERROR",
+                  "RATE_LIMITED",
+                  "CONFLICT",
+                  "INTERNAL_ERROR",
+                  "SERVICE_UNAVAILABLE",
+                  "QUOTA_EXCEEDED",
+                  "NO_ORG_MEMBERSHIP"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {},
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "ValidationError": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      }
+    }
+  }
 }
