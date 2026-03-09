@@ -2,12 +2,12 @@ import {
 	Activity,
 	Beaker,
 	RefreshCw,
+	Scale,
+	Search,
+	Shield,
 	Sparkles,
 	Users,
 	Zap,
-	Balance,
-	Search,
-	Shield,
 } from "lucide-react";
 import { memo } from "react";
 import {
@@ -20,7 +20,7 @@ import {
 
 const FEATURES = [
 	{
-		icon: Balance,
+		icon: Scale,
 		title: "Judge Credibility",
 		description:
 			"Advanced TPR/TNR computation with Rogan-Gladen correction and bootstrap confidence intervals for reliable LLM judge evaluations",
