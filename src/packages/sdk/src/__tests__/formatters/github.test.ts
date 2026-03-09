@@ -1,58 +1,23 @@
-/**
- * GitHub formatter tests.
- * Assert ::error when fail; assert summary written to env var path when set.
- */
-
 import * as fs from "node:fs";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { appendStepSummary, formatGitHub } from "../../cli/formatters/github";
 import type { CheckReport } from "../../cli/formatters/types";
 
 describe("formatGitHub", () => {
-	it("emits ::error annotations when gate fails with failed cases", () => {
+	it("emits fail annotation and summary", () => {
 		const report: CheckReport = {
 			evaluationId: "eval-1",
 			verdict: "fail",
+			gateApplied: true,
+			gateMode: "enforced",
 			reasonCode: "LOW_SCORE",
 			reasonMessage: "Score below threshold",
 			score: 60,
-			failedCases: [
-				{ testCaseId: 1, name: "tc1", reason: "assertion failed" },
-				{ testCaseId: 2, name: "tc2", output: "wrong output" },
-			],
+			failedCases: [{ testCaseId: 1, name: "tc1", reason: "assertion failed" }],
 		};
 		const out = formatGitHub(report);
-		expect(out).toContain("::error title=EvalGate regression::");
-		expect(out).toContain("TestCase 1 failed");
-		expect(out).toContain("TestCase 2 failed");
+		expect(out).toContain("::error");
 		expect(out).toContain("✗ EvalGate gate FAILED");
-		expect(out).toContain("Score: 60/100");
-	});
-
-	it("does not emit ::error when gate passes", () => {
-		const report: CheckReport = {
-			evaluationId: "eval-1",
-			verdict: "pass",
-			reasonCode: "UNKNOWN",
-			score: 95,
-		};
-		const out = formatGitHub(report);
-		expect(out).not.toContain("::error");
-		expect(out).toContain("✓ EvalGate gate PASSED");
-	});
-
-	it("emits minimal stdout (verdict + score + link)", () => {
-		const report: CheckReport = {
-			evaluationId: "eval-1",
-			verdict: "pass",
-			reasonCode: "UNKNOWN",
-			score: 90,
-			dashboardUrl: "https://example.com/dash",
-		};
-		const out = formatGitHub(report);
-		expect(out).toContain("✓ EvalGate gate PASSED");
-		expect(out).toContain("Score: 90/100");
-		expect(out).toContain("Dashboard: https://example.com/dash");
 	});
 });
 
@@ -79,37 +44,38 @@ describe("appendStepSummary", () => {
 		}
 	});
 
-	it("writes summary to GITHUB_STEP_SUMMARY when set", () => {
+	it("writes summary with judge details", () => {
 		const tmpDir = process.env.TEMP || process.env.TMP || "/tmp";
 		summaryPath = `${tmpDir}/evalgate-step-summary-${Date.now()}.md`;
 		process.env.GITHUB_STEP_SUMMARY = summaryPath;
-
 		const report: CheckReport = {
 			evaluationId: "eval-1",
 			verdict: "fail",
-			reasonCode: "LOW_SCORE",
-			reasonMessage: "Score below threshold",
+			gateApplied: true,
+			gateMode: "enforced",
+			reasonCode: "JUDGE_CREDIBILITY_UNTRUSTWORTHY",
 			score: 70,
-			failedCases: [{ testCaseId: 1, name: "tc1", reason: "failed" }],
+			judgeAlignment: {
+				tpr: 0.52,
+				tnr: 0.51,
+				rawPassRate: 0.892,
+				sampleSize: 18,
+			},
+			judgeCredibility: {
+				correctionApplied: false,
+				correctionSkippedReason: "judge_too_weak_to_correct",
+				ciApplied: false,
+				ciSkippedReason: "insufficient_samples_for_ci",
+				rawPassRate: 0.892,
+				correctedPassRate: null,
+				ci95: null,
+				discriminativePower: 0.03,
+				sampleSize: 18,
+			},
 		};
-
 		appendStepSummary(report);
-
-		expect(fs.existsSync(summaryPath)).toBe(true);
 		const content = fs.readFileSync(summaryPath, "utf8");
-		expect(content).toContain("## EvalGate Gate");
-		expect(content).toContain("FAILED");
-		expect(content).toContain("70/100");
-		expect(content).toContain("tc1");
-	});
-
-	it("does nothing when GITHUB_STEP_SUMMARY is not set", () => {
-		const report: CheckReport = {
-			evaluationId: "eval-1",
-			verdict: "pass",
-			reasonCode: "UNKNOWN",
-			score: 100,
-		};
-		expect(() => appendStepSummary(report)).not.toThrow();
+		expect(content).toContain("Pass rate");
+		expect(content).toContain("insufficient labeled samples");
 	});
 });

@@ -19,6 +19,23 @@ export type QualityLatestData = {
 	regressionDelta?: number | null;
 	baselineMissing?: boolean | null;
 	breakdown?: { passRate?: number; safety?: number; judge?: number };
+	judgeAlignment?: {
+		tpr?: number;
+		tnr?: number;
+		sampleSize?: number;
+		rawPassRate?: number;
+		correctedPassRate?: number;
+		ci95?: { low?: number; high?: number } | null;
+		correctionApplied?: boolean;
+		correctionSkippedReason?: "judge_too_weak_to_correct";
+		ciApplied?: boolean;
+		ciSkippedReason?:
+			| "judge_too_weak_to_correct"
+			| "insufficient_samples_for_ci";
+		discriminativePower?: number;
+		failureModes?: Record<string, number>;
+		totalFailed?: number;
+	};
 	flags?: string[];
 	evaluationRunId?: number;
 	evaluationId?: number;

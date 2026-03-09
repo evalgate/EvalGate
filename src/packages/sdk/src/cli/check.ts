@@ -72,6 +72,9 @@ export interface CheckArgs {
 	baseUrl: string;
 	apiKey: string;
 	minScore: number;
+	judgeTprMin?: number;
+	judgeTnrMin?: number;
+	judgeMinLabeledSamples?: number;
 	maxDrop?: number;
 	warnDrop?: number;
 	minN?: number;
@@ -87,6 +90,7 @@ export interface CheckArgs {
 	maxCostUsd?: number;
 	maxLatencyMs?: number;
 	maxCostDeltaUsd?: number;
+	failureModeAlerts?: import("./config").FailureModeAlertsConfig;
 	/** When true, run all checks and print results but always exit 0. */
 	dryRun?: boolean;
 }
@@ -148,6 +152,23 @@ export function parseArgs(argv: string[]): ParseArgsResult {
 		args["max-cost-delta-usd"] || args.maxCostDeltaUsd
 			? parseFloat(args["max-cost-delta-usd"] || args.maxCostDeltaUsd || "0")
 			: undefined;
+	let judgeTprMin =
+		args["judge-tpr-min"] || args.judgeTprMin
+			? parseFloat(args["judge-tpr-min"] || args.judgeTprMin || "0")
+			: undefined;
+	let judgeTnrMin =
+		args["judge-tnr-min"] || args.judgeTnrMin
+			? parseFloat(args["judge-tnr-min"] || args.judgeTnrMin || "0")
+			: undefined;
+	let judgeMinLabeledSamples =
+		args["judge-min-labeled-samples"] || args.judgeMinLabeledSamples
+			? parseInt(
+					args["judge-min-labeled-samples"] ||
+						args.judgeMinLabeledSamples ||
+						"0",
+					10,
+				)
+			: undefined;
 	const profile = args.profile as "strict" | "balanced" | "fast" | undefined;
 	let baseline = (
 		args.baseline === "auto"
@@ -187,6 +208,16 @@ export function parseArgs(argv: string[]): ParseArgsResult {
 	if (merged.allowWeakEvidence != null && args.allowWeakEvidence === undefined)
 		allowWeakEvidence = merged.allowWeakEvidence ?? false;
 	if (merged.baseline && !args.baseline) baseline = merged.baseline;
+	if (judgeTprMin === undefined) {
+		judgeTprMin = merged.judge?.alignmentThresholds?.tprMin;
+	}
+	if (judgeTnrMin === undefined) {
+		judgeTnrMin = merged.judge?.alignmentThresholds?.tnrMin;
+	}
+	if (judgeMinLabeledSamples === undefined) {
+		judgeMinLabeledSamples =
+			merged.judge?.alignmentThresholds?.minLabeledSamples;
+	}
 
 	if (!apiKey) {
 		return {
@@ -221,12 +252,48 @@ export function parseArgs(argv: string[]): ParseArgsResult {
 		};
 	}
 
+	if (
+		judgeTprMin !== undefined &&
+		(Number.isNaN(judgeTprMin) || judgeTprMin < 0 || judgeTprMin > 1)
+	) {
+		return {
+			ok: false,
+			exitCode: EXIT.BAD_ARGS,
+			message: "Error: --judge-tpr-min must be between 0 and 1",
+		};
+	}
+
+	if (
+		judgeTnrMin !== undefined &&
+		(Number.isNaN(judgeTnrMin) || judgeTnrMin < 0 || judgeTnrMin > 1)
+	) {
+		return {
+			ok: false,
+			exitCode: EXIT.BAD_ARGS,
+			message: "Error: --judge-tnr-min must be between 0 and 1",
+		};
+	}
+
+	if (
+		judgeMinLabeledSamples !== undefined &&
+		(Number.isNaN(judgeMinLabeledSamples) || judgeMinLabeledSamples < 1)
+	) {
+		return {
+			ok: false,
+			exitCode: EXIT.BAD_ARGS,
+			message: "Error: --judge-min-labeled-samples must be a positive integer",
+		};
+	}
+
 	return {
 		ok: true,
 		args: {
 			baseUrl,
 			apiKey,
 			minScore,
+			judgeTprMin,
+			judgeTnrMin,
+			judgeMinLabeledSamples,
 			maxDrop,
 			warnDrop,
 			minN,
@@ -257,6 +324,9 @@ export function parseArgs(argv: string[]): ParseArgsResult {
 }
 
 export async function runCheck(args: CheckArgs): Promise<number> {
+	// Load config for failure mode alerts
+	const config = loadConfig(process.cwd());
+
 	const qualityResult = await fetchQualityLatest(
 		args.baseUrl,
 		args.apiKey,
@@ -291,7 +361,10 @@ export async function runCheck(args: CheckArgs): Promise<number> {
 		if (runRes.ok) runDetails = runRes.data;
 	}
 
-	const gateResult = evaluateGate(args, quality);
+	const gateResult = evaluateGate(
+		{ ...args, failureModeAlerts: config?.failureModeAlerts },
+		quality,
+	);
 
 	// Create share before report when PR comment needs shareUrl (--pr-comment-out + --share fail + gate failed)
 	let shareUrl: string | undefined;

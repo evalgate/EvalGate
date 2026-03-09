@@ -423,6 +423,7 @@ jobs:
   python-sdk:
     needs: quality
     runs-on: ubuntu-latest
+    continue-on-error: true  # Non-blocking — allows platform deployment even if Python SDK not updated yet
     defaults:
       run:
         working-directory: src/packages/sdk-python

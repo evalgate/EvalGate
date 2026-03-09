@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * evalgate — EvalGate CLI
  *
@@ -7,6 +8,7 @@
  *   evalgate check  — CI/CD evaluation gate (see evalgate check --help)
  */
 
+import { runAnalyze } from "./analyze";
 import { runBaseline } from "./baseline";
 import { parseArgs, runCheck } from "./check";
 import { runCICLI } from "./ci";
@@ -17,6 +19,7 @@ import { runDoctor } from "./doctor";
 import { runExplain } from "./explain";
 import { runImpactAnalysisCLI } from "./impact-analysis";
 import { runInit } from "./init";
+import { runLabel } from "./label";
 import { migrateConfig } from "./migrate";
 import { runPrintConfig } from "./print-config";
 import { runPromote } from "./promote";
@@ -48,12 +51,14 @@ const SUBCOMMAND_HELP: Record<string, string> = {
 	watch: `evalgate watch — Watch mode (re-execute on file save)\n\nUsage:\n  evalgate run --watch [options]\n  evalgate watch [options]\n\nOptions:\n  --debounce <ms>    Debounce interval (default: 300ms)\n  --no-clear         Don't clear screen between runs\n  --format <fmt>     Output format: human (default), json\n  --write-results    Write results to .evalgate/last-run.json\n\nExamples:\n  evalgate run --watch\n  evalgate watch --write-results`,
 	gate: `evalgate gate — Run the regression gate\n\nUsage:\n  evalgate gate [options]\n\nOptions:\n  --format <fmt>   Output format: human (default), json, github\n  --dry-run        Run checks but always exit 0 (preview mode)\n\nExamples:\n  evalgate gate\n  evalgate gate --format json\n  evalgate gate --dry-run`,
 	check: `evalgate check — CI/CD evaluation gate (API-based)\n\nUsage:\n  evalgate check [options]\n\nOptions:\n  --evaluationId <id>  Evaluation to gate on\n  --apiKey <key>       API key (or EVALGATE_API_KEY env)\n  --format <fmt>       Output format: human (default), json, github\n  --explain            Show score breakdown\n  --minScore <n>       Fail if score < n\n  --maxDrop <n>        Fail if score dropped > n\n  --policy <name>      Enforce policy (HIPAA, SOC2, etc.)\n\nExamples:\n  evalgate check --minScore 92 --evaluationId 42`,
+	analyze: `evalgate analyze — Analyze labeled golden dataset failure modes (first pass)\n\nUsage:\n  evalgate analyze [options]\n\nOptions:\n  --dataset <path>  Labeled JSONL dataset path (default: .evalgate/golden/labeled.jsonl)\n  --format <fmt>    Output format: human (default), json\n  --top <n>         Number of top failure modes to show (default: 5)`,
 	explain: `evalgate explain — Explain last gate/check failure\n\nUsage:\n  evalgate explain [options]\n\nOptions:\n  --report <path>  Path to report JSON (default: evals/regression-report.json)\n  --format <fmt>   Output format: human (default), json`,
 	discover: `evalgate discover — Discover behavioral specs\n\nUsage:\n  evalgate discover [options]\n\nOptions:\n  --manifest  Generate evaluation manifest for incremental analysis`,
 	run: `evalgate run — Run evaluation specifications\n\nUsage:\n  evalgate run [options]\n\nOptions:\n  --spec-ids <ids>    Comma-separated list of spec IDs\n  --impacted-only     Run only impacted specs (requires --base)\n  --base <branch>     Base branch for impact analysis\n  --format <fmt>      Output format: human (default), json\n  --write-results     Write results to .evalgate/last-run.json`,
 	diff: `evalgate diff — Compare two run reports\n\nUsage:\n  evalgate diff [options]\n\nOptions:\n  --base <ref>   Base branch or report path\n  --head <path>  Head report path\n  --format <fmt> Output format: human (default), json`,
 	validate: `evalgate validate — Validate spec files without running them\n\nUsage:\n  evalgate validate [options]\n\nOptions:\n  --format <fmt>  Output format: human (default), json`,
-	doctor: `evalgate doctor — Comprehensive CI/CD readiness checklist\n\nUsage:\n  evalgate doctor [options]\n\nOptions:\n  --report         Output JSON diagnostic bundle\n  --format <fmt>   Output format: human (default), json\n  --strict         Treat warnings as failures\n  --apiKey <key>   API key\n  --evaluationId <id>  Evaluation to verify`,
+	label: `evalgate label — Interactive trace labeling for golden dataset\n\nUsage:\n  evalgate label [options]\n\nOptions:\n  --run <path>       Run result JSON to label (default: searches evals/latest-run.json)\n  --output <path>    Labeled JSONL output path (default: .evalgate/golden/labeled.jsonl)\n  --format <fmt>     Output format: human (default), json\n\nSteps through traces from a run result, allowing pass/fail labeling\nand optional failure-mode tagging. Writes to canonical labeled.jsonl.`,
+	doctor: `evalgate doctor — Comprehensive CI/CD readiness checklist\n\nUsage:\n  evalgate doctor [options]\n\nOptions:\n  --report         Output JSON diagnostic bundle\n\nRuns itemized pass/fail checks with exact remediation commands.`,
 	promote: `evalgate promote — Promote candidate eval cases to regression suite\n\nUsage:\n  evalgate promote <candidate-id>     Promote a specific candidate\n  evalgate promote --auto             Auto-promote all eligible\n  evalgate promote --list             List promotable candidates\n\nOptions:\n  --evaluation-id <id>  Target evaluation (default: golden regression)\n  --apiKey <key>        API key\n  --baseUrl <url>       API base URL`,
 	replay: `evalgate replay — Replay a candidate eval case\n\nUsage:\n  evalgate replay <candidate-id>\n\nOptions:\n  --model <model>   Override model\n  --format <fmt>    Output format: human (default), json\n  --apiKey <key>    API key\n  --baseUrl <url>   API base URL`,
 	baseline: `evalgate baseline — Manage regression gate baselines\n\nUsage:\n  evalgate baseline init     Create starter evals/baseline.json\n  evalgate baseline update   Run tests and update baseline`,
@@ -322,6 +327,18 @@ if (subcommand === "init") {
 			);
 			process.exit(4);
 		});
+} else if (subcommand === "analyze") {
+	const code = runAnalyze(argv.slice(1));
+	process.exit(code);
+} else if (subcommand === "label") {
+	runLabel(argv.slice(1))
+		.then((code) => process.exit(code))
+		.catch((err) => {
+			console.error(
+				`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`,
+			);
+			process.exit(1);
+		});
 } else if (subcommand === "explain") {
 	runExplain(argv.slice(1))
 		.then((code) => process.exit(code))
@@ -493,10 +510,15 @@ Usage:
     --watch                    Enable watch mode after first run
     --format <fmt>             Output format: human (default), json
   evalgate init                  Create evalgate.config.json + baseline + CI workflow
-    --template <name>          Start with a template (chatbot, codegen, agent, safety, rag)
+    --template <name>          Start with a real working template (chatbot, codegen, agent, safety, rag)
     --list-templates           Show all available templates
-  evalgate discover              Discover behavioral specs in project and show statistics
-    --manifest                 Generate evaluation manifest for incremental analysis
+  evalgate label                 Interactive trace labeling for golden dataset
+    --run <path>               Run result JSON to label (default: searches evals/latest-run.json)
+    --output <path>            Labeled JSONL output path (default: .evalgate/golden/labeled.jsonl)
+    --format <fmt>             Output format: human (default), json
+  evalgate doctor                 Comprehensive CI/CD readiness checklist
+    --report                   Output JSON diagnostic bundle (redacted)
+  evalgate analyze                Analyze labeled golden dataset failure modes (first pass)l analysis
   evalgate run                   Run evaluation specifications
     --spec-ids <ids>           Comma-separated list of spec IDs to run
     --impacted-only            Run only specs impacted by changes (requires --base)
@@ -529,6 +551,7 @@ Usage:
     --write-results            Write run results to .evalgate/last-run.json
   evalgate gate [options]        Run regression gate (local test-based, no API needed)
   evalgate check [options]       CI/CD evaluation gate (API-based)
+  evalgate analyze [options]     Analyze failure modes from labeled golden JSONL (first pass)
   evalgate explain [options]     Explain last gate/check failure with root causes + fixes
   evalgate doctor [options]      Comprehensive CI/CD readiness checklist
   evalgate validate              Validate spec files without running them
@@ -549,6 +572,7 @@ Examples:
   evalgate ci --base main --impacted-only                 Full CI loop
   evalgate gate --format json                             Regression gate
   evalgate check --minScore 92 --evaluationId 42          API-based gate
+  evalgate analyze --dataset .evalgate/golden/labeled.jsonl  Failure mode frequency snapshot
   evalgate doctor                                         Preflight check
 `);
 	process.exit(subcommand === "--help" || subcommand === "-h" ? 0 : 1);

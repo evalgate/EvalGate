@@ -5,7 +5,9 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.evaluateGate = evaluateGate;
+const config_1 = require("./config");
 const constants_1 = require("./constants");
+const judge_credibility_1 = require("./judge-credibility");
 const policy_packs_1 = require("./policy-packs");
 const reason_codes_1 = require("./reason-codes");
 function evaluateGate(args, quality) {
@@ -20,6 +22,7 @@ function evaluateGate(args, quality) {
     const avgLatencyMs = quality?.avgLatencyMs ?? null;
     const costUsd = quality?.costUsd ?? null;
     const baselineCostUsd = quality?.baselineCostUsd ?? null;
+    const judgeAlignment = quality?.judgeAlignment;
     // Baseline missing FIRST: --baseline auto → exit 0 (neutral, gate not applied); others → BAD_ARGS
     // Must run before budget gates so baseline missing + maxCostDeltaUsd ⇒ neutral, not budget failure
     if (baselineMissing) {
@@ -94,6 +97,78 @@ function evaluateGate(args, quality) {
             reasonMessage: "evidence level is 'weak' (use --allowWeakEvidence to permit)",
         };
     }
+    const judgeThresholdsConfigured = args.judgeTprMin != null ||
+        args.judgeTnrMin != null ||
+        args.judgeMinLabeledSamples != null;
+    if (judgeThresholdsConfigured && !judgeAlignment) {
+        return {
+            exitCode: constants_1.EXIT.SCORE_BELOW,
+            passed: false,
+            reasonCode: reason_codes_1.REASON_CODES.JUDGE_ALIGNMENT_MISSING,
+            reasonMessage: "judge alignment metrics are missing from quality payload; cannot enforce judge thresholds",
+        };
+    }
+    if (judgeThresholdsConfigured && judgeAlignment) {
+        const hasTprTnr = typeof judgeAlignment.tpr === "number" &&
+            typeof judgeAlignment.tnr === "number";
+        const discriminativePower = hasTprTnr
+            ? judgeAlignment.tpr + judgeAlignment.tnr - 1
+            : undefined;
+        const correctionSkippedForWeakJudge = judgeAlignment.correctionApplied === false &&
+            judgeAlignment.correctionSkippedReason === "judge_too_weak_to_correct";
+        const inferredWeakJudge = discriminativePower != null &&
+            discriminativePower <= judge_credibility_1.MIN_DISCRIMINATIVE_POWER;
+        if (correctionSkippedForWeakJudge || inferredWeakJudge) {
+            return {
+                exitCode: constants_1.EXIT.JUDGE_CREDIBILITY_UNTRUSTWORTHY,
+                passed: false,
+                reasonCode: reason_codes_1.REASON_CODES.JUDGE_CREDIBILITY_UNTRUSTWORTHY,
+                reasonMessage: `judge correction unavailable due weak discriminative power (TPR + TNR - 1 = ${(discriminativePower ?? 0).toFixed(3)} <= ${judge_credibility_1.MIN_DISCRIMINATIVE_POWER})`,
+            };
+        }
+    }
+    if (args.judgeMinLabeledSamples != null &&
+        (judgeAlignment?.sampleSize == null ||
+            judgeAlignment.sampleSize < args.judgeMinLabeledSamples)) {
+        return {
+            exitCode: constants_1.EXIT.LOW_N,
+            passed: false,
+            reasonCode: reason_codes_1.REASON_CODES.LOW_SAMPLE_SIZE,
+            reasonMessage: `judge sample size (${judgeAlignment?.sampleSize ?? 0}) < judgeMinLabeledSamples (${args.judgeMinLabeledSamples})`,
+        };
+    }
+    if (args.judgeTprMin != null && judgeAlignment?.tpr == null) {
+        return {
+            exitCode: constants_1.EXIT.SCORE_BELOW,
+            passed: false,
+            reasonCode: reason_codes_1.REASON_CODES.JUDGE_ALIGNMENT_MISSING,
+            reasonMessage: "judge TPR metric is missing from quality payload; cannot enforce judgeTprMin",
+        };
+    }
+    if (args.judgeTprMin != null && judgeAlignment.tpr < args.judgeTprMin) {
+        return {
+            exitCode: constants_1.EXIT.SCORE_BELOW,
+            passed: false,
+            reasonCode: reason_codes_1.REASON_CODES.JUDGE_ALIGNMENT_LOW,
+            reasonMessage: `judge TPR ${judgeAlignment.tpr} < judgeTprMin ${args.judgeTprMin}`,
+        };
+    }
+    if (args.judgeTnrMin != null && judgeAlignment?.tnr == null) {
+        return {
+            exitCode: constants_1.EXIT.SCORE_BELOW,
+            passed: false,
+            reasonCode: reason_codes_1.REASON_CODES.JUDGE_ALIGNMENT_MISSING,
+            reasonMessage: "judge TNR metric is missing from quality payload; cannot enforce judgeTnrMin",
+        };
+    }
+    if (args.judgeTnrMin != null && judgeAlignment.tnr < args.judgeTnrMin) {
+        return {
+            exitCode: constants_1.EXIT.SCORE_BELOW,
+            passed: false,
+            reasonCode: reason_codes_1.REASON_CODES.JUDGE_ALIGNMENT_LOW,
+            reasonMessage: `judge TNR ${judgeAlignment.tnr} < judgeTnrMin ${args.judgeTnrMin}`,
+        };
+    }
     // Compute gate result
     if (args.minScore > 0 && score < args.minScore) {
         return {
@@ -166,6 +241,23 @@ function evaluateGate(args, quality) {
                     failedCheck: "flag_restrictions",
                     remediation: `Resolve flags: ${violations.join(", ")}. These indicate policy violations that must be addressed.`,
                     snapshot: { violations, policy: `${pack.policyId}@${pack.version}` },
+                },
+            };
+        }
+    }
+    // Check failure mode alerts if configured
+    if (args.failureModeAlerts && judgeAlignment?.failureModes) {
+        const alerts = (0, config_1.checkFailureModeAlerts)(judgeAlignment.failureModes, judgeAlignment.totalFailed || 0, args.failureModeAlerts);
+        if (alerts.length > 0) {
+            return {
+                exitCode: constants_1.EXIT.SCORE_BELOW,
+                passed: false,
+                reasonCode: reason_codes_1.REASON_CODES.POLICY_FAILED,
+                reasonMessage: `Failure mode thresholds breached: ${alerts.join("; ")}`,
+                policyEvidence: {
+                    failedCheck: "failure_mode_thresholds",
+                    remediation: "Review failure mode frequencies and adjust thresholds or improve model performance",
+                    snapshot: { alerts, failureModes: judgeAlignment.failureModes },
                 },
             };
         }

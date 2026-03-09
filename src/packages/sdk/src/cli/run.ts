@@ -12,9 +12,15 @@
  */
 
 import { spawn } from "node:child_process";
-import * as fs from "node:fs/promises";
+import * as fs from "node:fs";
+import * as fsPromises from "node:fs/promises";
 import * as path from "node:path";
 import { disposeActiveRuntime, getActiveRuntime } from "../runtime/registry";
+import {
+	checkFailureModeAlerts,
+	type EvalAIConfig,
+	loadConfig,
+} from "./config";
 import { runImpactAnalysis } from "./impact-analysis";
 import type { EvaluationManifest, Spec } from "./manifest";
 import {
@@ -64,6 +70,19 @@ export interface RunResult {
 		failed: number;
 		skipped: number;
 		passRate: number;
+		/** Per-failure-mode frequency counts (from labeled dataset) */
+		failureModes?: Record<string, number>;
+		/** Budget tracking information */
+		budget?: {
+			mode: "traces" | "cost";
+			used: number;
+			limit: number;
+			exceeded: boolean;
+		};
+		/** Total cost in USD (when cost mode is used) */
+		totalCostUsd?: number;
+		/** Corrected pass rate from judge alignment (when available) */
+		correctedPassRate?: number | null;
 	};
 }
 
@@ -84,7 +103,18 @@ export interface SpecResult {
 		error?: string;
 		duration: number;
 	};
+	/** Input text — populated when executor provides it, used for labeling */
+	input?: string;
+	/** Expected output — populated when executor provides it, used for labeling */
+	expected?: string;
+	/** Actual output — populated when executor provides it, used for labeling */
+	actual?: string;
 }
+
+/**
+ * Schema version for RunResult — bump on breaking changes.
+ */
+export const RUN_RESULT_SCHEMA_VERSION = 1;
 
 /**
  * Generate deterministic run ID
@@ -146,14 +176,45 @@ export async function runEvaluations(
 		console.log(`🎯 Running all ${specsToRun.length} specs`);
 	}
 
-	// Execute specs
-	const results = await executeSpecs(specsToRun);
+	// Execute specs with budget enforcement
+	const config = loadConfig(projectRoot);
+	const { results, budgetExceeded } = await executeSpecs(
+		specsToRun,
+		config?.normalizedBudget,
+	);
 
 	const completedAt = Date.now();
 	const duration = completedAt - startTime;
 
-	// Calculate summary
-	const summary = calculateSummary(results);
+	// Get labeled dataset path for failure mode frequencies
+	const labeledDatasetPath = config?.judge?.labeledDatasetPath
+		? path.isAbsolute(config.judge.labeledDatasetPath)
+			? config.judge.labeledDatasetPath
+			: path.join(projectRoot, config.judge.labeledDatasetPath)
+		: undefined;
+
+	// Calculate summary with budget information
+	const summary = await calculateSummary(
+		results,
+		labeledDatasetPath,
+		config?.normalizedBudget,
+	);
+
+	// Add budget tracking to summary if budget config exists
+	if (config?.normalizedBudget) {
+		const budgetUsed =
+			config.normalizedBudget.mode === "traces" ? results.length : 0; // TODO: Calculate actual cost when cost provider is implemented
+
+		summary.budget = {
+			mode: config.normalizedBudget.mode,
+			used: budgetUsed,
+			limit:
+				config.normalizedBudget.mode === "traces"
+					? config.normalizedBudget.maxTraces!
+					: config.normalizedBudget.maxCostUsd!,
+			exceeded: budgetExceeded,
+		};
+	}
 
 	const runResult: RunResult = {
 		schemaVersion: 1,
@@ -176,6 +237,28 @@ export async function runEvaluations(
 		await updateRunIndex(runResult, projectRoot);
 	}
 
+	// Handle budget exceeded - save partial results and exit with error
+	if (budgetExceeded && config?.normalizedBudget) {
+		const budgetUsed =
+			config.normalizedBudget.mode === "traces" ? results.length : 0; // TODO: Calculate actual cost when cost provider is implemented
+
+		const budgetLimit =
+			config.normalizedBudget.mode === "traces"
+				? config.normalizedBudget.maxTraces!
+				: config.normalizedBudget.maxCostUsd!;
+
+		console.log(
+			`\n💰 Budget exceeded: ${budgetUsed}/${budgetLimit} ${config.normalizedBudget.mode} used`,
+		);
+		console.log(
+			`Partial results saved → .evalgate/runs/run-${runResult.runId}.json (${results.length} traces)`,
+		);
+		console.log(`Replay decision: DISCARD (budget_exceeded)`);
+
+		// Exit with budget exceeded code
+		process.exit(2); // TODO: Add dedicated EXIT.BUDGET_EXCEEDED code
+	}
+
 	return runResult;
 }
 
@@ -188,7 +271,7 @@ async function loadManifest(
 	const manifestPath = path.join(projectRoot, ".evalgate", "manifest.json");
 
 	try {
-		const content = await fs.readFile(manifestPath, "utf-8");
+		const content = await fsPromises.readFile(manifestPath, "utf-8");
 		return JSON.parse(content) as EvaluationManifest;
 	} catch (_error) {
 		return null;
@@ -197,8 +280,12 @@ async function loadManifest(
 
 /**
  * Execute specifications — grouped by file to avoid redundant loads
+ * Enforces budget limits and saves partial results on budget exceeded
  */
-async function executeSpecs(specs: Spec[]): Promise<SpecResult[]> {
+async function executeSpecs(
+	specs: Spec[],
+	budgetConfig?: import("./config").NormalizedBudgetConfig,
+): Promise<{ results: SpecResult[]; budgetExceeded: boolean }> {
 	// Group specs by their absolute file path
 	const specsByFile = new Map<string, Spec[]>();
 	for (const spec of specs) {
@@ -211,8 +298,39 @@ async function executeSpecs(specs: Spec[]): Promise<SpecResult[]> {
 	}
 
 	const results: SpecResult[] = [];
+	let budgetExceeded = false;
+
+	// Initialize budget tracking
+	const budgetLimit =
+		budgetConfig?.mode === "traces"
+			? budgetConfig.maxTraces
+			: budgetConfig?.mode === "cost"
+				? budgetConfig.maxCostUsd
+				: undefined;
 
 	for (const [absPath, fileSpecs] of specsByFile) {
+		// Check budget before processing each file
+		if (budgetConfig && budgetLimit !== undefined) {
+			const currentUsage = budgetConfig.mode === "traces" ? results.length : 0; // TODO: Calculate actual cost when cost provider is implemented
+
+			if (currentUsage >= budgetLimit) {
+				budgetExceeded = true;
+				// Mark remaining specs as skipped due to budget
+				for (const spec of fileSpecs) {
+					results.push({
+						specId: spec.id,
+						name: spec.name,
+						filePath: spec.filePath,
+						result: {
+							status: "skipped",
+							error: `Budget exceeded: ${currentUsage}/${budgetLimit} ${budgetConfig.mode} used`,
+							duration: 0,
+						},
+					});
+				}
+				continue;
+			}
+		}
 		// Fresh runtime per file to avoid cross-file contamination
 		disposeActiveRuntime();
 
@@ -294,7 +412,7 @@ async function executeSpecs(specs: Spec[]): Promise<SpecResult[]> {
 		}
 	}
 
-	return results;
+	return { results, budgetExceeded };
 }
 
 function makeErrorResult(
@@ -313,18 +431,94 @@ function makeErrorResult(
 /**
  * Calculate summary statistics
  */
-function calculateSummary(results: SpecResult[]): RunResult["summary"] {
+async function calculateSummary(
+	results: SpecResult[],
+	labeledDatasetPath?: string,
+	_budgetConfig?: import("./config").NormalizedBudgetConfig,
+): Promise<RunResult["summary"]> {
 	const passed = results.filter((r) => r.result.status === "passed").length;
 	const failed = results.filter((r) => r.result.status === "failed").length;
 	const skipped = results.filter((r) => r.result.status === "skipped").length;
 	const passRate = results.length > 0 ? passed / results.length : 0;
 
-	return {
+	const summary: RunResult["summary"] = {
 		passed,
 		failed,
 		skipped,
 		passRate,
 	};
+
+	// Add failure mode frequencies if labeled dataset is available
+	if (labeledDatasetPath) {
+		try {
+			const failureModes = await calculateFailureModeFrequencies(
+				results,
+				labeledDatasetPath,
+			);
+			if (Object.keys(failureModes).length > 0) {
+				summary.failureModes = failureModes;
+			}
+		} catch (error) {
+			// Don't fail the run if we can't read the labeled dataset
+			console.warn(
+				`Warning: Could not calculate failure mode frequencies: ${error}`,
+			);
+		}
+	}
+
+	return summary;
+}
+
+/**
+ * Calculate failure mode frequencies from labeled dataset
+ */
+async function calculateFailureModeFrequencies(
+	results: SpecResult[],
+	labeledDatasetPath: string,
+): Promise<Record<string, number>> {
+	if (!fs.existsSync(labeledDatasetPath)) {
+		return {};
+	}
+
+	try {
+		const content = fs.readFileSync(labeledDatasetPath, "utf-8");
+		const lines = content
+			.split("\n")
+			.filter((line: string) => line.trim().length > 0);
+
+		// Build map of caseId -> failureMode from labeled dataset
+		const labeledMap = new Map<string, string | null>();
+		for (const line of lines) {
+			try {
+				const labeled = JSON.parse(line) as {
+					caseId: string;
+					label: string;
+					failureMode: string | null;
+				};
+				if (labeled.label === "fail" && labeled.failureMode) {
+					labeledMap.set(labeled.caseId, labeled.failureMode);
+				}
+			} catch {}
+		}
+
+		// Count failure modes for current run results
+		const failureModeCounts = new Map<string, number>();
+		for (const result of results) {
+			if (result.result.status === "failed") {
+				const failureMode = labeledMap.get(result.specId);
+				if (failureMode) {
+					failureModeCounts.set(
+						failureMode,
+						(failureModeCounts.get(failureMode) || 0) + 1,
+					);
+				}
+			}
+		}
+
+		return Object.fromEntries(failureModeCounts);
+	} catch (error) {
+		throw new Error(`Failed to read labeled dataset: ${error}`);
+	}
 }
 
 /**
@@ -335,19 +529,23 @@ async function writeRunResults(
 	projectRoot: string = process.cwd(),
 ): Promise<void> {
 	const evalgateDir = path.join(projectRoot, ".evalgate");
-	await fs.mkdir(evalgateDir, { recursive: true });
+	await fsPromises.mkdir(evalgateDir, { recursive: true });
 
 	// Write last-run.json (existing behavior)
 	const lastRunPath = path.join(evalgateDir, "last-run.json");
-	await fs.writeFile(lastRunPath, JSON.stringify(result, null, 2), "utf-8");
+	await fsPromises.writeFile(
+		lastRunPath,
+		JSON.stringify(result, null, 2),
+		"utf-8",
+	);
 
 	// Create runs directory and write timestamped artifact
 	if (result.runId) {
 		const runsDir = path.join(evalgateDir, "runs");
-		await fs.mkdir(runsDir, { recursive: true });
+		await fsPromises.mkdir(runsDir, { recursive: true });
 
 		const timestampedPath = path.join(runsDir, `${result.runId}.json`);
-		await fs.writeFile(
+		await fsPromises.writeFile(
 			timestampedPath,
 			JSON.stringify(result, null, 2),
 			"utf-8",
@@ -355,7 +553,11 @@ async function writeRunResults(
 
 		// Optional: Create latest.json mirror
 		const latestPath = path.join(runsDir, "latest.json");
-		await fs.writeFile(latestPath, JSON.stringify(result, null, 2), "utf-8");
+		await fsPromises.writeFile(
+			latestPath,
+			JSON.stringify(result, null, 2),
+			"utf-8",
+		);
 	}
 
 	console.log(`✅ Run results written to .evalgate/last-run.json`);
@@ -388,7 +590,7 @@ async function updateRunIndex(
 	const runsDir = path.join(projectRoot, ".evalgate", "runs");
 	const indexPath = path.join(runsDir, "index.json");
 
-	await fs.mkdir(runsDir, { recursive: true });
+	await fsPromises.mkdir(runsDir, { recursive: true });
 
 	// Calculate average score
 	const scores = result.results
@@ -421,7 +623,7 @@ async function updateRunIndex(
 	// Read existing index or create new one
 	let index: RunIndexEntry[] = [];
 	try {
-		const existingContent = await fs.readFile(indexPath, "utf-8");
+		const existingContent = await fsPromises.readFile(indexPath, "utf-8");
 		index = JSON.parse(existingContent);
 	} catch (_error) {
 		// Index doesn't exist yet, start with empty array
@@ -435,8 +637,8 @@ async function updateRunIndex(
 
 	// Write to temp file first, then rename for atomicity
 	const tempPath = `${indexPath}.tmp`;
-	await fs.writeFile(tempPath, JSON.stringify(index, null, 2), "utf-8");
-	await fs.rename(tempPath, indexPath);
+	await fsPromises.writeFile(tempPath, JSON.stringify(index, null, 2), "utf-8");
+	await fsPromises.rename(tempPath, indexPath);
 }
 
 /**
@@ -490,7 +692,10 @@ async function getGitBranch(): Promise<string | undefined> {
 /**
  * Print human-readable results
  */
-export function printHumanResults(result: RunResult): void {
+export function printHumanResults(
+	result: RunResult,
+	config?: EvalAIConfig | null,
+): void {
 	console.log("\n🏃 Evaluation Run Results");
 	console.log(`⏱️  Duration: ${result.metadata.duration}ms`);
 	console.log(
@@ -505,6 +710,36 @@ export function printHumanResults(result: RunResult): void {
 	console.log(
 		`   📊 Pass Rate: ${(result.summary.passRate * 100).toFixed(1)}%`,
 	);
+
+	// Failure mode frequencies
+	if (
+		result.summary.failureModes &&
+		Object.keys(result.summary.failureModes).length > 0
+	) {
+		console.log("\n🔍 Failure Modes:");
+		const sortedModes = Object.entries(result.summary.failureModes).sort(
+			(a, b) => b[1] - a[1],
+		);
+		for (const [mode, count] of sortedModes) {
+			const percentage = ((count / result.summary.failed) * 100).toFixed(1);
+			console.log(`   ${mode}: ${count} (${percentage}%)`);
+		}
+
+		// Check failure mode alerts
+		if (config?.failureModeAlerts && result.summary.failureModes) {
+			const alerts = checkFailureModeAlerts(
+				result.summary.failureModes,
+				result.summary.failed,
+				config.failureModeAlerts,
+			);
+			if (alerts.length > 0) {
+				console.log("\n⚠️  Failure Mode Alerts:");
+				for (const alert of alerts) {
+					console.log(`   ${alert}`);
+				}
+			}
+		}
+	}
 
 	// Latency percentiles
 	const durations = result.results
@@ -562,10 +797,11 @@ export async function runEvaluationsCLI(options: RunOptions): Promise<number> {
 			}
 		}
 
+		const runConfig = loadConfig(process.cwd());
 		if (options.format === "json") {
 			printJsonResults(result);
 		} else {
-			printHumanResults(result);
+			printHumanResults(result, runConfig);
 		}
 
 		// Return appropriate exit code (caller handles process.exit)

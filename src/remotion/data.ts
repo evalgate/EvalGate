@@ -242,23 +242,17 @@ await tracer.endWorkflow({ resolution: 'resolved' });`;
 
 export const FPS = 30;
 export const SEGMENTS = {
-	intro: { start: 0, duration: 4 * FPS },
-	dashboard: { start: 4 * FPS, duration: 5 * FPS },
-	evaluationsList: { start: 9 * FPS, duration: 4 * FPS },
-	evaluationDetail: { start: 13 * FPS, duration: 5 * FPS },
-	traces: { start: 18 * FPS, duration: 5 * FPS },
-	workflowsList: { start: 23 * FPS, duration: 4 * FPS },
-	workflowStats: { start: 27 * FPS, duration: 4 * FPS },
-	workflowDag: { start: 31 * FPS, duration: 7 * FPS },
-	workflowRuns: { start: 38 * FPS, duration: 5 * FPS },
-	costsSummary: { start: 43 * FPS, duration: 4 * FPS },
-	costsCharts: { start: 47 * FPS, duration: 6 * FPS },
-	benchmarks: { start: 53 * FPS, duration: 6 * FPS },
-	sdk: { start: 59 * FPS, duration: 5 * FPS },
-	closing: { start: 64 * FPS, duration: 6 * FPS },
+	hookPain: { start: 0, duration: 2 * FPS },
+	hookCatch: { start: 2 * FPS, duration: 2 * FPS },
+	quickStartTerminal: { start: 4 * FPS, duration: 11 * FPS },
+	quickStartSummary: { start: 15 * FPS, duration: 12 * FPS },
+	loop: { start: 27 * FPS, duration: 20 * FPS },
+	trust: { start: 47 * FPS, duration: 10 * FPS },
+	explain: { start: 57 * FPS, duration: 20 * FPS },
+	remove: { start: 77 * FPS, duration: 8 * FPS },
 };
 
-export const TOTAL_FRAMES = 70 * FPS;
+export const TOTAL_FRAMES = 85 * FPS;
 
 export const CAPTIONS: Array<{
 	text: string;
@@ -266,88 +260,43 @@ export const CAPTIONS: Array<{
 	endFrame: number;
 }> = [
 	{
-		text: "EvalAI — Agent orchestration with visual workflows, cost tracking, and benchmarking.",
+		text: "You shipped a prompt change. Quality dropped 15%. You found out from a user.",
 		startFrame: 0,
-		endFrame: 3.8 * FPS,
+		endFrame: 2 * FPS,
 	},
 	{
-		text: "Dashboard overview — evaluations, recent runs, traces, and quality scores at a glance.",
+		text: "EvalGate catches it in CI before it ships.",
+		startFrame: 2 * FPS,
+		endFrame: 4 * FPS,
+	},
+	{
+		text: "2-minute setup: npx @evalgate/sdk init, then git push.",
 		startFrame: 4 * FPS,
-		endFrame: 8.8 * FPS,
+		endFrame: 15 * FPS,
 	},
 	{
-		text: "Evaluations list with type badges, pass rates, and filters for unit tests, model evals, and A/B tests.",
-		startFrame: 9 * FPS,
-		endFrame: 12.8 * FPS,
+		text: "GitHub Actions blocks regressions with a readable delta table.",
+		startFrame: 15 * FPS,
+		endFrame: 27 * FPS,
 	},
 	{
-		text: "Drill into an evaluation — AI quality grade, test case results, and metric breakdowns.",
-		startFrame: 13 * FPS,
-		endFrame: 17.8 * FPS,
-	},
-	{
-		text: "Traces — monitor every LLM call, tool invocation, and agent span with a waterfall timeline.",
-		startFrame: 18 * FPS,
-		endFrame: 22.8 * FPS,
-	},
-	{
-		text: "Workflow cards show DAG previews, status badges, run counts, and success rates.",
-		startFrame: 23 * FPS,
-		endFrame: 26.8 * FPS,
-	},
-	{
-		text: "Each workflow tracks total runs, success rate, average duration, and total cost.",
+		text: "collect → detect → generate → promote → gate → ship",
 		startFrame: 27 * FPS,
-		endFrame: 30.8 * FPS,
+		endFrame: 47 * FPS,
 	},
 	{
-		text: "Interactive SVG DAG with 6 node types: agent, tool, decision, parallel, human, LLM.",
-		startFrame: 31 * FPS,
-		endFrame: 34.5 * FPS,
-	},
-	{
-		text: 'Governance badges — amber "Approval" and red "Blocked" — render directly on nodes.',
-		startFrame: 34.5 * FPS,
-		endFrame: 37.8 * FPS,
-	},
-	{
-		text: "Full execution history — per-run cost, duration, agent count, and handoff tracking.",
-		startFrame: 38 * FPS,
-		endFrame: 42.8 * FPS,
-	},
-	{
-		text: "Real-time cost analytics: 30-day spend, 7-day trend, total tokens, avg cost per request.",
-		startFrame: 43 * FPS,
-		endFrame: 46.8 * FPS,
-	},
-	{
-		text: "Daily cost trend and model distribution. Spot spikes immediately.",
+		text: "Trust signal: gate and explain are offline and never phone home.",
 		startFrame: 47 * FPS,
-		endFrame: 50 * FPS,
+		endFrame: 57 * FPS,
 	},
 	{
-		text: "Cost breakdown by model — see exactly where money goes.",
-		startFrame: 50 * FPS,
-		endFrame: 52.8 * FPS,
+		text: "npx evalgate explain shows root cause + exact fix commands from local artifacts.",
+		startFrame: 57 * FPS,
+		endFrame: 77 * FPS,
 	},
 	{
-		text: "Leaderboard ranks agents by accuracy, latency, success rate, and composite score.",
-		startFrame: 53 * FPS,
-		endFrame: 56 * FPS,
-	},
-	{
-		text: "Radar chart compares ReAct vs Chain-of-Thought vs Tree-of-Thought across 5 metrics.",
-		startFrame: 56 * FPS,
-		endFrame: 58.8 * FPS,
-	},
-	{
-		text: "Published on npm — install @evalgate/sdk and start tracing in minutes.",
-		startFrame: 59 * FPS,
-		endFrame: 63.8 * FPS,
-	},
-	{
-		text: "Evaluations. Traces. Workflows. Cost analytics. Benchmarking. Published SDK.",
-		startFrame: 64 * FPS,
-		endFrame: 69.8 * FPS,
+		text: "Remove anytime. No account cancellation. No data export. Your tests keep working.",
+		startFrame: 77 * FPS,
+		endFrame: 85 * FPS,
 	},
 ];

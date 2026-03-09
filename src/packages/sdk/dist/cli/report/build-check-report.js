@@ -8,6 +8,8 @@ exports.buildCheckReport = buildCheckReport;
 const types_1 = require("../formatters/types");
 const snippet_1 = require("../render/snippet");
 const sort_1 = require("../render/sort");
+const MIN_DISCRIMINATIVE_POWER = 0.05;
+const MIN_BOOTSTRAP_SAMPLE_SIZE = 30;
 const TOP_N = 3;
 /** ContribPts from weights: passRate*50, safety*25, (0.6*judge+0.4*schema)*15, (0.6*latency+0.4*cost)*10 */
 function computeContribPts(b) {
@@ -94,6 +96,66 @@ function buildCheckReport(input) {
         delta: regressionDelta ?? undefined,
         n: total ?? undefined,
         evidenceLevel: quality?.evidenceLevel ?? undefined,
+        judgeAlignment: quality?.judgeAlignment
+            ? {
+                tpr: quality.judgeAlignment.tpr,
+                tnr: quality.judgeAlignment.tnr,
+                sampleSize: quality.judgeAlignment.sampleSize,
+                rawPassRate: quality.judgeAlignment.rawPassRate,
+                correctedPassRate: quality.judgeAlignment.correctedPassRate,
+                ci95Low: quality.judgeAlignment.ci95?.low,
+                ci95High: quality.judgeAlignment.ci95?.high,
+            }
+            : undefined,
+        judgeCredibility: quality?.judgeAlignment
+            ? (() => {
+                const ja = quality.judgeAlignment;
+                const tpr = typeof ja.tpr === "number" ? ja.tpr : undefined;
+                const tnr = typeof ja.tnr === "number" ? ja.tnr : undefined;
+                const discriminativePower = tpr != null && tnr != null ? tpr + tnr - 1 : undefined;
+                const correctionApplied = typeof ja.correctionApplied === "boolean"
+                    ? ja.correctionApplied
+                    : ja.correctedPassRate != null;
+                const correctionSkippedReason = ja.correctionSkippedReason ??
+                    (!correctionApplied &&
+                        discriminativePower != null &&
+                        discriminativePower <= MIN_DISCRIMINATIVE_POWER
+                        ? "judge_too_weak_to_correct"
+                        : undefined);
+                const hasCiBounds = ja.ci95 != null &&
+                    typeof ja.ci95.low === "number" &&
+                    typeof ja.ci95.high === "number";
+                const ciLow = hasCiBounds ? ja.ci95?.low : undefined;
+                const ciHigh = hasCiBounds ? ja.ci95?.high : undefined;
+                const ciApplied = typeof ja.ciApplied === "boolean" ? ja.ciApplied : hasCiBounds;
+                const ciSkippedReason = ja.ciSkippedReason ??
+                    (!ciApplied && typeof ja.sampleSize === "number"
+                        ? ja.sampleSize < MIN_BOOTSTRAP_SAMPLE_SIZE
+                            ? "insufficient_samples_for_ci"
+                            : !correctionApplied
+                                ? "judge_too_weak_to_correct"
+                                : undefined
+                        : undefined);
+                return {
+                    correctionApplied,
+                    correctionSkippedReason,
+                    ciApplied,
+                    ciSkippedReason,
+                    rawPassRate: ja.rawPassRate,
+                    correctedPassRate: correctionApplied
+                        ? (ja.correctedPassRate ?? null)
+                        : null,
+                    ci95: ciLow != null && ciHigh != null
+                        ? {
+                            low: ciLow,
+                            high: ciHigh,
+                        }
+                        : null,
+                    discriminativePower,
+                    sampleSize: ja.sampleSize,
+                };
+            })()
+            : undefined,
         baselineMissing: quality?.baselineMissing === true,
         baselineStatus: quality?.baselineMissing === true
             ? "missing"
@@ -113,6 +175,9 @@ function buildCheckReport(input) {
             maxCostUsd: args.maxCostUsd,
             maxLatencyMs: args.maxLatencyMs,
             maxCostDeltaUsd: args.maxCostDeltaUsd,
+            judgeTprMin: args.judgeTprMin,
+            judgeTnrMin: args.judgeTnrMin,
+            judgeMinLabeledSamples: args.judgeMinLabeledSamples,
         },
         dashboardUrl,
         failedCases,

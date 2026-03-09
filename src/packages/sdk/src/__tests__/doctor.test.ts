@@ -13,6 +13,8 @@ import {
 	checkConnectivity,
 	checkEvalAccess,
 	checkEvalTarget,
+	checkJudgeConfig,
+	checkJudgeCredibilityWarnings,
 	checkProject,
 	checkProviderEnv,
 	DOCTOR_EXIT,
@@ -30,6 +32,115 @@ describe("doctor individual checks", () => {
 			`evalgate-doctor-test-${Date.now()}`,
 		);
 		fs.mkdirSync(tmpDir, { recursive: true });
+	});
+
+	describe("checkJudgeConfig", () => {
+		it("skips when judge config is missing", () => {
+			const result = checkJudgeConfig(tmpDir, { evaluationId: "42" });
+			expect(result.status).toBe("skip");
+			expect(result.judgeInfo.configured).toBe(false);
+		});
+
+		it("warns when judge configured without labeledDatasetPath", () => {
+			const result = checkJudgeConfig(tmpDir, {
+				evaluationId: "42",
+				judge: { bootstrapIterations: 2000 },
+			});
+			expect(result.status).toBe("warn");
+			expect(result.message).toContain("labeledDatasetPath");
+		});
+
+		it("fails when labeled dataset path does not exist", () => {
+			const result = checkJudgeConfig(tmpDir, {
+				evaluationId: "42",
+				judge: {
+					labeledDatasetPath: "evals/judge-labeled.jsonl",
+					bootstrapIterations: 2000,
+				},
+			});
+			expect(result.status).toBe("warn");
+			expect(result.message).toContain("not found");
+		});
+
+		it("passes when judge dataset exists", () => {
+			const evalsDir = path.join(tmpDir, "evals");
+			fs.mkdirSync(evalsDir, { recursive: true });
+			fs.writeFileSync(path.join(evalsDir, "judge-labeled.jsonl"), "{}\n");
+
+			const result = checkJudgeConfig(tmpDir, {
+				evaluationId: "42",
+				judge: {
+					labeledDatasetPath: "evals/judge-labeled.jsonl",
+					bootstrapIterations: 2000,
+					alignmentThresholds: { tprMin: 0.8, tnrMin: 0.8 },
+				},
+			});
+
+			expect(result.status).toBe("pass");
+			expect(result.judgeInfo.labeledDatasetExists).toBe(true);
+		});
+
+		it("fails when bootstrapSeed is non-integer", () => {
+			const evalsDir = path.join(tmpDir, "evals");
+			fs.mkdirSync(evalsDir, { recursive: true });
+			fs.writeFileSync(path.join(evalsDir, "judge-labeled.jsonl"), "{}\n");
+
+			const result = checkJudgeConfig(tmpDir, {
+				evaluationId: "42",
+				judge: {
+					labeledDatasetPath: "evals/judge-labeled.jsonl",
+					bootstrapIterations: 2000,
+					bootstrapSeed: 3.14,
+				},
+			});
+
+			expect(result.status).toBe("fail");
+			expect(result.message).toContain("bootstrapSeed");
+		});
+	});
+
+	describe("checkJudgeCredibilityWarnings", () => {
+		it("warns when judge is near-random", () => {
+			const checks = checkJudgeCredibilityWarnings({
+				judgeAlignment: {
+					tpr: 0.52,
+					tnr: 0.5,
+					sampleSize: 120,
+				},
+			});
+			expect(
+				checks.find((c) => c.id === "judge_correction_viability")?.status,
+			).toBe("warn");
+		});
+
+		it("warns when sample size is below CI threshold", () => {
+			const checks = checkJudgeCredibilityWarnings({
+				judgeAlignment: {
+					tpr: 0.9,
+					tnr: 0.9,
+					sampleSize: 20,
+				},
+			});
+			expect(checks.find((c) => c.id === "judge_ci_sample_size")?.status).toBe(
+				"warn",
+			);
+		});
+
+		it("passes when judge power and sample size are strong", () => {
+			const checks = checkJudgeCredibilityWarnings({
+				judgeAlignment: {
+					tpr: 0.92,
+					tnr: 0.9,
+					sampleSize: 80,
+				},
+			});
+			expect(
+				checks.find((c) => c.id === "judge_correction_viability")?.status,
+			).toBe("pass");
+			expect(checks.find((c) => c.id === "judge_ci_sample_size")?.status).toBe(
+				"pass",
+			);
+		});
 	});
 
 	afterEach(() => {
@@ -381,5 +492,6 @@ describe("runDoctor integration", () => {
 		expect(bundle.overall).toBeDefined();
 		expect(bundle.cliVersion).toBeDefined();
 		expect(bundle.platform).toBeDefined();
+		expect(bundle.judge).toBeDefined();
 	});
 });

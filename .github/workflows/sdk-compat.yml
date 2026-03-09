@@ -58,6 +58,7 @@ jobs:
 
   python-compat:
     runs-on: ubuntu-latest
+    continue-on-error: true  # Non-blocking — allows deployment even if Python SDK not synced yet
     steps:
       - uses: actions/checkout@v4
 

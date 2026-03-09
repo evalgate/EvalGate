@@ -59,6 +59,7 @@ Open a PR against `main` on GitHub. CI will run lint, typecheck, tests, and buil
 
 ## Next Steps
 
+- Read [evalgate.md](../evalgate.md) for the complete EvalGate usage guide and command reference
 - Read [CONTRIBUTING.md](../CONTRIBUTING.md) for full workflow, testing lanes, and commit conventions
 - [docs/RELEASING.md](RELEASING.md) — how to cut releases
 - [docs/ARCHITECTURE.md](ARCHITECTURE.md) — system architecture

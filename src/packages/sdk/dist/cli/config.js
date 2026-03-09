@@ -39,10 +39,22 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findConfigPath = findConfigPath;
 exports.loadConfig = loadConfig;
+exports.checkFailureModeAlerts = checkFailureModeAlerts;
 exports.mergeConfigWithArgs = mergeConfigWithArgs;
 const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
 const profiles_1 = require("./profiles");
+const DEFAULT_JUDGE_BOOTSTRAP_ITERATIONS = 2000;
+const DEFAULT_JUDGE_BOOTSTRAP_SEED = 42;
+function normalizeJudgeConfig(judge) {
+    if (!judge)
+        return undefined;
+    return {
+        ...judge,
+        bootstrapIterations: judge.bootstrapIterations ?? DEFAULT_JUDGE_BOOTSTRAP_ITERATIONS,
+        bootstrapSeed: judge.bootstrapSeed ?? DEFAULT_JUDGE_BOOTSTRAP_SEED,
+    };
+}
 const CONFIG_FILES = [
     "evalgate.config.json",
     "evalgate.config.js",
@@ -116,23 +128,66 @@ function loadConfig(cwd = process.cwd()) {
             const relNorm = rel.split(path.sep).join("/");
             const pkgConfig = config.packages[relNorm];
             if (pkgConfig) {
-                return { ...config, ...pkgConfig, packages: config.packages };
+                return {
+                    ...config,
+                    ...pkgConfig,
+                    judge: normalizeJudgeConfig({ ...config.judge, ...pkgConfig.judge }),
+                    packages: config.packages,
+                };
             }
             for (const key of Object.keys(config.packages)) {
                 if (relNorm === key || relNorm.startsWith(`${key}/`)) {
                     return {
                         ...config,
                         ...config.packages[key],
+                        judge: normalizeJudgeConfig({
+                            ...config.judge,
+                            ...config.packages[key].judge,
+                        }),
                         packages: config.packages,
                     };
                 }
             }
         }
-        return config;
+        return {
+            ...config,
+            judge: normalizeJudgeConfig(config.judge),
+        };
     }
     catch {
         return null;
     }
+}
+/**
+ * Check failure mode alert thresholds and return alert messages for any breaches.
+ */
+function checkFailureModeAlerts(failureModes, totalFailed, config) {
+    const alerts = [];
+    for (const [mode, count] of Object.entries(failureModes)) {
+        const modeConfig = config.modes[mode];
+        if (!modeConfig)
+            continue;
+        const percentage = count / totalFailed;
+        if (modeConfig.alertThreshold && count > modeConfig.alertThreshold) {
+            alerts.push(`${mode}: count ${count} exceeds threshold ${modeConfig.alertThreshold}`);
+        }
+        if (modeConfig.alertThresholdPercent &&
+            percentage > modeConfig.alertThresholdPercent) {
+            alerts.push(`${mode}: ${(percentage * 100).toFixed(1)}% exceeds threshold ${(modeConfig.alertThresholdPercent * 100).toFixed(1)}%`);
+        }
+    }
+    if (config.globalAlertThreshold &&
+        totalFailed > config.globalAlertThreshold) {
+        alerts.push(`Total failures ${totalFailed} exceeds global threshold ${config.globalAlertThreshold}`);
+    }
+    if (config.globalAlertThresholdPercent) {
+        const totalTests = Object.values(failureModes).reduce((sum, count) => sum + count, 0);
+        const failureRate = totalFailed / totalTests;
+        if (failureRate > config.globalAlertThresholdPercent) {
+            alerts.push(`Failure rate ${(failureRate * 100).toFixed(1)}% exceeds global threshold ${(config.globalAlertThresholdPercent * 100).toFixed(1)}%`);
+        }
+    }
+    return alerts;
 }
 /**
  * Merge config with CLI args. Priority: args > profile > config > defaults.
@@ -158,6 +213,8 @@ function mergeConfigWithArgs(config, args) {
             merged.baseline = config.baseline;
         if (config.profile)
             merged.profile = config.profile;
+        if (config.judge)
+            merged.judge = normalizeJudgeConfig(config.judge);
     }
     // Profile defaults (from --profile or config.profile). Apply before args override.
     const profileName = (args.profile ?? merged.profile);

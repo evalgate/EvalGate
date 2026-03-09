@@ -74,6 +74,45 @@ describe("parseArgs --dry-run", () => {
 	});
 });
 
+describe("parseArgs judge thresholds", () => {
+	it("parses judge threshold flags", () => {
+		const result = parseArgs([
+			"--apiKey",
+			"key",
+			"--evaluationId",
+			"42",
+			"--judge-tpr-min",
+			"0.9",
+			"--judge-tnr-min",
+			"0.85",
+			"--judge-min-labeled-samples",
+			"200",
+		]);
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.args.judgeTprMin).toBe(0.9);
+			expect(result.args.judgeTnrMin).toBe(0.85);
+			expect(result.args.judgeMinLabeledSamples).toBe(200);
+		}
+	});
+
+	it("rejects out-of-range judge-tpr-min", () => {
+		const result = parseArgs([
+			"--apiKey",
+			"key",
+			"--evaluationId",
+			"42",
+			"--judge-tpr-min",
+			"1.2",
+		]);
+		expect(result.ok).toBe(false);
+		if (!result.ok) {
+			expect(result.exitCode).toBe(EXIT.BAD_ARGS);
+			expect(result.message).toContain("--judge-tpr-min");
+		}
+	});
+});
+
 describe("runCheck --dry-run exit code override", () => {
 	it("returns EXIT.PASS (0) even when gate would fail", async () => {
 		// Mock fetch to return a failing score

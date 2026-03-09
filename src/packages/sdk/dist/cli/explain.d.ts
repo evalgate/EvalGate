@@ -22,7 +22,7 @@ export interface ExplainFlags {
     reportPath: string | null;
     format: "human" | "json";
 }
-export type RootCauseClass = "prompt_drift" | "retrieval_drift" | "formatting_drift" | "tool_use_drift" | "safety_regression" | "cost_regression" | "latency_regression" | "coverage_drop" | "baseline_stale" | "unknown";
+export type RootCauseClass = "prompt_drift" | "retrieval_drift" | "formatting_drift" | "tool_use_drift" | "safety_regression" | "cost_regression" | "latency_regression" | "coverage_drop" | "baseline_stale" | "unknown" | "specification_gap" | "generalization_failure";
 export interface SuggestedFix {
     action: string;
     detail: string;

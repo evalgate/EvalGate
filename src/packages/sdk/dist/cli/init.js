@@ -85,6 +85,9 @@ function ok(msg) {
 function skip(msg) {
     console.log(`  – ${msg}`);
 }
+function warn(msg) {
+    console.log(`  ⚠ ${msg}`);
+}
 // ── 1. Create evals/ + baseline.json ──
 function createBaseline(cwd, project) {
     const evalsDir = path.join(cwd, "evals");
@@ -228,7 +231,27 @@ ${setupSteps}
     ok("Created .github/workflows/evalgate-gate.yml");
     return true;
 }
-// ── 3. Create evalgate.config.json ──
+// ── 3. Copy evalgate.md ──
+function copyEvalgateMd(cwd) {
+    const sourcePath = path.join(__dirname, "..", "..", "..", "..", "..", "evalgate.md");
+    const targetPath = path.join(cwd, "evalgate.md");
+    if (!fs.existsSync(sourcePath)) {
+        // If evalgate.md is not found in the expected location, skip silently
+        // This can happen in development or when the package is installed differently
+        return false;
+    }
+    try {
+        const content = fs.readFileSync(sourcePath, "utf-8");
+        fs.writeFileSync(targetPath, content, "utf-8");
+        ok("Created evalgate.md");
+        return true;
+    }
+    catch (_error) {
+        warn("Could not copy evalgate.md (continuing without it)");
+        return false;
+    }
+}
+// ── 4. Create evalgate.config.json ──
 function createConfig(cwd) {
     const configPath = path.join(cwd, "evalgate.config.json");
     if (fs.existsSync(configPath)) {
@@ -264,16 +287,18 @@ function runInit(cwd = process.cwd()) {
     // Scaffold
     createBaseline(cwd, project);
     installWorkflow(cwd, project);
+    copyEvalgateMd(cwd);
     createConfig(cwd);
     // Next steps
     console.log("");
     console.log("  Done! Next:");
     console.log("");
     console.log("    npx evalgate doctor             Verify your setup is complete");
+    console.log("    cat evalgate.md                 Read the unified usage guide");
     console.log("");
     console.log("  Then commit:");
     console.log("");
-    console.log("    git add evals/ .github/workflows/evalgate-gate.yml evalgate.config.json");
+    console.log("    git add evals/ .github/workflows/evalgate-gate.yml evalgate.config.json evalgate.md");
     console.log("    git commit -m 'chore: add EvalGate regression gate'");
     console.log("    git push");
     console.log("");
@@ -283,10 +308,12 @@ function runInit(cwd = process.cwd()) {
     console.log("    npx evalgate doctor             Preflight check — verify config, baseline, CI");
     console.log("    npx evalgate gate               Run regression gate locally");
     console.log("    npx evalgate check              API-based gate (requires account)");
+    console.log("    npx evalgate label              Label traces to build golden dataset");
+    console.log("    npx evalgate analyze            Analyze failure modes from labeled data");
     console.log("    npx evalgate explain            Explain last failure with root causes + fixes");
     console.log("    npx evalgate baseline update    Update baseline after intentional changes");
     console.log("");
-    console.log("  To remove: delete evals/, evalgate.config.json, and .github/workflows/evalgate-gate.yml");
+    console.log("  To remove: delete evals/, evalgate.config.json, evalgate.md, and .github/workflows/evalgate-gate.yml");
     console.log("");
     return true;
 }

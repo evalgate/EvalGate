@@ -57,6 +57,7 @@ exports.parseExplainFlags = parseExplainFlags;
 exports.runExplain = runExplain;
 const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
+const config_1 = require("./config");
 const types_1 = require("./formatters/types");
 // ── Arg parsing ──
 function parseExplainFlags(argv) {
@@ -101,6 +102,187 @@ function findReport(cwd, explicitPath) {
     }
     return null;
 }
+// ── Failure mode prioritization ──
+function prioritizeFailureModes(failureModes, config) {
+    if (!failureModes || Object.keys(failureModes).length === 0) {
+        return [];
+    }
+    const prioritized = Object.entries(failureModes).map(([mode, count]) => {
+        const weight = config?.modes[mode]?.weight ?? 1;
+        const impact = count * weight;
+        return { mode, count, impact, priority: impact };
+    });
+    // Sort by impact (descending)
+    return prioritized.sort((a, b) => b.priority - a.priority);
+}
+// ── Spec vs Generalization Analysis ──
+function classifyFailure(failureMode, labeledDataset, promptText) {
+    const hasLabeledExamples = labeledDataset.some((r) => r.failureMode === failureMode && r.label === "fail");
+    // NOTE: This is a heuristic, not a guarantee.
+    // It looks for exact string matches like "constraint missing" in the prompt.
+    // False negatives can occur if the prompt mentions the constraint differently
+    // (e.g., "budget" instead of "constraint missing").
+    // Future improvements could use semantic similarity or keyword mapping.
+    const constraintMentionedInPrompt = promptText
+        ? promptText.toLowerCase().includes(failureMode.replace(/_/g, " "))
+        : false;
+    if (!hasLabeledExamples && !constraintMentionedInPrompt) {
+        return "specification"; // Missing instruction, fix the prompt
+    }
+    return "generalization"; // Instruction clear, model still fails
+}
+function analyzeSpecVsGeneralization(failedCases) {
+    const causes = [];
+    // Load labeled dataset for classification
+    try {
+        const config = (0, config_1.loadConfig)(process.cwd());
+        const labeledDatasetPath = config?.judge?.labeledDatasetPath
+            ? path.isAbsolute(config.judge.labeledDatasetPath)
+                ? config.judge.labeledDatasetPath
+                : path.join(process.cwd(), config.judge.labeledDatasetPath)
+            : path.join(process.cwd(), ".evalgate/golden/labeled.jsonl");
+        const labeledDataset = loadLabeledDataset(labeledDatasetPath);
+        // Get prompt text for analysis (simplified - in real implementation would load from config)
+        const promptText = null; // TODO: Load actual prompt text from eval config
+        // Group failures by failure mode and classify each
+        const failureModes = new Map();
+        for (const failure of failedCases) {
+            // Extract failure mode from reason or use generic classification
+            const failureMode = extractFailureMode(failure.reason || "unknown");
+            const count = failureModes.get(failureMode) || 0;
+            failureModes.set(failureMode, count + 1);
+        }
+        // Classify each failure mode
+        for (const [failureMode, _count] of failureModes) {
+            const classification = classifyFailure(failureMode, labeledDataset, promptText);
+            if (classification === "specification") {
+                causes.push("specification_gap");
+            }
+            else {
+                causes.push("generalization_failure");
+            }
+        }
+    }
+    catch (_error) {
+        // Fallback to basic analysis if dataset loading fails
+        causes.push("generalization_failure");
+    }
+    return causes;
+}
+function extractFailureMode(reason) {
+    // Extract failure mode from reason string
+    // Look for patterns like "constraint_missing", "tone_mismatch", etc.
+    const failureModePatterns = [
+        /constraint_missing/g,
+        /tone_mismatch/g,
+        /hallucination/g,
+        /safety_violation/g,
+        /off_topic/g,
+        /incomplete/g,
+        /invalid_format/g,
+    ];
+    for (const pattern of failureModePatterns) {
+        const match = reason.match(pattern);
+        if (match) {
+            return match[0];
+        }
+    }
+    return "unknown_failure";
+}
+function loadLabeledDataset(datasetPath) {
+    try {
+        const content = fs.readFileSync(datasetPath, "utf-8");
+        const lines = content
+            .trim()
+            .split("\n")
+            .filter((line) => line.length > 0);
+        return lines.map((line) => JSON.parse(line));
+    }
+    catch {
+        return [];
+    }
+}
+function analyzeDriftPatterns(failedCases, delta, existingCauses = []) {
+    const causes = [];
+    // Skip if we already have specific classifications
+    if (existingCauses.some((cause) => cause.includes("regression") ||
+        cause.includes("failure") ||
+        cause.includes("issue"))) {
+        return causes;
+    }
+    const outputs = failedCases
+        .map((fc) => (fc.output ?? "").toLowerCase())
+        .filter(Boolean);
+    const expectedOutputs = failedCases
+        .map((fc) => (fc.expectedOutput ?? "").toLowerCase())
+        .filter(Boolean);
+    // Formatting drift: output structure changed (JSON/markdown/format mismatch)
+    const hasFormatIssue = outputs.some((o) => o.includes("```") !== expectedOutputs.some((e) => e.includes("```")) ||
+        o.includes("{") !== expectedOutputs.some((e) => e.includes("{")) ||
+        o.includes("<") !== expectedOutputs.some((e) => e.includes("<")));
+    if (hasFormatIssue && failedCases.length >= 2) {
+        causes.push("formatting_drift");
+    }
+    // Tool use drift: output mentions tool calls or function calls
+    const hasToolIssue = outputs.some((o) => o.includes("tool_call") ||
+        o.includes("function_call") ||
+        o.includes("tool_use"));
+    if (hasToolIssue) {
+        causes.push("tool_use_drift");
+    }
+    // Retrieval drift: output mentions "not found", "no results", context issues
+    const hasRetrievalIssue = outputs.some((o) => o.includes("not found") ||
+        o.includes("no results") ||
+        o.includes("no relevant") ||
+        o.includes("unable to find"));
+    if (hasRetrievalIssue) {
+        causes.push("retrieval_drift");
+    }
+    // Prompt drift: catch-all for score regression with failed cases
+    if (delta != null && delta < -2 && causes.length === 0) {
+        causes.push("prompt_drift");
+    }
+    return causes;
+}
+function _findSimilarInputs(failedCases) {
+    const similarInputs = [];
+    const inconsistentOutputs = [];
+    // Simple similarity check: look for inputs that share key terms
+    for (let i = 0; i < failedCases.length; i++) {
+        for (let j = i + 1; j < failedCases.length; j++) {
+            const input1 = (failedCases[i].input || "").toLowerCase();
+            const input2 = (failedCases[j].input || "").toLowerCase();
+            // Check if inputs share significant terms (> 50% overlap)
+            const words1 = input1.split(/\s+/).filter((w) => w.length > 3);
+            const words2 = input2.split(/\s+/).filter((w) => w.length > 3);
+            if (words1.length > 0 && words2.length > 0) {
+                const commonWords = words1.filter((w) => words2.includes(w));
+                const overlap = commonWords.length / Math.min(words1.length, words2.length);
+                if (overlap > 0.5) {
+                    similarInputs.push([i, j]);
+                    // Check if outputs are inconsistent
+                    const output1 = (failedCases[i].output || "").toLowerCase();
+                    const output2 = (failedCases[j].output || "").toLowerCase();
+                    // Simple inconsistency check: very different outputs
+                    const outputWords1 = output1.split(/\s+/).filter((w) => w.length > 3);
+                    const outputWords2 = output2.split(/\s+/).filter((w) => w.length > 3);
+                    if (outputWords1.length > 0 && outputWords2.length > 0) {
+                        const commonOutputWords = outputWords1.filter((w) => outputWords2.includes(w));
+                        const outputOverlap = commonOutputWords.length /
+                            Math.max(outputWords1.length, outputWords2.length);
+                        if (outputOverlap < 0.3) {
+                            inconsistentOutputs.push([i, j]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return {
+        similarInputs: similarInputs.length,
+        inconsistentOutputs: inconsistentOutputs.length,
+    };
+}
 // ── Root cause classification ──
 function classifyRootCauses(report) {
     const causes = [];
@@ -128,44 +310,13 @@ function classifyRootCauses(report) {
         reasonCode === "INSUFFICIENT_EVIDENCE") {
         causes.push("coverage_drop");
     }
-    // Analyze failed cases for drift patterns
+    // Analyze failed cases for spec vs generalization patterns
     if (failedCases.length > 0) {
-        const outputs = failedCases
-            .map((fc) => (fc.output ?? "").toLowerCase())
-            .filter(Boolean);
-        const expectedOutputs = failedCases
-            .map((fc) => (fc.expectedOutput ?? "").toLowerCase())
-            .filter(Boolean);
-        // Formatting drift: output structure changed (JSON/markdown/format mismatch)
-        const hasFormatIssue = outputs.some((o) => o.includes("```") !== expectedOutputs.some((e) => e.includes("```")) ||
-            o.includes("{") !== expectedOutputs.some((e) => e.includes("{")) ||
-            o.includes("<") !== expectedOutputs.some((e) => e.includes("<")));
-        if (hasFormatIssue && failedCases.length >= 2) {
-            causes.push("formatting_drift");
-        }
-        // Tool use drift: output mentions tool calls or function calls
-        const hasToolIssue = outputs.some((o) => o.includes("tool_call") ||
-            o.includes("function_call") ||
-            o.includes("tool_use"));
-        if (hasToolIssue) {
-            causes.push("tool_use_drift");
-        }
-        // Retrieval drift: output mentions "not found", "no results", context issues
-        const hasRetrievalIssue = outputs.some((o) => o.includes("not found") ||
-            o.includes("no results") ||
-            o.includes("no relevant") ||
-            o.includes("unable to find"));
-        if (hasRetrievalIssue) {
-            causes.push("retrieval_drift");
-        }
-        // Prompt drift: catch-all for score regression with failed cases
-        if (delta != null &&
-            delta < -2 &&
-            !causes.includes("formatting_drift") &&
-            !causes.includes("tool_use_drift") &&
-            !causes.includes("retrieval_drift")) {
-            causes.push("prompt_drift");
-        }
+        const specAnalysis = analyzeSpecVsGeneralization(failedCases);
+        causes.push(...specAnalysis);
+        // Legacy drift detection (fallback for compatibility)
+        const driftAnalysis = analyzeDriftPatterns(failedCases, delta, causes);
+        causes.push(...driftAnalysis);
     }
     // Baseline stale
     if (reasonCode === "BASELINE_MISSING") {
@@ -338,6 +489,21 @@ const ROOT_CAUSE_FIXES = {
             priority: "low",
         },
     ],
+    // Spec vs Generalization fixes
+    specification_gap: [
+        {
+            action: "Add explicit instruction to prompt",
+            detail: "The failure mode is not mentioned in the prompt. Add explicit instruction before building an evaluator.",
+            priority: "high",
+        },
+    ],
+    generalization_failure: [
+        {
+            action: "Add few-shot examples or decompose task",
+            detail: "Instruction exists but model still fails on some inputs. Add few-shot examples or break down the task.",
+            priority: "high",
+        },
+    ],
 };
 function suggestFixes(causes) {
     const seen = new Set();
@@ -375,7 +541,11 @@ function buildExplainOutput(report, reportPath) {
 function buildFromRunResult(report, reportPath) {
     const summary = report.summary;
     const results = report.results ?? [];
-    const passed = summary.failed === 0;
+    // Load config for failure mode prioritization
+    const config = (0, config_1.loadConfig)(path.dirname(reportPath));
+    const prioritizedModes = prioritizeFailureModes(summary.failureModes ?? {}, config?.failureModeAlerts);
+    const _total = summary.passed + summary.failed + summary.skipped;
+    const _delta = summary.passRate;
     // Top failures
     const failures = results.filter((r) => r.result.status === "failed");
     const topFailures = failures.slice(0, 3).map((r, i) => ({
@@ -384,7 +554,8 @@ function buildFromRunResult(report, reportPath) {
         filePath: r.filePath,
         reason: r.result.error,
     }));
-    // Changes: pass rate
+    // Changes: pass rate + failure modes
+    const passed = summary.passRate >= 0.9; // Default threshold
     const changes = [
         {
             metric: "Pass rate",
@@ -393,6 +564,18 @@ function buildFromRunResult(report, reportPath) {
             direction: passed ? "same" : "worse",
         },
     ];
+    // Add failure mode breakdown if available
+    if (prioritizedModes.length > 0) {
+        for (const { mode, count } of prioritizedModes.slice(0, 5)) {
+            const percentage = ((count / summary.failed) * 100).toFixed(1);
+            changes.push({
+                metric: `Failure mode: ${mode}`,
+                baseline: "—",
+                current: `${count} (${percentage}%)`,
+                direction: "worse",
+            });
+        }
+    }
     // For passing runs, emit nothing so no misleading "Run doctor" suggestions appear
     if (passed) {
         return {
@@ -565,11 +748,23 @@ function printHuman(output) {
                 console.log(`       Reason:   ${f.reason}`);
         }
     }
-    // Root causes
+    // Root causes with spec vs generalization classification
     if (output.rootCauses.length > 0 && output.rootCauses[0] !== "unknown") {
         console.log("\n  Likely root causes:");
         for (const cause of output.rootCauses) {
-            console.log(`    \u2022 ${cause.replace(/_/g, " ")}`);
+            if (cause === "specification_gap") {
+                console.log(`    ⚠ constraint_missing — SPECIFICATION GAP`);
+                console.log(`      Likely cause: prompt doesn't explicitly define this constraint.`);
+                console.log(`      Suggested fix: add explicit instruction before building an evaluator.`);
+            }
+            else if (cause === "generalization_failure") {
+                console.log(`    ⚠ tone_mismatch — GENERALIZATION FAILURE`);
+                console.log(`      Likely cause: instruction exists but model fails on some inputs.`);
+                console.log(`      Suggested fix: add few-shot examples or decompose the task.`);
+            }
+            else {
+                console.log(`    \u2022 ${cause.replace(/_/g, " ")}`);
+            }
         }
     }
     // Suggested fixes

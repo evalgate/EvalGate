@@ -20,6 +20,8 @@ export interface AssertionResult {
     expected: unknown;
     actual: unknown;
     message?: string;
+    /** Cost tier for budget tracking and prioritization */
+    costTier?: "low" | "medium" | "high";
 }
 export declare class AssertionError extends Error {
     expected: unknown;
@@ -31,7 +33,17 @@ export declare class AssertionError extends Error {
  */
 export declare class Expectation {
     private value;
-    constructor(value: unknown);
+    private costTier?;
+    constructor(value: unknown, costTier?: "low" | "medium" | "high" | undefined);
+    /**
+     * Set cost tier for budget tracking and prioritization
+     * @example expect(output).withCostTier("high").toEqual("expensive result")
+     */
+    withCostTier(tier: "low" | "medium" | "high"): Expectation;
+    /**
+     * Helper to add costTier to assertion results
+     */
+    private addCostTier;
     /**
      * Negate the next assertion — inverts `passed` on any chained method.
      * @example expect('drop table').not.toContain('drop table')

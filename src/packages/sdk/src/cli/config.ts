@@ -8,6 +8,64 @@ import * as path from "node:path";
 
 import { PROFILES, type ProfileName } from "./profiles";
 
+const DEFAULT_JUDGE_BOOTSTRAP_ITERATIONS = 2000;
+const DEFAULT_JUDGE_BOOTSTRAP_SEED = 42;
+
+export interface JudgeSplitConfig {
+	train?: number;
+	dev?: number;
+	test?: number;
+}
+
+export interface JudgeAlignmentThresholdsConfig {
+	tprMin?: number;
+	tnrMin?: number;
+	minLabeledSamples?: number;
+}
+
+export interface JudgeConfig {
+	labeledDatasetPath?: string;
+	split?: JudgeSplitConfig;
+	alignmentThresholds?: JudgeAlignmentThresholdsConfig;
+	bootstrapIterations?: number;
+	bootstrapSeed?: number;
+}
+
+export interface FailureModeImpact {
+	/** Impact weight for prioritization (higher = more critical) */
+	weight: number;
+	/** Alert threshold: fail if count exceeds this number */
+	alertThreshold?: number;
+	/** Alert threshold: fail if percentage exceeds this value (0-1) */
+	alertThresholdPercent?: number;
+}
+
+export interface FailureModeAlertsConfig {
+	/** Per-failure-mode impact weights and alert thresholds */
+	modes: Record<string, FailureModeImpact>;
+	/** Global alert threshold: fail if any failure mode exceeds this */
+	globalAlertThreshold?: number;
+	/** Global alert threshold: fail if total failure percentage exceeds this (0-1) */
+	globalAlertThresholdPercent?: number;
+}
+
+export interface CostSource {
+	provider: "stripe" | "manual";
+	stripeMeterId?: string; // Stripe meter ID for automatic pricing
+	manualPricePerTrace?: number; // Fallback: $ per trace (estimated)
+}
+
+export interface NormalizedBudgetConfig {
+	/** Budget mode: traces (simple) or cost (economically accurate) */
+	mode: "traces" | "cost";
+	/** Maximum number of traces to run */
+	maxTraces?: number;
+	/** Maximum cost in USD */
+	maxCostUsd?: number;
+	/** Cost data source when mode is "cost" */
+	costSource?: CostSource;
+}
+
 export interface EvalAIConfig {
 	evaluationId?: string;
 	apiKey?: string;
@@ -19,8 +77,21 @@ export interface EvalAIConfig {
 	allowWeakEvidence?: boolean;
 	baseline?: "published" | "previous" | "production" | "auto";
 	profile?: ProfileName;
+	judge?: JudgeConfig;
+	failureModeAlerts?: FailureModeAlertsConfig;
+	normalizedBudget?: NormalizedBudgetConfig;
 	/** Monorepo: package path → config. Key = path relative to config dir (e.g. "apps/web", "packages/api"). */
 	packages?: Record<string, Partial<EvalAIConfig>>;
+}
+
+function normalizeJudgeConfig(judge?: JudgeConfig): JudgeConfig | undefined {
+	if (!judge) return undefined;
+	return {
+		...judge,
+		bootstrapIterations:
+			judge.bootstrapIterations ?? DEFAULT_JUDGE_BOOTSTRAP_ITERATIONS,
+		bootstrapSeed: judge.bootstrapSeed ?? DEFAULT_JUDGE_BOOTSTRAP_SEED,
+	};
 }
 
 const CONFIG_FILES = [
@@ -98,23 +169,92 @@ export function loadConfig(cwd: string = process.cwd()): EvalAIConfig | null {
 			const relNorm = rel.split(path.sep).join("/");
 			const pkgConfig = config.packages[relNorm];
 			if (pkgConfig) {
-				return { ...config, ...pkgConfig, packages: config.packages };
+				return {
+					...config,
+					...pkgConfig,
+					judge: normalizeJudgeConfig({ ...config.judge, ...pkgConfig.judge }),
+					packages: config.packages,
+				};
 			}
 			for (const key of Object.keys(config.packages)) {
 				if (relNorm === key || relNorm.startsWith(`${key}/`)) {
 					return {
 						...config,
 						...config.packages[key],
+						judge: normalizeJudgeConfig({
+							...config.judge,
+							...config.packages[key].judge,
+						}),
 						packages: config.packages,
 					};
 				}
 			}
 		}
 
-		return config;
+		return {
+			...config,
+			judge: normalizeJudgeConfig(config.judge),
+		};
 	} catch {
 		return null;
 	}
+}
+
+/**
+ * Check failure mode alert thresholds and return alert messages for any breaches.
+ */
+export function checkFailureModeAlerts(
+	failureModes: Record<string, number>,
+	totalFailed: number,
+	config: FailureModeAlertsConfig,
+): string[] {
+	const alerts: string[] = [];
+
+	for (const [mode, count] of Object.entries(failureModes)) {
+		const modeConfig = config.modes[mode];
+		if (!modeConfig) continue;
+
+		const percentage = count / totalFailed;
+
+		if (modeConfig.alertThreshold && count > modeConfig.alertThreshold) {
+			alerts.push(
+				`${mode}: count ${count} exceeds threshold ${modeConfig.alertThreshold}`,
+			);
+		}
+
+		if (
+			modeConfig.alertThresholdPercent &&
+			percentage > modeConfig.alertThresholdPercent
+		) {
+			alerts.push(
+				`${mode}: ${(percentage * 100).toFixed(1)}% exceeds threshold ${(modeConfig.alertThresholdPercent * 100).toFixed(1)}%`,
+			);
+		}
+	}
+
+	if (
+		config.globalAlertThreshold &&
+		totalFailed > config.globalAlertThreshold
+	) {
+		alerts.push(
+			`Total failures ${totalFailed} exceeds global threshold ${config.globalAlertThreshold}`,
+		);
+	}
+
+	if (config.globalAlertThresholdPercent) {
+		const totalTests = Object.values(failureModes).reduce(
+			(sum, count) => sum + count,
+			0,
+		);
+		const failureRate = totalFailed / totalTests;
+		if (failureRate > config.globalAlertThresholdPercent) {
+			alerts.push(
+				`Failure rate ${(failureRate * 100).toFixed(1)}% exceeds global threshold ${(config.globalAlertThresholdPercent * 100).toFixed(1)}%`,
+			);
+		}
+	}
+
+	return alerts;
 }
 
 /**
@@ -137,6 +277,7 @@ export function mergeConfigWithArgs(
 			merged.allowWeakEvidence = config.allowWeakEvidence;
 		if (config.baseline) merged.baseline = config.baseline;
 		if (config.profile) merged.profile = config.profile;
+		if (config.judge) merged.judge = normalizeJudgeConfig(config.judge);
 	}
 
 	// Profile defaults (from --profile or config.profile). Apply before args override.

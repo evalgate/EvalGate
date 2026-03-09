@@ -137,6 +137,17 @@ function parseArgs(argv) {
     const maxCostDeltaUsd = args["max-cost-delta-usd"] || args.maxCostDeltaUsd
         ? parseFloat(args["max-cost-delta-usd"] || args.maxCostDeltaUsd || "0")
         : undefined;
+    let judgeTprMin = args["judge-tpr-min"] || args.judgeTprMin
+        ? parseFloat(args["judge-tpr-min"] || args.judgeTprMin || "0")
+        : undefined;
+    let judgeTnrMin = args["judge-tnr-min"] || args.judgeTnrMin
+        ? parseFloat(args["judge-tnr-min"] || args.judgeTnrMin || "0")
+        : undefined;
+    let judgeMinLabeledSamples = args["judge-min-labeled-samples"] || args.judgeMinLabeledSamples
+        ? parseInt(args["judge-min-labeled-samples"] ||
+            args.judgeMinLabeledSamples ||
+            "0", 10)
+        : undefined;
     const profile = args.profile;
     let baseline = (args.baseline === "auto"
         ? "auto"
@@ -176,6 +187,16 @@ function parseArgs(argv) {
         allowWeakEvidence = merged.allowWeakEvidence ?? false;
     if (merged.baseline && !args.baseline)
         baseline = merged.baseline;
+    if (judgeTprMin === undefined) {
+        judgeTprMin = merged.judge?.alignmentThresholds?.tprMin;
+    }
+    if (judgeTnrMin === undefined) {
+        judgeTnrMin = merged.judge?.alignmentThresholds?.tnrMin;
+    }
+    if (judgeMinLabeledSamples === undefined) {
+        judgeMinLabeledSamples =
+            merged.judge?.alignmentThresholds?.minLabeledSamples;
+    }
     if (!apiKey) {
         return {
             ok: false,
@@ -204,12 +225,39 @@ function parseArgs(argv) {
             message: "Error: --minN must be a positive number",
         };
     }
+    if (judgeTprMin !== undefined &&
+        (Number.isNaN(judgeTprMin) || judgeTprMin < 0 || judgeTprMin > 1)) {
+        return {
+            ok: false,
+            exitCode: constants_2.EXIT.BAD_ARGS,
+            message: "Error: --judge-tpr-min must be between 0 and 1",
+        };
+    }
+    if (judgeTnrMin !== undefined &&
+        (Number.isNaN(judgeTnrMin) || judgeTnrMin < 0 || judgeTnrMin > 1)) {
+        return {
+            ok: false,
+            exitCode: constants_2.EXIT.BAD_ARGS,
+            message: "Error: --judge-tnr-min must be between 0 and 1",
+        };
+    }
+    if (judgeMinLabeledSamples !== undefined &&
+        (Number.isNaN(judgeMinLabeledSamples) || judgeMinLabeledSamples < 1)) {
+        return {
+            ok: false,
+            exitCode: constants_2.EXIT.BAD_ARGS,
+            message: "Error: --judge-min-labeled-samples must be a positive integer",
+        };
+    }
     return {
         ok: true,
         args: {
             baseUrl,
             apiKey,
             minScore,
+            judgeTprMin,
+            judgeTnrMin,
+            judgeMinLabeledSamples,
             maxDrop,
             warnDrop,
             minN,
@@ -236,6 +284,8 @@ function parseArgs(argv) {
     };
 }
 async function runCheck(args) {
+    // Load config for failure mode alerts
+    const config = (0, config_1.loadConfig)(process.cwd());
     const qualityResult = await (0, api_1.fetchQualityLatest)(args.baseUrl, args.apiKey, args.evaluationId, args.baseline);
     if (!qualityResult.ok) {
         if (qualityResult.status === 0) {
@@ -254,7 +304,7 @@ async function runCheck(args) {
         if (runRes.ok)
             runDetails = runRes.data;
     }
-    const gateResult = (0, gate_1.evaluateGate)(args, quality);
+    const gateResult = (0, gate_1.evaluateGate)({ ...args, failureModeAlerts: config?.failureModeAlerts }, quality);
     // Create share before report when PR comment needs shareUrl (--pr-comment-out + --share fail + gate failed)
     let shareUrl;
     const shouldCreateShare = quality?.evaluationRunId != null &&

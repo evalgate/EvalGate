@@ -16,7 +16,15 @@
  *   --evaluationId <id>  Evaluation to verify
  *   --baseline <mode> Baseline mode
  */
+import { type QualityLatestData } from "./api";
 import { type EvalAIConfig } from "./config";
+type JudgeDiagnosticInfo = {
+    configured: boolean;
+    labeledDatasetPath?: string;
+    labeledDatasetExists?: boolean;
+    bootstrapIterations?: number;
+    bootstrapSeed?: number;
+};
 export declare const DOCTOR_EXIT: {
     readonly READY: 0;
     readonly NOT_READY: 2;
@@ -29,6 +37,7 @@ export interface CheckResult {
     status: CheckStatus;
     message: string;
     remediation?: string;
+    details?: Record<string, unknown>;
 }
 export interface DiagnosticBundle {
     timestamp: string;
@@ -56,6 +65,7 @@ export interface DiagnosticBundle {
         workflowPath: string;
         exists: boolean;
     } | null;
+    judge: JudgeDiagnosticInfo | null;
     overall: "ready" | "not_ready" | "infra_error";
 }
 export interface DoctorFlags {
@@ -67,6 +77,10 @@ export interface DoctorFlags {
     evaluationId: string;
     baseline: "published" | "previous" | "production";
 }
+export declare function checkJudgeConfig(cwd: string, config: EvalAIConfig | null): CheckResult & {
+    judgeInfo: JudgeDiagnosticInfo;
+};
+export declare function checkGoldenSetHealth(cwd: string, config: EvalAIConfig | null): CheckResult;
 export declare function checkProject(cwd: string): CheckResult;
 export declare function checkConfig(cwd: string): CheckResult & {
     config: EvalAIConfig | null;
@@ -80,9 +94,14 @@ export declare function checkConnectivity(baseUrl: string, apiKey: string): Prom
     latencyMs?: number;
 }>;
 export declare function checkEvalTarget(evaluationId: string): CheckResult;
-export declare function checkEvalAccess(baseUrl: string, apiKey: string, evaluationId: string, baseline: string): Promise<CheckResult>;
+export declare function checkEvalAccess(baseUrl: string, apiKey: string, evaluationId: string, baseline: string): Promise<CheckResult & {
+    quality?: QualityLatestData;
+}>;
+export declare function checkJudgeCredibilityWarnings(quality?: QualityLatestData): CheckResult[];
 export declare function checkCiWiring(cwd: string): CheckResult & {
     ciInfo: DiagnosticBundle["ci"];
 };
 export declare function checkProviderEnv(): CheckResult;
+export declare function checkReplayDecisionReadiness(cwd: string, config?: EvalAIConfig | null): CheckResult;
 export declare function runDoctor(argv: string[]): Promise<number>;
+export {};

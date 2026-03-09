@@ -38,6 +38,8 @@ export interface AssertionResult {
 	expected: unknown;
 	actual: unknown;
 	message?: string;
+	/** Cost tier for budget tracking and prioritization */
+	costTier?: "low" | "medium" | "high";
 }
 
 export class AssertionError extends Error {
@@ -56,7 +58,27 @@ export class AssertionError extends Error {
  * Fluent assertion builder
  */
 export class Expectation {
-	constructor(private value: unknown) {}
+	constructor(
+		private value: unknown,
+		private costTier?: "low" | "medium" | "high",
+	) {}
+
+	/**
+	 * Set cost tier for budget tracking and prioritization
+	 * @example expect(output).withCostTier("high").toEqual("expensive result")
+	 */
+	withCostTier(tier: "low" | "medium" | "high"): Expectation {
+		return new Expectation(this.value, tier);
+	}
+
+	/**
+	 * Helper to add costTier to assertion results
+	 */
+	private addCostTier(
+		result: Omit<AssertionResult, "costTier">,
+	): AssertionResult {
+		return { ...result, costTier: this.costTier };
+	}
 
 	/**
 	 * Negate the next assertion — inverts `passed` on any chained method.
@@ -64,7 +86,8 @@ export class Expectation {
 	 */
 	get not(): Expectation {
 		const value = this.value;
-		return new Proxy(new Expectation(value), {
+		const costTier = this.costTier;
+		return new Proxy(new Expectation(value, costTier), {
 			get(target, prop) {
 				const orig = (target as unknown as Record<string | symbol, unknown>)[
 					prop
@@ -76,7 +99,7 @@ export class Expectation {
 							...args,
 						);
 						if (result && typeof result === "object" && "passed" in result) {
-							return { ...result, passed: !result.passed };
+							return { ...result, passed: !result.passed, costTier };
 						}
 						return result;
 					};
@@ -92,7 +115,7 @@ export class Expectation {
 	 */
 	toEqual(expected: unknown, message?: string): AssertionResult {
 		const passed = JSON.stringify(this.value) === JSON.stringify(expected);
-		return {
+		return this.addCostTier({
 			name: "toEqual",
 			passed,
 			expected,
@@ -102,7 +125,7 @@ export class Expectation {
 				(passed
 					? "Values are equal"
 					: `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(this.value)}`),
-		};
+		});
 	}
 
 	/**
@@ -112,17 +135,17 @@ export class Expectation {
 	toContain(substring: string, message?: string): AssertionResult {
 		const text = String(this.value);
 		const passed = text.includes(substring);
-		return {
+		return this.addCostTier({
 			name: "toContain",
 			passed,
 			expected: substring,
-			actual: text,
+			actual: this.value,
 			message:
 				message ||
 				(passed
 					? `Text contains "${substring}"`
-					: `Text does not contain "${substring}"`),
-		};
+					: `Expected text to contain "${substring}", got "${text}"`),
+		});
 	}
 
 	/**
@@ -135,7 +158,7 @@ export class Expectation {
 			(k) => !text.includes(k.toLowerCase()),
 		);
 		const passed = missingKeywords.length === 0;
-		return {
+		return this.addCostTier({
 			name: "toContainKeywords",
 			passed,
 			expected: keywords,
@@ -145,7 +168,7 @@ export class Expectation {
 				(passed
 					? `Contains all keywords`
 					: `Missing keywords: ${missingKeywords.join(", ")}`),
-		};
+		});
 	}
 
 	/**
@@ -155,17 +178,17 @@ export class Expectation {
 	toNotContain(substring: string, message?: string): AssertionResult {
 		const text = String(this.value);
 		const passed = !text.includes(substring);
-		return {
+		return this.addCostTier({
 			name: "toNotContain",
 			passed,
 			expected: `not containing "${substring}"`,
-			actual: text,
+			actual: this.value,
 			message:
 				message ||
 				(passed
 					? `Text does not contain "${substring}"`
-					: `Text contains "${substring}"`),
-		};
+					: `Expected text not to contain "${substring}", but it does`),
+		});
 	}
 
 	/**

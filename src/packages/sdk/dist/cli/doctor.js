@@ -52,6 +52,8 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DOCTOR_EXIT = void 0;
+exports.checkJudgeConfig = checkJudgeConfig;
+exports.checkGoldenSetHealth = checkGoldenSetHealth;
 exports.checkProject = checkProject;
 exports.checkConfig = checkConfig;
 exports.checkBaseline = checkBaseline;
@@ -59,8 +61,10 @@ exports.checkAuth = checkAuth;
 exports.checkConnectivity = checkConnectivity;
 exports.checkEvalTarget = checkEvalTarget;
 exports.checkEvalAccess = checkEvalAccess;
+exports.checkJudgeCredibilityWarnings = checkJudgeCredibilityWarnings;
 exports.checkCiWiring = checkCiWiring;
 exports.checkProviderEnv = checkProviderEnv;
+exports.checkReplayDecisionReadiness = checkReplayDecisionReadiness;
 exports.runDoctor = runDoctor;
 const node_crypto_1 = require("node:crypto");
 const fs = __importStar(require("node:fs"));
@@ -68,6 +72,7 @@ const path = __importStar(require("node:path"));
 const version_1 = require("../version");
 const api_1 = require("./api");
 const config_1 = require("./config");
+const judge_credibility_1 = require("./judge-credibility");
 // ── Exit codes ──
 exports.DOCTOR_EXIT = {
     READY: 0,
@@ -130,6 +135,209 @@ function parseFlags(argv) {
         evaluationId,
         baseline,
     };
+}
+function checkJudgeConfig(cwd, config) {
+    const judge = config?.judge;
+    if (!judge) {
+        return {
+            id: "judge_config",
+            label: "Judge alignment config",
+            status: "skip",
+            message: "No judge config found (optional until judge credibility is enabled)",
+            judgeInfo: { configured: false },
+        };
+    }
+    if (typeof judge.bootstrapSeed === "number" &&
+        (!Number.isFinite(judge.bootstrapSeed) ||
+            !Number.isInteger(judge.bootstrapSeed))) {
+        return {
+            id: "judge_config",
+            label: "Judge alignment config",
+            status: "fail",
+            message: "judge.bootstrapSeed must be a finite integer for deterministic CI output",
+            remediation: "Set judge.bootstrapSeed to an integer (recommended default: 42)",
+            judgeInfo: {
+                configured: true,
+                bootstrapIterations: judge.bootstrapIterations,
+                bootstrapSeed: judge.bootstrapSeed,
+            },
+        };
+    }
+    const judgeInfo = {
+        configured: true,
+        bootstrapIterations: judge.bootstrapIterations,
+        bootstrapSeed: judge.bootstrapSeed,
+    };
+    if (!judge.labeledDatasetPath) {
+        return {
+            id: "judge_config",
+            label: "Judge alignment config",
+            status: "warn",
+            message: "judge config present but judge.labeledDatasetPath is missing",
+            remediation: "Add judge.labeledDatasetPath in evalgate.config.json to enable judge alignment checks",
+            judgeInfo,
+        };
+    }
+    // Check if labeled dataset exists
+    const datasetPath = path.isAbsolute(judge.labeledDatasetPath)
+        ? judge.labeledDatasetPath
+        : path.join(cwd, judge.labeledDatasetPath);
+    judgeInfo.labeledDatasetPath = datasetPath;
+    judgeInfo.labeledDatasetExists = fs.existsSync(datasetPath);
+    if (!judgeInfo.labeledDatasetExists) {
+        return {
+            id: "judge_config",
+            label: "Judge alignment config",
+            status: "warn",
+            message: `Labeled dataset not found at ${datasetPath}`,
+            remediation: "Run 'evalgate label' to create a labeled golden dataset, or update judge.labeledDatasetPath",
+            judgeInfo,
+        };
+    }
+    return {
+        id: "judge_config",
+        label: "Judge alignment config",
+        status: "pass",
+        message: "Judge config and labeled dataset found",
+        judgeInfo,
+    };
+}
+function checkGoldenSetHealth(cwd, config) {
+    const datasetPath = config?.judge?.labeledDatasetPath
+        ? path.isAbsolute(config.judge.labeledDatasetPath)
+            ? config.judge.labeledDatasetPath
+            : path.join(cwd, config.judge.labeledDatasetPath)
+        : null;
+    if (!datasetPath || !fs.existsSync(datasetPath)) {
+        return {
+            id: "golden_set_health",
+            label: "Golden dataset health",
+            status: "skip",
+            message: "No labeled dataset found (run 'evalgate label' to create one)",
+        };
+    }
+    try {
+        const content = fs.readFileSync(datasetPath, "utf-8");
+        const lines = content.split("\n").filter((line) => line.trim().length > 0);
+        if (lines.length === 0) {
+            return {
+                id: "golden_set_health",
+                label: "Golden dataset health",
+                status: "warn",
+                message: "Labeled dataset is empty",
+                remediation: "Run 'evalgate label' to add labeled cases",
+            };
+        }
+        // Parse and analyze dataset
+        let passCount = 0;
+        let failCount = 0;
+        const failureModes = new Map();
+        const caseIds = new Set();
+        let staleCount = 0;
+        const sixMonthsAgo = Date.now() - 6 * 30 * 24 * 60 * 60 * 1000;
+        for (const line of lines) {
+            try {
+                const labeled = JSON.parse(line);
+                // Check for duplicate case IDs
+                if (caseIds.has(labeled.caseId)) {
+                    return {
+                        id: "golden_set_health",
+                        label: "Golden dataset health",
+                        status: "fail",
+                        message: `Duplicate caseId found: ${labeled.caseId}`,
+                        remediation: "Remove duplicate entries or regenerate labeled dataset",
+                    };
+                }
+                caseIds.add(labeled.caseId);
+                // Count pass/fail
+                if (labeled.label === "pass") {
+                    passCount++;
+                }
+                else if (labeled.label === "fail") {
+                    failCount++;
+                    if (labeled.failureMode) {
+                        failureModes.set(labeled.failureMode, (failureModes.get(labeled.failureMode) || 0) + 1);
+                    }
+                }
+                // Check staleness
+                const labeledAt = new Date(labeled.labeledAt).getTime();
+                if (labeledAt < sixMonthsAgo) {
+                    staleCount++;
+                }
+            }
+            catch {
+                return {
+                    id: "golden_set_health",
+                    label: "Golden dataset health",
+                    status: "fail",
+                    message: "Invalid JSONL format in labeled dataset",
+                    remediation: "Regenerate labeled dataset with 'evalgate label'",
+                };
+            }
+        }
+        const total = passCount + failCount;
+        const passRate = total > 0 ? passCount / total : 0;
+        const failRate = total > 0 ? failCount / total : 0;
+        // Health checks
+        const issues = [];
+        if (total < 30) {
+            issues.push(`Small dataset size (${total} samples, recommend ≥30 for statistical significance)`);
+        }
+        if (passRate > 0.95) {
+            issues.push(`Very high pass rate (${(passRate * 100).toFixed(1)}%), may lack challenging cases`);
+        }
+        else if (passRate < 0.3) {
+            issues.push(`Very low pass rate (${(passRate * 100).toFixed(1)}%), may be too difficult or labels incorrect`);
+        }
+        if (failCount > 0 && failureModes.size === 0) {
+            issues.push("Failed cases have no failure modes assigned");
+        }
+        if (staleCount > total * 0.5) {
+            issues.push(`${staleCount} samples (${((staleCount / total) * 100).toFixed(1)}%) are older than 6 months`);
+        }
+        if (issues.length > 0) {
+            return {
+                id: "golden_set_health",
+                label: "Golden dataset health",
+                status: "warn",
+                message: `Health issues detected: ${issues.join("; ")}`,
+                details: {
+                    totalSamples: total,
+                    passRate: roundPct(passRate, 1),
+                    failRate: roundPct(failRate, 1),
+                    failureModeCount: failureModes.size,
+                    staleSamples: staleCount,
+                    issues,
+                },
+                remediation: "Consider adding more diverse cases, reviewing labels, or updating stale samples",
+            };
+        }
+        return {
+            id: "golden_set_health",
+            label: "Golden dataset health",
+            status: "pass",
+            message: `Healthy dataset: ${total} samples (${passCount} pass, ${failCount} fail), ${failureModes.size} failure modes`,
+            details: {
+                totalSamples: total,
+                passRate: roundPct(passRate, 1),
+                failRate: roundPct(failRate, 1),
+                failureModeCount: failureModes.size,
+                staleSamples: staleCount,
+            },
+        };
+    }
+    catch (error) {
+        return {
+            id: "golden_set_health",
+            label: "Golden dataset health",
+            status: "fail",
+            message: `Failed to read labeled dataset: ${error}`,
+            remediation: "Check file permissions and format",
+        };
+    }
+}
+function roundPct(value, precision = 1) {
+    return Math.round(value * 100 * 10 ** precision) / 10 ** precision;
 }
 // ── Individual checks ──
 function checkProject(cwd) {
@@ -390,6 +598,7 @@ async function checkEvalAccess(baseUrl, apiKey, evaluationId, baseline) {
             label: "Evaluation access",
             status: "skip",
             message: "Skipped (missing apiKey or evaluationId)",
+            quality: undefined,
         };
     }
     const result = await (0, api_1.fetchQualityLatest)(baseUrl, apiKey, evaluationId, baseline);
@@ -401,6 +610,7 @@ async function checkEvalAccess(baseUrl, apiKey, evaluationId, baseline) {
                 status: "fail",
                 message: `Network error reaching quality endpoint`,
                 remediation: `Check connectivity and API key`,
+                quality: undefined,
             };
         }
         if (result.status === 401 || result.status === 403) {
@@ -410,6 +620,7 @@ async function checkEvalAccess(baseUrl, apiKey, evaluationId, baseline) {
                 status: "fail",
                 message: `Access denied (${result.status}) for evaluationId ${evaluationId}`,
                 remediation: "Verify your API key has eval:read and runs:read scopes",
+                quality: undefined,
             };
         }
         if (result.status === 404) {
@@ -419,6 +630,7 @@ async function checkEvalAccess(baseUrl, apiKey, evaluationId, baseline) {
                 status: "fail",
                 message: `Evaluation ${evaluationId} not found`,
                 remediation: "Check the evaluationId in your config matches an existing evaluation",
+                quality: undefined,
             };
         }
         return {
@@ -427,6 +639,7 @@ async function checkEvalAccess(baseUrl, apiKey, evaluationId, baseline) {
             status: "fail",
             message: `Quality API returned ${result.status}`,
             remediation: `API response: ${result.body?.slice(0, 200)}`,
+            quality: undefined,
         };
     }
     if (result.data.baselineMissing === true) {
@@ -436,6 +649,7 @@ async function checkEvalAccess(baseUrl, apiKey, evaluationId, baseline) {
             status: "warn",
             message: `Evaluation ${evaluationId} accessible, but no baseline run found`,
             remediation: "Publish a run from the dashboard, or use --baseline previous once you have runs",
+            quality: result.data,
         };
     }
     return {
@@ -443,7 +657,83 @@ async function checkEvalAccess(baseUrl, apiKey, evaluationId, baseline) {
         label: "Evaluation access",
         status: "pass",
         message: `Evaluation ${evaluationId} accessible, score: ${result.data.score ?? "n/a"}`,
+        quality: result.data,
     };
+}
+function checkJudgeCredibilityWarnings(quality) {
+    const judgeAlignment = quality?.judgeAlignment;
+    if (!judgeAlignment) {
+        return [
+            {
+                id: "judge_quality_signals",
+                label: "Judge correction viability",
+                status: "skip",
+                message: "No judge alignment metrics on latest run (cannot assess correction viability)",
+            },
+        ];
+    }
+    const checks = [];
+    const tpr = judgeAlignment.tpr;
+    const tnr = judgeAlignment.tnr;
+    const sampleSize = judgeAlignment.sampleSize;
+    if (typeof tpr === "number" && typeof tnr === "number") {
+        const discriminativePower = tpr + tnr - 1;
+        if (discriminativePower <= judge_credibility_1.MIN_DISCRIMINATIVE_POWER) {
+            checks.push({
+                id: "judge_correction_viability",
+                label: "Judge correction viability",
+                status: "warn",
+                message: `Judge appears near-random (TPR + TNR - 1 = ${discriminativePower.toFixed(3)} <= ${judge_credibility_1.MIN_DISCRIMINATIVE_POWER}). Correction will be skipped and raw rate used.`,
+                remediation: "Improve judge prompt/calibration and relabel sample data before enforcing corrected-rate gates",
+            });
+        }
+        else {
+            checks.push({
+                id: "judge_correction_viability",
+                label: "Judge correction viability",
+                status: "pass",
+                message: `Judge discriminative power is ${discriminativePower.toFixed(3)} (> ${judge_credibility_1.MIN_DISCRIMINATIVE_POWER})`,
+            });
+        }
+    }
+    else {
+        checks.push({
+            id: "judge_correction_viability",
+            label: "Judge correction viability",
+            status: "warn",
+            message: "Missing TPR/TNR metrics; cannot determine whether correction is reliable",
+            remediation: "Ensure judge alignment metrics (TPR/TNR) are computed and published for the target evaluation",
+        });
+    }
+    if (typeof sampleSize === "number") {
+        if (sampleSize < judge_credibility_1.MIN_BOOTSTRAP_SAMPLE_SIZE) {
+            checks.push({
+                id: "judge_ci_sample_size",
+                label: "Judge CI sample size",
+                status: "warn",
+                message: `Sample size ${sampleSize} < ${judge_credibility_1.MIN_BOOTSTRAP_SAMPLE_SIZE}; bootstrap CI will be skipped`,
+                remediation: "Collect at least 30 labeled samples before relying on CI bounds",
+            });
+        }
+        else {
+            checks.push({
+                id: "judge_ci_sample_size",
+                label: "Judge CI sample size",
+                status: "pass",
+                message: `Sample size ${sampleSize} is sufficient for bootstrap CI`,
+            });
+        }
+    }
+    else {
+        checks.push({
+            id: "judge_ci_sample_size",
+            label: "Judge CI sample size",
+            status: "warn",
+            message: "Missing judge sample size; cannot validate CI reliability",
+            remediation: "Publish judge sample size metrics so CI sufficiency checks can run",
+        });
+    }
+    return checks;
 }
 function checkCiWiring(cwd) {
     const evalgatePath = path.join(".github", "workflows", "evalgate-gate.yml");
@@ -523,6 +813,58 @@ function checkProviderEnv() {
         message: `Found: ${found.map((p) => p.name).join(", ")}`,
     };
 }
+function checkReplayDecisionReadiness(cwd, config) {
+    // Check if budget is configured
+    const hasBudgetConfig = config?.normalizedBudget;
+    if (!hasBudgetConfig) {
+        return {
+            id: "replay_decision_readiness",
+            label: "Replay-decision readiness",
+            status: "skip",
+            message: "No budget configuration found - replay-decision not applicable",
+        };
+    }
+    // Check if baseline run exists for comparison
+    const runsDir = path.join(cwd, ".evalgate", "runs");
+    try {
+        if (!fs.existsSync(runsDir)) {
+            return {
+                id: "replay_decision_readiness",
+                label: "Replay-decision readiness",
+                status: "warn",
+                message: "Budget configured but no previous runs found in .evalgate/runs/",
+                remediation: "Run at least one evaluation before using replay-decision command",
+            };
+        }
+        const runFiles = fs
+            .readdirSync(runsDir)
+            .filter((f) => f.endsWith(".json"));
+        if (runFiles.length === 0) {
+            return {
+                id: "replay_decision_readiness",
+                label: "Replay-decision readiness",
+                status: "warn",
+                message: "Budget configured but no run artifacts found in .evalgate/runs/",
+                remediation: "Run at least one evaluation before using replay-decision command",
+            };
+        }
+        return {
+            id: "replay_decision_readiness",
+            label: "Replay-decision readiness",
+            status: "pass",
+            message: `Found ${runFiles.length} run(s) available for replay-decision comparison`,
+        };
+    }
+    catch (_error) {
+        return {
+            id: "replay_decision_readiness",
+            label: "Replay-decision readiness",
+            status: "fail",
+            message: "Unable to check .evalgate/runs/ directory",
+            remediation: "Ensure .evalgate/runs/ directory is accessible",
+        };
+    }
+}
 // ── Output formatting ──
 function icon(status) {
     switch (status) {
@@ -568,14 +910,17 @@ async function runDoctor(argv) {
     // 2. Config
     const configResult = checkConfig(cwd);
     checks.push(configResult);
-    // 3. Baseline
+    // 3. Judge config
+    const judgeResult = checkJudgeConfig(cwd, configResult.config);
+    checks.push(judgeResult);
+    // 4. Baseline
     const baselineResult = checkBaseline(cwd);
     checks.push(baselineResult);
-    // 4. Auth
+    // 5. Auth
     checks.push(checkAuth(flags.apiKey));
-    // 5. Eval target
+    // 6. Eval target
     checks.push(checkEvalTarget(flags.evaluationId));
-    // 6. Connectivity (async)
+    // 7. Connectivity (async)
     let connectivityResult;
     try {
         connectivityResult = await checkConnectivity(flags.baseUrl, flags.apiKey);
@@ -596,13 +941,16 @@ async function runDoctor(argv) {
             message: "",
         };
     }
-    // 7. Eval access (async, depends on auth + connectivity)
+    // 8. Eval access (async, depends on auth + connectivity)
     if (flags.apiKey &&
         flags.evaluationId &&
         connectivityResult.status !== "fail") {
         try {
             const accessResult = await checkEvalAccess(flags.baseUrl, flags.apiKey, flags.evaluationId, flags.baseline);
             checks.push(accessResult);
+            if (judgeResult.judgeInfo.configured) {
+                checks.push(...checkJudgeCredibilityWarnings(accessResult.quality));
+            }
         }
         catch {
             checks.push({
@@ -622,11 +970,15 @@ async function runDoctor(argv) {
             message: "Skipped (prerequisite check failed)",
         });
     }
-    // 8. CI wiring
+    // 9. CI wiring
     const ciResult = checkCiWiring(cwd);
     checks.push(ciResult);
-    // 9. Provider env vars
+    // 10. Golden set health
+    checks.push(checkGoldenSetHealth(cwd, configResult.config));
+    // 11. Provider env vars
     checks.push(checkProviderEnv());
+    // 12. Replay-decision validation
+    checks.push(checkReplayDecisionReadiness(cwd, configResult.config));
     // Determine overall status
     const hasFail = checks.some((c) => c.status === "fail");
     const hasWarn = checks.some((c) => c.status === "warn");
@@ -659,6 +1011,7 @@ async function runDoctor(argv) {
                 latencyMs: connectivityResult.latencyMs,
             },
             ci: ciResult.ciInfo,
+            judge: judgeResult.judgeInfo,
             overall,
         };
         console.log(JSON.stringify(bundle, null, 2));

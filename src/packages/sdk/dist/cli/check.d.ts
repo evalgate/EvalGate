@@ -46,6 +46,9 @@ export interface CheckArgs {
     baseUrl: string;
     apiKey: string;
     minScore: number;
+    judgeTprMin?: number;
+    judgeTnrMin?: number;
+    judgeMinLabeledSamples?: number;
     maxDrop?: number;
     warnDrop?: number;
     minN?: number;
@@ -61,6 +64,7 @@ export interface CheckArgs {
     maxCostUsd?: number;
     maxLatencyMs?: number;
     maxCostDeltaUsd?: number;
+    failureModeAlerts?: import("./config").FailureModeAlertsConfig;
     /** When true, run all checks and print results but always exit 0. */
     dryRun?: boolean;
 }

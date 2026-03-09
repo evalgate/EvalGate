@@ -1,0 +1,39 @@
+{
+	"evaluationId": "prod-eval-123",
+	"judge": {
+		"labeledDatasetPath": ".evalgate/golden/labeled.jsonl",
+		"bootstrapIterations": 2000,
+		"bootstrapSeed": 42,
+		"alignmentThresholds": {
+			"tprMin": 0.9,
+			"tnrMin": 0.9,
+			"minLabeledSamples": 30
+		}
+	},
+	"failureModeAlerts": {
+		"modes": {
+			"constraint_missing": {
+				"weight": 3,
+				"alertThreshold": 10,
+				"alertThresholdPercent": 0.15
+			},
+			"hallucination": {
+				"weight": 5,
+				"alertThreshold": 5,
+				"alertThresholdPercent": 0.1
+			},
+			"tone_mismatch": {
+				"weight": 2,
+				"alertThreshold": 15,
+				"alertThresholdPercent": 0.2
+			},
+			"invalid_tool_call": {
+				"weight": 4,
+				"alertThreshold": 8,
+				"alertThresholdPercent": 0.12
+			}
+		},
+		"globalAlertThreshold": 25,
+		"globalAlertThresholdPercent": 0.3
+	}
+}

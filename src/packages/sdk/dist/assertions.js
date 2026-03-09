@@ -83,8 +83,22 @@ exports.AssertionError = AssertionError;
  * Fluent assertion builder
  */
 class Expectation {
-    constructor(value) {
+    constructor(value, costTier) {
         this.value = value;
+        this.costTier = costTier;
+    }
+    /**
+     * Set cost tier for budget tracking and prioritization
+     * @example expect(output).withCostTier("high").toEqual("expensive result")
+     */
+    withCostTier(tier) {
+        return new Expectation(this.value, tier);
+    }
+    /**
+     * Helper to add costTier to assertion results
+     */
+    addCostTier(result) {
+        return { ...result, costTier: this.costTier };
     }
     /**
      * Negate the next assertion — inverts `passed` on any chained method.
@@ -92,14 +106,15 @@ class Expectation {
      */
     get not() {
         const value = this.value;
-        return new Proxy(new Expectation(value), {
+        const costTier = this.costTier;
+        return new Proxy(new Expectation(value, costTier), {
             get(target, prop) {
                 const orig = target[prop];
                 if (typeof orig === "function" && prop !== "constructor") {
                     return (...args) => {
                         const result = orig.call(target, ...args);
                         if (result && typeof result === "object" && "passed" in result) {
-                            return { ...result, passed: !result.passed };
+                            return { ...result, passed: !result.passed, costTier };
                         }
                         return result;
                     };
@@ -114,7 +129,7 @@ class Expectation {
      */
     toEqual(expected, message) {
         const passed = JSON.stringify(this.value) === JSON.stringify(expected);
-        return {
+        return this.addCostTier({
             name: "toEqual",
             passed,
             expected,
@@ -123,7 +138,7 @@ class Expectation {
                 (passed
                     ? "Values are equal"
                     : `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(this.value)}`),
-        };
+        });
     }
     /**
      * Assert value contains substring
@@ -132,16 +147,16 @@ class Expectation {
     toContain(substring, message) {
         const text = String(this.value);
         const passed = text.includes(substring);
-        return {
+        return this.addCostTier({
             name: "toContain",
             passed,
             expected: substring,
-            actual: text,
+            actual: this.value,
             message: message ||
                 (passed
                     ? `Text contains "${substring}"`
-                    : `Text does not contain "${substring}"`),
-        };
+                    : `Expected text to contain "${substring}", got "${text}"`),
+        });
     }
     /**
      * Assert value contains all keywords
@@ -151,7 +166,7 @@ class Expectation {
         const text = String(this.value).toLowerCase();
         const missingKeywords = keywords.filter((k) => !text.includes(k.toLowerCase()));
         const passed = missingKeywords.length === 0;
-        return {
+        return this.addCostTier({
             name: "toContainKeywords",
             passed,
             expected: keywords,
@@ -160,7 +175,7 @@ class Expectation {
                 (passed
                     ? `Contains all keywords`
                     : `Missing keywords: ${missingKeywords.join(", ")}`),
-        };
+        });
     }
     /**
      * Assert value does not contain substring
@@ -169,16 +184,16 @@ class Expectation {
     toNotContain(substring, message) {
         const text = String(this.value);
         const passed = !text.includes(substring);
-        return {
+        return this.addCostTier({
             name: "toNotContain",
             passed,
             expected: `not containing "${substring}"`,
-            actual: text,
+            actual: this.value,
             message: message ||
                 (passed
                     ? `Text does not contain "${substring}"`
-                    : `Text contains "${substring}"`),
-        };
+                    : `Expected text not to contain "${substring}", but it does`),
+        });
     }
     /**
      * Assert value does not contain PII (emails, phone numbers, SSN)

@@ -10,6 +10,10 @@ import type { CheckReport, FailedCase } from "./types";
 
 const ANNOTATION_MAX = 10;
 
+function pct(value: number): string {
+	return `${(value * 100).toFixed(1)}%`;
+}
+
 function escapeAnnotationMessage(s: string): string {
 	return s.replace(/\r/g, "").replace(/\n/g, "%0A");
 }
@@ -48,6 +52,54 @@ export function appendStepSummary(report: CheckReport): void {
 			: "";
 	lines.push(`**Score:** ${report.score ?? 0}/100${deltaStr}`);
 	lines.push("");
+
+	if (report.judgeAlignment) {
+		const ja = report.judgeAlignment;
+		const jc = report.judgeCredibility;
+		const parts: string[] = [];
+		if (ja.tpr != null) parts.push(`TPR=${ja.tpr}`);
+		if (ja.tnr != null) parts.push(`TNR=${ja.tnr}`);
+		if (ja.correctedPassRate != null)
+			parts.push(`correctedPass=${ja.correctedPassRate}`);
+		if (ja.ci95Low != null && ja.ci95High != null)
+			parts.push(`CI95=[${ja.ci95Low}, ${ja.ci95High}]`);
+		if (ja.sampleSize != null) parts.push(`n=${ja.sampleSize}`);
+		if (parts.length > 0) {
+			lines.push(`**Judge alignment:** ${parts.join(", ")}`);
+			if (jc?.rawPassRate != null) {
+				if (jc.correctionApplied && jc.correctedPassRate != null) {
+					lines.push(
+						`**Pass rate:** ${pct(jc.correctedPassRate)} (corrected; raw ${pct(jc.rawPassRate)})`,
+					);
+				} else if (
+					jc.correctionSkippedReason === "judge_too_weak_to_correct" &&
+					jc.discriminativePower != null
+				) {
+					lines.push(
+						`**Pass rate:** ${pct(jc.rawPassRate)} (raw) ⚠ corrected unavailable — judge too weak (TPR + TNR - 1 = ${jc.discriminativePower.toFixed(2)})`,
+					);
+				} else {
+					lines.push(`**Pass rate:** ${pct(jc.rawPassRate)} (raw)`);
+				}
+
+				if (jc.ciApplied && jc.ci95) {
+					lines.push(`**CI:** [${pct(jc.ci95.low)}, ${pct(jc.ci95.high)}]`);
+				} else if (
+					jc.ciSkippedReason === "insufficient_samples_for_ci" &&
+					jc.sampleSize != null
+				) {
+					lines.push(
+						`**CI:** skipped — insufficient labeled samples (n=${jc.sampleSize}, min=30)`,
+					);
+				} else if (jc.ciSkippedReason === "judge_too_weak_to_correct") {
+					lines.push(
+						"**CI:** skipped — correction unavailable (judge too weak)",
+					);
+				}
+			}
+			lines.push("");
+		}
+	}
 
 	const failedCases = report.failedCases ?? [];
 	if (failedCases.length > 0) {

@@ -12,6 +12,9 @@ export type FailureReasonCode =
 	| "PASS"
 	| "WARN_REGRESSION"
 	| "LOW_SAMPLE_SIZE"
+	| "JUDGE_ALIGNMENT_MISSING"
+	| "JUDGE_ALIGNMENT_LOW"
+	| "JUDGE_CREDIBILITY_UNTRUSTWORTHY"
 	| "BASELINE_MISSING"
 	| "SCORE_TOO_LOW"
 	| "DELTA_TOO_HIGH"
@@ -45,6 +48,28 @@ export type ScoreContribPts = {
 	performancePts?: number;
 };
 
+export type JudgeAlignmentSummary = {
+	tpr?: number;
+	tnr?: number;
+	sampleSize?: number;
+	rawPassRate?: number;
+	correctedPassRate?: number;
+	ci95Low?: number;
+	ci95High?: number;
+};
+
+export type JudgeCredibilitySummary = {
+	correctionApplied: boolean;
+	correctionSkippedReason?: "judge_too_weak_to_correct";
+	ciApplied: boolean;
+	ciSkippedReason?: "judge_too_weak_to_correct" | "insufficient_samples_for_ci";
+	rawPassRate?: number;
+	correctedPassRate?: number | null;
+	ci95?: { low: number; high: number } | null;
+	discriminativePower?: number;
+	sampleSize?: number;
+};
+
 export type GateThresholds = {
 	minScore?: number;
 	minPassRate?: number;
@@ -57,6 +82,9 @@ export type GateThresholds = {
 	maxCostUsd?: number;
 	maxLatencyMs?: number;
 	maxCostDeltaUsd?: number;
+	judgeTprMin?: number;
+	judgeTnrMin?: number;
+	judgeMinLabeledSamples?: number;
 };
 
 export type FailedCase = {
@@ -109,6 +137,8 @@ export type CheckReport = {
 	thresholds?: GateThresholds;
 	n?: number;
 	evidenceLevel?: "strong" | "medium" | "weak";
+	judgeAlignment?: JudgeAlignmentSummary;
+	judgeCredibility?: JudgeCredibilitySummary;
 	baselineMissing?: boolean;
 	baselineStatus?: "found" | "missing";
 	dashboardUrl?: string;

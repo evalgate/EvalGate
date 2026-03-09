@@ -227,6 +227,36 @@ function buildResolvedConfig(
 		source: baselineSource,
 	});
 
+	// judge.* fields (P1 scaffolding visibility)
+	const judgeSource: Source = fileConfig?.judge ? "file" : "default";
+	fields.push({
+		key: "judge.labeledDatasetPath",
+		value: merged.judge?.labeledDatasetPath ?? null,
+		source: judgeSource,
+	});
+	fields.push({
+		key: "judge.bootstrapIterations",
+		value: merged.judge?.bootstrapIterations ?? null,
+		source: judgeSource,
+	});
+	fields.push({
+		key: "judge.bootstrapSeed",
+		value: merged.judge?.bootstrapSeed ?? null,
+		source: judgeSource,
+	});
+	fields.push({
+		key: "judge.split",
+		value: merged.judge?.split ? JSON.stringify(merged.judge.split) : null,
+		source: judgeSource,
+	});
+	fields.push({
+		key: "judge.alignmentThresholds",
+		value: merged.judge?.alignmentThresholds
+			? JSON.stringify(merged.judge.alignmentThresholds)
+			: null,
+		source: judgeSource,
+	});
+
 	// Environment variables summary
 	const envVars: Record<string, string | null> = {
 		EVALGATE_API_KEY: redact(envApiKey),

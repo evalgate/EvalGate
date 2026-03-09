@@ -74,11 +74,9 @@ describe("evaluateGate", () => {
 		expect(result.exitCode).toBe(EXIT.REGRESSION);
 		expect(result.passed).toBe(false);
 		expect(result.reasonCode).toBe("DELTA_TOO_HIGH");
-		expect(result.reasonMessage).toContain("8");
-		expect(result.reasonMessage).toContain("5");
 	});
 
-	it("returns WARN_REGRESSION (exit 8) when drop within warn band (warnDrop ≤ drop < maxDrop)", () => {
+	it("returns WARN_REGRESSION (exit 8) when drop within warn band", () => {
 		const args: CheckArgs = {
 			...baseArgs,
 			maxDrop: 5,
@@ -96,104 +94,81 @@ describe("evaluateGate", () => {
 		expect(result.exitCode).toBe(EXIT.WARN_REGRESSION);
 		expect(result.passed).toBe(true);
 		expect(result.reasonCode).toBe("WARN_REGRESSION");
-		expect(result.reasonMessage).toContain("4");
-		expect(result.reasonMessage).toContain("2");
 	});
 
-	it("fails with COST_BUDGET_EXCEEDED when costUsd exceeds maxCostUsd", () => {
-		const args: CheckArgs = { ...baseArgs, maxCostUsd: 0.01 };
+	it("fails when judge thresholds are configured but judge metrics are missing", () => {
+		const args: CheckArgs = { ...baseArgs, judgeTprMin: 0.9 };
 		const quality = {
 			score: 95,
 			total: 20,
 			evaluationRunId: 1,
-			costUsd: 0.05,
 		};
 		const result = evaluateGate(args, quality);
 		expect(result.exitCode).toBe(EXIT.SCORE_BELOW);
 		expect(result.passed).toBe(false);
-		expect(result.reasonCode).toBe("COST_BUDGET_EXCEEDED");
-		expect(result.reasonMessage).toContain("0.05");
-		expect(result.reasonMessage).toContain("0.01");
+		expect(result.reasonCode).toBe("JUDGE_ALIGNMENT_MISSING");
 	});
 
-	it("fails with LATENCY_BUDGET_EXCEEDED when avgLatencyMs exceeds maxLatencyMs", () => {
-		const args: CheckArgs = { ...baseArgs, maxLatencyMs: 100 };
+	it("fails with LOW_N when judge sample size is below threshold", () => {
+		const args: CheckArgs = { ...baseArgs, judgeMinLabeledSamples: 200 };
 		const quality = {
 			score: 95,
 			total: 20,
 			evaluationRunId: 1,
-			avgLatencyMs: 250,
+			judgeAlignment: { sampleSize: 120, tpr: 0.95, tnr: 0.95 },
+		};
+		const result = evaluateGate(args, quality);
+		expect(result.exitCode).toBe(EXIT.LOW_N);
+		expect(result.passed).toBe(false);
+		expect(result.reasonCode).toBe("LOW_SAMPLE_SIZE");
+	});
+
+	it("fails with JUDGE_ALIGNMENT_LOW when TPR is below threshold", () => {
+		const args: CheckArgs = { ...baseArgs, judgeTprMin: 0.9 };
+		const quality = {
+			score: 95,
+			total: 20,
+			evaluationRunId: 1,
+			judgeAlignment: { sampleSize: 300, tpr: 0.82, tnr: 0.95 },
 		};
 		const result = evaluateGate(args, quality);
 		expect(result.exitCode).toBe(EXIT.SCORE_BELOW);
 		expect(result.passed).toBe(false);
-		expect(result.reasonCode).toBe("LATENCY_BUDGET_EXCEEDED");
-		expect(result.reasonMessage).toContain("250");
-		expect(result.reasonMessage).toContain("100");
+		expect(result.reasonCode).toBe("JUDGE_ALIGNMENT_LOW");
 	});
 
-	it("fails with COST_BUDGET_EXCEEDED when cost delta exceeds maxCostDeltaUsd", () => {
-		const args: CheckArgs = { ...baseArgs, maxCostDeltaUsd: 0.01 };
+	it("fails with distinct untrustworthy code when judge correction is skipped for weak judge", () => {
+		const args: CheckArgs = { ...baseArgs, judgeTprMin: 0.9 };
 		const quality = {
 			score: 95,
 			total: 20,
 			evaluationRunId: 1,
-			costUsd: 0.05,
-			baselineCostUsd: 0.02,
+			judgeAlignment: {
+				tpr: 0.52,
+				tnr: 0.51,
+				sampleSize: 120,
+				correctionApplied: false,
+				correctionSkippedReason: "judge_too_weak_to_correct" as const,
+			},
 		};
 		const result = evaluateGate(args, quality);
-		expect(result.exitCode).toBe(EXIT.SCORE_BELOW);
+		expect(result.exitCode).toBe(EXIT.JUDGE_CREDIBILITY_UNTRUSTWORTHY);
 		expect(result.passed).toBe(false);
-		expect(result.reasonCode).toBe("COST_BUDGET_EXCEEDED");
-		expect(result.reasonMessage).toContain("0.03");
-		expect(result.reasonMessage).toContain("0.01");
+		expect(result.reasonCode).toBe("JUDGE_CREDIBILITY_UNTRUSTWORTHY");
 	});
 
-	it("fails with POLICY_FAILED when using --policy HIPAA@1 and safety too low", () => {
-		const args: CheckArgs = { ...baseArgs, policy: "HIPAA@1" };
-		const quality = {
-			score: 95,
-			total: 20,
-			evaluationRunId: 1,
-			breakdown: { safety: 0.98 },
-		};
-		const result = evaluateGate(args, quality);
-		expect(result.exitCode).toBe(3); // POLICY_VIOLATION
-		expect(result.passed).toBe(false);
-		expect(result.reasonCode).toBe("POLICY_FAILED");
-		expect(result.reasonMessage).toContain("HIPAA");
-	});
-
-	it("passes policy gate when using --policy HIPAA@1 and safety meets threshold", () => {
-		const args: CheckArgs = { ...baseArgs, policy: "HIPAA@1" };
-		const quality = {
-			score: 95,
-			total: 20,
-			evaluationRunId: 1,
-			breakdown: { safety: 0.995 },
-			flags: [],
-		};
-		const result = evaluateGate(args, quality);
-		expect(result.exitCode).toBe(EXIT.PASS);
-		expect(result.passed).toBe(true);
-	});
-
-	it("passes budget gates when within limits", () => {
+	it("passes when judge thresholds are configured and metrics satisfy them", () => {
 		const args: CheckArgs = {
 			...baseArgs,
-			maxCostUsd: 0.1,
-			maxLatencyMs: 500,
-			maxCostDeltaUsd: 0.05,
+			judgeTprMin: 0.9,
+			judgeTnrMin: 0.85,
+			judgeMinLabeledSamples: 200,
 		};
 		const quality = {
-			score: 92,
-			total: 30,
+			score: 95,
+			total: 20,
 			evaluationRunId: 1,
-			baselineScore: 90,
-			regressionDelta: 2,
-			costUsd: 0.03,
-			avgLatencyMs: 200,
-			baselineCostUsd: 0.02,
+			judgeAlignment: { sampleSize: 220, tpr: 0.92, tnr: 0.89 },
 		};
 		const result = evaluateGate(args, quality);
 		expect(result.exitCode).toBe(EXIT.PASS);

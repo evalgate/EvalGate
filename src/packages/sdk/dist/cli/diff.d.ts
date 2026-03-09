@@ -83,6 +83,12 @@ export interface DiffSummary {
     added: number;
     /** Number of removed specs */
     removed: number;
+    /** Failure mode changes (mode -> {base, head, delta}) */
+    failureModes?: Record<string, {
+        base: number;
+        head: number;
+        delta: number;
+    }>;
 }
 /**
  * Complete diff result

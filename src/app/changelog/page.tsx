@@ -53,6 +53,45 @@ const typeLabel: Record<ReleaseType, string> = {
 
 const versions: VersionEntry[] = [
 	{
+		version: "3.0.2",
+		date: "2026-03-09",
+		packages: ["TypeScript", "Python"],
+		type: "feature",
+		sections: [
+			{
+				title: "Added",
+				items: [
+					"judge-credibility.ts — TPR/TNR computation with bias-corrected pass rate θ̂ = (p_obs + TNR − 1) / (TPR + TNR − 1), clipped to [0, 1]",
+					"Bootstrap CI with deterministic seed (default: 42, configurable via judge.bootstrapSeed)",
+					"Graceful degradation — skip correction when discriminative power ≤ 0.05; skip CI when n < 30; both emit correctionSkippedReason / ciSkippedReason into judgeCredibility report block",
+					"Gate exit 8 (WARN) when correction is skipped but thresholds are configured",
+					"evalgate diff flags apples-to-oranges comparison when correction basis differs between runs",
+					"judgeTprMin, judgeTnrMin, judgeMinLabeledSamples — new check args with gate enforcement",
+					"Doctor checks for weak judge and low sample-count alignment warnings",
+					"Train/dev/test split policy enforcement to prevent prompt/eval set contamination",
+					"evalgate label — interactive per-trace CLI: numbered failure-mode menu, resume support, undo (u), progress indicator, session summary",
+					"evalgate analyze — reads labeled JSONL, outputs per-mode frequency report",
+					"evalgate failure-modes — structured CLI to define 5–10 named binary failure modes with pass/fail criteria",
+					"Canonical labeled dataset schema — .evalgate/golden/labeled.jsonl with fields: caseId, input, expected, actual, label, failureMode, labeledAt",
+					"evalgate.md — unified human-maintained intent document initialized by evalgate init, consumed by CLI and judge as context",
+					"Per-failure-mode frequency map added to run results summary",
+					"Frequency × impact prioritization added to evalgate explain output",
+					"failureModeAlerts config — per-mode impact weights + alert thresholds (count-based and percent-based), global thresholds",
+					"withCostTier() method — cost-tier labeling on assertions; code vs llm tags",
+					"Normalized eval budget — trace-count mode ships now; Stripe LLM billing stubbed behind CostProvider interface",
+					"evaluateReplayOutcome() — compares corrected pass rates first, falls back to raw; emits keep/discard with comparisonBasis field",
+					"evalgate replay-decision — --previous/--current run comparison command",
+					"Golden set health in evalgate doctor — label coverage, class balance, last refresh date; stale/imbalanced warnings",
+					"Partial results saved on budget exceeded before exit",
+					"evalgate explain spec vs generalization classification — SPECIFICATION GAP vs GENERALIZATION FAILURE",
+					"docs/zero-to-golden-30-minutes.md — 5-step onboarding guide: init → discover+run → label → analyze → ci",
+					"docs/report-trace.md — asymmetric sampling model with all three modes and negative-feedback bypass behavior",
+					"docs/replay.md — distinguishes evalgate replay (candidate) from evalgate replay-decision (run comparison)",
+				],
+			},
+		],
+	},
+	{
 		version: "3.0.1",
 		date: "2026-03-06",
 		packages: ["TypeScript", "Python"],
@@ -656,7 +695,7 @@ export default function ChangelogPage() {
 							<Card key={release.version}>
 								<CardHeader>
 									<div className="flex flex-wrap items-center gap-2">
-										<Package className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+										<Package className="h-5 w-5 text-muted-foreground shrink-0" />
 										<CardTitle className="text-xl">
 											v{release.version}
 										</CardTitle>
@@ -699,7 +738,7 @@ export default function ChangelogPage() {
 															key={item}
 															className="flex items-start gap-2 text-sm text-muted-foreground"
 														>
-															<span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
+															<span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
 															{item}
 														</li>
 													))}

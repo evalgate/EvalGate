@@ -1,20 +1,16 @@
 import type React from "react";
 import { AbsoluteFill, interpolate, Sequence, useCurrentFrame } from "remotion";
 import { CAPTIONS, SEGMENTS } from "./data";
-import { Benchmarks } from "./segments/Benchmarks";
-import { Closing } from "./segments/Closing";
-import { CostsCharts } from "./segments/CostsCharts";
-import { CostsSummary } from "./segments/CostsSummary";
-import { Dashboard } from "./segments/Dashboard";
-import { EvaluationDetail } from "./segments/EvaluationDetail";
-import { EvaluationsList } from "./segments/EvaluationsList";
-import { Intro } from "./segments/Intro";
-import { SDK } from "./segments/SDK";
-import { Traces } from "./segments/Traces";
-import { WorkflowDAG } from "./segments/WorkflowDAG";
-import { WorkflowRuns } from "./segments/WorkflowRuns";
-import { WorkflowStats } from "./segments/WorkflowStats";
-import { WorkflowsList } from "./segments/WorkflowsList";
+import {
+	ExplainShowcase,
+	HookCatch,
+	HookPain,
+	LoopFlow,
+	QuickStartSummary,
+	QuickStartTerminal,
+	RemoveAnytime,
+	TrustTable,
+} from "./segments/EvalGateStory";
 import {
 	captionBar,
 	captionText,
@@ -112,14 +108,14 @@ export const DemoStills: React.FC = () => {
 				}}
 			>
 				{[
-					{ seg: SEGMENTS.dashboard, El: Dashboard },
-					{ seg: SEGMENTS.evaluationsList, El: EvaluationsList },
-					{ seg: SEGMENTS.evaluationDetail, El: EvaluationDetail },
-					{ seg: SEGMENTS.traces, El: Traces },
-					{ seg: SEGMENTS.workflowsList, El: WorkflowsList },
-					{ seg: SEGMENTS.workflowDag, El: WorkflowDAG },
-					{ seg: SEGMENTS.costsSummary, El: CostsSummary },
-					{ seg: SEGMENTS.benchmarks, El: Benchmarks },
+					{ seg: SEGMENTS.hookPain, El: HookPain },
+					{ seg: SEGMENTS.hookCatch, El: HookCatch },
+					{ seg: SEGMENTS.quickStartTerminal, El: QuickStartTerminal },
+					{ seg: SEGMENTS.quickStartSummary, El: QuickStartSummary },
+					{ seg: SEGMENTS.loop, El: LoopFlow },
+					{ seg: SEGMENTS.trust, El: TrustTable },
+					{ seg: SEGMENTS.explain, El: ExplainShowcase },
+					{ seg: SEGMENTS.remove, El: RemoveAnytime },
 				].map(({ seg, El }) => (
 					<Sequence
 						key={seg.start}
@@ -154,101 +150,59 @@ export const DemoVideo: React.FC = () => {
 
 				<div style={contentArea}>
 					<Sequence
-						from={SEGMENTS.intro.start}
-						durationInFrames={SEGMENTS.intro.duration}
+						from={SEGMENTS.hookPain.start}
+						durationInFrames={SEGMENTS.hookPain.duration}
 					>
-						<Intro />
+						<HookPain />
 					</Sequence>
 
 					<Sequence
-						from={SEGMENTS.dashboard.start}
-						durationInFrames={SEGMENTS.dashboard.duration}
+						from={SEGMENTS.hookCatch.start}
+						durationInFrames={SEGMENTS.hookCatch.duration}
 					>
-						<Dashboard />
+						<HookCatch />
 					</Sequence>
 
 					<Sequence
-						from={SEGMENTS.evaluationsList.start}
-						durationInFrames={SEGMENTS.evaluationsList.duration}
+						from={SEGMENTS.quickStartTerminal.start}
+						durationInFrames={SEGMENTS.quickStartTerminal.duration}
 					>
-						<EvaluationsList />
+						<QuickStartTerminal />
 					</Sequence>
 
 					<Sequence
-						from={SEGMENTS.evaluationDetail.start}
-						durationInFrames={SEGMENTS.evaluationDetail.duration}
+						from={SEGMENTS.quickStartSummary.start}
+						durationInFrames={SEGMENTS.quickStartSummary.duration}
 					>
-						<EvaluationDetail />
+						<QuickStartSummary />
 					</Sequence>
 
 					<Sequence
-						from={SEGMENTS.traces.start}
-						durationInFrames={SEGMENTS.traces.duration}
+						from={SEGMENTS.loop.start}
+						durationInFrames={SEGMENTS.loop.duration}
 					>
-						<Traces />
+						<LoopFlow />
 					</Sequence>
 
 					<Sequence
-						from={SEGMENTS.workflowsList.start}
-						durationInFrames={SEGMENTS.workflowsList.duration}
+						from={SEGMENTS.trust.start}
+						durationInFrames={SEGMENTS.trust.duration}
 					>
-						<WorkflowsList />
+						<TrustTable />
 					</Sequence>
 
 					<Sequence
-						from={SEGMENTS.workflowStats.start}
-						durationInFrames={SEGMENTS.workflowStats.duration}
+						from={SEGMENTS.explain.start}
+						durationInFrames={SEGMENTS.explain.duration}
 					>
-						<WorkflowStats />
+						<ExplainShowcase />
 					</Sequence>
 
 					<Sequence
-						from={SEGMENTS.workflowDag.start}
-						durationInFrames={SEGMENTS.workflowDag.duration}
+						from={SEGMENTS.remove.start}
+						durationInFrames={SEGMENTS.remove.duration}
 					>
-						<WorkflowDAG />
-					</Sequence>
-
-					<Sequence
-						from={SEGMENTS.workflowRuns.start}
-						durationInFrames={SEGMENTS.workflowRuns.duration}
-					>
-						<WorkflowRuns />
-					</Sequence>
-
-					<Sequence
-						from={SEGMENTS.costsSummary.start}
-						durationInFrames={SEGMENTS.costsSummary.duration}
-					>
-						<CostsSummary />
-					</Sequence>
-
-					<Sequence
-						from={SEGMENTS.costsCharts.start}
-						durationInFrames={SEGMENTS.costsCharts.duration}
-					>
-						<CostsCharts />
-					</Sequence>
-
-					<Sequence
-						from={SEGMENTS.benchmarks.start}
-						durationInFrames={SEGMENTS.benchmarks.duration}
-					>
-						<Benchmarks />
-					</Sequence>
-
-					<Sequence
-						from={SEGMENTS.sdk.start}
-						durationInFrames={SEGMENTS.sdk.duration}
-					>
-						<SDK />
-					</Sequence>
-
-					<Sequence
-						from={SEGMENTS.closing.start}
-						durationInFrames={SEGMENTS.closing.duration}
-					>
-						<Closing />
+						<RemoveAnytime />
 					</Sequence>
 				</div>
 

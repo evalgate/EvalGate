@@ -10,6 +10,7 @@
  * - .evalgate/last-run.json output
  * - Legacy mode compatibility
  */
+import { type EvalAIConfig } from "./config";
 /**
  * Run execution options
  */
@@ -50,6 +51,19 @@ export interface RunResult {
         failed: number;
         skipped: number;
         passRate: number;
+        /** Per-failure-mode frequency counts (from labeled dataset) */
+        failureModes?: Record<string, number>;
+        /** Budget tracking information */
+        budget?: {
+            mode: "traces" | "cost";
+            used: number;
+            limit: number;
+            exceeded: boolean;
+        };
+        /** Total cost in USD (when cost mode is used) */
+        totalCostUsd?: number;
+        /** Corrected pass rate from judge alignment (when available) */
+        correctedPassRate?: number | null;
     };
 }
 /**
@@ -69,7 +83,17 @@ export interface SpecResult {
         error?: string;
         duration: number;
     };
+    /** Input text — populated when executor provides it, used for labeling */
+    input?: string;
+    /** Expected output — populated when executor provides it, used for labeling */
+    expected?: string;
+    /** Actual output — populated when executor provides it, used for labeling */
+    actual?: string;
 }
+/**
+ * Schema version for RunResult — bump on breaking changes.
+ */
+export declare const RUN_RESULT_SCHEMA_VERSION = 1;
 /**
  * Run evaluation specifications
  */
@@ -90,7 +114,7 @@ export interface RunIndexEntry {
 /**
  * Print human-readable results
  */
-export declare function printHumanResults(result: RunResult): void;
+export declare function printHumanResults(result: RunResult, config?: EvalAIConfig | null): void;
 /**
  * Print JSON results
  */

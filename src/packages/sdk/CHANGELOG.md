@@ -5,6 +5,50 @@ All notable changes to the @evalgate/sdk package will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.2] - 2026-03-09
+
+### Added — Judge Credibility, Analyze Phase, Measurement & CI
+
+#### P1: Judge Credibility
+
+- **`judge-credibility.ts`** — TPR/TNR computation with bias-corrected pass rate: θ̂ = (p_obs + TNR − 1) / (TPR + TNR − 1), clipped to [0, 1]
+- **Bootstrap CI** — deterministic seed (default: 42, configurable via `judge.bootstrapSeed`)
+- **Graceful degradation** — skip correction when discriminative power (TPR+TNR−1) ≤ 0.05; skip CI when n < 30; both emit `correctionSkippedReason` / `ciSkippedReason` into `judgeCredibility` report block
+- **Gate exit 8 (WARN)** — emitted when correction is skipped but thresholds are configured
+- **`evalgate diff`** — flags apples-to-oranges comparison when correction basis differs between runs
+- **`judgeTprMin`, `judgeTnrMin`, `judgeMinLabeledSamples`** — new check args with gate enforcement
+- **Doctor checks** — weak judge and low sample-count alignment warnings
+- **Train/dev/test split policy** — enforcement to prevent prompt/eval set contamination
+
+#### P2: Analyze Phase
+
+- **Canonical labeled dataset schema** — `.evalgate/golden/labeled.jsonl`; fields: `caseId`, `input`, `expected`, `actual`, `label`, `failureMode`, `labeledAt`
+- **`evalgate label`** — interactive per-trace CLI: numbered failure-mode menu, resume support, undo (`u`), progress indicator, session summary
+- **`evalgate analyze`** — reads labeled JSONL, outputs per-mode frequency report
+- **`evalgate failure-modes`** — structured CLI to define 5–10 named binary failure modes with pass/fail criteria
+- **`evalgate.md`** — unified human-maintained intent document; initialized by `evalgate init`, consumed by CLI and judge as context
+
+#### P3: Measurement & CI
+
+- **Per-failure-mode frequency map** — added to run results summary
+- **Frequency × impact prioritization** — added to `evalgate explain` output
+- **`failureModeAlerts` config** — per-mode impact weights + alert thresholds (count-based and percent-based), global thresholds
+- **`withCostTier()` method** — cost-tier labeling on assertions; `code` vs `llm` tags
+- **Normalized eval budget** — trace-count mode ships now; Stripe LLM billing stubbed behind `CostProvider` interface
+- **`evaluateReplayOutcome()`** — compares corrected pass rates first, falls back to raw; emits `keep`/`discard` with `comparisonBasis` field
+- **`evalgate replay-decision`** — `--previous`/`--current` run comparison command
+- **Partial results on budget exceeded** — saved before process exits
+
+#### P4 & P5: Framing, Docs & Production Loop
+
+- **`evalgate explain`** — spec vs generalization classification: `SPECIFICATION GAP` vs `GENERALIZATION FAILURE`
+- **`docs/zero-to-golden-30-minutes.md`** — 5-step onboarding: init → discover+run → label → analyze → ci
+- **`docs/report-trace.md`** — asymmetric sampling model with all three modes and negative-feedback bypass
+- **`docs/replay.md`** — distinguishes `evalgate replay` (candidate) from `evalgate replay-decision` (run comparison)
+- Golden set health checks, before/after `evalgate.md` examples, and README assertions section restructured
+
+---
+
 ## [3.0.0] - 2026-03-04
 
 ### Breaking — AI Reliability Loop

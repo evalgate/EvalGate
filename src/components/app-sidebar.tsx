@@ -4,6 +4,7 @@ import {
 	BarChart3,
 	Beaker,
 	BookOpen,
+	CheckCircle,
 	Code,
 	DollarSign,
 	FileText,
@@ -56,6 +57,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 								>
 									<Beaker />
 									<span>Evaluations</span>
+								</Link>
+							</SidebarMenuButton>
+						</SidebarMenuItem>
+						<SidebarMenuItem>
+							<SidebarMenuButton asChild>
+								<Link
+									href="/candidates"
+									prefetch={true}
+									className="flex items-center gap-2"
+								>
+									<CheckCircle />
+									<span>Candidates</span>
 								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>

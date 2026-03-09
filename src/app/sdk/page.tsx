@@ -10,18 +10,18 @@ import { Card } from "@/components/ui/card";
 export const metadata: Metadata = {
 	title: "SDK Quick Start - EvalGate | AI Quality Infrastructure",
 	description:
-		"EvalGate 3.0.1: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs. One-command CI workflow plus production trace collection.",
+		"EvalGate 3.0.2: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs. One-command CI workflow plus production trace collection.",
 	openGraph: {
 		title: "SDK Quick Start - EvalGate | AI Quality Infrastructure",
 		description:
-			"EvalGate 3.0.1: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs.",
+			"EvalGate 3.0.2: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs.",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "SDK Quick Start - EvalGate | AI Quality Infrastructure",
 		description:
-			"EvalGate 3.0.1: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs.",
+			"EvalGate 3.0.2: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs.",
 	},
 };
 
@@ -180,6 +180,52 @@ npx evalgate gate --format json      # machine-readable output
 # Or with the platform (requires API key):
 npx evalgate check --format github --onFail import`;
 
+	const analyzeWorkflowCode = `# 1 — Define your app's specific failure modes (run once)
+npx evalgate failure-modes
+
+# 2 — Label production traces interactively
+npx evalgate label
+# Arrow-key menu, u to undo, Ctrl-C saves progress
+
+# 3 — See failure-mode frequency across all labeled traces
+npx evalgate analyze
+
+# 4 — Compare two runs and emit keep/discard decision
+npx evalgate replay-decision \\
+  --previous .evalgate/runs/run-prev.json \\
+  --current  .evalgate/runs/run-latest.json`;
+
+	const judgeCredibilityCode = `// evalgate.config.json
+{
+  "judge": {
+    "bootstrapSeed": 42,    // deterministic CI seed
+    "tprMin": 0.70,         // gate fails if judge TPR < 70%
+    "tnrMin": 0.70,         // gate fails if judge TNR < 70%
+    "minLabeledSamples": 30 // skip CI when n < 30 (warn)
+  },
+  "failureModeAlerts": {
+    "modes": {
+      "hallucination": { "weight": 1.5, "maxPercent": 10 },
+      "off_topic":     { "weight": 1.0, "maxPercent": 20, "maxCount": 5 },
+      "wrong_format":  { "weight": 0.8, "maxPercent": 15 }
+    }
+  }
+}`;
+
+	const costTierCode = `import { defineEval, expect } from '@evalgate/sdk';
+
+defineEval('SQL safety check', async () => {
+  const response = await yourApp.generate('Generate a report query');
+
+  // 'code' tier — fast local check, no API call
+  const structureOk = expect(response).withCostTier('code').toContain('SELECT');
+
+  // 'llm' tier — LLM-backed check, consumes tokens
+  const safetyOk = await expect(response).withCostTier('llm').toNotHallucinateAsync(facts);
+
+  return { pass: structureOk.passed && safetyOk.passed, score: 100 };
+});`;
+
 	return (
 		<div className="min-h-screen bg-background text-foreground flex flex-col">
 			{/* Header */}
@@ -210,7 +256,7 @@ npx evalgate check --format github --onFail import`;
 							<Badge variant="outline">TypeScript & Python</Badge>
 							<Badge variant="outline">50+ Built-in Assertions</Badge>
 							<Badge variant="outline">Production → CI Loop</Badge>
-							<Badge variant="default">EvalGate 3.0.1</Badge>
+							<Badge variant="default">EvalGate 3.0.2</Badge>
 						</div>
 						<h1 className="text-4xl font-bold tracking-tight">
 							SDK Quick Start
@@ -223,13 +269,74 @@ npx evalgate check --format github --onFail import`;
 						</p>
 					</div>
 
+					{/* How it works in 3 steps */}
+					<section className="space-y-4">
+						<h2 className="text-2xl font-semibold text-center">
+							How EvalGate Works
+						</h2>
+						<p className="text-center text-muted-foreground max-w-2xl mx-auto">
+							A closed-loop AI quality system. Production failures automatically
+							become regression tests.
+						</p>
+						<div className="grid md:grid-cols-3 gap-4">
+							<Card className="p-5 bg-linear-to-br from-purple-500/5 to-purple-500/10 border-purple-500/20">
+								<div className="flex items-center gap-2 mb-3">
+									<div className="h-8 w-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
+										1
+									</div>
+									<h3 className="font-semibold">Collect</h3>
+								</div>
+								<p className="text-sm text-muted-foreground mb-3">
+									Production traces flow in via{" "}
+									<code className="text-xs bg-muted px-1 rounded">
+										reportTrace()
+									</code>
+									. Asymmetric sampling: 10% success, 100% errors.
+								</p>
+								<code className="text-xs font-mono text-primary">
+									reportTrace(input, output)
+								</code>
+							</Card>
+							<Card className="p-5 bg-linear-to-br from-green-500/5 to-green-500/10 border-green-500/20">
+								<div className="flex items-center gap-2 mb-3">
+									<div className="h-8 w-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-600 dark:text-green-400 font-bold">
+										2
+									</div>
+									<h3 className="font-semibold">Label</h3>
+								</div>
+								<p className="text-sm text-muted-foreground mb-3">
+									Interactive CLI labels each trace: pass/fail + failure mode.
+									Builds your golden dataset.
+								</p>
+								<code className="text-xs font-mono text-primary">
+									evalgate label
+								</code>
+							</Card>
+							<Card className="p-5 bg-linear-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
+								<div className="flex items-center gap-2 mb-3">
+									<div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
+										3
+									</div>
+									<h3 className="font-semibold">Gate</h3>
+								</div>
+								<p className="text-sm text-muted-foreground mb-3">
+									CI blocks regressions using validated judge credibility. Every
+									label becomes a regression test.
+								</p>
+								<code className="text-xs font-mono text-primary">
+									evalgate ci
+								</code>
+							</Card>
+						</div>
+					</section>
+
 					{/* One-Command CI (EvalGate 3.0.0) */}
 					<section className="space-y-4">
-						<div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-lg p-6">
+						<div className="bg-linear-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-lg p-6">
 							<div className="flex items-center gap-2 mb-3">
 								<Sparkles className="h-5 w-5 text-blue-500" />
 								<h2 className="text-xl font-semibold">
-									🚀 One-Command CI + AI Reliability Loop (3.0.0)
+									🚀 One-Command CI + AI Reliability Loop (3.0.2)
 								</h2>
 							</div>
 							<p className="text-muted-foreground mb-4">
@@ -281,7 +388,7 @@ jobs:
 							a CI workflow, and prints what to commit. Open a PR and CI blocks
 							regressions automatically.
 						</p>
-						<div className="grid sm:grid-cols-4 gap-2 text-sm">
+						<div className="grid sm:grid-cols-3 gap-2 text-sm">
 							<Card className="p-3">
 								<code className="text-xs font-mono font-medium text-primary">
 									npx evalgate gate
@@ -312,6 +419,22 @@ jobs:
 								</code>
 								<p className="text-xs text-muted-foreground mt-0.5">
 									Verify CI setup
+								</p>
+							</Card>
+							<Card className="p-3">
+								<code className="text-xs font-mono font-medium text-primary">
+									npx evalgate label
+								</code>
+								<p className="text-xs text-muted-foreground mt-0.5">
+									Label traces interactively
+								</p>
+							</Card>
+							<Card className="p-3">
+								<code className="text-xs font-mono font-medium text-primary">
+									npx evalgate analyze
+								</code>
+								<p className="text-xs text-muted-foreground mt-0.5">
+									Failure-mode frequency report
 								</p>
 							</Card>
 						</div>
@@ -518,11 +641,88 @@ jobs:
 						</div>
 					</section>
 
+					{/* Label & Analyze (3.0.2) */}
+					<section className="space-y-4">
+						<div className="bg-linear-to-br from-green-500/10 to-green-500/5 border border-green-500/20 rounded-lg p-6">
+							<div className="flex items-center gap-2 mb-3">
+								<Sparkles className="h-5 w-5 text-green-500" />
+								<h2 className="text-xl font-semibold">
+									🆕 3.0.2: Label, Analyze &amp; Judge Credibility
+								</h2>
+							</div>
+							<p className="text-muted-foreground mb-4">
+								Build a labeled golden dataset, measure failure-mode frequency,
+								and verify your judge is trustworthy before gating on its score.
+							</p>
+
+							<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+								Analyze Workflow
+							</p>
+							<div className="bg-muted p-4 rounded-lg font-mono text-sm overflow-x-auto relative group mb-4">
+								<pre>
+									<code>{analyzeWorkflowCode}</code>
+								</pre>
+								<CopyButton
+									code={analyzeWorkflowCode}
+									className="absolute top-2 right-2"
+								/>
+							</div>
+
+							<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+								Judge Credibility + Failure Mode Alerts Config
+							</p>
+							<div className="bg-muted p-4 rounded-lg font-mono text-sm overflow-x-auto relative group mb-4">
+								<pre>
+									<code>{judgeCredibilityCode}</code>
+								</pre>
+								<CopyButton
+									code={judgeCredibilityCode}
+									className="absolute top-2 right-2"
+								/>
+							</div>
+
+							<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+								withCostTier() — Tag Assertions by Execution Cost
+							</p>
+							<div className="bg-muted p-4 rounded-lg font-mono text-sm overflow-x-auto relative group mb-4">
+								<pre>
+									<code>{costTierCode}</code>
+								</pre>
+								<CopyButton
+									code={costTierCode}
+									className="absolute top-2 right-2"
+								/>
+							</div>
+
+							<p className="text-sm text-muted-foreground">
+								When discriminative power (TPR+TNR−1) ≤ 0.05, correction is
+								skipped and gate exits{" "}
+								<code className="text-xs bg-muted px-1 rounded">8 (WARN)</code>{" "}
+								instead of silently using a biased score. Bootstrap CI is
+								skipped when n &lt; 30 — both emit reason codes into the{" "}
+								<code className="text-xs bg-muted px-1 rounded">
+									judgeCredibility
+								</code>{" "}
+								block of the JSON report.
+							</p>
+						</div>
+					</section>
+
 					{/* Next Steps */}
-					<Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
+					<Card className="p-6 bg-linear-to-br from-blue-500/10 to-blue-500/5">
 						<div className="space-y-4">
 							<h3 className="text-xl font-semibold">Next Steps</h3>
 							<div className="grid gap-3">
+								<a
+									href="https://github.com/evalgate/ai-evaluation-platform/blob/main/docs/ZERO_TO_GOLDEN_DATASET.md"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<Button variant="outline" className="w-full justify-start">
+										<Sparkles className="h-4 w-4 mr-2" />
+										Zero to Golden Dataset (30 min guide)
+									</Button>
+								</a>
 								<Link href="/templates">
 									<Button variant="outline" className="w-full justify-start">
 										<CheckCircle2 className="h-4 w-4 mr-2" />
@@ -535,6 +735,16 @@ jobs:
 										Try the Interactive Playground
 									</Button>
 								</Link>
+								<a
+									href="https://github.com/evalgate/ai-evaluation-platform/blob/main/src/packages/sdk/README.md#troubleshooting"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<Button variant="outline" className="w-full justify-start">
+										<ExternalLink className="h-4 w-4 mr-2" />
+										Troubleshooting Guide
+									</Button>
+								</a>
 								<Link href="/api-reference">
 									<Button variant="outline" className="w-full justify-start">
 										<ExternalLink className="h-4 w-4 mr-2" />

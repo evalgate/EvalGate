@@ -2,6 +2,62 @@
 
 Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANGELOG.md](src/packages/sdk/CHANGELOG.md).
 
+## [3.0.2] - 2026-03-09
+
+### Added — Judge Credibility, Analyze Phase, Measurement & CI
+
+#### P1: Judge Credibility
+
+- **`judge-credibility.ts`** — TPR/TNR computation with bias-corrected pass rate: θ̂ = (p_obs + TNR − 1) / (TPR + TNR − 1), clipped to [0, 1]
+- **Bootstrap CI** — deterministic seed (default: 42, configurable via `judge.bootstrapSeed`)
+- **Graceful degradation** — skip correction when discriminative power (TPR+TNR−1) ≤ 0.05; skip CI when n < 30; both emit reason codes
+- **`judgeCredibility` block** — `correctionSkippedReason` and `ciSkippedReason` wired into JSON report
+- **Inline warnings** — human formatter prints correction/CI skip warnings next to affected metric
+- **Gate exit 8 (WARN)** — emitted when correction is skipped but thresholds are configured
+- **`evalgate diff`** — flags apples-to-oranges comparison when correction basis differs between runs
+- **`judgeTprMin`, `judgeTnrMin`, `judgeMinLabeledSamples`** — added to check args + gate enforcement
+- **Doctor checks** — weak judge and low sample-count alignment warnings in `evalgate doctor`
+- **Train/dev/test split policy** — enforcement to prevent prompt/eval set contamination
+
+#### P2: Analyze Phase
+
+- **Canonical labeled dataset schema** — `.evalgate/golden/labeled.jsonl` with fields: `caseId`, `input`, `expected`, `actual`, `label`, `failureMode`, `labeledAt`
+- **`evalgate label`** — interactive per-trace CLI: numbered failure-mode menu, resume support, undo (`u`), progress indicator, session summary
+- **`evalgate analyze`** — reads labeled JSONL, outputs per-mode frequency report
+- **`evalgate failure-modes`** — structured CLI to define 5–10 named binary failure modes with pass/fail criteria
+- **`evalgate.md`** — unified human-maintained intent document; initialized by `evalgate init`, consumed by CLI and judge as context
+- **`docs/LABELED_DATASET_SCHEMA.md`** — published as first-class artifact
+
+#### P3: Measurement & CI
+
+- **Per-failure-mode frequency map** — added to run results summary
+- **Frequency × impact prioritization** — added to `evalgate explain` output
+- **`failureModeAlerts` config** — per-mode impact weights + alert thresholds (count-based and percent-based), global thresholds
+- **Gate enforcement** — threshold breach exits via `EXIT.SCORE_BELOW`
+- **Failure mode changelog in `evalgate diff`** — shows `mode: 23% → 9%`
+- **`withCostTier()` method** — cost-tier labeling on assertions; `code` vs `llm` tags
+- **Normalized eval budget** — trace-count mode ships now; Stripe LLM billing stubbed behind `CostProvider` interface
+- **`evaluateReplayOutcome()`** — compares corrected pass rates first, falls back to raw; emits `keep`/`discard` with `comparisonBasis` field
+- **`evalgate replay-decision`** — `--previous`/`--current` run comparison command
+- **Golden set health in doctor** — label coverage, class balance, last refresh date; stale/imbalanced warnings
+- **Partial results on budget exceeded** — saved before process exits
+
+#### P4: Framing & Docs
+
+- **README assertions section restructured** — application-specific binary checks lead; generic assertions labeled as scaffolding
+- **`evalgate explain` spec/generalization classification** — heuristic flags missing prompt instructions as `SPECIFICATION GAP`, model failures on clear instructions as `GENERALIZATION FAILURE`
+- **`docs/zero-to-golden-30-minutes.md`** — 5-step onboarding guide: init → discover+run → label → analyze → ci
+- **Before/after `evalgate.md` examples** — sparse vs mature intent documents
+- **Cross-links** — onboarding guide linked from README, `evalgate.md`, and `evalgate init` output
+
+#### P5: Production Loop
+
+- **`docs/report-trace.md`** — asymmetric sampling model documented with all three sampling modes and negative feedback bypass behavior
+- **`docs/replay.md`** — clarifies `evalgate replay` (candidate) vs `evalgate replay-decision` (run comparison) as distinct commands
+- **Cross-linked docs** — all new docs linked from `evalgate.md`, README, and onboarding guide
+
+---
+
 ## [3.0.1] - 2026-03-06
 
 ### Fixed (SDK)

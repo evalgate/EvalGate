@@ -124,6 +124,8 @@ export interface DiffSummary {
 	added: number;
 	/** Number of removed specs */
 	removed: number;
+	/** Failure mode changes (mode -> {base, head, delta}) */
+	failureModes?: Record<string, { base: number; head: number; delta: number }>;
 }
 
 /**
@@ -640,6 +642,28 @@ export function calculateDiffSummary(
 		(s) => s.classification === "removed",
 	).length;
 
+	// Calculate failure mode changes
+	const failureModes: Record<
+		string,
+		{ base: number; head: number; delta: number }
+	> = {};
+	const baseFailureModes = base.summary.failureModes ?? {};
+	const headFailureModes = head.summary.failureModes ?? {};
+
+	// Get all unique failure modes from both runs
+	const allModes = new Set([
+		...Object.keys(baseFailureModes),
+		...Object.keys(headFailureModes),
+	]);
+
+	for (const mode of allModes) {
+		const baseCount = baseFailureModes[mode] ?? 0;
+		const headCount = headFailureModes[mode] ?? 0;
+		const delta = headCount - baseCount;
+
+		failureModes[mode] = { base: baseCount, head: headCount, delta };
+	}
+
 	return {
 		baseTotal,
 		headTotal,
@@ -649,6 +673,8 @@ export function calculateDiffSummary(
 		improvements,
 		added,
 		removed,
+		failureModes:
+			Object.keys(failureModes).length > 0 ? failureModes : undefined,
 	};
 }
 
@@ -675,6 +701,23 @@ export function printHumanResults(result: DiffResult): void {
 	console.log(`   📈 Improvements: ${result.summary.improvements}`);
 	console.log(`   ➕ Added: ${result.summary.added}`);
 	console.log(`   ➖ Removed: ${result.summary.removed}`);
+
+	// Failure mode changes
+	if (
+		result.summary.failureModes &&
+		Object.keys(result.summary.failureModes).length > 0
+	) {
+		console.log("\n🔍 Failure Mode Changes:");
+		const sortedModes = Object.entries(result.summary.failureModes).sort(
+			(a, b) => Math.abs(b[1].delta) - Math.abs(a[1].delta),
+		);
+
+		for (const [mode, { base, head, delta }] of sortedModes) {
+			const arrow = delta > 0 ? "📈" : delta < 0 ? "📉" : "➡️";
+			const deltaStr = delta > 0 ? `+${delta}` : delta.toString();
+			console.log(`   ${arrow} ${mode}: ${base} → ${head} (${deltaStr})`);
+		}
+	}
 
 	if (result.changedSpecs.length > 0) {
 		console.log("\n🔍 Changed Specifications:");
