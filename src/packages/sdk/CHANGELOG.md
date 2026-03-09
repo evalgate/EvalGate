@@ -5,6 +5,17 @@ All notable changes to the @evalgate/sdk package will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-03-09
+
+### Added
+
+- **Programmatic replay decision exports** — `@evalgate/sdk/replay-decision` is now exported so `evaluateReplayOutcome()` and related types can be imported without `ERR_PACKAGE_PATH_NOT_EXPORTED`.
+- **Programmatic promote exports** — `@evalgate/sdk/promote` is now exported so `runPromote()` and `parsePromoteArgs()` can be reused outside the CLI router.
+
+### Changed
+
+- **Release metadata alignment** — Bumped `SDK_VERSION` and `SPEC_VERSION` to `3.1.0` and synchronized checked-in package metadata for publishable SDK artifacts.
+
 ## [3.0.3] - 2026-03-09
 
 ### Changed

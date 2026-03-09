@@ -4,6 +4,12 @@ When you change `docs/openapi.json`, add an entry here before running `pnpm open
 
 Format: `## X.Y.Z` or `## [X.Y.Z]` with a short description.
 
+## 3.1.0
+
+- Bump spec version to align with TypeScript SDK `3.1.0`
+- Public SDK packaging fix: `@evalgate/sdk/replay-decision` and `@evalgate/sdk/promote` are now exported for programmatic consumers
+- No intended API contract shape changes; this release keeps OpenAPI metadata, request headers, and release validation artifacts in sync
+
 ## 3.0.3
 
 - Bump spec version to align with platform and TypeScript SDK `3.0.3`

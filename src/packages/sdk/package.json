@@ -1,6 +1,6 @@
 {
 	"name": "@evalgate/sdk",
-	"version": "3.0.3",
+	"version": "3.1.0",
 	"publishConfig": {
 		"access": "public",
 		"registry": "https://registry.npmjs.org/"
@@ -114,6 +114,16 @@
 			"import": "./dist/matchers/index.js",
 			"require": "./dist/matchers/index.js",
 			"types": "./dist/matchers/index.d.ts"
+		},
+		"./replay-decision": {
+			"import": "./dist/cli/replay-decision.js",
+			"require": "./dist/cli/replay-decision.js",
+			"types": "./dist/cli/replay-decision.d.ts"
+		},
+		"./promote": {
+			"import": "./dist/cli/promote.js",
+			"require": "./dist/cli/promote.js",
+			"types": "./dist/cli/promote.d.ts"
 		},
 		"./regression": {
 			"import": "./dist/regression.js",

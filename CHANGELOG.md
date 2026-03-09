@@ -2,6 +2,13 @@
 
 Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANGELOG.md](src/packages/sdk/CHANGELOG.md).
 
+## [3.1.0] - 2026-03-09
+
+### Added — SDK Public Export Surface
+
+- **Programmatic SDK subpaths** — Exported `@evalgate/sdk/replay-decision` and `@evalgate/sdk/promote` so replay decision logic and promote helpers can be imported programmatically without `ERR_PACKAGE_PATH_NOT_EXPORTED`.
+- **Release metadata alignment** — Synchronized SDK package metadata, runtime version constants, and documentation for the `3.1.0` SDK release.
+
 ## [3.0.3] - 2026-03-09
 
 ### Fixed — Reliability Hardening & Release Validation
