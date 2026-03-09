@@ -33,7 +33,7 @@ jobs:
         working-directory: examples/quickstart-ci
 
       - name: Post or update PR comment (sticky)
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
