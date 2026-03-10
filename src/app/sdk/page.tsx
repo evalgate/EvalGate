@@ -10,18 +10,18 @@ import { Card } from "@/components/ui/card";
 export const metadata: Metadata = {
 	title: "SDK Quick Start - EvalGate | AI Quality Infrastructure",
 	description:
-		"EvalGate 3.0.2: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs. One-command CI workflow plus production trace collection.",
+		"EvalGate 3.1.0: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs. One-command CI workflow plus production trace collection.",
 	openGraph: {
 		title: "SDK Quick Start - EvalGate | AI Quality Infrastructure",
 		description:
-			"EvalGate 3.0.2: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs.",
+			"EvalGate 3.1.0: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs.",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "SDK Quick Start - EvalGate | AI Quality Infrastructure",
 		description:
-			"EvalGate 3.0.2: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs.",
+			"EvalGate 3.1.0: AI quality infrastructure. Production failures become regression tests. TypeScript & Python SDKs.",
 	},
 };
 
@@ -195,6 +195,18 @@ npx evalgate replay-decision \\
   --previous .evalgate/runs/run-prev.json \\
   --current  .evalgate/runs/run-latest.json`;
 
+	const autoresearchLoopCode = `# Refresh your manifest and check for redundant specs
+npx @evalgate/sdk discover --manifest
+
+# Group similar failures from the latest run
+npx @evalgate/sdk cluster --run .evalgate/runs/latest.json
+
+# Turn labeled failures into synthetic golden cases
+npx @evalgate/sdk synthesize --dataset .evalgate/golden/labeled.jsonl --output .evalgate/golden/synthetic.jsonl
+
+# Run a budget-bounded prompt experiment loop
+npx @evalgate/sdk auto --objective tone_mismatch --prompt prompts/support.md --budget 3`;
+
 	const judgeCredibilityCode = `// evalgate.config.json
 {
   "judge": {
@@ -256,7 +268,7 @@ defineEval('SQL safety check', async () => {
 							<Badge variant="outline">TypeScript & Python</Badge>
 							<Badge variant="outline">50+ Built-in Assertions</Badge>
 							<Badge variant="outline">Production → CI Loop</Badge>
-							<Badge variant="default">EvalGate 3.0.2</Badge>
+							<Badge variant="default">EvalGate 3.1.0</Badge>
 						</div>
 						<h1 className="text-4xl font-bold tracking-tight">
 							SDK Quick Start
@@ -705,6 +717,35 @@ jobs:
 								</code>{" "}
 								block of the JSON report.
 							</p>
+						</div>
+					</section>
+
+					{/* Advanced Loops (3.1.0) */}
+					<section className="space-y-4">
+						<div className="bg-linear-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20 rounded-lg p-6">
+							<div className="flex items-center gap-2 mb-3">
+								<Sparkles className="h-5 w-5 text-purple-500" />
+								<h2 className="text-xl font-semibold">
+									🆕 3.1.0: Diversity, Cluster, Synthesize & Auto
+								</h2>
+							</div>
+							<p className="text-muted-foreground mb-4">
+								Discover redundant specs, cluster similar failures, generate
+								synthetic golden cases, and run budget-aware prompt experiments.
+							</p>
+
+							<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+								Advanced Loops Workflow
+							</p>
+							<div className="bg-muted p-4 rounded-lg font-mono text-sm overflow-x-auto relative group mb-4">
+								<pre>
+									<code>{autoresearchLoopCode}</code>
+								</pre>
+								<CopyButton
+									code={autoresearchLoopCode}
+									className="absolute top-2 right-2"
+								/>
+							</div>
 						</div>
 					</section>
 

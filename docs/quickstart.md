@@ -98,6 +98,36 @@ npx @evalgate/sdk explain --report .evalgate/last-run.json
 npx @evalgate/sdk doctor
 ```
 
+## Step 4: Iterate on failure patterns (TypeScript CLI)
+
+Once you have a run artifact or labeled dataset, use the TypeScript CLI loops to tighten eval coverage before shipping prompt changes.
+
+```bash
+# Refresh the manifest and inspect diversity / redundant spec pairs
+npx @evalgate/sdk discover --manifest
+
+# Group similar failures from the latest run artifact
+npx @evalgate/sdk cluster --run .evalgate/runs/latest.json
+
+# Draft broader golden cases from labeled failures
+npx @evalgate/sdk synthesize \
+  --dataset .evalgate/golden/labeled.jsonl \
+  --dimensions evals/dimensions.json \
+  --output .evalgate/golden/synthetic.jsonl
+
+# Try one budgeted prompt experiment loop
+npx @evalgate/sdk auto \
+  --objective tone_mismatch \
+  --hypothesis "acknowledge emotion before offering the fix" \
+  --prompt prompts/support.md \
+  --budget 3
+```
+
+- **`discover`** reports a diversity score, average nearest-neighbor similarity, and redundant spec pairs so you can prune overlap before adding more evals.
+- **`cluster`** lets you review failures cluster-by-cluster instead of one trace at a time.
+- **`synthesize`** turns repeated labeled failures into deterministic golden-case drafts you can review and promote.
+- **`auto`** stays budget-bounded and emits `keep`, `discard`, or `investigate` decisions instead of silently mutating your suite.
+
 ## Exit Codes
 
 - **0** - Clean: No regressions detected
@@ -148,7 +178,7 @@ client = AIEvalClient(api_key="sk-...")
 trace = await client.traces.create(CreateTraceParams(name="chat-quality"))
 ```
 
-**Python CLI:** Install with `pip install "pauly4010-evalgate-sdk[cli]"` and run `evalgate init`, `evalgate run`, `evalgate gate`, `evalgate ci`. See [Python CLI docs](python-cli.md).
+**Python CLI:** Install with `pip install "pauly4010-evalgate-sdk[cli]"` and run `evalgate init`, `evalgate run`, `evalgate gate`, `evalgate ci`. For `discover` diversity, `cluster`, `synthesize`, and `auto`, use the TypeScript CLI via `npx @evalgate/sdk ...`. See [Python CLI docs](python-cli.md).
 
 See [Python SDK README](../src/packages/sdk-python/README.md) for full parity: assertions, test suites, OpenAI/Anthropic tracing, LangChain/CrewAI/AutoGen integrations, and regression gates.
 

@@ -53,6 +53,33 @@ const typeLabel: Record<ReleaseType, string> = {
 
 const versions: VersionEntry[] = [
 	{
+		version: "3.1.0",
+		date: "2026-03-09",
+		packages: ["TypeScript"],
+		type: "feature",
+		sections: [
+			{
+				title: "Added",
+				items: [
+					"evalgate cluster — group similar failures from .evalgate/runs/latest.json so triage happens cluster-by-cluster instead of one trace at a time",
+					"discover diversity scoring — see a diversity score, nearest-neighbor similarity, and redundant spec pairs before adding more eval coverage",
+					"evalgate synthesize — draft deterministic golden cases from .evalgate/golden/labeled.jsonl, with optional dimension expansion for broader scenario coverage",
+					"evalgate auto — run a budget-bounded prompt experiment loop that emits keep / discard / investigate decisions instead of silently mutating your suite",
+					"Programmatic SDK subpaths — @evalgate/sdk/replay-decision and @evalgate/sdk/promote are exported for direct reuse outside the CLI router",
+				],
+			},
+			{
+				title: "Changed",
+				items: [
+					"How to use it: run `npx @evalgate/sdk discover --manifest` to refresh your manifest and inspect redundant spec pairs before you add new tests",
+					"How to use it: run `npx @evalgate/sdk cluster --run .evalgate/runs/latest.json` after a failing eval run to review patterns instead of isolated traces",
+					"How to use it: run `npx @evalgate/sdk synthesize --dataset .evalgate/golden/labeled.jsonl --output .evalgate/golden/synthetic.jsonl` to turn repeated labeled failures into reviewable draft cases",
+					"How to use it: run `npx @evalgate/sdk auto --objective tone_mismatch --prompt prompts/support.md --budget 3` to test one prompt iteration under an explicit budget",
+				],
+			},
+		],
+	},
+	{
 		version: "3.0.2",
 		date: "2026-03-09",
 		packages: ["TypeScript", "Python"],

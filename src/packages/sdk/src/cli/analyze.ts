@@ -45,7 +45,7 @@ function isIsoTimestamp(value: string): boolean {
 	return Number.isFinite(Date.parse(value));
 }
 
-function parseLabeledDataset(content: string): LabeledGoldenCase[] {
+export function parseLabeledDataset(content: string): LabeledGoldenCase[] {
 	const rows = content
 		.split("\n")
 		.map((line) => line.trim())

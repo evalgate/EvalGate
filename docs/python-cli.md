@@ -21,6 +21,22 @@ The CLI is invoked as `evalgate` (not `evalai` — the package was rebranded fro
 | `evalgate explain` | Root cause analysis on last failure |
 | `evalgate configure` | Interactive API key configuration |
 
+## TypeScript-only advanced loops (current release)
+
+The newest closed-loop workflows currently ship in the TypeScript CLI. Use them with `npx @evalgate/sdk ...` alongside the Python SDK when you want:
+
+- `discover` diversity scoring and redundant spec pair reporting
+- `cluster` failure grouping over a saved run artifact
+- `synthesize` deterministic golden-case draft generation from labeled failures
+- `auto` budget-bounded prompt experiments with `keep` / `discard` / `investigate` decisions
+
+```bash
+npx @evalgate/sdk discover --manifest
+npx @evalgate/sdk cluster --run .evalgate/runs/latest.json
+npx @evalgate/sdk synthesize --dataset .evalgate/golden/labeled.jsonl --output .evalgate/golden/synthetic.jsonl
+npx @evalgate/sdk auto --objective tone_mismatch --prompt prompts/support.md --budget 3
+```
+
 ## Quick Start
 
 ```bash

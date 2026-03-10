@@ -34,6 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DEFAULT_LABELED_DATASET_PATH = void 0;
+exports.parseLabeledDataset = parseLabeledDataset;
 exports.analyzeLabeledDataset = analyzeLabeledDataset;
 exports.formatAnalyzeHuman = formatAnalyzeHuman;
 exports.runAnalyze = runAnalyze;

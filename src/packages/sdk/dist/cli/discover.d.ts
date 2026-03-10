@@ -29,6 +29,8 @@ export interface DiscoveryStats {
     totalSpecs: number;
     /** Specifications by category/tag */
     categories: Record<string, number>;
+    /** Diversity and redundancy information */
+    diversity: DiversityStats;
     /** Specifications by file */
     files: Record<string, number>;
     /** Execution mode information */
@@ -67,6 +69,27 @@ export interface SpecAnalysis {
     usesTools: boolean;
     /** Estimated complexity */
     complexity: "simple" | "medium" | "complex";
+    /** Fingerprint text for diversity analysis */
+    fingerprintText?: string;
+}
+/**
+ * Redundant specification pair
+ */
+export interface RedundantSpecPair {
+    leftSpecId: string;
+    leftName: string;
+    rightSpecId: string;
+    rightName: string;
+    similarity: number;
+}
+/**
+ * Diversity statistics
+ */
+export interface DiversityStats {
+    score: number;
+    averageNearestNeighborSimilarity: number;
+    redundantPairs: RedundantSpecPair[];
+    threshold: number;
 }
 /**
  * Discover and analyze behavioral specifications in the current project
@@ -74,6 +97,7 @@ export interface SpecAnalysis {
 export declare function discoverSpecs(options?: {
     manifest?: boolean;
 }): Promise<DiscoveryStats>;
+export declare function calculateDiversityStats(specs: SpecAnalysis[], threshold?: number): DiversityStats;
 /**
  * Print discovery results in a beautiful format
  */

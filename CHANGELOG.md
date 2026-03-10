@@ -4,8 +4,12 @@ Platform and SDK releases. For detailed SDK changes, see [src/packages/sdk/CHANG
 
 ## [3.1.0] - 2026-03-09
 
-### Added — SDK Public Export Surface
+### Added — Autoresearch-Inspired CLI Loops & SDK Public Export Surface
 
+- **`evalgate cluster`** — Group similar failures from a saved run artifact so triage happens cluster-by-cluster instead of one trace at a time. Example: `npx @evalgate/sdk cluster --run .evalgate/runs/latest.json`.
+- **Diversity scoring in `evalgate discover`** — Show a diversity score, nearest-neighbor similarity, and redundant spec pairs so you can spot overlapping eval coverage. Example: `npx @evalgate/sdk discover --manifest`.
+- **`evalgate synthesize`** — Draft deterministic synthetic golden cases from `.evalgate/golden/labeled.jsonl`, with optional dimension expansion. Example: `npx @evalgate/sdk synthesize --dataset .evalgate/golden/labeled.jsonl --dimensions evals/dimensions.json --output .evalgate/golden/synthetic.jsonl`.
+- **`evalgate auto`** — Run a budget-bounded prompt experiment loop that emits `keep`, `discard`, or `investigate` decisions instead of silently mutating your suite. Example: `npx @evalgate/sdk auto --objective tone_mismatch --prompt prompts/support.md --budget 3`.
 - **Programmatic SDK subpaths** — Exported `@evalgate/sdk/replay-decision` and `@evalgate/sdk/promote` so replay decision logic and promote helpers can be imported programmatically without `ERR_PACKAGE_PATH_NOT_EXPORTED`.
 - **Release metadata alignment** — Synchronized SDK package metadata, runtime version constants, and documentation for the `3.1.0` SDK release.
 

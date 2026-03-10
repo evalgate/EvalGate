@@ -57,6 +57,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.discoverSpecs = discoverSpecs;
+exports.calculateDiversityStats = calculateDiversityStats;
 exports.printDiscoveryResults = printDiscoveryResults;
 exports.runDiscover = runDiscover;
 const crypto = __importStar(require("node:crypto"));
@@ -64,6 +65,38 @@ const fs = __importStar(require("node:fs/promises"));
 const path = __importStar(require("node:path"));
 const execution_mode_1 = require("../runtime/execution-mode");
 const manifest_1 = require("./manifest");
+/**
+ * Diversity threshold constant
+ */
+const DIVERSITY_THRESHOLD = 0.55;
+/**
+ * Diversity stop words set
+ */
+const DIVERSITY_STOP_WORDS = new Set([
+    "the",
+    "and",
+    "for",
+    "with",
+    "that",
+    "this",
+    "from",
+    "into",
+    "your",
+    "have",
+    "should",
+    "would",
+    "could",
+    "about",
+    "uses",
+    "using",
+    "spec",
+    "eval",
+    "test",
+    "case",
+    "name",
+    "file",
+    "description",
+]);
 /**
  * Discover and analyze behavioral specifications in the current project
  */
@@ -79,6 +112,12 @@ async function discoverSpecs(options = {}) {
             return {
                 totalSpecs: 0,
                 categories: {},
+                diversity: {
+                    score: 0,
+                    averageNearestNeighborSimilarity: 0,
+                    redundantPairs: [],
+                    threshold: DIVERSITY_THRESHOLD,
+                },
                 files: {},
                 executionMode: {
                     mode: executionMode.mode,
@@ -210,6 +249,7 @@ function analyzeSpecFile(filePath, content) {
         usesModels,
         usesTools,
         complexity,
+        fingerprintText: buildSpecFingerprintText(name, tags, content, complexity, usesModels, usesTools, hasAssertions),
     }));
 }
 /**
@@ -281,6 +321,112 @@ function analyzeComplexity(content) {
         return "medium";
     return "complex";
 }
+function buildSpecFingerprintText(name, tags, content, complexity, usesModels, usesTools, hasAssertions) {
+    const descriptionMatch = content.match(/description\s*:\s*["'`](.+?)["'`](?:\s*,|\s*)/);
+    const dependencyHints = Array.from(content.matchAll(/["'`]([^"'`]+\.(?:md|json|yaml|yml|csv|txt|ts|tsx|js|jsx))["'`]/g))
+        .slice(0, 6)
+        .map((match) => {
+        const value = match[1];
+        return value.split(/[\\/]/).pop() ?? value;
+    })
+        .join(" ");
+    return [
+        name,
+        tags.join(" "),
+        descriptionMatch?.[1] ?? "",
+        dependencyHints,
+        complexity,
+        usesModels ? "model" : "",
+        usesTools ? "tool" : "",
+        hasAssertions ? "assertion" : "",
+    ]
+        .filter((value) => value.length > 0)
+        .join(" ");
+}
+function tokenizeDiversityText(text) {
+    return text
+        .toLowerCase()
+        .split(/\W+/)
+        .map((token) => token.trim())
+        .filter((token) => token.length > 2 && !DIVERSITY_STOP_WORDS.has(token));
+}
+function diversityTokenSet(text) {
+    return new Set(tokenizeDiversityText(text));
+}
+function diversityJaccard(a, b) {
+    if (a.size === 0 && b.size === 0) {
+        return 1;
+    }
+    if (a.size === 0 || b.size === 0) {
+        return 0;
+    }
+    let intersection = 0;
+    for (const token of a) {
+        if (b.has(token)) {
+            intersection++;
+        }
+    }
+    return intersection / (a.size + b.size - intersection);
+}
+function calculateDiversityStats(specs, threshold = DIVERSITY_THRESHOLD) {
+    if (specs.length === 0) {
+        return {
+            score: 0,
+            averageNearestNeighborSimilarity: 0,
+            redundantPairs: [],
+            threshold,
+        };
+    }
+    if (specs.length === 1) {
+        return {
+            score: 100,
+            averageNearestNeighborSimilarity: 0,
+            redundantPairs: [],
+            threshold,
+        };
+    }
+    const fingerprints = specs.map((spec) => diversityTokenSet(spec.fingerprintText ??
+        [
+            spec.name,
+            spec.tags.join(" "),
+            spec.complexity,
+            spec.usesModels ? "model" : "",
+            spec.usesTools ? "tool" : "",
+            spec.hasAssertions ? "assertion" : "",
+        ]
+            .filter((value) => value.length > 0)
+            .join(" ")));
+    const redundantPairs = [];
+    const nearestSimilarities = new Array(specs.length).fill(0);
+    for (let i = 0; i < specs.length; i++) {
+        for (let j = i + 1; j < specs.length; j++) {
+            const similarity = diversityJaccard(fingerprints[i], fingerprints[j]);
+            nearestSimilarities[i] = Math.max(nearestSimilarities[i], similarity);
+            nearestSimilarities[j] = Math.max(nearestSimilarities[j], similarity);
+            if (similarity >= threshold) {
+                redundantPairs.push({
+                    leftSpecId: specs[i].id,
+                    leftName: specs[i].name,
+                    rightSpecId: specs[j].id,
+                    rightName: specs[j].name,
+                    similarity,
+                });
+            }
+        }
+    }
+    const averageNearestNeighborSimilarity = nearestSimilarities.reduce((total, value) => total + value, 0) /
+        specs.length;
+    return {
+        score: Math.max(0, Math.round((1 - averageNearestNeighborSimilarity) * 100)),
+        averageNearestNeighborSimilarity,
+        redundantPairs: redundantPairs
+            .sort((a, b) => b.similarity - a.similarity ||
+            a.leftSpecId.localeCompare(b.leftSpecId) ||
+            a.rightSpecId.localeCompare(b.rightSpecId))
+            .slice(0, 5),
+        threshold,
+    };
+}
 /**
  * Generate specification ID from file path + name + index (unique per defineEval call)
  */
@@ -296,6 +442,7 @@ function generateSpecId(filePath, name, index) {
  */
 function calculateStats(specs, executionMode, project) {
     const categories = {};
+    const diversity = calculateDiversityStats(specs);
     const files = {};
     // Count by categories
     for (const spec of specs) {
@@ -312,6 +459,7 @@ function calculateStats(specs, executionMode, project) {
     return {
         totalSpecs: specs.length,
         categories,
+        diversity,
         files,
         executionMode: {
             mode: executionMode.mode,
@@ -340,6 +488,20 @@ function printDiscoveryResults(stats) {
         for (const [category, count] of sortedCategories) {
             const icon = getCategoryIcon(category);
             console.log(`   ${icon} ${category}: ${count}`);
+        }
+        console.log(``);
+    }
+    if (stats.totalSpecs > 1) {
+        console.log(`🧬 Diversity: ${stats.diversity.score}/100`);
+        console.log(`   Average nearest-neighbor similarity: ${(stats.diversity.averageNearestNeighborSimilarity * 100).toFixed(1)}%`);
+        if (stats.diversity.redundantPairs.length > 0) {
+            console.log(`   Potentially redundant pairs:`);
+            for (const pair of stats.diversity.redundantPairs) {
+                console.log(`   • ${pair.leftName} ↔ ${pair.rightName} (${(pair.similarity * 100).toFixed(1)}%)`);
+            }
+        }
+        else {
+            console.log(`   No high-similarity spec pairs detected`);
         }
         console.log(``);
     }
@@ -407,6 +569,9 @@ function printRecommendations(stats) {
     }
     else {
         console.log(`   🏆 Excellent coverage! Consider running evalgate run`);
+    }
+    if (stats.diversity.redundantPairs.length > 0) {
+        console.log(`   🧹 Some specs look redundant. Consider pruning or merging the highest-similarity pairs`);
     }
     if (!stats.executionMode.hasSpecRuntime &&
         !stats.executionMode.hasLegacyRuntime) {

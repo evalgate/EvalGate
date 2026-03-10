@@ -5,10 +5,17 @@ All notable changes to the @evalgate/sdk package will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+- **Remaining gap — autonomous search depth** — The first `evalgate auto` loop still relies on heuristic prompt-candidate templates and a fixed evaluation policy; it does not yet generate edits with a model, branch across multiple search trajectories, or refine future mutations from prior iteration outcomes.
+
 ## [3.1.0] - 2026-03-09
 
 ### Added
 
+- **`evalgate cluster`** — Groups similar run traces with lightweight Jaccard clustering so failures can be reviewed cluster-by-cluster instead of only one case at a time. Example: `npx evalgate cluster --run .evalgate/runs/latest.json`.
+- **Diversity scoring in `evalgate discover`** — Adds a dataset-level diversity score, average nearest-neighbor similarity, and top redundant spec pairs so you can spot overlapping specs before adding more coverage. Example: `npx evalgate discover --manifest`.
+- **`evalgate synthesize`** — Generates deterministic synthetic golden-case drafts from labeled failure modes, with optional dimension-matrix expansion for broader scenario coverage. Example: `npx evalgate synthesize --dataset .evalgate/golden/labeled.jsonl --dimensions evals/dimensions.json --output .evalgate/golden/synthetic.jsonl`.
+- **`evalgate auto`** — Adds a budget-aware first loop that can stay in planning mode, score a provided candidate run artifact against a baseline, or evaluate prompt candidates and emit `keep` / `discard` / `investigate` decisions. Example: `npx evalgate auto --objective tone_mismatch --prompt prompts/support.md --budget 3`.
 - **Programmatic replay decision exports** — `@evalgate/sdk/replay-decision` is now exported so `evaluateReplayOutcome()` and related types can be imported without `ERR_PACKAGE_PATH_NOT_EXPORTED`.
 - **Programmatic promote exports** — `@evalgate/sdk/promote` is now exported so `runPromote()` and `parsePromoteArgs()` can be reused outside the CLI router.
 

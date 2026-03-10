@@ -37,7 +37,7 @@ export default function QuickStartPage() {
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<Rocket className="h-5 w-5 text-blue-500" />
-								One-Command CI (EvalGate 2.0.0)
+								One-Command CI (EvalGate 3.1.0)
 							</CardTitle>
 							<CardDescription>
 								Complete CI pipeline in a single command. No config needed.
@@ -128,7 +128,9 @@ git push                           # open a PR → CI blocks regressions`}</pre>
 								Python Quickstart
 							</CardTitle>
 							<CardDescription>
-								Same CI gate, same quality checks. Full parity with TypeScript.
+								Core CI/gate parity. For discover diversity, cluster,
+								synthesize, and auto, use the TypeScript CLI via npx
+								@evalgate/sdk ...
 							</CardDescription>
 						</CardHeader>
 						<CardContent>

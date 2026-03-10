@@ -36,6 +36,8 @@ export interface DiscoveryStats {
 	totalSpecs: number;
 	/** Specifications by category/tag */
 	categories: Record<string, number>;
+	/** Diversity and redundancy information */
+	diversity: DiversityStats;
 	/** Specifications by file */
 	files: Record<string, number>;
 	/** Execution mode information */
@@ -75,7 +77,64 @@ export interface SpecAnalysis {
 	usesTools: boolean;
 	/** Estimated complexity */
 	complexity: "simple" | "medium" | "complex";
+	/** Fingerprint text for diversity analysis */
+	fingerprintText?: string;
 }
+
+/**
+ * Redundant specification pair
+ */
+export interface RedundantSpecPair {
+	leftSpecId: string;
+	leftName: string;
+	rightSpecId: string;
+	rightName: string;
+	similarity: number;
+}
+
+/**
+ * Diversity statistics
+ */
+export interface DiversityStats {
+	score: number;
+	averageNearestNeighborSimilarity: number;
+	redundantPairs: RedundantSpecPair[];
+	threshold: number;
+}
+
+/**
+ * Diversity threshold constant
+ */
+const DIVERSITY_THRESHOLD = 0.55;
+
+/**
+ * Diversity stop words set
+ */
+const DIVERSITY_STOP_WORDS = new Set([
+	"the",
+	"and",
+	"for",
+	"with",
+	"that",
+	"this",
+	"from",
+	"into",
+	"your",
+	"have",
+	"should",
+	"would",
+	"could",
+	"about",
+	"uses",
+	"using",
+	"spec",
+	"eval",
+	"test",
+	"case",
+	"name",
+	"file",
+	"description",
+]);
 
 /**
  * Discover and analyze behavioral specifications in the current project
@@ -96,6 +155,12 @@ export async function discoverSpecs(
 			return {
 				totalSpecs: 0,
 				categories: {},
+				diversity: {
+					score: 0,
+					averageNearestNeighborSimilarity: 0,
+					redundantPairs: [],
+					threshold: DIVERSITY_THRESHOLD,
+				},
 				files: {},
 				executionMode: {
 					mode: executionMode.mode,
@@ -262,6 +327,15 @@ function analyzeSpecFile(filePath: string, content: string): SpecAnalysis[] {
 		usesModels,
 		usesTools,
 		complexity,
+		fingerprintText: buildSpecFingerprintText(
+			name,
+			tags,
+			content,
+			complexity,
+			usesModels,
+			usesTools,
+			hasAssertions,
+		),
 	}));
 }
 
@@ -341,6 +415,153 @@ function analyzeComplexity(content: string): "simple" | "medium" | "complex" {
 	return "complex";
 }
 
+function buildSpecFingerprintText(
+	name: string,
+	tags: string[],
+	content: string,
+	complexity: SpecAnalysis["complexity"],
+	usesModels: boolean,
+	usesTools: boolean,
+	hasAssertions: boolean,
+): string {
+	const descriptionMatch = content.match(
+		/description\s*:\s*["'`](.+?)["'`](?:\s*,|\s*)/,
+	);
+	const dependencyHints = Array.from(
+		content.matchAll(
+			/["'`]([^"'`]+\.(?:md|json|yaml|yml|csv|txt|ts|tsx|js|jsx))["'`]/g,
+		),
+	)
+		.slice(0, 6)
+		.map((match) => {
+			const value = match[1];
+			return value.split(/[\\/]/).pop() ?? value;
+		})
+		.join(" ");
+
+	return [
+		name,
+		tags.join(" "),
+		descriptionMatch?.[1] ?? "",
+		dependencyHints,
+		complexity,
+		usesModels ? "model" : "",
+		usesTools ? "tool" : "",
+		hasAssertions ? "assertion" : "",
+	]
+		.filter((value) => value.length > 0)
+		.join(" ");
+}
+
+function tokenizeDiversityText(text: string): string[] {
+	return text
+		.toLowerCase()
+		.split(/\W+/)
+		.map((token) => token.trim())
+		.filter((token) => token.length > 2 && !DIVERSITY_STOP_WORDS.has(token));
+}
+
+function diversityTokenSet(text: string): Set<string> {
+	return new Set(tokenizeDiversityText(text));
+}
+
+function diversityJaccard(a: Set<string>, b: Set<string>): number {
+	if (a.size === 0 && b.size === 0) {
+		return 1;
+	}
+	if (a.size === 0 || b.size === 0) {
+		return 0;
+	}
+
+	let intersection = 0;
+	for (const token of a) {
+		if (b.has(token)) {
+			intersection++;
+		}
+	}
+
+	return intersection / (a.size + b.size - intersection);
+}
+
+export function calculateDiversityStats(
+	specs: SpecAnalysis[],
+	threshold: number = DIVERSITY_THRESHOLD,
+): DiversityStats {
+	if (specs.length === 0) {
+		return {
+			score: 0,
+			averageNearestNeighborSimilarity: 0,
+			redundantPairs: [],
+			threshold,
+		};
+	}
+
+	if (specs.length === 1) {
+		return {
+			score: 100,
+			averageNearestNeighborSimilarity: 0,
+			redundantPairs: [],
+			threshold,
+		};
+	}
+
+	const fingerprints = specs.map((spec) =>
+		diversityTokenSet(
+			spec.fingerprintText ??
+				[
+					spec.name,
+					spec.tags.join(" "),
+					spec.complexity,
+					spec.usesModels ? "model" : "",
+					spec.usesTools ? "tool" : "",
+					spec.hasAssertions ? "assertion" : "",
+				]
+					.filter((value) => value.length > 0)
+					.join(" "),
+		),
+	);
+	const redundantPairs: RedundantSpecPair[] = [];
+	const nearestSimilarities = new Array(specs.length).fill(0);
+
+	for (let i = 0; i < specs.length; i++) {
+		for (let j = i + 1; j < specs.length; j++) {
+			const similarity = diversityJaccard(fingerprints[i]!, fingerprints[j]!);
+			nearestSimilarities[i] = Math.max(nearestSimilarities[i]!, similarity);
+			nearestSimilarities[j] = Math.max(nearestSimilarities[j]!, similarity);
+			if (similarity >= threshold) {
+				redundantPairs.push({
+					leftSpecId: specs[i]!.id,
+					leftName: specs[i]!.name,
+					rightSpecId: specs[j]!.id,
+					rightName: specs[j]!.name,
+					similarity,
+				});
+			}
+		}
+	}
+
+	const averageNearestNeighborSimilarity =
+		nearestSimilarities.reduce((total, value) => total + value, 0) /
+		specs.length;
+
+	return {
+		score: Math.max(
+			0,
+			Math.round((1 - averageNearestNeighborSimilarity) * 100),
+		),
+		averageNearestNeighborSimilarity,
+		redundantPairs: redundantPairs
+			.sort(
+				(a, b) =>
+					b.similarity - a.similarity ||
+					a.leftSpecId.localeCompare(b.leftSpecId) ||
+					a.rightSpecId.localeCompare(b.rightSpecId),
+			)
+			.slice(0, 5),
+		threshold,
+	};
+}
+
 /**
  * Generate specification ID from file path + name + index (unique per defineEval call)
  */
@@ -361,6 +582,7 @@ function calculateStats(
 	project: DiscoveryStats["project"],
 ): DiscoveryStats {
 	const categories: Record<string, number> = {};
+	const diversity = calculateDiversityStats(specs);
 	const files: Record<string, number> = {};
 
 	// Count by categories
@@ -381,6 +603,7 @@ function calculateStats(
 	return {
 		totalSpecs: specs.length,
 		categories,
+		diversity,
 		files,
 		executionMode: {
 			mode: executionMode.mode,
@@ -412,6 +635,24 @@ export function printDiscoveryResults(stats: DiscoveryStats): void {
 		for (const [category, count] of sortedCategories) {
 			const icon = getCategoryIcon(category);
 			console.log(`   ${icon} ${category}: ${count}`);
+		}
+		console.log(``);
+	}
+
+	if (stats.totalSpecs > 1) {
+		console.log(`🧬 Diversity: ${stats.diversity.score}/100`);
+		console.log(
+			`   Average nearest-neighbor similarity: ${(stats.diversity.averageNearestNeighborSimilarity * 100).toFixed(1)}%`,
+		);
+		if (stats.diversity.redundantPairs.length > 0) {
+			console.log(`   Potentially redundant pairs:`);
+			for (const pair of stats.diversity.redundantPairs) {
+				console.log(
+					`   • ${pair.leftName} ↔ ${pair.rightName} (${(pair.similarity * 100).toFixed(1)}%)`,
+				);
+			}
+		} else {
+			console.log(`   No high-similarity spec pairs detected`);
 		}
 		console.log(``);
 	}
@@ -489,6 +730,12 @@ function printRecommendations(stats: DiscoveryStats): void {
 		console.log(`   🎯 Good start! Consider organizing by categories`);
 	} else {
 		console.log(`   🏆 Excellent coverage! Consider running evalgate run`);
+	}
+
+	if (stats.diversity.redundantPairs.length > 0) {
+		console.log(
+			`   🧹 Some specs look redundant. Consider pruning or merging the highest-similarity pairs`,
+		);
 	}
 
 	if (

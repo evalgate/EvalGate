@@ -26,6 +26,7 @@ export interface AnalyzeSummary {
     passRate: number;
     failureModes: FailureMode[];
 }
+export declare function parseLabeledDataset(content: string): LabeledGoldenCase[];
 export declare function analyzeLabeledDataset(rows: LabeledGoldenCase[], top: number): AnalyzeSummary;
 export declare function formatAnalyzeHuman(summary: AnalyzeSummary): string;
 export declare function runAnalyze(argv: string[]): number;

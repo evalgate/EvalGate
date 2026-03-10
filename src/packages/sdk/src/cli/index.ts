@@ -9,9 +9,11 @@
  */
 
 import { runAnalyze } from "./analyze";
+import { runAuto } from "./auto";
 import { runBaseline } from "./baseline";
 import { parseArgs, runCheck } from "./check";
 import { runCICLI } from "./ci";
+import { runCluster } from "./cluster";
 import { runCompareCLI } from "./compare";
 import { runDiffCLI } from "./diff";
 import { discoverSpecs } from "./discover";
@@ -28,6 +30,7 @@ import { runReplay } from "./replay";
 import { runEvaluationsCLI } from "./run";
 import { parseShareArgs, runShare } from "./share";
 import { runStart } from "./start";
+import { runSynthesize } from "./synthesize";
 import {
 	AVAILABLE_TEMPLATES,
 	installTemplate,
@@ -51,9 +54,12 @@ const SUBCOMMAND_HELP: Record<string, string> = {
 	watch: `evalgate watch — Watch mode (re-execute on file save)\n\nUsage:\n  evalgate run --watch [options]\n  evalgate watch [options]\n\nOptions:\n  --debounce <ms>    Debounce interval (default: 300ms)\n  --no-clear         Don't clear screen between runs\n  --format <fmt>     Output format: human (default), json\n  --write-results    Write results to .evalgate/last-run.json\n\nExamples:\n  evalgate run --watch\n  evalgate watch --write-results`,
 	gate: `evalgate gate — Run the regression gate\n\nUsage:\n  evalgate gate [options]\n\nOptions:\n  --format <fmt>   Output format: human (default), json, github\n  --dry-run        Run checks but always exit 0 (preview mode)\n\nExamples:\n  evalgate gate\n  evalgate gate --format json\n  evalgate gate --dry-run`,
 	check: `evalgate check — CI/CD evaluation gate (API-based)\n\nUsage:\n  evalgate check [options]\n\nOptions:\n  --evaluationId <id>  Evaluation to gate on\n  --apiKey <key>       API key (or EVALGATE_API_KEY env)\n  --format <fmt>       Output format: human (default), json, github\n  --explain            Show score breakdown\n  --minScore <n>       Fail if score < n\n  --maxDrop <n>        Fail if score dropped > n\n  --policy <name>      Enforce policy (HIPAA, SOC2, etc.)\n\nExamples:\n  evalgate check --minScore 92 --evaluationId 42`,
+	cluster: `evalgate cluster — Group similar traces for faster cluster-level review\n\nUsage:\n  evalgate cluster [options]\n\nOptions:\n  --run <path>            Run result JSON to cluster (default: searches latest run)\n  --clusters <n>          Requested number of clusters (default: auto)\n  --include-passed        Include passing traces instead of only failures\n  --output <path>         Write cluster report JSON to disk\n  --format <fmt>          Output format: human (default), json`,
+	synthesize: `evalgate synthesize — Generate synthetic golden-case drafts from labeled failures\n\nUsage:\n  evalgate synthesize [options]\n\nOptions:\n  --dataset <path>            Labeled JSONL dataset path (default: .evalgate/golden/labeled.jsonl)\n  --dimensions <path>         Dimension matrix JSON path\n  --failure-mode <name>       Restrict to one or more failure modes (comma-separated)\n  --count <n>                 Number of synthetic cases to generate (default: mode × dimension coverage)\n  --output <path>             Synthetic JSONL output path (default: .evalgate/golden/synthetic.jsonl)\n  --format <fmt>              Output format: human (default), json`,
+	auto: `evalgate auto — Plan or score one budget-aware experiment iteration\n\nUsage:\n  evalgate auto [options]\n\nOptions:\n  --objective <text>          Target failure mode or experiment goal (required)\n  --hypothesis <text>         Human-readable candidate hypothesis\n  --base <ref>                Baseline run report reference (default: baseline)\n  --head <path>               Candidate run report path to evaluate\n  --budget <n>                Planned iteration budget (default: 3)\n  --dry-run                   Produce a plan without making a keep/discard decision\n  --output <path>             Auto report JSON path (default: .evalgate/auto/latest.json)\n  --format <fmt>              Output format: human (default), json`,
 	analyze: `evalgate analyze — Analyze labeled golden dataset failure modes (first pass)\n\nUsage:\n  evalgate analyze [options]\n\nOptions:\n  --dataset <path>  Labeled JSONL dataset path (default: .evalgate/golden/labeled.jsonl)\n  --format <fmt>    Output format: human (default), json\n  --top <n>         Number of top failure modes to show (default: 5)`,
 	explain: `evalgate explain — Explain last gate/check failure\n\nUsage:\n  evalgate explain [options]\n\nOptions:\n  --report <path>  Path to report JSON (default: evals/regression-report.json)\n  --format <fmt>   Output format: human (default), json`,
-	discover: `evalgate discover — Discover behavioral specs\n\nUsage:\n  evalgate discover [options]\n\nOptions:\n  --manifest  Generate evaluation manifest for incremental analysis`,
+	discover: `evalgate discover — Discover behavioral specs\n\nUsage:\n  evalgate discover [options]\n\nOptions:\n  --manifest  Generate evaluation manifest for incremental analysis\n\nAlso reports suite diversity and potentially redundant spec pairs.`,
 	run: `evalgate run — Run evaluation specifications\n\nUsage:\n  evalgate run [options]\n\nOptions:\n  --spec-ids <ids>    Comma-separated list of spec IDs\n  --impacted-only     Run only impacted specs (requires --base)\n  --base <branch>     Base branch for impact analysis\n  --format <fmt>      Output format: human (default), json\n  --write-results     Write results to .evalgate/last-run.json`,
 	diff: `evalgate diff — Compare two run reports\n\nUsage:\n  evalgate diff [options]\n\nOptions:\n  --base <ref>   Base branch or report path\n  --head <path>  Head report path\n  --format <fmt> Output format: human (default), json`,
 	validate: `evalgate validate — Validate spec files without running them\n\nUsage:\n  evalgate validate [options]\n\nOptions:\n  --format <fmt>  Output format: human (default), json`,
@@ -502,6 +508,27 @@ if (subcommand === "init") {
 			);
 			process.exit(2);
 		});
+} else if (subcommand === "cluster") {
+	runCluster(argv.slice(1))
+		.then((code) => process.exit(code))
+		.catch((err) => {
+			console.error(
+				`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`,
+			);
+			process.exit(1);
+		});
+} else if (subcommand === "synthesize") {
+	const code = runSynthesize(argv.slice(1));
+	process.exit(code);
+} else if (subcommand === "auto") {
+	runAuto(argv.slice(1))
+		.then((code) => process.exit(code))
+		.catch((err) => {
+			console.error(
+				`EvalGate ERROR: ${err instanceof Error ? err.message : String(err)}`,
+			);
+			process.exit(1);
+		});
 } else {
 	console.log(`EvalGate CLI
 
@@ -516,9 +543,31 @@ Usage:
     --run <path>               Run result JSON to label (default: searches evals/latest-run.json)
     --output <path>            Labeled JSONL output path (default: .evalgate/golden/labeled.jsonl)
     --format <fmt>             Output format: human (default), json
+  evalgate cluster               Group similar traces for cluster-level review
+    --run <path>               Run result JSON to cluster (default: searches latest run)
+    --clusters <n>             Requested number of clusters (default: auto)
+    --include-passed           Include passing traces instead of only failures
+    --output <path>            Write cluster report JSON to disk
+    --format <fmt>             Output format: human (default), json
+  evalgate synthesize            Generate synthetic golden-case drafts
+    --dataset <path>           Labeled JSONL dataset path (default: .evalgate/golden/labeled.jsonl)
+    --dimensions <path>        Dimension matrix JSON path
+    --failure-mode <name>      Restrict to one or more failure modes (comma-separated)
+    --count <n>                Number of synthetic cases to generate
+    --output <path>            Synthetic JSONL output path (default: .evalgate/golden/synthetic.jsonl)
+    --format <fmt>             Output format: human (default), json
+  evalgate auto                  Plan or score one budget-aware experiment iteration
+    --objective <text>         Target failure mode or experiment goal (required)
+    --hypothesis <text>        Human-readable candidate hypothesis
+    --base <ref>               Baseline run report reference (default: baseline)
+    --head <path>              Candidate run report path to evaluate
+    --budget <n>               Planned iteration budget (default: 3)
+    --dry-run                  Produce a plan without making a keep/discard decision
+    --output <path>            Auto report JSON path (default: .evalgate/auto/latest.json)
+    --format <fmt>             Output format: human (default), json
   evalgate doctor                 Comprehensive CI/CD readiness checklist
     --report                   Output JSON diagnostic bundle (redacted)
-  evalgate analyze                Analyze labeled golden dataset failure modes (first pass)l analysis
+  evalgate analyze                Analyze failure modes from labeled golden JSONL (first pass)l analysis
   evalgate run                   Run evaluation specifications
     --spec-ids <ids>           Comma-separated list of spec IDs to run
     --impacted-only            Run only specs impacted by changes (requires --base)
@@ -564,6 +613,7 @@ Usage:
 Examples:
   evalgate start                                          Zero to eval in one command
   evalgate init --template chatbot                        Scaffold with chatbot evals
+  evalgate cluster --clusters 8                           Review failures in grouped clusters
   evalgate run --watch                                    Re-run on file save
   evalgate compare --base gpt4o.json --head claude.json    Side-by-side run diff
   evalgate run --spec-ids spec1,spec2                     Run specific specs

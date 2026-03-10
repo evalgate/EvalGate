@@ -310,8 +310,42 @@ Every failure prints a clear next step:
 
 | Command | Description |
 |---------|-------------|
-| `npx evalgate discover` | Find and analyze evaluation specs |
-| `npx evalgate discover --manifest` | Generate stable manifest for incremental analysis |
+| `npx evalgate discover` | Find and analyze evaluation specs, including diversity score and redundant spec pairs |
+| `npx evalgate discover --manifest` | Generate stable manifest for incremental analysis and refresh dependency metadata |
+
+### Autoresearch Loops (3.1.0)
+
+| Command | Description |
+|---------|-------------|
+| `npx evalgate cluster --run .evalgate/runs/latest.json` | Group similar failures so you can review recurring patterns cluster-by-cluster |
+| `npx evalgate cluster --include-passed` | Include successful traces when you want to compare healthy vs unhealthy clusters |
+| `npx evalgate synthesize --dataset .evalgate/golden/labeled.jsonl --output .evalgate/golden/synthetic.jsonl` | Draft deterministic synthetic golden cases from labeled failures |
+| `npx evalgate synthesize --dimensions evals/dimensions.json --count 12` | Expand each failure mode across a dimension matrix for broader scenario coverage |
+| `npx evalgate auto --objective hallucination --dry-run` | Print the bounded experiment plan without mutating prompts |
+| `npx evalgate auto --objective tone_mismatch --prompt prompts/support.md --budget 3` | Try prompt candidates, run impacted specs, and emit `keep` / `discard` / `investigate` decisions |
+
+**Recommended workflow:**
+
+```bash
+# 1. Refresh the manifest and inspect overlap before adding more specs
+npx evalgate discover --manifest
+
+# 2. Cluster the latest failing traces so labeling happens by pattern
+npx evalgate cluster --run .evalgate/runs/latest.json
+
+# 3. Turn labeled failures into broader golden-case drafts
+npx evalgate synthesize \
+  --dataset .evalgate/golden/labeled.jsonl \
+  --dimensions evals/dimensions.json \
+  --output .evalgate/golden/synthetic.jsonl
+
+# 4. Run one budgeted prompt experiment loop against the impacted specs
+npx evalgate auto \
+  --objective tone_mismatch \
+  --hypothesis "acknowledge emotion before offering the fix" \
+  --prompt prompts/support.md \
+  --budget 3
+```
 
 ### Impact Analysis
 

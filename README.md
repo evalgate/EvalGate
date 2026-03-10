@@ -235,6 +235,36 @@ npx evalgate analyze --labeled-dataset .evalgate/golden/labeled.jsonl
 # Outputs: Failure mode frequencies, impact rankings, alert recommendations
 ```
 
+### Autoresearch-Inspired CLI Loops
+
+**Use the new loops as a practical workflow, not just isolated commands:**
+
+- **Discover overlap before you spend tokens** — run `evalgate discover --manifest` to regenerate the manifest and inspect diversity / redundant spec pairs before adding more evals.
+- **Cluster failures before labeling or rewriting prompts** — run `evalgate cluster --run .evalgate/runs/latest.json` to review failures cluster-by-cluster instead of one trace at a time.
+- **Draft new golden cases from observed failures** — run `evalgate synthesize --dataset .evalgate/golden/labeled.jsonl --dimensions evals/dimensions.json --output .evalgate/golden/synthetic.jsonl` to expand a failure mode into broader scenario coverage.
+- **Run prompt experiments under budget** — run `evalgate auto --objective tone_mismatch --prompt prompts/support.md --budget 3` to generate prompt candidates, evaluate only impacted specs, and keep or revert changes based on the resulting diff.
+
+```bash
+# 1. Refresh your manifest and inspect eval coverage overlap
+npx evalgate discover --manifest
+
+# 2. Cluster the latest failures so labeling and debugging happen by pattern
+npx evalgate cluster --run .evalgate/runs/latest.json
+
+# 3. Expand the labeled dataset into synthetic drafts for missing scenarios
+npx evalgate synthesize \
+  --dataset .evalgate/golden/labeled.jsonl \
+  --dimensions evals/dimensions.json \
+  --output .evalgate/golden/synthetic.jsonl
+
+# 4. Try one bounded prompt optimization loop
+npx evalgate auto \
+  --objective tone_mismatch \
+  --hypothesis "acknowledge emotion before offering the fix" \
+  --prompt prompts/support.md \
+  --budget 3
+```
+
 ### Cost Tier API (v3.0.2)
 
 **Budget control for evaluation pipelines:**
@@ -292,7 +322,7 @@ evalgate discover → manifest.json → impact-analysis → run → diff
 
 - **Full TypeScript SDK** — [`@evalgate/sdk`](https://www.npmjs.com/package/@evalgate/sdk) with CLI, regression gate, traces, evaluations, LLM judge
 - **Python SDK** — [`pauly4010-evalgate-sdk`](https://pypi.org/project/pauly4010-evalgate-sdk/) with assertions, test workflows, OpenAI/Anthropic/LangChain/CrewAI/AutoGen integrations, and CLI (`evalgate run`, `evalgate gate`, `evalgate ci`)
-- **CLI commands** — `evalgate init`, `evalgate gate`, `evalgate baseline`, `evalgate discover`, `evalgate impact-analysis`, `evalgate check`, `evalgate doctor`, `evalgate explain`, `evalgate print-config`, `evalgate share`
+- **CLI commands** — `evalgate init`, `evalgate gate`, `evalgate baseline`, `evalgate discover`, `evalgate cluster`, `evalgate synthesize`, `evalgate auto`, `evalgate impact-analysis`, `evalgate check`, `evalgate doctor`, `evalgate explain`, `evalgate print-config`, `evalgate share`
 - **Programmatic exports** — gate exit codes, categories, report types via `@evalgate/sdk/regression`
 - **API keys** — scoped keys for CI/CD and production
 
