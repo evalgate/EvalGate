@@ -17,6 +17,8 @@ import {
 	checkJudgeCredibilityWarnings,
 	checkProject,
 	checkProviderEnv,
+	checkReplayDecisionBudgetConfig,
+	checkReplayDecisionReadiness,
 	DOCTOR_EXIT,
 	runDoctor,
 } from "../cli/doctor";
@@ -321,6 +323,53 @@ describe("doctor individual checks", () => {
 			const result = checkProviderEnv();
 			// May pass or skip depending on test environment
 			expect(["pass", "skip"]).toContain(result.status);
+		});
+	});
+
+	describe("replay-decision checks", () => {
+		it("fails replay-decision budget config when traces mode is missing maxTraces", () => {
+			const result = checkReplayDecisionBudgetConfig({
+				evaluationId: "42",
+				normalizedBudget: {
+					mode: "traces",
+				},
+			});
+
+			expect(result.status).toBe("fail");
+			expect(result.message).toContain("maxTraces");
+		});
+
+		it("warns replay-decision readiness when budget exists but no baseline run artifact exists", () => {
+			const result = checkReplayDecisionReadiness(tmpDir, {
+				evaluationId: "42",
+				normalizedBudget: {
+					mode: "traces",
+					maxTraces: 25,
+				},
+			});
+
+			expect(result.status).toBe("warn");
+			expect(result.message).toBe(
+				"budget configured but no baseline run found",
+			);
+			expect(result.remediation).toContain("Run evalgate run once");
+		});
+
+		it("passes replay-decision readiness when run artifacts exist", () => {
+			const runsDir = path.join(tmpDir, ".evalgate", "runs");
+			fs.mkdirSync(runsDir, { recursive: true });
+			fs.writeFileSync(path.join(runsDir, "run-001.json"), "{}", "utf8");
+
+			const result = checkReplayDecisionReadiness(tmpDir, {
+				evaluationId: "42",
+				normalizedBudget: {
+					mode: "traces",
+					maxTraces: 25,
+				},
+			});
+
+			expect(result.status).toBe("pass");
+			expect(result.message).toContain("Found 1 run(s)");
 		});
 	});
 

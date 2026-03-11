@@ -157,6 +157,39 @@ describe("evaluateGate", () => {
 		expect(result.reasonCode).toBe("JUDGE_CREDIBILITY_UNTRUSTWORTHY");
 	});
 
+	it("uses dedicated failure mode threshold code when failure mode alerts are breached", () => {
+		const args: CheckArgs = {
+			...baseArgs,
+			failureModeAlerts: {
+				modes: {
+					tone_mismatch: {
+						alertThreshold: 2,
+					},
+				},
+			},
+		};
+		const quality = {
+			score: 95,
+			total: 20,
+			evaluationRunId: 1,
+			judgeAlignment: {
+				tpr: 0.92,
+				tnr: 0.9,
+				sampleSize: 220,
+				totalFailed: 3,
+				failureModes: {
+					tone_mismatch: 3,
+				},
+			},
+		};
+		const result = evaluateGate(args, quality);
+
+		expect(result.exitCode).toBe(EXIT.FAILURE_MODE_THRESHOLD);
+		expect(result.passed).toBe(false);
+		expect(result.reasonCode).toBe("FAILURE_MODE_THRESHOLD");
+		expect(result.policyEvidence?.failedCheck).toBe("failure_mode_thresholds");
+	});
+
 	it("passes when judge thresholds are configured and metrics satisfy them", () => {
 		const args: CheckArgs = {
 			...baseArgs,

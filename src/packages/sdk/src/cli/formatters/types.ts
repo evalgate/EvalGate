@@ -20,6 +20,7 @@ export type FailureReasonCode =
 	| "DELTA_TOO_HIGH"
 	| "COST_BUDGET_EXCEEDED"
 	| "LATENCY_BUDGET_EXCEEDED"
+	| "FAILURE_MODE_THRESHOLD"
 	| "POLICY_FAILED"
 	| "UNKNOWN"
 	/* Legacy aliases for backward compat */

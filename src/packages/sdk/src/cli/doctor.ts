@@ -972,11 +972,75 @@ export function checkProviderEnv(): CheckResult {
 	};
 }
 
+function isPositiveFiniteNumber(value: unknown): value is number {
+	return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+export function checkReplayDecisionBudgetConfig(
+	config?: EvalAIConfig | null,
+): CheckResult {
+	const budget = config?.normalizedBudget;
+
+	if (!budget) {
+		return {
+			id: "replay_decision_budget_config",
+			label: "Replay-decision budget config",
+			status: "skip",
+			message: "No budget configuration found - replay-decision not applicable",
+		};
+	}
+
+	if (budget.mode !== "traces" && budget.mode !== "cost") {
+		return {
+			id: "replay_decision_budget_config",
+			label: "Replay-decision budget config",
+			status: "fail",
+			message:
+				"run.budget mode must be 'traces' or 'cost' for replay-decision to work correctly",
+			remediation:
+				"Set normalizedBudget.mode to 'traces' with maxTraces, or 'cost' with maxCostUsd.",
+		};
+	}
+
+	if (budget.mode === "traces" && !isPositiveFiniteNumber(budget.maxTraces)) {
+		return {
+			id: "replay_decision_budget_config",
+			label: "Replay-decision budget config",
+			status: "fail",
+			message:
+				"run.budget mode 'traces' requires a positive numeric maxTraces limit",
+			remediation:
+				"Set normalizedBudget.maxTraces to a positive number when normalizedBudget.mode is 'traces'.",
+		};
+	}
+
+	if (budget.mode === "cost" && !isPositiveFiniteNumber(budget.maxCostUsd)) {
+		return {
+			id: "replay_decision_budget_config",
+			label: "Replay-decision budget config",
+			status: "fail",
+			message:
+				"run.budget mode 'cost' requires a positive numeric maxCostUsd limit",
+			remediation:
+				"Set normalizedBudget.maxCostUsd to a positive number when normalizedBudget.mode is 'cost'.",
+		};
+	}
+
+	return {
+		id: "replay_decision_budget_config",
+		label: "Replay-decision budget config",
+		status: "pass",
+		message:
+			budget.mode === "traces"
+				? `Budget mode traces configured with maxTraces=${budget.maxTraces}`
+				: `Budget mode cost configured with maxCostUsd=${budget.maxCostUsd}`,
+	};
+}
+
 export function checkReplayDecisionReadiness(
 	cwd: string,
 	config?: EvalAIConfig | null,
 ): CheckResult {
-	// Check if budget is configured
 	const hasBudgetConfig = config?.normalizedBudget;
 
 	if (!hasBudgetConfig) {
@@ -985,6 +1049,17 @@ export function checkReplayDecisionReadiness(
 			label: "Replay-decision readiness",
 			status: "skip",
 			message: "No budget configuration found - replay-decision not applicable",
+		};
+	}
+
+	const budgetConfigCheck = checkReplayDecisionBudgetConfig(config);
+	if (budgetConfigCheck.status === "fail") {
+		return {
+			id: "replay_decision_readiness",
+			label: "Replay-decision readiness",
+			status: "fail",
+			message: budgetConfigCheck.message,
+			remediation: budgetConfigCheck.remediation,
 		};
 	}
 
@@ -997,10 +1072,9 @@ export function checkReplayDecisionReadiness(
 				id: "replay_decision_readiness",
 				label: "Replay-decision readiness",
 				status: "warn",
-				message:
-					"Budget configured but no previous runs found in .evalgate/runs/",
+				message: "budget configured but no baseline run found",
 				remediation:
-					"Run at least one evaluation before using replay-decision command",
+					"Run evalgate run once to establish a baseline before using replay-decision.",
 			};
 		}
 
@@ -1013,10 +1087,9 @@ export function checkReplayDecisionReadiness(
 				id: "replay_decision_readiness",
 				label: "Replay-decision readiness",
 				status: "warn",
-				message:
-					"Budget configured but no run artifacts found in .evalgate/runs/",
+				message: "budget configured but no baseline run found",
 				remediation:
-					"Run at least one evaluation before using replay-decision command",
+					"Run evalgate run once to establish a baseline before using replay-decision.",
 			};
 		}
 
@@ -1179,7 +1252,10 @@ export async function runDoctor(argv: string[]): Promise<number> {
 	// 11. Provider env vars
 	checks.push(checkProviderEnv());
 
-	// 12. Replay-decision validation
+	// 12. Replay-decision budget config
+	checks.push(checkReplayDecisionBudgetConfig(configResult.config));
+
+	// 13. Replay-decision readiness
 	checks.push(checkReplayDecisionReadiness(cwd, configResult.config));
 
 	// Determine overall status

@@ -309,9 +309,9 @@ export function evaluateGate(
 		);
 		if (alerts.length > 0) {
 			return {
-				exitCode: EXIT.SCORE_BELOW,
+				exitCode: EXIT.FAILURE_MODE_THRESHOLD,
 				passed: false,
-				reasonCode: REASON_CODES.POLICY_FAILED,
+				reasonCode: REASON_CODES.FAILURE_MODE_THRESHOLD,
 				reasonMessage: `Failure mode thresholds breached: ${alerts.join("; ")}`,
 				policyEvidence: {
 					failedCheck: "failure_mode_thresholds",
