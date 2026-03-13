@@ -171,6 +171,7 @@ export function synthesizeLabeledDataset(
 	const grouped = new Map<string, LabeledGoldenCase[]>();
 	for (const row of failedRows) {
 		const failureMode = row.failureMode?.trim();
+		if (!failureMode) continue; // Skip if failureMode is empty/undefined
 		const current = grouped.get(failureMode) ?? [];
 		current.push(row);
 		grouped.set(failureMode, current);
